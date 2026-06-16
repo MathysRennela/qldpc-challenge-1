@@ -799,6 +799,7 @@
  },
  "provenance": {
   "authors": [
+   "Farrokh Labib",
    "Vincent Russo"
   ],
   "construction": "Generalized weight-6 form f = 1 + xy + x^-1 y^2, g = 1 + x^-1 y + x^-2 y^-1; open boundaries via annulus-type boundary-completion engine, (6,6) lattice, std/X-first variant.",
