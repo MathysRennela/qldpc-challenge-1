@@ -13,6 +13,7 @@ import glob
 import html
 import json
 import os
+import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -195,6 +196,7 @@ def load_entries():
             "w": rep["computed"].get("max_check_weight"),
             "tracks": doc["tracks"],
             "authors": ", ".join(doc["provenance"]["authors"]),
+            "authors_list": doc["provenance"]["authors"],
             "construction": doc["provenance"].get("construction", ""),
             "doc": doc, "cert": cert,
         })
@@ -262,6 +264,18 @@ def badge(tier):
             else '<span class="b ub">d &le;</span>')
 
 
+def authors_html(lst):
+    """Render a GitHub-handle author as a profile link, anything else (e.g. a
+    'First Last, ...' citation string) as plain text."""
+    out = []
+    for a in lst:
+        if re.fullmatch(r"[A-Za-z0-9-]+", a):
+            out.append(f'<a href="https://github.com/{a}">@{a}</a>')
+        else:
+            out.append(html.escape(a))
+    return ", ".join(out)
+
+
 def table(te, front):
     head_row = ("<thead><tr><th></th><th data-c=name>code</th>"
                 "<th data-c=n class=num>n</th><th data-c=k class=num>k</th>"
@@ -284,7 +298,7 @@ def table(te, front):
             f'<td class=num>{e["n"]}</td><td class=num>{e["k"]}</td>'
             f'<td class=num>{badge(e["tier"])} {e["d"]}</td>'
             f'<td class=num>{e["eff"]}</td><td class=num>{e["w"]}</td>'
-            f'<td class=auth>{html.escape(e["authors"])}</td></tr>')
+            f'<td class=auth>{authors_html(e["authors_list"])}</td></tr>')
     return f'<table class=board>{head_row}<tbody>{"".join(rows)}</tbody></table>'
 
 
@@ -339,7 +353,7 @@ def detail_page(e):
     # construction / provenance
     pr = doc["provenance"]
     P.append('<section class=blk><h3>Construction &amp; provenance</h3>')
-    P.append(f'<div class=kv><b>authors</b> {html.escape(", ".join(pr["authors"]))}</div>')
+    P.append(f'<div class=kv><b>authors</b> {authors_html(pr["authors"])}</div>')
     P.append(f'<div class=kv><b>construction</b> {html.escape(pr.get("construction",""))}</div>')
     if pr.get("references"):
         refs = []
