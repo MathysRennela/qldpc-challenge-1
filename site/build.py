@@ -1,9 +1,10 @@
 """
 Generate the static leaderboard site from codes/*.json into docs/index.html.
 
-Pure Python, no framework. For each track: a Pareto frontier over (n, k, d),
-a full sortable table, and an SVG scatter of d vs n. Runs the verifier on each
-entry so the displayed params are the computed ones, not the claimed ones.
+Pure Python, no framework, single self-contained HTML file. A code's displayed
+distance tier is earned, not self-declared: it shows d= only when a server
+certificate exists in certs/<slug>.json (d_exact), otherwise d<= (the witness
+upper bound the cheap verifier confirmed).
 """
 
 import glob
@@ -17,23 +18,51 @@ sys.path.insert(0, os.path.join(ROOT, "verify"))
 from qldpc_verify import verify
 
 DOCS = os.path.join(ROOT, "docs")
+CERTS = os.path.join(ROOT, "certs")
+
+ACCENT = "#4f46e5"
+EXACT = "#059669"
+
+# qubit-lattice favicon: indigo tile, 3x3 dot grid with two logical (green) dots
+FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#1e1b4b"/><stop offset="1" stop-color="#4f46e5"/>
+</linearGradient></defs>
+<rect width="32" height="32" rx="7" fill="url(#g)"/>
+<g fill="#c7d2fe">
+<circle cx="9" cy="9" r="2.3"/><circle cx="16" cy="9" r="2.3"/>
+<circle cx="23" cy="9" r="2.3"/><circle cx="9" cy="16" r="2.3"/>
+<circle cx="23" cy="16" r="2.3"/><circle cx="9" cy="23" r="2.3"/>
+<circle cx="16" cy="23" r="2.3"/></g>
+<circle cx="16" cy="16" r="2.6" fill="#34d399"/>
+<circle cx="23" cy="23" r="2.6" fill="#34d399"/></svg>"""
+
+
+def cert_tier(slug, doc):
+    p = os.path.join(CERTS, slug + ".json")
+    if os.path.exists(p):
+        try:
+            with open(p) as f:
+                if json.load(f).get("d_exact"):
+                    return "exact"
+        except Exception:
+            pass
+    return "ub"
 
 
 def load_entries():
     entries = []
     for p in sorted(glob.glob(os.path.join(ROOT, "codes", "*.json"))):
+        slug = os.path.splitext(os.path.basename(p))[0]
         with open(p) as f:
             doc = json.load(f)
         rep = verify(doc)
         if not rep["ok"]:
             continue
         n, k, d = doc["n"], doc["k"], doc["distance"]["d"]
-        confs = [doc["distance"][s]["confidence"] for s in ("X", "Z")
-                 if s in doc["distance"]]
-        tier = "exact" if confs and all(c == "exact" for c in confs) else "ub"
         entries.append({
-            "name": doc["name"], "n": n, "k": k, "d": d,
-            "eff": round(k * d * d / n, 3), "tier": tier,
+            "slug": slug, "name": doc["name"], "n": n, "k": k, "d": d,
+            "eff": round(k * d * d / n, 3), "tier": cert_tier(slug, doc),
             "w": rep["computed"].get("max_check_weight"),
             "tracks": doc["tracks"],
             "authors": ", ".join(doc["provenance"]["authors"]),
@@ -42,88 +71,186 @@ def load_entries():
     return entries
 
 
-def pareto(track_entries):
-    """Non-dominated set over (minimize n, maximize k, maximize d)."""
+def pareto(te):
     front = set()
-    for i, a in enumerate(track_entries):
-        dominated = False
-        for j, b in enumerate(track_entries):
-            if i == j:
-                continue
-            if (b["n"] <= a["n"] and b["k"] >= a["k"] and b["d"] >= a["d"]
-                    and (b["n"] < a["n"] or b["k"] > a["k"] or b["d"] > a["d"])):
-                dominated = True
-                break
-        if not dominated:
+    for i, a in enumerate(te):
+        if not any(i != j and b["n"] <= a["n"] and b["k"] >= a["k"]
+                   and b["d"] >= a["d"] and (b["n"] < a["n"] or b["k"] > a["k"]
+                                             or b["d"] > a["d"])
+                   for j, b in enumerate(te)):
             front.add(i)
     return front
 
 
-def svg_scatter(entries, front_idx):
-    if not entries:
+def svg(te, front):
+    if not te:
         return ""
-    W, H, pad = 460, 300, 44
-    ns = [e["n"] for e in entries]
-    ds = [e["d"] for e in entries]
-    nlo, nhi = min(ns), max(ns)
-    dlo, dhi = min(ds), max(ds)
-    nlo = min(nlo, 0)
-    dlo = min(dlo, 0)
+    W, H, pad = 520, 300, 50
+    ns, ds = [e["n"] for e in te], [e["d"] for e in te]
+    nhi, dhi = max(ns), max(ds)
     def sx(n):
-        return pad + (n - nlo) / max(nhi - nlo, 1) * (W - 2 * pad)
+        return pad + n / max(nhi, 1) * (W - 2 * pad - 10)
     def sy(d):
-        return H - pad - (d - dlo) / max(dhi - dlo, 1) * (H - 2 * pad)
+        return H - pad - d / max(dhi, 1) * (H - 2 * pad)
+    grid = []
+    for gx in range(0, nhi + 1, max(1, round(nhi / 4 / 50) * 50 or 50)):
+        x = sx(gx)
+        grid.append(f'<line x1="{x:.0f}" y1="{pad}" x2="{x:.0f}" y2="{H-pad}" '
+                    f'stroke="#eef2f7"/><text x="{x:.0f}" y="{H-pad+16}" '
+                    f'font-size="10" fill="#94a3b8" text-anchor="middle">{gx}</text>')
+    for gy in range(0, dhi + 1, max(1, round(dhi / 4) or 1)):
+        y = sy(gy)
+        grid.append(f'<line x1="{pad}" y1="{y:.0f}" x2="{W-pad}" y2="{y:.0f}" '
+                    f'stroke="#eef2f7"/><text x="{pad-8}" y="{y+3:.0f}" '
+                    f'font-size="10" fill="#94a3b8" text-anchor="end">{gy}</text>')
     pts = []
-    for i, e in enumerate(entries):
-        filled = i in front_idx
-        col = "#2563eb" if e["tier"] == "exact" else "#9ca3af"
-        pts.append(
-            f'<circle cx="{sx(e["n"]):.1f}" cy="{sy(e["d"]):.1f}" r="5" '
-            f'{"fill=\""+col+"\"" if filled else "fill=\"white\" stroke=\""+col+"\""} '
-            f'stroke-width="1.5"><title>{html.escape(e["name"])}</title></circle>')
-    axis = (f'<line x1="{pad}" y1="{H-pad}" x2="{W-pad}" y2="{H-pad}" '
-            f'stroke="#444"/><line x1="{pad}" y1="{pad}" x2="{pad}" '
-            f'y2="{H-pad}" stroke="#444"/>')
-    labels = (f'<text x="{W/2}" y="{H-8}" text-anchor="middle" '
-              f'font-size="12">n (physical qubits)</text>'
-              f'<text x="14" y="{H/2}" text-anchor="middle" font-size="12" '
-              f'transform="rotate(-90 14 {H/2})">d (distance)</text>')
-    return (f'<svg viewBox="0 0 {W} {H}" class="plot">{axis}{labels}'
+    for i, e in enumerate(te):
+        f = i in front
+        col = EXACT if e["tier"] == "exact" else ACCENT
+        r = 6 if f else 4
+        fill = col if f else "#fff"
+        tip = (f'[[{e["n"]},{e["k"]},{e["d"]}]]  kd2/n={e["eff"]}\n'
+               f'{"exact" if e["tier"]=="exact" else "upper bound"}'
+               f'{", frontier" if f else ""}\n{e["name"]}')
+        cx, cy = sx(e["n"]), sy(e["d"])
+        # visible point (no hover handling) + a larger transparent hit target
+        pts.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r}" fill="{fill}" '
+                   f'stroke="{col}" stroke-width="2" pointer-events="none"/>')
+        pts.append(f'<circle class=hit cx="{cx:.1f}" cy="{cy:.1f}" r="12" '
+                   f'fill="transparent" data-tip="{html.escape(tip)}"/>')
+    return (f'<svg viewBox="0 0 {W} {H}" class="plot" role="img">'
+            + "".join(grid)
+            + f'<text x="{W/2}" y="{H-4}" font-size="11" fill="#475569" '
+            f'text-anchor="middle">n (physical qubits)</text>'
+            f'<text x="14" y="{H/2}" font-size="11" fill="#475569" '
+            f'text-anchor="middle" transform="rotate(-90 14 {H/2})">d</text>'
             + "".join(pts) + "</svg>")
 
 
-def table(entries, front_idx):
-    head = ("<tr><th></th><th>code</th><th>n</th><th>k</th><th>d</th>"
-            "<th>kd&sup2;/n</th><th>w</th><th>authors</th></tr>")
+def badge(tier):
+    if tier == "exact":
+        return '<span class="b exact">d =</span>'
+    return '<span class="b ub">d &le;</span>'
+
+
+def table(te, front):
+    head = ("<thead><tr><th></th><th data-c=name>code</th>"
+            "<th data-c=n class=num>n</th><th data-c=k class=num>k</th>"
+            "<th data-c=d class=num>d</th><th data-c=eff class=num>kd&sup2;/n</th>"
+            "<th data-c=w class=num>w</th><th data-c=auth>authors</th></tr></thead>")
+    order = sorted(range(len(te)), key=lambda i: (-te[i]["k"], -te[i]["d"],
+                                                  te[i]["n"]))
     rows = []
-    order = sorted(range(len(entries)),
-                   key=lambda i: (-entries[i]["k"], -entries[i]["d"],
-                                  entries[i]["n"]))
     for i in order:
-        e = entries[i]
-        star = "&#9733;" if i in front_idx else ""
-        badge = ('<span class="exact">d=</span>' if e["tier"] == "exact"
-                 else '<span class="ub">d&le;</span>')
+        e = te[i]
+        fr = i in front
         rows.append(
-            f'<tr class="{"front" if i in front_idx else ""}">'
-            f'<td>{star}</td><td title="{html.escape(e["construction"])}">'
-            f'{html.escape(e["name"])}</td><td>{e["n"]}</td><td>{e["k"]}</td>'
-            f'<td>{badge} {e["d"]}</td><td>{e["eff"]}</td><td>{e["w"]}</td>'
-            f'<td>{html.escape(e["authors"])}</td></tr>')
-    return f"<table>{head}{''.join(rows)}</table>"
+            f'<tr class="{"fr" if fr else ""}" data-name="{html.escape(e["name"])}" '
+            f'data-n="{e["n"]}" data-k="{e["k"]}" data-d="{e["d"]}" '
+            f'data-eff="{e["eff"]}" data-w="{e["w"]}" '
+            f'data-auth="{html.escape(e["authors"])}">'
+            f'<td class="star">{"&#9733;" if fr else ""}</td>'
+            f'<td><span class=mono>[[{e["n"]},{e["k"]},{e["d"]}]]</span> '
+            f'<span class=cname title="{html.escape(e["construction"])}">'
+            f'{html.escape(e["name"])}</span></td>'
+            f'<td class=num>{e["n"]}</td><td class=num>{e["k"]}</td>'
+            f'<td class=num>{badge(e["tier"])} {e["d"]}</td>'
+            f'<td class=num>{e["eff"]}</td><td class=num>{e["w"]}</td>'
+            f'<td class=auth>{html.escape(e["authors"])}</td></tr>')
+    return f'<table class=board>{head}<tbody>{"".join(rows)}</tbody></table>'
 
 
-CSS = """
-body{font-family:system-ui,sans-serif;max-width:1000px;margin:2rem auto;
-padding:0 1rem;color:#111;line-height:1.5}
-h1{margin-bottom:.2rem}.sub{color:#555;margin-top:0}
-table{border-collapse:collapse;width:100%;margin:.5rem 0 2rem;font-size:14px}
-th,td{border-bottom:1px solid #e5e7eb;padding:.4rem .6rem;text-align:left}
-th{border-bottom:2px solid #999}tr.front{background:#f0f6ff}
-.exact{color:#2563eb;font-weight:600}.ub{color:#777}
-.plot{border:1px solid #eee;background:#fff;float:right;margin:0 0 1rem 1rem}
-.track{clear:both;border-top:3px solid #111;padding-top:1rem}
-.legend{color:#555;font-size:13px}code{background:#f4f4f4;padding:0 .2rem}
+CSS = f"""
+:root{{--ink:#0f172a;--mut:#64748b;--ln:#e2e8f0;--ac:{ACCENT};--ex:{EXACT};
+--bg:#fff;--soft:#f8fafc}}
+*{{box-sizing:border-box}}
+body{{font-family:'Inter',system-ui,-apple-system,sans-serif;color:var(--ink);
+margin:0;background:var(--bg);line-height:1.55}}
+.mono{{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-weight:600;
+font-size:.92em}}
+.wrap{{max-width:1080px;margin:0 auto;padding:0 24px}}
+header.hero{{background:linear-gradient(160deg,#1e1b4b,#4f46e5);color:#fff;
+padding:64px 0 56px}}
+header.hero h1{{font-size:44px;margin:0 0 8px;letter-spacing:-1px}}
+header.hero p{{font-size:18px;max-width:620px;margin:0;color:#dbeafe}}
+.stats{{display:flex;gap:40px;margin-top:32px;flex-wrap:wrap}}
+.stat .v{{font-size:30px;font-weight:700}}.stat .l{{color:#c7d2fe;font-size:13px;
+text-transform:uppercase;letter-spacing:.05em}}
+.how{{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:40px 0}}
+.how .card{{border:1px solid var(--ln);border-radius:12px;padding:20px;
+background:var(--soft)}}
+.how .n{{display:inline-flex;width:26px;height:26px;border-radius:50%;
+background:var(--ac);color:#fff;align-items:center;justify-content:center;
+font-size:14px;font-weight:700;margin-bottom:10px}}
+.how h3{{margin:.2rem 0;font-size:16px}}.how p{{margin:0;color:var(--mut);
+font-size:14px}}
+h2.track{{font-size:24px;margin:48px 0 4px;padding-top:24px;
+border-top:1px solid var(--ln)}}
+.tcount{{color:var(--mut);font-size:14px;font-weight:400}}
+.plot{{float:right;width:46%;min-width:360px;margin:0 0 12px 24px;
+border:1px solid var(--ln);border-radius:12px;background:#fff;padding:8px}}
+table.board{{border-collapse:collapse;width:100%;font-size:14px;margin:12px 0}}
+.board th,.board td{{padding:.55rem .7rem;text-align:left;
+border-bottom:1px solid var(--ln)}}
+.board th{{font-size:12px;text-transform:uppercase;letter-spacing:.04em;
+color:var(--mut);cursor:pointer;user-select:none;border-bottom:2px solid var(--ln)}}
+.board th:hover{{color:var(--ink)}}.board td.num,.board th.num{{text-align:right;
+font-variant-numeric:tabular-nums}}
+.board tr.fr{{background:#f5f3ff}}.board tr.fr td:first-child{{
+box-shadow:inset 3px 0 0 var(--ac)}}
+.star{{color:var(--ac);width:18px}}.cname{{color:var(--mut);font-size:13px}}
+.auth{{color:var(--mut);font-size:13px}}
+.b{{display:inline-block;font-size:11px;font-weight:700;padding:1px 6px;
+border-radius:5px;font-family:ui-monospace,monospace}}
+.b.exact{{background:#d1fae5;color:var(--ex)}}.b.ub{{background:#eef2f7;
+color:var(--mut)}}
+footer{{margin:64px 0 48px;padding-top:24px;border-top:1px solid var(--ln);
+color:var(--mut);font-size:14px}}
+a{{color:var(--ac);text-decoration:none}}a:hover{{text-decoration:underline}}
+code{{background:var(--soft);padding:1px 5px;border-radius:4px;font-size:.9em}}
+.legend{{display:flex;flex-wrap:wrap;gap:18px;margin:28px 0 4px;padding:14px 16px;
+background:var(--soft);border:1px solid var(--ln);border-radius:10px;
+font-size:13px;color:var(--mut)}}
+.legend b{{color:var(--ink)}}
+.dot{{display:inline-block;width:11px;height:11px;border-radius:50%;
+vertical-align:-1px;margin-right:2px}}
+.dot.ex{{background:var(--ex)}}.dot.ac{{background:var(--ac)}}
+.dot.ho{{background:#fff;border:2px solid var(--ac)}}
+.hit{{cursor:pointer}}
+#tip{{position:fixed;pointer-events:none;z-index:60;background:#0f172a;
+color:#fff;padding:7px 10px;border-radius:7px;font-size:12px;line-height:1.45;
+white-space:pre-line;box-shadow:0 6px 20px rgba(2,6,23,.28);opacity:0;
+transition:opacity .06s;max-width:300px}}
+#tip.show{{opacity:1}}
+#tip .p{{font-family:ui-monospace,monospace;font-weight:700}}
+@media(max-width:760px){{.how{{grid-template-columns:1fr}}.plot{{float:none;
+width:100%;margin:12px 0}}header.hero h1{{font-size:34px}}}}
+"""
+
+JS = """
+document.querySelectorAll('table.board').forEach(t=>{
+ t.querySelectorAll('th[data-c]').forEach((th,ci)=>{
+  let asc=true;
+  th.addEventListener('click',()=>{
+   const c=th.dataset.c, num=th.classList.contains('num');
+   const rows=[...t.querySelectorAll('tbody tr')];
+   rows.sort((a,b)=>{let x=a.dataset[c],y=b.dataset[c];
+    if(num){x=parseFloat(x);y=parseFloat(y);return asc?x-y:y-x;}
+    return asc?(''+x).localeCompare(y):(''+y).localeCompare(x);});
+   asc=!asc; const tb=t.querySelector('tbody'); rows.forEach(r=>tb.appendChild(r));
+  });
+ });
+});
+const tip=document.getElementById('tip');
+document.querySelectorAll('circle.hit').forEach(c=>{
+ c.addEventListener('mouseenter',()=>{tip.textContent=c.dataset.tip;
+  tip.classList.add('show');});
+ c.addEventListener('mousemove',e=>{
+  let x=e.clientX+14,y=e.clientY+14;
+  if(x+310>innerWidth)x=e.clientX-tip.offsetWidth-14;
+  tip.style.left=x+'px';tip.style.top=y+'px';});
+ c.addEventListener('mouseleave',()=>tip.classList.remove('show'));
+});
 """
 
 
@@ -133,30 +260,83 @@ def build():
     for i, e in enumerate(entries):
         for t in e["tracks"]:
             tracks.setdefault(t, []).append(i)
-    parts = [f"<!doctype html><meta charset=utf-8><title>qLDPC challenge</title>"
-             f"<style>{CSS}</style>",
-             "<h1>qLDPC challenge leaderboard</h1>",
-             f"<p class=sub>{len(entries)} verified codes across "
-             f"{len(tracks)} tracks. "
-             '<span class="exact">d=</span> server-certified exact, '
-             '<span class="ub">d&le;</span> self-certified upper bound. '
-             "&#9733; = on the (n,k,d) Pareto frontier.</p>"]
+    n_exact = sum(1 for e in entries if e["tier"] == "exact")
+    best_eff = max((e["eff"] for e in entries), default=0)
+
+    P = ['<!doctype html><html lang=en><head><meta charset=utf-8>',
+         '<meta name=viewport content="width=device-width,initial-scale=1">',
+         '<title>qLDPC Challenge</title>',
+         '<link rel=icon type="image/svg+xml" href="favicon.svg">',
+         '<link rel=preconnect href="https://fonts.googleapis.com">',
+         '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;'
+         '600;700&display=swap" rel=stylesheet>',
+         f'<style>{CSS}</style></head><body>']
+    P.append('<header class=hero><div class=wrap>'
+             '<h1>qLDPC Challenge</h1>'
+             '<p>Find better quantum low-density parity-check codes. Submit one '
+             'as a pull request, and the verifier checks every parameter '
+             'automatically &mdash; including a proof of the distance. If it '
+             'holds up, it lands on the board.</p>'
+             '<div class=stats>'
+             f'<div class=stat><div class=v>{len(entries)}</div>'
+             '<div class=l>verified codes</div></div>'
+             f'<div class=stat><div class=v>{len(tracks)}</div>'
+             '<div class=l>tracks</div></div>'
+             f'<div class=stat><div class=v>{n_exact}</div>'
+             '<div class=l>certified exact</div></div>'
+             f'<div class=stat><div class=v>{best_eff:g}</div>'
+             '<div class=l>best kd&sup2;/n</div></div>'
+             '</div></div></header>')
+    P.append('<div class=wrap>')
+    P.append('<div class=how>'
+             '<div class=card><span class=n>1</span><h3>Build a code</h3>'
+             '<p>A CSS qLDPC code, written as one JSON file with its parity '
+             'checks and a distance witness.</p></div>'
+             '<div class=card><span class=n>2</span><h3>Open a PR</h3>'
+             '<p>Add it under <code>codes/</code>. CI runs the verifier on '
+             'every submission automatically.</p></div>'
+             '<div class=card><span class=n>3</span><h3>Climb the board</h3>'
+             '<p>If it advances a track&rsquo;s frontier it is highlighted. '
+             '<span class="b exact">d =</span> is server-certified exact, '
+             '<span class="b ub">d &le;</span> a self-certified upper bound.</p>'
+             '</div></div>')
+    P.append('<div class=legend>'
+             '<span class=key>&#9733; <b>frontier</b>: no code beats it on all '
+             'of (n, k, d); highlighted rows and filled points.</span>'
+             '<span class=key><span class="dot ex"></span> certified exact '
+             '(<span class="b exact">d =</span>)</span>'
+             '<span class=key><span class="dot ac"></span> upper bound '
+             '(<span class="b ub">d &le;</span>)</span>'
+             '<span class=key><span class="dot ho"></span> open point = '
+             'dominated (off-frontier)</span>'
+             '<span class=key>hover a point for its parameters</span></div>')
     for t in sorted(tracks):
-        idxs = tracks[t]
-        te = [entries[i] for i in idxs]
+        te = [entries[i] for i in tracks[t]]
         fr = pareto(te)
-        parts.append(f'<div class="track"><h2>{html.escape(t)} '
-                     f'<span class=legend>({len(te)} codes)</span></h2>')
-        parts.append(svg_scatter(te, fr))
-        parts.append(table(te, fr))
-        parts.append("</div>")
-    parts.append('<p class=legend>Submit a code by PR; see '
-                 '<code>schema/SCHEMA.md</code> and <code>TRACKS.md</code>. '
-                 "Baseline codes from arXiv:2504.08887.</p>")
+        P.append(f'<h2 class=track>{html.escape(t)} '
+                 f'<span class=tcount>&middot; {len(te)} codes, '
+                 f'{len(fr)} on the frontier</span></h2>')
+        P.append(svg(te, fr))
+        P.append(table(te, fr))
+    P.append('<footer>Submit a code by pull request &mdash; see '
+             '<a href="https://github.com/unitaryfoundation/qldpc-challenge/'
+             'blob/main/CONTRIBUTING.md">CONTRIBUTING</a>, '
+             '<a href="https://github.com/unitaryfoundation/qldpc-challenge/'
+             'blob/main/schema/SCHEMA.md">the schema</a>, and '
+             '<a href="https://github.com/unitaryfoundation/qldpc-challenge/'
+             'blob/main/TRACKS.md">the tracks</a>. &#9733; marks the (n,k,d) '
+             'Pareto frontier. Baseline codes from arXiv:2504.08887.</footer>')
+    P.append('</div>')
+    P.append('<div id=tip></div>')
+    P.append(f'<script>{JS}</script></body></html>')
+
     os.makedirs(DOCS, exist_ok=True)
     with open(os.path.join(DOCS, "index.html"), "w") as f:
-        f.write("\n".join(parts))
-    print(f"wrote docs/index.html: {len(entries)} codes, {len(tracks)} tracks")
+        f.write("\n".join(P))
+    with open(os.path.join(DOCS, "favicon.svg"), "w") as f:
+        f.write(FAVICON)
+    print(f"wrote docs/index.html: {len(entries)} codes, {len(tracks)} "
+          f"tracks, {n_exact} certified exact")
 
 
 if __name__ == "__main__":

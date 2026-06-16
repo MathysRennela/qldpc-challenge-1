@@ -25,12 +25,68 @@ What "verified" means per field:
 
 import json
 import math
+import os
 import sys
 
 import numpy as np
 
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
 import gf2
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_SCHEMA_PATH = os.path.join(_HERE, "..", "schema", "code.schema.json")
+try:
+    import jsonschema
+    with open(_SCHEMA_PATH) as _f:
+        _SCHEMA = json.load(_f)
+except Exception:
+    jsonschema = None
+    _SCHEMA = None
+
+# minimal required structure, used when jsonschema is unavailable
+_REQUIRED = ["schema_version", "name", "code_type", "n", "k", "checks",
+             "distance", "provenance", "tracks"]
+
+
+def structure_errors(doc):
+    """Return a list of human-readable structural problems, or [] if the doc
+    conforms. Uses jsonschema when installed, else a minimal key/type check."""
+    if not isinstance(doc, dict):
+        return ["top-level value is not a JSON object"]
+    if jsonschema is not None and _SCHEMA is not None:
+        v = jsonschema.Draft202012Validator(_SCHEMA)
+        return [f"{'/'.join(str(p) for p in e.path) or '<root>'}: {e.message}"
+                for e in sorted(v.iter_errors(doc), key=lambda e: list(e.path))]
+    errs = [f"missing field: {k}" for k in _REQUIRED if k not in doc]
+    if "checks" in doc and not (isinstance(doc["checks"], dict)
+                                and "X" in doc["checks"] and "Z" in doc["checks"]):
+        errs.append("checks must have X and Z support lists")
+    return errs
+
+
+def signature(doc):
+    """Permutation-invariant fingerprint. Two codes equal up to a qubit
+    permutation must share this; differing signatures are provably distinct
+    codes. Equal signatures only FLAG a possible duplicate (necessary, not
+    sufficient). Full code equivalence is not auto-decided."""
+    n = doc["n"]
+    X, Z = doc["checks"]["X"], doc["checks"]["Z"]
+    xw = sorted(len(s) for s in X)
+    zw = sorted(len(s) for s in Z)
+    xdeg = [0] * n
+    zdeg = [0] * n
+    for s in X:
+        for q in s:
+            xdeg[q] += 1
+    for s in Z:
+        for q in s:
+            zdeg[q] += 1
+    qtypes = sorted(zip(xdeg, zdeg))
+    payload = json.dumps([n, doc["k"], doc["distance"]["d"], xw, zw, qtypes],
+                         sort_keys=True)
+    import hashlib
+    return {"hash": hashlib.sha256(payload.encode()).hexdigest()[:16],
+            "n": n, "k": doc["k"], "d": doc["distance"]["d"]}
 
 
 def _matrix(support_list, n):
@@ -49,14 +105,30 @@ def _vec(support, n):
 
 
 def verify(doc):
-    report = {"name": doc.get("name"), "checks": [], "ok": True,
-              "computed": {}, "earned_distance": {}}
+    report = {"name": doc.get("name") if isinstance(doc, dict) else None,
+              "checks": [], "ok": True, "computed": {}, "earned_distance": {}}
 
     def record(label, ok, detail=""):
         report["checks"].append({"check": label, "ok": bool(ok),
                                   "detail": detail})
         if not ok:
             report["ok"] = False
+
+    # structural validation first: a malformed doc fails cleanly here rather
+    # than crashing the arithmetic below.
+    serr = structure_errors(doc)
+    record("schema_valid", not serr, "; ".join(serr[:4]))
+    if serr:
+        return report
+    try:
+        report["signature"] = signature(doc)
+        return _verify_semantic(doc, report, record)
+    except Exception as e:  # never crash on a hostile submission
+        record("verifier_ran", False, f"{type(e).__name__}: {e}")
+        return report
+
+
+def _verify_semantic(doc, report, record):
 
     n = doc["n"]
     HX = _matrix(doc["checks"]["X"], n)

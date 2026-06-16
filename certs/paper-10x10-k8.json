@@ -1,0 +1,19 @@
+{
+ "name": "[[200,8,9]] planar BB (paper Table V baseline)",
+ "d": 9,
+ "sides": {
+  "X": {
+   "value": 9,
+   "exact": true,
+   "note": "no logical < 9 exists"
+  },
+  "Z": {
+   "value": 9,
+   "exact": true,
+   "note": "no logical < 9 exists"
+  }
+ },
+ "d_exact": true,
+ "solver": "scipy/HiGHS cutoff IP",
+ "tlim_per_solve": 120
+}

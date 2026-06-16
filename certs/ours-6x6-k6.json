@@ -1,0 +1,19 @@
+{
+ "name": "[[72,6,6]] weight-6 planar (generalized BB, our record family)",
+ "d": 6,
+ "sides": {
+  "X": {
+   "value": 6,
+   "exact": true,
+   "note": "no logical < 6 exists"
+  },
+  "Z": {
+   "value": 6,
+   "exact": true,
+   "note": "no logical < 6 exists"
+  }
+ },
+ "d_exact": true,
+ "solver": "scipy/HiGHS cutoff IP",
+ "tlim_per_solve": 120
+}
