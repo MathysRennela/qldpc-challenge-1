@@ -60,3 +60,41 @@ def commutes(v, H):
     H = _as_gf2(H)
     v = _as_gf2(v)
     return not bool(((H @ v) % 2).any())
+
+
+def kernel_basis(H):
+    """Basis of {v : H v = 0 over GF(2)} as rows of an array."""
+    H = _as_gf2(H)
+    n = H.shape[1]
+    R, piv = rref(H)
+    pivset = set(piv)
+    free = [c for c in range(n) if c not in pivset]
+    B = np.zeros((len(free), n), dtype=np.int8)
+    for idx, fc in enumerate(free):
+        B[idx, fc] = 1
+        for i, p in enumerate(piv):
+            B[idx, p] = R[i, fc] % 2
+    return B
+
+
+def logical_basis(HX, HZ):
+    """Z-type logical representatives: ker(H_X) reduced modulo rowspace(H_Z).
+    These are the operators a nontrivial X-type logical must anticommute with.
+    Mirror with (HZ, HX) for the X-type logicals."""
+    SZ, piv = rref(HZ)
+    SZ = SZ.copy()
+    piv = list(piv)
+    out = []
+    for v in kernel_basis(HX):
+        v = v.copy()
+        for i, p in enumerate(piv):
+            if v[p]:
+                v = (v ^ SZ[i]).astype(np.int8)
+        if v.any():
+            out.append(v.copy())
+            SZ = np.vstack([SZ, v])
+            SZ, p2 = rref(SZ)
+            SZ = SZ.copy()
+            piv = list(p2)
+    return np.array(out, dtype=np.int8) if out else np.zeros((0, HX.shape[1]),
+                                                             dtype=np.int8)

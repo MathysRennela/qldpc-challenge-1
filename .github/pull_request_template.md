@@ -1,0 +1,15 @@
+## Code submission
+
+- Parameters: [[n, k, d]] =
+- Tracks:
+- Distance confidence: upper_bound / exact
+
+### Checklist
+- [ ] One JSON file under `codes/`, conforming to `schema/code.schema.json`
+- [ ] Distance witness(es) included for each reported side
+- [ ] `python verify/qldpc_verify.py codes/<file>.json` passes locally
+- [ ] Construction and references filled in under `provenance`
+- [ ] If this may be equivalent to an existing entry, noted in `provenance.notes`
+
+### What frontier does this advance?
+(Which track, and which existing entry does it beat or extend, and on which axis.)
