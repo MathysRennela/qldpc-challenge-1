@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/unitaryfoundation/qldpc-challenge/schema/code.schema.json",
+  "title": "qLDPC code submission",
+  "description": "A single CSS qLDPC code submission. Parity checks are given as sparse supports (lists of qubit indices). Distance claims must carry a self-certifying witness operator for the upper-bound tier.",
+  "type": "object",
+  "required": ["schema_version", "name", "code_type", "n", "k", "checks", "distance", "provenance", "tracks"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "name": {"type": "string", "minLength": 1, "maxLength": 200},
+    "code_type": {"enum": ["CSS"]},
+    "n": {"type": "integer", "minimum": 1, "description": "number of physical (data) qubits"},
+    "k": {"type": "integer", "minimum": 1, "description": "claimed number of logical qubits; verifier recomputes exactly"},
+    "checks": {
+      "type": "object",
+      "required": ["X", "Z"],
+      "additionalProperties": false,
+      "properties": {
+        "X": {"$ref": "#/$defs/supportList"},
+        "Z": {"$ref": "#/$defs/supportList"}
+      }
+    },
+    "distance": {
+      "type": "object",
+      "required": ["d"],
+      "additionalProperties": false,
+      "properties": {
+        "d": {"type": "integer", "minimum": 1, "description": "claimed code distance = min(dX, dZ)"},
+        "X": {"$ref": "#/$defs/sideDistance"},
+        "Z": {"$ref": "#/$defs/sideDistance"}
+      }
+    },
+    "locality": {
+      "type": "object",
+      "description": "optional; required only for the 2d-local tracks",
+      "required": ["coordinates"],
+      "additionalProperties": false,
+      "properties": {
+        "coordinates": {
+          "type": "array",
+          "description": "one [x, y] per qubit, indexed 0..n-1",
+          "items": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}
+        },
+        "layers": {"type": "integer", "minimum": 1, "description": "physical layers (e.g. 2 for flip-chip bilayer)"},
+        "interaction_radius": {"type": "number", "minimum": 0, "description": "claimed max check diameter in the layout; verifier recomputes"}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["authors", "construction"],
+      "additionalProperties": false,
+      "properties": {
+        "authors": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "construction": {"type": "string", "minLength": 1, "description": "how the code was built (family, polynomials, search, reference)"},
+        "references": {"type": "array", "items": {"type": "string"}},
+        "date": {"type": "string", "format": "date"},
+        "notes": {"type": "string"}
+      }
+    },
+    "tracks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string"},
+      "description": "track ids this code is entered into; see TRACKS.md"
+    }
+  },
+  "$defs": {
+    "supportList": {
+      "type": "array",
+      "description": "one entry per parity check; each entry is the sorted list of distinct qubit indices in that check's support",
+      "items": {
+        "type": "array",
+        "items": {"type": "integer", "minimum": 0},
+        "minItems": 1
+      }
+    },
+    "sideDistance": {
+      "type": "object",
+      "required": ["value", "confidence", "witness"],
+      "additionalProperties": false,
+      "properties": {
+        "value": {"type": "integer", "minimum": 1},
+        "confidence": {
+          "enum": ["upper_bound", "exact"],
+          "description": "upper_bound: self-certified by the witness. exact: also requires server certification; treated as upper_bound until confirmed."
+        },
+        "witness": {
+          "type": "array",
+          "items": {"type": "integer", "minimum": 0},
+          "minItems": 1,
+          "description": "support of a nontrivial logical operator of this Pauli type achieving `value`. X-witness lives in ker(H_Z) and outside rowspace(H_X); Z-witness mirrors."
+        }
+      }
+    }
+  }
+}
