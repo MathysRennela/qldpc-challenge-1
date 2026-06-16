@@ -1,0 +1,316 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>[[198,12,7]] weight-6 planar (k=12 leader family)</title><link rel=icon type="image/svg+xml" href="../favicon.svg"><link rel=preconnect href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel=stylesheet><style>
+:root{--ink:#0f172a;--mut:#64748b;--ln:#e2e8f0;--ac:#4f46e5;--ex:#059669;
+--bg:#fff;--soft:#f8fafc}
+*{box-sizing:border-box}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;color:var(--ink);
+margin:0;background:var(--bg);line-height:1.55}
+.mono{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-weight:600}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+header.hero{background:linear-gradient(160deg,#1e1b4b,#4f46e5);color:#fff;
+padding:60px 0 52px}
+header.hero h1{font-size:44px;margin:0 0 8px;letter-spacing:-1px}
+header.hero h1 a{color:#fff}
+header.hero p{font-size:18px;max-width:640px;margin:0;color:#dbeafe}
+.stats{display:flex;gap:40px;margin-top:30px;flex-wrap:wrap}
+.stat .v{font-size:30px;font-weight:700}.stat .l{color:#c7d2fe;font-size:13px;
+text-transform:uppercase;letter-spacing:.05em}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:40px 0}
+.how .card{border:1px solid var(--ln);border-radius:12px;padding:20px;
+background:var(--soft)}
+.how .n{display:inline-flex;width:26px;height:26px;border-radius:50%;
+background:var(--ac);color:#fff;align-items:center;justify-content:center;
+font-size:14px;font-weight:700;margin-bottom:10px}
+.how h3{margin:.2rem 0;font-size:16px}.how p{margin:0;color:var(--mut);
+font-size:14px}
+.legend{display:flex;flex-wrap:wrap;gap:18px;margin:28px 0 4px;padding:14px 16px;
+background:var(--soft);border:1px solid var(--ln);border-radius:10px;
+font-size:13px;color:var(--mut)}
+.legend b{color:var(--ink)}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;
+vertical-align:-1px;margin-right:2px}
+.dot.ex{background:var(--ex)}.dot.ac{background:var(--ac)}
+.dot.ho{background:#fff;border:2px solid var(--ac)}
+h2.track{font-size:24px;margin:48px 0 4px;padding-top:24px;
+border-top:1px solid var(--ln)}
+.tcount{color:var(--mut);font-size:14px;font-weight:400}
+.plot{float:right;width:46%;min-width:360px;margin:0 0 12px 24px;
+border:1px solid var(--ln);border-radius:12px;background:#fff;padding:8px}
+table.board{border-collapse:collapse;width:100%;font-size:14px;margin:12px 0}
+.board th,.board td{padding:.55rem .7rem;text-align:left;
+border-bottom:1px solid var(--ln)}
+.board th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;
+color:var(--mut);cursor:pointer;user-select:none;border-bottom:2px solid var(--ln)}
+.board th:hover{color:var(--ink)}.board td.num,.board th.num{text-align:right;
+font-variant-numeric:tabular-nums}
+.board tbody tr{cursor:pointer}.board tbody tr:hover{background:#eef2ff}
+.board tr.fr{background:#f5f3ff}.board tr.fr td:first-child{
+box-shadow:inset 3px 0 0 var(--ac)}
+.board tr.fr:hover{background:#ecebff}
+.star{color:var(--ac);width:18px}.cname{color:var(--mut);font-size:13px}
+.auth{color:var(--mut);font-size:13px}
+.b{display:inline-block;font-size:11px;font-weight:700;padding:1px 6px;
+border-radius:5px;font-family:ui-monospace,monospace}
+.b.exact{background:#d1fae5;color:var(--ex)}.b.ub{background:#eef2f7;
+color:var(--mut)}
+footer{margin:64px 0 48px;padding-top:24px;border-top:1px solid var(--ln);
+color:var(--mut);font-size:14px}
+a{color:var(--ac);text-decoration:none}a:hover{text-decoration:underline}
+code{background:var(--soft);padding:1px 5px;border-radius:4px;font-size:.9em}
+.hit{cursor:pointer}
+#tip{position:fixed;pointer-events:none;z-index:60;background:#0f172a;
+color:#fff;padding:7px 10px;border-radius:7px;font-size:12px;line-height:1.45;
+white-space:pre-line;box-shadow:0 6px 20px rgba(2,6,23,.28);opacity:0;
+transition:opacity .06s;max-width:300px}
+#tip.show{opacity:1}
+/* detail page */
+.back{display:inline-block;margin:24px 0 0;font-size:14px}
+.codehead{margin:8px 0 0}.codehead .big{font-size:32px;letter-spacing:-.5px}
+.params{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+gap:1px;background:var(--ln);border:1px solid var(--ln);border-radius:10px;
+overflow:hidden;margin:20px 0}
+.params .cell{background:#fff;padding:12px 14px}
+.params .l{font-size:11px;text-transform:uppercase;letter-spacing:.04em;
+color:var(--mut)}.params .v{font-size:20px;font-weight:700;margin-top:2px}
+section.blk{margin:28px 0}section.blk h3{font-size:16px;margin:0 0 8px;
+padding-bottom:6px;border-bottom:1px solid var(--ln)}
+.kv{font-size:14px;margin:4px 0}.kv b{color:var(--mut);font-weight:600;
+display:inline-block;min-width:120px}
+.wit{font-family:ui-monospace,monospace;font-size:12px;background:var(--soft);
+border:1px solid var(--ln);border-radius:8px;padding:10px;
+white-space:pre-wrap;word-break:break-word}
+details{margin:8px 0}summary{cursor:pointer;color:var(--ac);font-size:14px}
+.cert-ok{color:var(--ex);font-weight:600}.cert-no{color:var(--mut)}
+@media(max-width:760px){.how{grid-template-columns:1fr}.plot{float:none;
+width:100%;margin:12px 0}header.hero h1{font-size:34px}}
+</style></head><body>
+<div class=wrap>
+<a class=back href="../index.html">&larr; back to the board</a>
+<div class=codehead><span class="mono big">[[198,12,7]]</span> <span class="b exact">d =</span></div>
+<p style="color:var(--mut);margin:.3rem 0 0">[[198,12,7]] weight-6 planar (k=12 leader family)</p>
+<div class=params>
+<div class=cell><div class=l>n</div><div class=v>198</div></div>
+<div class=cell><div class=l>k</div><div class=v>12</div></div>
+<div class=cell><div class=l>d</div><div class=v>7</div></div>
+<div class=cell><div class=l>kd&sup2;/n</div><div class=v>2.97</div></div>
+<div class=cell><div class=l>max check wt</div><div class=v>6</div></div>
+<div class=cell><div class=l>layers</div><div class=v>2</div></div>
+<div class=cell><div class=l>radius</div><div class=v>4.47</div></div>
+</div>
+<section class=blk><h3>Distance</h3>
+<div class=kv><b>d_X</b> 7 &middot; witness weight 7 (claimed exact)</div>
+<details><summary>witness operator (support, 7 qubits)</summary><div class=wit>[23, 33, 87, 114, 159, 175, 191]</div></details>
+<div class=kv><b>d_Z</b> 7 &middot; witness weight 7 (claimed exact)</div>
+<details><summary>witness operator (support, 7 qubits)</summary><div class=wit>[61, 70, 73, 86, 135, 164, 183]</div></details>
+<div class=kv><b>certificate</b> <span class=cert-ok>exact, d = 7</span> &middot; scipy/HiGHS cutoff IP</div><div class=kv style="color:var(--mut)">X: no logical &lt; 7 exists; Z: no logical &lt; 7 exists</div>
+</section>
+<section class=blk><h3>Construction &amp; provenance</h3>
+<div class=kv><b>authors</b> Farrokh Labib, Vincent Russo</div>
+<div class=kv><b>construction</b> f = 1 + x + x^-2 y^2, g = 1 + xy + x^-2 y^-1; (11,9) lattice (Farrokh&#x27;s family).</div>
+<div class=kv><b>references</b> <a href="https://arxiv.org/abs/2504.08887">arXiv:2504.08887</a></div>
+<div class=kv><b>date</b> 2026-06-16</div>
+<div class=kv><b>notes</b> MILP-proven d=7; beats paper Table XII (198,4) at same n.</div>
+<div class=kv><b>tracks</b> weight-6, 2d-local-bilayer</div>
+</section>
+<section class=blk><h3>Parity checks</h3>
+<div class=kv><b>X-checks</b> 103 &middot; <b style="min-width:auto">Z-checks</b> 95</div>
+<details><summary>H_X (103 checks, sparse supports)</summary><div class=wit>[2, 18, 27, 99, 118, 128]
+[3, 19, 28, 100, 119, 129]
+[4, 20, 29, 101, 120, 130]
+[5, 21, 30, 102, 121, 131]
+[6, 22, 31, 103, 122, 132]
+[7, 23, 32, 104, 123, 133]
+[8, 24, 33, 105, 124, 134]
+[11, 27, 36, 108, 127, 137]
+[12, 28, 37, 109, 128, 138]
+[13, 29, 38, 110, 129, 139]
+[14, 30, 39, 111, 130, 140]
+[15, 31, 40, 112, 131, 141]
+[16, 32, 41, 113, 132, 142]
+[17, 33, 42, 114, 133, 143]
+[20, 36, 45, 117, 136, 146]
+[21, 37, 46, 118, 137, 147]
+[22, 38, 47, 119, 138, 148]
+[23, 39, 48, 120, 139, 149]
+[24, 40, 49, 121, 140, 150]
+[25, 41, 50, 122, 141, 151]
+[26, 42, 51, 123, 142, 152]
+[29, 45, 54, 126, 145, 155]
+[30, 46, 55, 127, 146, 156]
+[31, 47, 56, 128, 147, 157]
+[32, 48, 57, 129, 148, 158]
+[33, 49, 58, 130, 149, 159]
+[34, 50, 59, 131, 150, 160]
+[35, 51, 60, 132, 151, 161]
+[38, 54, 63, 135, 154, 164]
+[39, 55, 64, 136, 155, 165]
+[40, 56, 65, 137, 156, 166]
+[41, 57, 66, 138, 157, 167]
+[42, 58, 67, 139, 158, 168]
+[43, 59, 68, 140, 159, 169]
+[44, 60, 69, 141, 160, 170]
+[47, 63, 72, 144, 163, 173]
+[48, 64, 73, 145, 164, 174]
+[49, 65, 74, 146, 165, 175]
+[50, 66, 75, 147, 166, 176]
+[51, 67, 76, 148, 167, 177]
+[52, 68, 77, 149, 168, 178]
+[53, 69, 78, 150, 169, 179]
+[56, 72, 81, 153, 172, 182]
+[57, 73, 82, 154, 173, 183]
+[58, 74, 83, 155, 174, 184]
+[59, 75, 84, 156, 175, 185]
+[60, 76, 85, 157, 176, 186]
+[61, 77, 86, 158, 177, 187]
+[62, 78, 87, 159, 178, 188]
+[65, 81, 90, 162, 181, 191]
+[66, 82, 91, 163, 182, 192]
+[67, 83, 92, 164, 183, 193]
+[68, 84, 93, 165, 184, 194]
+[69, 85, 94, 166, 185, 195]
+[70, 86, 95, 167, 186, 196]
+[71, 87, 96, 168, 187, 197]
+[0, 101]
+[1, 102]
+[2, 103]
+[3, 104]
+[4, 105]
+[5, 106]
+[6, 107]
+[92, 189]
+[93, 190]
+[94, 191]
+[95, 192]
+[96, 193]
+[97, 194]
+[98, 195]
+[83, 180]
+[84, 181]
+[85, 182]
+[86, 183]
+[87, 184]
+[88, 185]
+[89, 186]
+[9, 100, 101, 110]
+[10, 101, 102, 111]
+[11, 102, 103, 112]
+[12, 103, 104, 113]
+[13, 104, 105, 114]
+[14, 105, 106, 115]
+[15, 106, 107, 116]
+[9, 18, 109, 119]
+[10, 19, 110, 120]
+[11, 20, 111, 121]
+[12, 21, 112, 122]
+[13, 22, 113, 123]
+[14, 23, 114, 124]
+[15, 24, 115, 125]
+[76, 173, 189, 192]
+[77, 174, 190, 193]
+[78, 175, 191, 194]
+[79, 176, 192, 195]
+[80, 177, 193, 196]
+[74, 90, 171, 190]
+[75, 91, 172, 191]
+[76, 92, 173, 192]
+[77, 93, 174, 193]
+[78, 94, 175, 194]
+[79, 95, 176, 195]
+[80, 96, 177, 196]</div></details>
+<details><summary>H_Z (95 checks, sparse supports)</summary><div class=wit>[0, 10, 29, 101, 110, 126]
+[1, 11, 30, 102, 111, 127]
+[2, 12, 31, 103, 112, 128]
+[3, 13, 32, 104, 113, 129]
+[4, 14, 33, 105, 114, 130]
+[5, 15, 34, 106, 115, 131]
+[6, 16, 35, 107, 116, 132]
+[9, 19, 38, 110, 119, 135]
+[10, 20, 39, 111, 120, 136]
+[11, 21, 40, 112, 121, 137]
+[12, 22, 41, 113, 122, 138]
+[13, 23, 42, 114, 123, 139]
+[14, 24, 43, 115, 124, 140]
+[15, 25, 44, 116, 125, 141]
+[18, 28, 47, 119, 128, 144]
+[19, 29, 48, 120, 129, 145]
+[20, 30, 49, 121, 130, 146]
+[21, 31, 50, 122, 131, 147]
+[22, 32, 51, 123, 132, 148]
+[23, 33, 52, 124, 133, 149]
+[24, 34, 53, 125, 134, 150]
+[27, 37, 56, 128, 137, 153]
+[28, 38, 57, 129, 138, 154]
+[29, 39, 58, 130, 139, 155]
+[30, 40, 59, 131, 140, 156]
+[31, 41, 60, 132, 141, 157]
+[32, 42, 61, 133, 142, 158]
+[33, 43, 62, 134, 143, 159]
+[36, 46, 65, 137, 146, 162]
+[37, 47, 66, 138, 147, 163]
+[38, 48, 67, 139, 148, 164]
+[39, 49, 68, 140, 149, 165]
+[40, 50, 69, 141, 150, 166]
+[41, 51, 70, 142, 151, 167]
+[42, 52, 71, 143, 152, 168]
+[45, 55, 74, 146, 155, 171]
+[46, 56, 75, 147, 156, 172]
+[47, 57, 76, 148, 157, 173]
+[48, 58, 77, 149, 158, 174]
+[49, 59, 78, 150, 159, 175]
+[50, 60, 79, 151, 160, 176]
+[51, 61, 80, 152, 161, 177]
+[54, 64, 83, 155, 164, 180]
+[55, 65, 84, 156, 165, 181]
+[56, 66, 85, 157, 166, 182]
+[57, 67, 86, 158, 167, 183]
+[58, 68, 87, 159, 168, 184]
+[59, 69, 88, 160, 169, 185]
+[60, 70, 89, 161, 170, 186]
+[63, 73, 92, 164, 173, 189]
+[64, 74, 93, 165, 174, 190]
+[65, 75, 94, 166, 175, 191]
+[66, 76, 95, 167, 176, 192]
+[67, 77, 96, 168, 177, 193]
+[68, 78, 97, 169, 178, 194]
+[69, 79, 98, 170, 179, 195]
+[8, 134]
+[17, 143]
+[26, 152]
+[35, 161]
+[44, 170]
+[53, 179]
+[62, 188]
+[71, 197]
+[27, 99, 108]
+[36, 108, 117]
+[45, 117, 126]
+[54, 126, 135]
+[63, 135, 144]
+[72, 144, 153]
+[81, 153, 162]
+[90, 162, 171]
+[7, 133, 143]
+[16, 142, 152]
+[25, 151, 161]
+[34, 160, 170]
+[43, 169, 179]
+[52, 178, 188]
+[61, 187, 197]
+[7, 17, 133]
+[16, 26, 142]
+[25, 35, 151]
+[34, 44, 160]
+[43, 53, 169]
+[52, 62, 178]
+[61, 71, 187]
+[70, 80, 196]
+[9, 28, 100, 109]
+[18, 37, 109, 118]
+[27, 46, 118, 127]
+[36, 55, 127, 136]
+[45, 64, 136, 145]
+[54, 73, 145, 154]
+[63, 82, 154, 163]
+[72, 91, 163, 172]</div></details>
+<div class=kv style="margin-top:10px"><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/codes/k12-11x9.json">raw submission JSON</a></div>
+</section>
+</div></body></html>
