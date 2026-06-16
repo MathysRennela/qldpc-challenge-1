@@ -27,11 +27,10 @@ confirmed:
 Claiming a distance is exact (not just an upper bound) additionally requires
 server certification, a separate and more expensive step.
 
-Verify locally before opening a PR:
+Verify locally before opening a PR (uv handles the environment):
 
 ```
-pip install -r requirements.txt
-python verify/qldpc_verify.py codes/your-code.json
+uv run python verify/qldpc_verify.py codes/your-code.json
 ```
 
 ## Layout

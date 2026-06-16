@@ -12,8 +12,7 @@
 3. Verify locally before opening the PR:
 
    ```
-   pip install -r requirements.txt
-   python verify/qldpc_verify.py codes/my-128-6-8.json
+   uv run python verify/qldpc_verify.py codes/my-128-6-8.json
    ```
 
    Exit 0 and an `earned_distance` block means it will pass CI.

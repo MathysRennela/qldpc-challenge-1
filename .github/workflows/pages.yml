@@ -25,11 +25,8 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - run: pip install -r requirements.txt
-      - run: python site/build.py
+      - uses: astral-sh/setup-uv@v5
+      - run: uv run --frozen python site/build.py
       - uses: actions/upload-pages-artifact@v3
         with:
           path: docs

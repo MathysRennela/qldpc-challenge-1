@@ -1,0 +1,19 @@
+[project]
+name = "qldpc-challenge"
+version = "0.1.0"
+description = "Community challenge and verified leaderboard for quantum LDPC codes"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+dependencies = [
+    "numpy>=2.0",
+    "jsonschema>=4.0",
+]
+
+[project.optional-dependencies]
+# server-side exact distance certification (verify/certify*.py)
+certify = ["scipy>=1.11"]
+
+[tool.uv]
+# scripts-only repo: manage the environment, do not try to build/install it
+package = false
