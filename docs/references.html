@@ -1,4 +1,4 @@
-<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>[[128,8,6]] planar BB (paper Table V baseline)</title><link rel=icon type="image/svg+xml" href="../favicon.svg"><link rel=preconnect href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel=stylesheet><style>
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>References | qLDPC Challenge</title><link rel=icon type="image/svg+xml" href="favicon.svg"><link rel=preconnect href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel=stylesheet><style>
 :root{--ink:#0f172a;--mut:#64748b;--ln:#e2e8f0;--ac:#4f46e5;--ex:#059669;
 --bg:#fff;--soft:#f8fafc}
 *{box-sizing:border-box}
@@ -105,155 +105,14 @@ padding-left:10px;padding-right:10px}
 position:static}header.hero h1{font-size:34px}}
 </style></head><body>
 <div class=wrap>
-<a class=back href="../index.html">&larr; back to the board</a>
-<div class=codehead><span class="mono big">[[128,8,6]]</span> <span class="b exact">d =</span></div>
-<p style="color:var(--mut);margin:.3rem 0 0">[[128,8,6]] planar BB (paper Table V baseline)</p>
-<div class=params>
-<div class=cell><div class=l>n</div><div class=v>128</div></div>
-<div class=cell><div class=l>k</div><div class=v>8</div></div>
-<div class=cell><div class=l>d</div><div class=v>6</div></div>
-<div class=cell><div class=l>kd&sup2;/n</div><div class=v>2.25</div></div>
-<div class=cell><div class=l>max check wt</div><div class=v>6</div></div>
-<div class=cell><div class=l>layers</div><div class=v>2</div></div>
-<div class=cell><div class=l>radius</div><div class=v>2.83</div></div>
-</div>
-<section class=blk><h3>Distance</h3>
-<div class=kv><b>d_X</b> 6 &middot; witness weight 6 (claimed exact)</div>
-<details><summary>witness operator (support, 6 qubits)</summary><div class=wit>[16, 33, 34, 50, 52, 64]</div></details>
-<div class=kv><b>d_Z</b> 6 &middot; witness weight 6 (claimed exact)</div>
-<details><summary>witness operator (support, 6 qubits)</summary><div class=wit>[30, 44, 46, 52, 58, 120]</div></details>
-<div class=kv><b>certificate</b> <span class=cert-ok>exact, d = 6</span> &middot; scipy/HiGHS cutoff IP</div><div class=kv style="color:var(--mut)">X: no logical &lt; 6 exists; Z: no logical &lt; 6 exists</div>
-</section>
-<section class=blk><h3>Construction &amp; provenance</h3>
-<div class=kv><b>authors</b> Liang, Eberhardt, Chen</div>
-<div class=kv><b>construction</b> Liang-Eberhardt-Chen [[288,8,12]] family, (8,8) lattice.</div>
-<div class=kv><b>references</b> <a href="../references.html#liang2025planar">arXiv:2504.08887</a></div>
-<div class=kv><b>date</b> 2026-06-16</div>
-<div class=kv><b>notes</b> Reference baseline (their distances are IP-exact; we reproduced Table V 121/121).</div>
-<div class=kv><b>tracks</b> weight-6, 2d-local-bilayer</div>
-</section>
-<section class=blk><h3>Parity checks</h3>
-<div class=kv><b>X-checks</b> 60 &middot; <b style="min-width:auto">Z-checks</b> 60</div>
-<details><summary>H_X (60 checks, sparse supports)</summary><div class=wit>[0, 65, 66]
-[1, 66, 67]
-[2, 67, 68]
-[3, 68, 69]
-[4, 69, 70]
-[5, 70, 71]
-[0, 8, 73, 74]
-[1, 9, 74, 75]
-[2, 10, 75, 76]
-[3, 11, 76, 77]
-[4, 12, 77, 78]
-[5, 13, 78, 79]
-[2, 8, 16, 64, 81, 82]
-[3, 9, 17, 65, 82, 83]
-[4, 10, 18, 66, 83, 84]
-[5, 11, 19, 67, 84, 85]
-[6, 12, 20, 68, 85, 86]
-[7, 13, 21, 69, 86, 87]
-[10, 16, 24, 72, 89, 90]
-[11, 17, 25, 73, 90, 91]
-[12, 18, 26, 74, 91, 92]
-[13, 19, 27, 75, 92, 93]
-[14, 20, 28, 76, 93, 94]
-[15, 21, 29, 77, 94, 95]
-[18, 24, 32, 80, 97, 98]
-[19, 25, 33, 81, 98, 99]
-[20, 26, 34, 82, 99, 100]
-[21, 27, 35, 83, 100, 101]
-[22, 28, 36, 84, 101, 102]
-[23, 29, 37, 85, 102, 103]
-[26, 32, 40, 88, 105, 106]
-[27, 33, 41, 89, 106, 107]
-[28, 34, 42, 90, 107, 108]
-[29, 35, 43, 91, 108, 109]
-[30, 36, 44, 92, 109, 110]
-[31, 37, 45, 93, 110, 111]
-[34, 40, 48, 96, 113, 114]
-[35, 41, 49, 97, 114, 115]
-[36, 42, 50, 98, 115, 116]
-[37, 43, 51, 99, 116, 117]
-[38, 44, 52, 100, 117, 118]
-[39, 45, 53, 101, 118, 119]
-[42, 48, 56, 104, 121, 122]
-[43, 49, 57, 105, 122, 123]
-[44, 50, 58, 106, 123, 124]
-[45, 51, 59, 107, 124, 125]
-[46, 52, 60, 108, 125, 126]
-[47, 53, 61, 109, 126, 127]
-[50, 56, 112]
-[51, 57, 113]
-[52, 58, 114]
-[53, 59, 115]
-[54, 60, 116]
-[55, 61, 117]
-[58, 120]
-[59, 121]
-[60, 122]
-[61, 123]
-[62, 124]
-[63, 125]</div></details>
-<details><summary>H_Z (60 checks, sparse supports)</summary><div class=wit>[16, 64, 72]
-[0, 17, 65, 73]
-[0, 1, 18, 66, 74, 80]
-[1, 2, 19, 67, 75, 81]
-[2, 3, 20, 68, 76, 82]
-[3, 4, 21, 69, 77, 83]
-[4, 5, 22, 70, 78, 84]
-[5, 6, 23, 71, 79, 85]
-[6, 7, 86]
-[7, 87]
-[24, 72, 80]
-[8, 25, 73, 81]
-[8, 9, 26, 74, 82, 88]
-[9, 10, 27, 75, 83, 89]
-[10, 11, 28, 76, 84, 90]
-[11, 12, 29, 77, 85, 91]
-[12, 13, 30, 78, 86, 92]
-[13, 14, 31, 79, 87, 93]
-[14, 15, 94]
-[15, 95]
-[32, 80, 88]
-[16, 33, 81, 89]
-[16, 17, 34, 82, 90, 96]
-[17, 18, 35, 83, 91, 97]
-[18, 19, 36, 84, 92, 98]
-[19, 20, 37, 85, 93, 99]
-[20, 21, 38, 86, 94, 100]
-[21, 22, 39, 87, 95, 101]
-[22, 23, 102]
-[23, 103]
-[40, 88, 96]
-[24, 41, 89, 97]
-[24, 25, 42, 90, 98, 104]
-[25, 26, 43, 91, 99, 105]
-[26, 27, 44, 92, 100, 106]
-[27, 28, 45, 93, 101, 107]
-[28, 29, 46, 94, 102, 108]
-[29, 30, 47, 95, 103, 109]
-[30, 31, 110]
-[31, 111]
-[48, 96, 104]
-[32, 49, 97, 105]
-[32, 33, 50, 98, 106, 112]
-[33, 34, 51, 99, 107, 113]
-[34, 35, 52, 100, 108, 114]
-[35, 36, 53, 101, 109, 115]
-[36, 37, 54, 102, 110, 116]
-[37, 38, 55, 103, 111, 117]
-[38, 39, 118]
-[39, 119]
-[56, 104, 112]
-[40, 57, 105, 113]
-[40, 41, 58, 106, 114, 120]
-[41, 42, 59, 107, 115, 121]
-[42, 43, 60, 108, 116, 122]
-[43, 44, 61, 109, 117, 123]
-[44, 45, 62, 110, 118, 124]
-[45, 46, 63, 111, 119, 125]
-[46, 47, 126]
-[47, 127]</div></details>
-<div class=kv style="margin-top:10px"><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/codes/128-8-6.json">raw submission JSON</a></div>
-</section>
+<a class=back href="index.html">&larr; back to the board</a>
+<h1 style="margin:.4rem 0 0">References</h1>
+<p style="color:var(--mut);max-width:60ch">Every paper and tool the challenge cites. Submissions reference an entry by its arXiv id or DOI; verified codes that cite each one are listed beneath it. The machine-readable source is <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/refs.bib">refs.bib</a>.</p>
+<div class=ref id="liang2025planar"><span class=refauth>Liang, Zijian and Eberhardt, Jens Niklas and Chen, Yu-An.</span> <span class=reftitle>Planar quantum low-density parity-check codes with open boundaries.</span> <span class=refmeta>2025.</span> <a href="https://arxiv.org/abs/2504.08887">arXiv:2504.08887</a> &middot; <a href="https://doi.org/10.48550/arXiv.2504.08887">doi</a><div class=refnote>Baseline codes (Tables I, V, XII) are seeded on the board as theirs.</div></div>
+<div class=refcited>cited by <a href="codes/120-5-8.html" class=mono>[[120,5,8]]</a>, <a href="codes/91-5-7.html" class=mono>[[91,5,7]]</a>, <a href="codes/336-6-14.html" class=mono>[[336,6,14]]</a>, <a href="codes/180-6-10.html" class=mono>[[180,6,10]]</a>, <a href="codes/160-6-9.html" class=mono>[[160,6,9]]</a>, <a href="codes/128-6-8.html" class=mono>[[128,6,8]]</a>, <a href="codes/112-6-7.html" class=mono>[[112,6,7]]</a>, <a href="codes/72-6-6.html" class=mono>[[72,6,6]]</a>, <a href="codes/88-6-6.html" class=mono>[[88,6,6]]</a>, <a href="codes/50-6-4.html" class=mono>[[50,6,4]]</a>, <a href="codes/288-7-12.html" class=mono>[[288,7,12]]</a>, <a href="codes/288-8-12.html" class=mono>[[288,8,12]]</a>, <a href="codes/200-8-9.html" class=mono>[[200,8,9]]</a>, <a href="codes/128-8-6.html" class=mono>[[128,8,6]]</a>, <a href="codes/198-12-7.html" class=mono>[[198,12,7]]</a></div>
+<div class=ref id="bravyi2024high"><span class=refauth>Bravyi, Sergey and Cross, Andrew W. and Gambetta, Jay M. and Maslov, Dmitri and Rall, Patrick and Yoder, Theodore J..</span> <span class=reftitle>High-threshold and low-overhead fault-tolerant quantum memory.</span> <span class=refmeta>Nature 627:778-782. 2024.</span> <a href="https://arxiv.org/abs/2308.07915">arXiv:2308.07915</a> &middot; <a href="https://doi.org/10.1038/s41586-024-07107-7">doi</a><div class=refnote>Bivariate bicycle codes; the construction the board&#x27;s families build on.</div></div>
+<div class=ref id="panteleev2022asymptotically"><span class=refauth>Panteleev, Pavel and Kalachev, Gleb.</span> <span class=reftitle>Asymptotically good quantum and locally testable classical LDPC codes.</span> <span class=refmeta>In Proceedings of the 54th Annual ACM SIGACT Symposium on Theory of Computing (STOC), pp. 375-388. 2022.</span> <a href="https://arxiv.org/abs/2111.03654">arXiv:2111.03654</a> &middot; <a href="https://doi.org/10.1145/3519935.3520017">doi</a></div>
+<div class=ref id="tillich2014quantum"><span class=refauth>Tillich, Jean-Pierre and Zemor, Gilles.</span> <span class=reftitle>Quantum {LDPC} codes with positive rate and minimum distance proportional to the square root of the blocklength.</span> <span class=refmeta>IEEE Transactions on Information Theory 60(2):1193-1202. 2014.</span> <a href="https://arxiv.org/abs/0903.0566">arXiv:0903.0566</a> &middot; <a href="https://doi.org/10.1109/TIT.2013.2292061">doi</a><div class=refnote>Hypergraph product, the precursor to product qLDPC constructions.</div></div>
+<div class=ref id="roffe2020decoding"><span class=refauth>Roffe, Joschka and White, David R. and Burton, Simon and Campbell, Earl.</span> <span class=reftitle>Decoding across the quantum low-density parity-check code landscape.</span> <span class=refmeta>Physical Review Research 2(4):043423. 2020.</span> <a href="https://arxiv.org/abs/2005.07016">arXiv:2005.07016</a> &middot; <a href="https://doi.org/10.1103/PhysRevResearch.2.043423">doi</a><div class=refnote>BP+OSD decoder used in the decoding studies.</div></div>
+<div class=ref id="pryadko2023qdistrnd"><span class=refauth>Pryadko, Leonid P. and Shabashov, Vadim A. and Kozin, Valerii K..</span> <span class=reftitle>QDistRnd}: A {GAP} package for computing the distance of quantum error-correcting codes.</span> <span class=refmeta>Journal of Open Source Software 7(71):4120. 2022.</span> <a href="https://doi.org/10.21105/joss.04120">doi</a><div class=refnote>Randomized distance estimator used as an independent cross-check.</div></div>
 </div></body></html>

@@ -29,6 +29,94 @@ except Exception:
     BASELINES = {}
 
 
+def load_refs():
+    """Parse refs.bib into an ordered list of entries. Each entry is a dict of
+    lowercased field -> value plus 'key' and 'type'. No external dependency: a
+    BibTeX file is regular enough that a brace-aware scan handles it."""
+    path = os.path.join(ROOT, "refs.bib")
+    try:
+        text = open(path).read()
+    except Exception:
+        return []
+    entries = []
+    for m in re.finditer(r"@(\w+)\s*\{\s*([^,]+),", text):
+        typ, key = m.group(1).lower(), m.group(2).strip()
+        # capture the entry body by matching balanced braces from the opening {
+        i = text.index("{", m.start())
+        depth, j = 0, i
+        while j < len(text):
+            if text[j] == "{":
+                depth += 1
+            elif text[j] == "}":
+                depth -= 1
+                if depth == 0:
+                    break
+            j += 1
+        body = text[i + 1:j]
+        fields = {"key": key, "type": typ}
+        for fm in re.finditer(r"(\w+)\s*=\s*(\{(?:[^{}]|\{[^{}]*\})*\}|[^,\n]+)",
+                              body):
+            name, val = fm.group(1).lower(), fm.group(2).strip()
+            if name == key.split(",")[0]:  # skip the key token itself
+                continue
+            val = val.strip().strip("{}").strip()
+            val = re.sub(r"\s+", " ", val).strip(", ")
+            # strip the few LaTeX accents that appear in author names
+            val = (val.replace("{\\'e}", "e").replace("\\'e", "e")
+                      .replace("{\\\"o}", "o"))
+            fields[name] = val
+        entries.append(fields)
+    return entries
+
+
+REFS = load_refs()
+
+
+def _surnames(author_field):
+    """Surnames from a BibTeX 'and'-joined author string ('Last, First and ...'
+    or 'First Last and ...'), lowercased, for loose citation matching."""
+    out = []
+    for a in author_field.split(" and "):
+        a = a.strip()
+        out.append((a.split(",")[0] if "," in a else a.split()[-1]).lower())
+    return [s for s in out if s]
+
+
+def resolve_ref(s):
+    """Map a free-text reference string from a submission (e.g. 'arXiv:2504.08887'
+    or 'Liang, Eberhardt, Chen') to a refs.bib key, or None. Matches by arXiv id
+    or DOI when present, else by author-surname subset."""
+    low = s.lower()
+    am = re.search(r"(\d{4}\.\d{4,5})", s)
+    aid = am.group(1) if am else None
+    for e in REFS:
+        if aid and e.get("eprint", "").strip() == aid:
+            return e["key"]
+        doi = e.get("doi", "").lower()
+        if doi and doi in low:
+            return e["key"]
+    if aid:
+        return None
+    toks = [t for t in re.split(r"[,\s]+", low) if len(t) > 2]
+    for e in REFS:
+        sn = set(_surnames(e.get("author", "")))
+        if sn and toks and set(toks) <= sn:
+            return e["key"]
+    return None
+
+
+def cite(s, rel=""):
+    """Render a reference string as a link to the references page anchor when it
+    resolves to a bib entry, else fall back to a plain arXiv link or text."""
+    key = resolve_ref(s)
+    if key:
+        return (f'<a href="{rel}references.html#{key}">{html.escape(s)}</a>')
+    if s.lower().startswith("arxiv:"):
+        aid = s.split(":", 1)[1]
+        return f'<a href="https://arxiv.org/abs/{aid}">{html.escape(s)}</a>'
+    return html.escape(s)
+
+
 def vs_paper(k, d, n):
     """Compare to the paper's best published n at (k,d). Returns
     (delta, label, grafted) where delta = paper_n - n (>0 means we beat it),
@@ -149,6 +237,14 @@ border:1px solid var(--ln);border-radius:8px;padding:10px;
 white-space:pre-wrap;word-break:break-word}}
 details{{margin:8px 0}}summary{{cursor:pointer;color:var(--ac);font-size:14px}}
 .cert-ok{{color:var(--ex);font-weight:600}}.cert-no{{color:var(--mut)}}
+.ref{{padding:14px 0;border-bottom:1px solid var(--ln);font-size:15px;
+line-height:1.5;scroll-margin-top:16px}}
+.ref:target{{background:var(--soft);border-radius:8px;
+padding-left:10px;padding-right:10px}}
+.refauth{{color:var(--mut)}}.reftitle{{font-weight:600}}
+.refmeta{{color:var(--mut)}}
+.refnote{{color:var(--mut);font-size:13px;margin-top:4px}}
+.refcited{{font-size:13px;color:var(--mut);margin-top:6px}}
 @media(max-width:880px){{.how{{grid-template-columns:1fr}}
 .trackbody{{flex-direction:column}}.plot{{flex-basis:auto;width:100%;
 position:static}}header.hero h1{{font-size:34px}}}}
@@ -449,13 +545,7 @@ def detail_page(e):
     P.append(f'<div class=kv><b>authors</b> {authors_html(pr["authors"])}</div>')
     P.append(f'<div class=kv><b>construction</b> {html.escape(pr.get("construction",""))}</div>')
     if pr.get("references"):
-        refs = []
-        for r in pr["references"]:
-            if r.lower().startswith("arxiv:"):
-                aid = r.split(":", 1)[1]
-                refs.append(f'<a href="https://arxiv.org/abs/{aid}">{html.escape(r)}</a>')
-            else:
-                refs.append(html.escape(r))
+        refs = [cite(r, rel="../") for r in pr["references"]]
         P.append(f'<div class=kv><b>references</b> {", ".join(refs)}</div>')
     if pr.get("date"):
         P.append(f'<div class=kv><b>date</b> {html.escape(pr["date"])}</div>')
@@ -477,6 +567,80 @@ def detail_page(e):
              f'{e["slug"]}.json">raw submission JSON</a></div>')
     P.append('</section>')
 
+    P.append('</div></body></html>')
+    return "\n".join(P)
+
+
+def fmt_citation(e):
+    """One reference, formatted as HTML: authors, title, venue/year, links."""
+    sn = e.get("author", "")
+    authors = " and ".join(a.strip() for a in sn.split(" and ")) if sn else ""
+    title = html.escape(e.get("title", e["key"]))
+    bits = []
+    pages = e.get("pages", "").replace("--", "-")
+    if e.get("journal"):
+        v = e["journal"]
+        if e.get("volume"):
+            v += f" {e['volume']}"
+        if e.get("number"):
+            v += f"({e['number']})"
+        if pages:
+            v += f":{pages}"
+        bits.append(html.escape(v))
+    elif e.get("booktitle"):
+        v = f"In {e['booktitle']}"
+        if pages:
+            v += f", pp. {pages}"
+        bits.append(html.escape(v))
+    if e.get("year"):
+        bits.append(html.escape(e["year"]))
+    links = []
+    if e.get("eprint"):
+        links.append(f'<a href="https://arxiv.org/abs/{e["eprint"]}">'
+                     f'arXiv:{html.escape(e["eprint"])}</a>')
+    if e.get("doi"):
+        links.append(f'<a href="https://doi.org/{html.escape(e["doi"])}">doi</a>')
+    out = [f'<div class=ref id="{html.escape(e["key"])}">']
+    if authors:
+        out.append(f'<span class=refauth>{html.escape(authors)}.</span> ')
+    out.append(f'<span class=reftitle>{title}.</span>')
+    if bits:
+        out.append(f' <span class=refmeta>{". ".join(bits)}.</span>')
+    if links:
+        out.append(f' {" &middot; ".join(links)}')
+    if e.get("note"):
+        out.append(f'<div class=refnote>{html.escape(e["note"])}</div>')
+    out.append('</div>')
+    return "".join(out)
+
+
+def references_page(entries):
+    """Page listing every bib entry, with the codes that cite each one."""
+    # which on-board codes cite each key
+    citers = {e["key"]: [] for e in REFS}
+    for ent in entries:
+        for r in ent["doc"]["provenance"].get("references", []):
+            k = resolve_ref(r)
+            if k and ent["slug"] not in [c[0] for c in citers.get(k, [])]:
+                citers.setdefault(k, []).append(
+                    (ent["slug"], ent["n"], ent["k"], ent["d"]))
+    P = [head("References | qLDPC Challenge", rel="")]
+    P.append('<div class=wrap>')
+    P.append('<a class=back href="index.html">&larr; back to the board</a>')
+    P.append('<h1 style="margin:.4rem 0 0">References</h1>')
+    P.append('<p style="color:var(--mut);max-width:60ch">Every paper and tool '
+             'the challenge cites. Submissions reference an entry by its arXiv '
+             'id or DOI; verified codes that cite each one are listed beneath '
+             'it. The machine-readable source is '
+             f'<a href="{REPO}/refs.bib">refs.bib</a>.</p>')
+    for e in REFS:
+        P.append(fmt_citation(e))
+        cs = citers.get(e["key"], [])
+        if cs:
+            links = ", ".join(f'<a href="codes/{s}.html" class=mono>'
+                              f'[[{n},{k},{d}]]</a>'
+                              for s, n, k, d in sorted(cs, key=lambda c: (c[2], -c[3], c[1])))
+            P.append(f'<div class=refcited>cited by {links}</div>')
     P.append('</div></body></html>')
     return "\n".join(P)
 
@@ -538,10 +702,12 @@ def build():
                  f'</div>{svg(te, fr)}</div>')
     P.append('<footer>Submit a code by pull request. See '
              f'<a href="{REPO}/CONTRIBUTING.md">CONTRIBUTING</a>, '
-             f'<a href="{REPO}/schema/SCHEMA.md">the schema</a>, and '
-             f'<a href="{REPO}/TRACKS.md">the tracks</a>. &#9733; marks the '
-             '(n,k,d) Pareto frontier. Baseline codes from arXiv:2504.08887.'
-             '</footer>')
+             f'<a href="{REPO}/schema/SCHEMA.md">the schema</a>, '
+             f'<a href="{REPO}/TRACKS.md">the tracks</a>, and '
+             '<a href="references.html">references</a>. &#9733; marks the '
+             '(n,k,d) Pareto frontier. Baseline codes from '
+             '<a href="references.html#liang2025planar">Liang, Eberhardt, '
+             'Chen</a>.</footer>')
     P.append('</div><div id=tip></div>')
     P.append(f'<script>{JS}</script></body></html>')
 
@@ -550,10 +716,13 @@ def build():
         f.write("\n".join(P))
     with open(os.path.join(DOCS, "favicon.svg"), "w") as f:
         f.write(FAVICON)
+    with open(os.path.join(DOCS, "references.html"), "w") as f:
+        f.write(references_page(entries))
     for e in entries:
         with open(os.path.join(DOCS, "codes", e["slug"] + ".html"), "w") as f:
             f.write(detail_page(e))
-    print(f"wrote docs/index.html + {len(entries)} detail pages, "
+    print(f"wrote docs/index.html + {len(entries)} detail pages + "
+          f"references.html ({len(REFS)} refs), "
           f"{len(tracks)} tracks, {n_exact} certified exact")
 
 

@@ -1,0 +1,88 @@
+% Bibliography for the qLDPC Challenge.
+%
+% Single source of truth for every paper or tool the site cites. A submission
+% references an entry by citing its arXiv id or DOI in provenance.references
+% (e.g. "arXiv:2504.08887"); the site resolves that to the matching entry here
+% and links it to references.html. Add an entry here before citing it.
+
+@article{liang2025planar,
+  title   = {Planar quantum low-density parity-check codes with open boundaries},
+  author  = {Liang, Zijian and Eberhardt, Jens Niklas and Chen, Yu-An},
+  year    = {2025},
+  eprint  = {2504.08887},
+  archivePrefix = {arXiv},
+  primaryClass  = {quant-ph},
+  doi     = {10.48550/arXiv.2504.08887},
+  note    = {Baseline codes (Tables I, V, XII) are seeded on the board as theirs.}
+}
+
+@article{bravyi2024high,
+  title   = {High-threshold and low-overhead fault-tolerant quantum memory},
+  author  = {Bravyi, Sergey and Cross, Andrew W. and Gambetta, Jay M. and
+             Maslov, Dmitri and Rall, Patrick and Yoder, Theodore J.},
+  journal = {Nature},
+  volume  = {627},
+  pages   = {778--782},
+  year    = {2024},
+  eprint  = {2308.07915},
+  archivePrefix = {arXiv},
+  primaryClass  = {quant-ph},
+  doi     = {10.1038/s41586-024-07107-7},
+  note    = {Bivariate bicycle codes; the construction the board's families build on.}
+}
+
+@inproceedings{panteleev2022asymptotically,
+  title     = {Asymptotically good quantum and locally testable classical LDPC codes},
+  author    = {Panteleev, Pavel and Kalachev, Gleb},
+  booktitle = {Proceedings of the 54th Annual ACM SIGACT Symposium on Theory of Computing (STOC)},
+  pages     = {375--388},
+  year      = {2022},
+  eprint    = {2111.03654},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.IT},
+  doi       = {10.1145/3519935.3520017}
+}
+
+@article{tillich2014quantum,
+  title   = {Quantum {LDPC} codes with positive rate and minimum distance
+             proportional to the square root of the blocklength},
+  author  = {Tillich, Jean-Pierre and Z{\'e}mor, Gilles},
+  journal = {IEEE Transactions on Information Theory},
+  volume  = {60},
+  number  = {2},
+  pages   = {1193--1202},
+  year    = {2014},
+  eprint  = {0903.0566},
+  archivePrefix = {arXiv},
+  primaryClass  = {quant-ph},
+  doi     = {10.1109/TIT.2013.2292061},
+  note    = {Hypergraph product, the precursor to product qLDPC constructions.}
+}
+
+@article{roffe2020decoding,
+  title   = {Decoding across the quantum low-density parity-check code landscape},
+  author  = {Roffe, Joschka and White, David R. and Burton, Simon and Campbell, Earl},
+  journal = {Physical Review Research},
+  volume  = {2},
+  number  = {4},
+  pages   = {043423},
+  year    = {2020},
+  eprint  = {2005.07016},
+  archivePrefix = {arXiv},
+  primaryClass  = {quant-ph},
+  doi     = {10.1103/PhysRevResearch.2.043423},
+  note    = {BP+OSD decoder used in the decoding studies.}
+}
+
+@article{pryadko2023qdistrnd,
+  title     = {{QDistRnd}: A {GAP} package for computing the distance of quantum
+               error-correcting codes},
+  author    = {Pryadko, Leonid P. and Shabashov, Vadim A. and Kozin, Valerii K.},
+  journal   = {Journal of Open Source Software},
+  volume    = {7},
+  number    = {71},
+  pages     = {4120},
+  year      = {2022},
+  doi       = {10.21105/joss.04120},
+  note      = {Randomized distance estimator used as an independent cross-check.}
+}
