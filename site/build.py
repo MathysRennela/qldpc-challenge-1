@@ -280,17 +280,17 @@ border-top:1px solid var(--ln)}}
 .gridcol{{flex:0 0 auto}}
 .plot{{flex:1 1 0;min-width:0;max-width:520px;align-self:flex-start;
 border:1px solid var(--ln);border-radius:12px;background:#fff;padding:8px}}
-/* size the table to its content so it doesn't stretch full width and leave a
-   trailing empty region; columns hug their data. */
-table.board{{border-collapse:collapse;width:auto;max-width:100%;
+/* full width (matching the panels above) with fixed, evenly distributed
+   columns so the slack isn't dumped into one column as a stray gap. */
+table.board{{border-collapse:collapse;width:100%;table-layout:fixed;
 font-size:14px;margin:12px 0}}
 .board th,.board td{{padding:.55rem .9rem;text-align:left;white-space:nowrap;
 border-bottom:1px solid var(--ln)}}
 .board th{{font-size:12px;text-transform:uppercase;letter-spacing:.04em;
 color:var(--mut);cursor:pointer;user-select:none;border-bottom:2px solid var(--ln)}}
-.board th:hover{{color:var(--ink)}}.board td.num,.board th.num{{text-align:right;
+.board th:hover{{color:var(--ink)}}.board td.num,.board th.num{{text-align:center;
 font-variant-numeric:tabular-nums}}
-.board td.auth{{white-space:normal;max-width:280px}}
+.board td.auth{{white-space:normal}}
 .board tbody tr{{cursor:pointer}}.board tbody tr:hover{{background:#eef2ff}}
 .board tr.fr{{background:#f5f3ff}}.board tr.fr td:first-child{{
 box-shadow:inset 3px 0 0 var(--ac)}}
@@ -517,6 +517,10 @@ def authors_html(lst):
 
 
 def table(te, front):
+    cols = ('<colgroup><col style="width:4%"><col style="width:18%">'
+            '<col style="width:10%"><col style="width:9%">'
+            '<col style="width:13%"><col style="width:13%">'
+            '<col style="width:9%"><col style="width:24%"></colgroup>')
     head_row = ("<thead><tr><th></th><th data-c=name>code</th>"
                 "<th data-c=n class=num>n</th><th data-c=k class=num>k</th>"
                 "<th data-c=d class=num>d</th><th data-c=eff class=num>kd&sup2;/n</th>"
@@ -540,7 +544,8 @@ def table(te, front):
             f'<td class=num>{badge(e["tier"])} {e["d"]}</td>'
             f'<td class=num>{e["eff"]}</td><td class=num>{e["w"]}</td>'
             f'<td class=auth>{authors_html(e["authors_list"])}</td></tr>')
-    return f'<table class=board>{head_row}<tbody>{"".join(rows)}</tbody></table>'
+    return (f'<table class=board>{cols}{head_row}'
+            f'<tbody>{"".join(rows)}</tbody></table>')
 
 
 def cell_grid(te):
