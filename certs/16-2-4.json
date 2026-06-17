@@ -1,0 +1,12 @@
+{
+ "d_exact": true,
+ "solver": "scipy/HiGHS MILP",
+ "sides": {
+  "X": {
+   "note": "min over 2 Z-logical cosets = 4, all proven"
+  },
+  "Z": {
+   "note": "min over 2 X-logical cosets = 4, all proven"
+  }
+ }
+}

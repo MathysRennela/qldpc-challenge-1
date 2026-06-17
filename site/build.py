@@ -89,7 +89,8 @@ def resolve_ref(s):
     or 'Liang, Eberhardt, Chen') to a refs.bib key, or None. Matches by arXiv id
     or DOI when present, else by author-surname subset."""
     low = s.lower()
-    am = re.search(r"(\d{4}\.\d{4,5})", s)
+    # modern (2504.08887) or old-style (quant-ph/9707021) arXiv id
+    am = re.search(r"(\d{4}\.\d{4,5}|[a-z-]+(?:\.[a-z]{2})?/\d{7})", low)
     aid = am.group(1) if am else None
     for e in REFS:
         if aid and e.get("eprint", "").strip() == aid:

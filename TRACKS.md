@@ -41,6 +41,8 @@ These are where we have data and verification today. More can be proposed by PR.
 - `generalized bicycle`: univariate quasi-cyclic codes from two circulant
   polynomials (the one-variable cousin of bivariate bicycle codes), seeded
   from the literature (arXiv:2203.17216).
+- `topological`: the foundational topological codes (surface, toric, color),
+  whose distance is exact by construction. The surface-code baseline.
 - `2d-local-single`: 2D-local on a single layer (surface-code-like
   connectivity). Stricter; mostly a baseline track.
 - `decoding` (planned): a fixed code or an open submission ranked by logical
