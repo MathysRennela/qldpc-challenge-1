@@ -134,15 +134,20 @@ REPO = REPO_ROOT + "/blob/main"
 # Update this to the real domain once the board is hosted.
 SITE_URL = "https://unitaryfoundation.github.io/qldpc-challenge"
 
-ACCENT = "#4f46e5"
-EXACT = "#059669"
+# Palette (single source of truth; the CSS :root and the inline SVGs all draw
+# from these). Greens have two intentional roles: EXACT (deep) for text/marks
+# on light backgrounds, GREEN_BRIGHT for marks on the dark surface.
+ACCENT = "#4f46e5"        # brand indigo (links, accents, hero glow)
+EXACT = "#059669"         # certified-exact green, on light backgrounds
+GREEN_BRIGHT = "#34d399"  # green on the dark surface (logo highlight)
+DARK = "#0b1020"          # deep surface: hero background + logo/UI tiles
 
 # Logo mark: a six-node cyclic graph (the node-and-edge structure associated
 # with qLDPC / Tanner graphs) on a dark tile, one node highlighted. Used for
 # the favicon, hero, and footer. All attributes quoted so it is valid as a
 # standalone SVG file (parsed as XML) and inline in HTML.
-MARK = """\
-<rect x="1" y="1" width="62" height="62" rx="14" fill="#10141f" \
+MARK = f"""\
+<rect x="1" y="1" width="62" height="62" rx="14" fill="{DARK}" \
 stroke="rgba(255,255,255,0.16)" stroke-width="1.5"/>
 <g stroke="#ffffff" stroke-width="4" stroke-linecap="round" opacity="0.9">
 <line x1="32" y1="14" x2="16" y2="23"/><line x1="16" y1="23" x2="16" y2="41"/>
@@ -151,7 +156,7 @@ stroke="rgba(255,255,255,0.16)" stroke-width="1.5"/>
 <g fill="#ffffff"><circle cx="16" cy="23" r="5"/><circle cx="16" cy="41" r="5"/>
 <circle cx="32" cy="50" r="5"/><circle cx="48" cy="41" r="5"/>
 <circle cx="48" cy="23" r="5"/></g>
-<circle cx="32" cy="14" r="5.5" fill="#34d399"/>"""
+<circle cx="32" cy="14" r="5.5" fill="{GREEN_BRIGHT}"/>"""
 
 FAVICON = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
            + MARK + "</svg>")
@@ -245,7 +250,7 @@ LI_ICON = ('<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" 
 
 CSS = f"""
 :root{{--ink:#0f172a;--mut:#64748b;--ln:#e2e8f0;--ac:{ACCENT};--ex:{EXACT};
---bg:#fff;--soft:#f8fafc}}
+--exb:{GREEN_BRIGHT};--dark:{DARK};--bg:#fff;--soft:#f8fafc}}
 *{{box-sizing:border-box}}
 /* Use a locally-installed Blippo if present (no font file is shipped, so no
    redistribution of a commercial font); fall back to Inter otherwise. */
@@ -258,10 +263,10 @@ color:var(--ink);margin:0;background:var(--bg);line-height:1.55}}
 font-weight:600}}
 .wrap{{max-width:1080px;margin:0 auto;padding:0 24px}}
 header.hero{{background:
-radial-gradient(115% 130% at 50% -25%,rgba(99,91,255,.45),transparent 62%),
+radial-gradient(115% 130% at 50% -25%,rgba(79,70,229,.5),transparent 62%),
 repeating-linear-gradient(0deg,transparent 0 27px,rgba(255,255,255,.05) 27px 28px),
 repeating-linear-gradient(90deg,transparent 0 27px,rgba(255,255,255,.05) 27px 28px),
-#07070f;color:#fff;padding:62px 0 54px;
+var(--dark);color:#fff;padding:62px 0 54px;
 border-bottom:1px solid rgba(255,255,255,.08)}}
 .brand{{display:flex;align-items:center;justify-content:space-between;
 gap:16px;margin:0 0 8px}}
