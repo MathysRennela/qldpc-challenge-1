@@ -918,11 +918,12 @@ FAQ = [
      "trust required. A code shows d= (certified exact) only when an "
      "independent certificate proves no shorter logical operator exists."),
     ("What do I get if I find a new code?",
-     "Your code goes on the board, attributed to your GitHub handle, with a "
-     "permanent link to its entry that you can share. If it advances a "
-     "track's frontier it is marked as a record. It is an open community "
-     "leaderboard, so the reward is recognition and a verified, citable record, "
-     "not prize money."),
+     "Bragging rights, chiefly. Your code lands on the board under your GitHub "
+     "handle with a permanent link you can wave around, and if it advances a "
+     "track's frontier it earns the record star (&#9733;). This is an open "
+     "community leaderboard, so the rewards are accolades, a citable verified "
+     "record, and the quiet respect of the few people who know what a good "
+     "kd&sup2;/n means. No prize money, sorry."),
     ("How do I submit?",
      "Add one JSON file under <code>codes/</code> following the schema and open "
      "a pull request; CI verifies it automatically. See "
