@@ -1396,7 +1396,7 @@
    "arXiv:2504.08887"
   ],
   "date": "2026-06-16",
-  "notes": "Reference baseline (their distances are IP-exact; we reproduced Table V 121/121)."
+  "notes": "Reference baseline (Liang, Eberhardt, Chen)."
  },
  "tracks": [
   "weight-6",

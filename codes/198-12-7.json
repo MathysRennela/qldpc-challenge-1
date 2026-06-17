@@ -1375,12 +1375,12 @@
    "FarLab",
    "vprusso"
   ],
-  "construction": "f = 1 + x + x^-2 y^2, g = 1 + xy + x^-2 y^-1; (11,9) lattice (Farrokh's family).",
+  "construction": "f = 1 + x + x^-2 y^2, g = 1 + xy + x^-2 y^-1; annulus-type boundary engine, (11,9) lattice.",
   "references": [
    "arXiv:2504.08887"
   ],
   "date": "2026-06-16",
-  "notes": "MILP-proven d=7; beats paper Table XII (198,4) at same n."
+  "notes": "Distance certified exact by cutoff MILP."
  },
  "tracks": [
   "weight-6",

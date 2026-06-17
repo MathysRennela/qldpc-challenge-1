@@ -1819,12 +1819,11 @@
   "authors": [
    "FarLab"
   ],
-  "construction": "Bivariate-bicycle weight-8 code converted to open planar boundaries (boundary anyon condensation) and optimized by lattice grafting (qubit removal). d_X MILP-certified (witness + HiGHS optimality); d_Z certified per research notes.",
+  "construction": "Bivariate bicycle weight-8 code on open planar boundaries (boundary anyon condensation), optimized by lattice grafting (qubit removal).",
   "references": [
    "arXiv:2504.08887"
   ],
-  "date": "2026-06-17",
-  "notes": "Witnesses re-verified: in ker(opposite), outside rowspace(own), weight=d."
+  "date": "2026-06-17"
  },
  "tracks": [
   "weight-8"
