@@ -2868,7 +2868,8 @@
   "references": [
    "arXiv:2504.08887"
   ],
-  "date": "2026-06-17"
+  "date": "2026-06-17",
+  "notes": "Distance is a self-certified upper bound; exact-distance MILP did not close at this size (n=289)."
  },
  "tracks": [
   "weight-8"

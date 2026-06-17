@@ -2048,7 +2048,7 @@
   "d": 12,
   "X": {
    "value": 12,
-   "confidence": "exact",
+   "confidence": "upper_bound",
    "witness": [
     14,
     15,
@@ -2091,7 +2091,8 @@
   "references": [
    "arXiv:2504.08887"
   ],
-  "date": "2026-06-17"
+  "date": "2026-06-17",
+  "notes": "Distance is a self-certified upper bound; exact-distance MILP did not close at this size (n=218)."
  },
  "tracks": [
   "weight-8"
