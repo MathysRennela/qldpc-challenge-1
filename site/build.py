@@ -15,6 +15,7 @@ import json
 import os
 import re
 import sys
+import urllib.parse
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "verify"))
@@ -129,6 +130,9 @@ def vs_paper(k, d, n):
     return (b["n"] - n, b["label"], b["grafted"])
 REPO_ROOT = "https://github.com/unitaryfoundation/qldpc-challenge"
 REPO = REPO_ROOT + "/blob/main"
+# Public base URL of the deployed site, used to build shareable per-code links.
+# Update this to the real domain once the board is hosted.
+SITE_URL = "https://unitaryfoundation.github.io/qldpc-challenge"
 
 ACCENT = "#4f46e5"
 EXACT = "#059669"
@@ -345,6 +349,11 @@ section.blk{{margin:28px 0}}section.blk h3{{font-size:16px;margin:0 0 8px;
 padding-bottom:6px;border-bottom:1px solid var(--ln)}}
 .kv{{font-size:14px;margin:4px 0}}.kv b{{color:var(--mut);font-weight:600;
 display:inline-block;min-width:120px}}
+.share{{display:flex;flex-wrap:wrap;gap:10px}}
+.sharebtn{{font:inherit;font-size:14px;cursor:pointer;border:1px solid var(--ln);
+background:var(--soft);color:var(--ink);border-radius:8px;padding:7px 14px;
+text-decoration:none;display:inline-block}}
+.sharebtn:hover{{border-color:var(--ac);color:var(--ac);text-decoration:none}}
 .wit{{font-family:ui-monospace,monospace;font-size:12px;background:var(--soft);
 border:1px solid var(--ln);border-radius:8px;padding:10px;
 white-space:pre-wrap;word-break:break-word}}
@@ -623,6 +632,27 @@ def detail_page(e):
                      f'<div class=v>{loc["interaction_radius"]:.2f}</div></div>')
     P.append('</div>')
 
+    # share: a link back to this entry plus pre-filled posts
+    url = f"{SITE_URL}/codes/{e['slug']}.html"
+    msg = f"[[{n},{k},{d}]] quantum LDPC code on the qLDPC Challenge"
+    q = urllib.parse.quote
+    x_url = f"https://twitter.com/intent/tweet?text={q(msg)}&url={q(url)}"
+    bsky_url = f"https://bsky.app/intent/compose?text={q(msg + ' ' + url)}"
+    li_url = ("https://www.linkedin.com/sharing/share-offsite/?url="
+              + q(url))
+    P.append(
+        '<section class=blk><h3>Share this result</h3>'
+        '<div class=share>'
+        f'<button class=sharebtn type=button data-copy="{html.escape(url)}">'
+        'Copy link</button>'
+        f'<a class=sharebtn href="{html.escape(x_url)}" target=_blank '
+        'rel=noopener>Post on X</a>'
+        f'<a class=sharebtn href="{html.escape(bsky_url)}" target=_blank '
+        'rel=noopener>Bluesky</a>'
+        f'<a class=sharebtn href="{html.escape(li_url)}" target=_blank '
+        'rel=noopener>LinkedIn</a>'
+        '</div></section>')
+
     # distance + certificate
     P.append('<section class=blk><h3>Distance</h3>')
     for side in ("X", "Z"):
@@ -675,6 +705,11 @@ def detail_page(e):
              f'{e["slug"]}.json">raw submission JSON</a></div>')
     P.append('</section>')
 
+    P.append("<script>document.querySelectorAll('[data-copy]').forEach("
+             "b=>b.addEventListener('click',()=>{navigator.clipboard"
+             ".writeText(b.dataset.copy);const o=b.textContent;"
+             "b.textContent='link copied';"
+             "setTimeout(()=>b.textContent=o,1400);}));</script>")
     P.append('</div></body></html>')
     return "\n".join(P)
 
