@@ -218,6 +218,37 @@ GH_ICON = ('<svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" 
            '-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 '
            '.21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>')
 
+# share icons (monochrome, currentColor). Brand glyphs for X / Bluesky /
+# LinkedIn; a link glyph for copy.
+LINK_ICON = ('<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"'
+             ' aria-hidden="true"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7'
+             'c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1z'
+             'M8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1'
+             ' 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>')
+X_ICON = ('<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" '
+          'aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 '
+          '11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08'
+          'l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>')
+BSKY_ICON = ('<svg viewBox="0 0 568 501" width="18" height="18" '
+             'fill="currentColor" aria-hidden="true"><path d="M123.121 33.664C'
+             '188.241 82.553 258.281 181.68 284 234.873c25.719-53.193 95.759'
+             '-152.32 160.879-201.21C491.866-1.611 568-28.906 568 57.947c0 '
+             '17.346-9.945 145.713-15.778 166.555-20.275 72.453-94.155 90.933'
+             '-159.875 79.748C507.222 323.8 536.444 388.56 473.333 453.32c'
+             '-119.86 122.992-172.272-30.859-185.702-70.281-2.462-7.227-3.614'
+             '-10.608-3.631-7.733-.017-2.875-1.169.506-3.631 7.733-13.43 39.422'
+             '-65.842 193.273-185.702 70.281-63.111-64.76-33.889-129.52 80.986'
+             '-149.071-65.72 11.185-139.6-7.295-159.875-79.748C9.945 203.66 0 '
+             '75.293 0 57.947 0-28.906 76.135-1.611 123.121 33.664Z"/></svg>')
+LI_ICON = ('<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" '
+           'aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328'
+           '-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351'
+           'V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 '
+           '4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 '
+           '2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H'
+           '1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C'
+           '23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z"/></svg>')
+
 CSS = f"""
 :root{{--ink:#0f172a;--mut:#64748b;--ln:#e2e8f0;--ac:{ACCENT};--ex:{EXACT};
 --bg:#fff;--soft:#f8fafc}}
@@ -350,10 +381,12 @@ padding-bottom:6px;border-bottom:1px solid var(--ln)}}
 .kv{{font-size:14px;margin:4px 0}}.kv b{{color:var(--mut);font-weight:600;
 display:inline-block;min-width:120px}}
 .share{{display:flex;flex-wrap:wrap;gap:10px}}
-.sharebtn{{font:inherit;font-size:14px;cursor:pointer;border:1px solid var(--ln);
-background:var(--soft);color:var(--ink);border-radius:8px;padding:7px 14px;
-text-decoration:none;display:inline-block}}
-.sharebtn:hover{{border-color:var(--ac);color:var(--ac);text-decoration:none}}
+.sharebtn{{cursor:pointer;border:1px solid var(--ln);background:var(--soft);
+color:var(--mut);border-radius:9px;width:40px;height:40px;padding:0;
+display:inline-flex;align-items:center;justify-content:center;
+text-decoration:none;line-height:0}}
+.sharebtn:hover{{border-color:var(--ac);color:var(--ac)}}
+.sharebtn svg{{display:block}}
 .wit{{font-family:ui-monospace,monospace;font-size:12px;background:var(--soft);
 border:1px solid var(--ln);border-radius:8px;padding:10px;
 white-space:pre-wrap;word-break:break-word}}
@@ -642,14 +675,16 @@ def detail_page(e):
     P.append(
         '<section class=blk><h3>Share this result</h3>'
         '<div class=share>'
-        f'<button class=sharebtn type=button data-copy="{html.escape(url)}">'
-        'Copy link</button>'
+        f'<button class=sharebtn type=button data-copy="{html.escape(url)}" '
+        f'aria-label="Copy link" title="Copy link">{LINK_ICON}</button>'
         f'<a class=sharebtn href="{html.escape(x_url)}" target=_blank '
-        'rel=noopener>Post on X</a>'
+        f'rel=noopener aria-label="Post on X" title="Post on X">{X_ICON}</a>'
         f'<a class=sharebtn href="{html.escape(bsky_url)}" target=_blank '
-        'rel=noopener>Bluesky</a>'
+        f'rel=noopener aria-label="Share on Bluesky" title="Bluesky">'
+        f'{BSKY_ICON}</a>'
         f'<a class=sharebtn href="{html.escape(li_url)}" target=_blank '
-        'rel=noopener>LinkedIn</a>'
+        f'rel=noopener aria-label="Share on LinkedIn" title="LinkedIn">'
+        f'{LI_ICON}</a>'
         '</div></section>')
 
     # distance + certificate
@@ -706,9 +741,10 @@ def detail_page(e):
 
     P.append("<script>document.querySelectorAll('[data-copy]').forEach("
              "b=>b.addEventListener('click',()=>{navigator.clipboard"
-             ".writeText(b.dataset.copy);const o=b.textContent;"
-             "b.textContent='link copied';"
-             "setTimeout(()=>b.textContent=o,1400);}));</script>")
+             ".writeText(b.dataset.copy);const o=b.innerHTML;"
+             "b.innerHTML='\\u2713';b.title='link copied';"
+             "setTimeout(()=>{b.innerHTML=o;b.title='Copy link';},1400);}));"
+             "</script>")
     P.append('</div></body></html>')
     return "\n".join(P)
 
