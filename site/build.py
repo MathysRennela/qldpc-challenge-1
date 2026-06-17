@@ -263,8 +263,12 @@ color:var(--ink);margin:0;background:var(--bg);line-height:1.55}}
 .mono{{font-family:'Blippo',ui-monospace,'SF Mono',Menlo,monospace;
 font-weight:600}}
 .wrap{{max-width:1080px;margin:0 auto;padding:0 24px}}
-header.hero{{background:linear-gradient(160deg,#1e1b4b,#4f46e5);color:#fff;
-padding:60px 0 52px}}
+header.hero{{background:
+radial-gradient(115% 130% at 50% -25%,rgba(99,91,255,.45),transparent 62%),
+repeating-linear-gradient(0deg,transparent 0 27px,rgba(255,255,255,.05) 27px 28px),
+repeating-linear-gradient(90deg,transparent 0 27px,rgba(255,255,255,.05) 27px 28px),
+#07070f;color:#fff;padding:62px 0 54px;
+border-bottom:1px solid rgba(255,255,255,.08)}}
 .brand{{display:flex;align-items:center;justify-content:space-between;
 gap:16px;margin:0 0 8px}}
 .brandmark{{display:flex;align-items:center;gap:16px}}
@@ -357,8 +361,22 @@ font-size:12px;color:var(--mut)}}
 .gridkey .sw{{display:inline-block;width:11px;height:11px;border-radius:3px;
 border:1px solid var(--ln);margin-right:6px;vertical-align:-1px}}
 .gridkey .sw.win{{background:#ecfdf5}}.gridkey .sw.lose{{background:#fff7ed}}
-footer{{margin:64px 0 48px;padding-top:24px;border-top:1px solid var(--ln);
-color:var(--mut);font-size:14px}}
+footer.foot{{margin-top:72px;border-top:1px solid var(--ln);
+background:linear-gradient(180deg,var(--soft),var(--bg));color:var(--mut);
+font-size:14px}}
+.footmain{{max-width:1080px;margin:0 auto;padding:34px 24px 26px;display:flex;
+flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:flex-start}}
+.footbrand{{max-width:360px}}
+.footbrand .fb{{display:flex;align-items:center;gap:12px;margin-bottom:8px}}
+.footbrand .fb span{{font-size:18px;font-weight:700;color:var(--ink)}}
+.footbrand p{{margin:0;color:var(--mut)}}
+.footlinks{{display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center}}
+.footlinks a{{display:inline-flex;align-items:center;gap:7px;color:var(--mut);
+font-weight:600}}
+.footlinks a:hover{{color:var(--ac);text-decoration:none}}
+.footlinks svg{{width:16px;height:16px}}
+.footbar{{border-top:1px solid var(--ln);text-align:center;padding:16px;
+color:var(--mut);font-size:13px}}
 a{{color:var(--ac);text-decoration:none}}a:hover{{text-decoration:underline}}
 code{{background:var(--soft);padding:1px 5px;border-radius:4px;font-size:.9em}}
 .hit{{cursor:pointer}}
@@ -863,7 +881,7 @@ def progress_panel(entries, tracks, n_exact, best_eff):
                     f'</td><td>{len(te)}</td>'
                     f'<td>{fr}</td><td>{ex}</td>'
                     f'<td>{len(te) - ex}</td></tr>')
-    return ('<section class=progress><h2 class=ph>Progress at a glance</h2>'
+    return ('<section class=progress><h2 class=ph>Progress</h2>'
             f'<div class=pmetrics>{mhtml}</div>'
             '<table class=ptracks><thead><tr><th>track</th>'
             '<th>codes</th><th>on frontier</th><th>certified exact</th>'
@@ -924,15 +942,25 @@ def build():
         P.append(table(te, fr))
         P.append(f'<div class=trackbody><div class=gridcol>{cell_grid(te)}'
                  f'</div>{svg(te, fr)}</div>')
-    P.append('<footer>Submit a code by pull request. See '
-             f'<a href="{REPO}/CONTRIBUTING.md">CONTRIBUTING</a>, '
-             f'<a href="{REPO}/schema/SCHEMA.md">the schema</a>, '
-             f'<a href="{REPO}/TRACKS.md">the tracks</a>, and '
-             '<a href="references.html">references</a>. The site and challenge '
-             f'are open source on <a href="{REPO_ROOT}">GitHub</a>. Developed at '
-             '<a href="https://unitary.foundation">Unitary Foundation</a>. '
-             f'Code under <a href="{REPO}/LICENSE">Apache 2.0</a>.</footer>')
-    P.append('</div><div id=tip></div>')
+    P.append('</div>')  # close the main content wrap; footer is full-width
+    P.append(
+        '<footer class=foot><div class=footmain>'
+        '<div class=footbrand><div class=fb>'
+        f'<svg width=34 height=34 viewBox="0 0 64 64" aria-hidden="true">{MARK}'
+        '</svg><span>qLDPC Challenge</span></div>'
+        '<p>An open, automatically verified leaderboard for quantum '
+        'low-density parity-check codes.</p></div>'
+        '<nav class=footlinks>'
+        f'<a href="{REPO_ROOT}">{GH_ICON}GitHub</a>'
+        f'<a href="{REPO}/CONTRIBUTING.md">Contribute</a>'
+        f'<a href="{REPO}/schema/SCHEMA.md">Schema</a>'
+        f'<a href="{REPO}/TRACKS.md">Tracks</a>'
+        '<a href="references.html">References</a>'
+        '</nav></div>'
+        '<div class=footbar>&copy; 2026 &middot; Built by '
+        '<a href="https://unitary.foundation">Unitary Foundation</a> '
+        f'&middot; <a href="{REPO}/LICENSE">Apache 2.0</a></div></footer>')
+    P.append('<div id=tip></div>')
     P.append(f'<script>{JS}</script></body></html>')
 
     os.makedirs(os.path.join(DOCS, "codes"), exist_ok=True)
