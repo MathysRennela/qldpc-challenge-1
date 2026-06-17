@@ -289,6 +289,11 @@ text-align:center;min-width:30px}}
 .cells th{{background:var(--soft);color:var(--mut);font-weight:600}}
 .cells td.cellwin{{background:#ecfdf5}}.cells td.celllose{{background:#fff7ed}}
 .cells td a{{font-variant-numeric:tabular-nums}}
+.gridkey{{display:flex;flex-direction:column;gap:3px;margin:6px 0 2px;
+font-size:12px;color:var(--mut)}}
+.gridkey .sw{{display:inline-block;width:11px;height:11px;border-radius:3px;
+border:1px solid var(--ln);margin-right:6px;vertical-align:-1px}}
+.gridkey .sw.win{{background:#ecfdf5}}.gridkey .sw.lose{{background:#fff7ed}}
 footer{{margin:64px 0 48px;padding-top:24px;border-top:1px solid var(--ln);
 color:var(--mut);font-size:14px}}
 a{{color:var(--ac);text-decoration:none}}a:hover{{text-decoration:underline}}
@@ -547,6 +552,7 @@ def cell_grid(te):
     head_row = ("<tr><th>k \\ d</th>"
                 + "".join(f"<th>{d}</th>" for d in ds) + "</tr>")
     rows = []
+    any_win = any_lose = False
     for k in ks:
         cells = [f"<th>{k}</th>"]
         for d in ds:
@@ -558,15 +564,28 @@ def cell_grid(te):
             cls = ""
             if vp and vp[0] > 0:
                 cls = " class=cellwin"
+                any_win = True
             elif vp and vp[0] < 0:
                 cls = " class=celllose"
+                any_lose = True
             cells.append(
                 f'<td{cls}><a href="codes/{e["slug"]}.html" '
                 f'title="[[{e["n"]},{k},{d}]] &middot; '
                 f'{html.escape(e["authors"])}">{e["n"]}</a></td>')
         rows.append("<tr>" + "".join(cells) + "</tr>")
+    # explain the cell shading; only show the keys that actually appear.
+    key = []
+    if any_win:
+        key.append('<span><i class="sw win"></i>fewer qubits than the '
+                   'paper at this (k, d)</span>')
+    if any_lose:
+        key.append('<span><i class="sw lose"></i>paper&rsquo;s best is '
+                   'still smaller</span>')
+    key.append('<span>each cell is the smallest n on the board for that '
+               '(k, d); click it for the code</span>')
     return ('<h3 class=gridh>Minimal n by (k, d)</h3>'
-            f'<table class=cells>{head_row}{"".join(rows)}</table>')
+            f'<table class=cells>{head_row}{"".join(rows)}</table>'
+            f'<div class=gridkey>{"".join(key)}</div>')
 
 
 def detail_page(e):
