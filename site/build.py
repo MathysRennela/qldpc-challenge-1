@@ -130,27 +130,27 @@ REPO = "https://github.com/unitaryfoundation/qldpc-challenge/blob/main"
 ACCENT = "#4f46e5"
 EXACT = "#059669"
 
-# Logo mark: a logical Z operator (the bright green path) threading a qubit
-# lattice. The weight of such a string is the code distance, which is what the
-# whole board ranks, so the mark is the thing the challenge is about. Used for
-# both the favicon and the hero. All attributes quoted so it is valid as a
-# standalone SVG file (parsed as XML) and inline in HTML.
+# Logo mark: a qubit lattice with a bold green closed loop tracing a
+# non-trivial cycle. The weight of such a loop is the code distance, which is
+# the quantity the board ranks, so the mark is the thing the challenge is
+# about. Used for both the favicon and the hero. All attributes quoted so it is
+# valid as a standalone SVG file (parsed as XML) and inline in HTML.
 MARK = """\
 <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
 <stop offset="0" stop-color="#1e1b4b"/><stop offset="1" stop-color="#4f46e5"/>
 </linearGradient></defs>
 <rect x="1" y="1" width="62" height="62" rx="14" fill="url(#lg)" \
 stroke="rgba(255,255,255,0.16)" stroke-width="1.5"/>
-<g fill="#9aa6f5" opacity="0.6">
-<circle cx="20" cy="20" r="2.6"/><circle cx="32" cy="20" r="2.6"/>
-<circle cx="44" cy="20" r="2.6"/><circle cx="20" cy="32" r="2.6"/>
-<circle cx="32" cy="32" r="2.6"/><circle cx="44" cy="32" r="2.6"/>
-<circle cx="20" cy="44" r="2.6"/><circle cx="32" cy="44" r="2.6"/>
-<circle cx="44" cy="44" r="2.6"/></g>
-<path d="M18 18 L46 18 L18 46 L46 46" fill="none" stroke="#34d399" \
-stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="18" cy="18" r="4.5" fill="#6ee7b7"/>
-<circle cx="46" cy="46" r="4.5" fill="#6ee7b7"/>"""
+<g stroke="#6366f1" stroke-width="2" opacity="0.45">
+<line x1="18" y1="18" x2="46" y2="18"/><line x1="18" y1="32" x2="46" y2="32"/>
+<line x1="18" y1="46" x2="46" y2="46"/><line x1="18" y1="18" x2="18" y2="46"/>
+<line x1="32" y1="18" x2="32" y2="46"/><line x1="46" y1="18" x2="46" y2="46"/></g>
+<g fill="#8b93e8"><circle cx="46" cy="18" r="2.6"/><circle cx="18" cy="32" r="2.6"/></g>
+<path d="M18 18 L32 18 L32 32 L46 32 L46 46 L18 46 Z" fill="none" \
+stroke="#34d399" stroke-width="4.5" stroke-linejoin="round" \
+stroke-linecap="round"/>
+<g fill="#34d399"><circle cx="18" cy="18" r="3.8"/><circle cx="32" cy="32" r="3.8"/>
+<circle cx="46" cy="46" r="3.8"/></g>"""
 
 FAVICON = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
            + MARK + "</svg>")
