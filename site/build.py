@@ -809,7 +809,9 @@ def build():
              f'<a href="{REPO}/TRACKS.md">the tracks</a>, and '
              '<a href="references.html">references</a>. &#9733; marks the '
              '(n,k,d) Pareto frontier. The site and challenge are open source '
-             f'on <a href="{REPO_ROOT}">GitHub</a>.</footer>')
+             f'on <a href="{REPO_ROOT}">GitHub</a>. Developed at '
+             '<a href="https://unitary.foundation">Unitary Foundation</a>. '
+             f'Code under <a href="{REPO}/LICENSE">Apache 2.0</a>.</footer>')
     P.append('</div><div id=tip></div>')
     P.append(f'<script>{JS}</script></body></html>')
 
