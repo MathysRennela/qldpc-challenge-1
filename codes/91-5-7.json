@@ -629,8 +629,8 @@
  },
  "provenance": {
   "authors": [
-   "FarLab",
-   "vprusso"
+   "@FarLab",
+   "@vprusso"
   ],
   "construction": "Generalized weight-6, notched (7,7).",
   "references": [

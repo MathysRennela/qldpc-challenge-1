@@ -848,8 +848,8 @@
  },
  "provenance": {
   "authors": [
-   "FarLab",
-   "vprusso"
+   "@FarLab",
+   "@vprusso"
   ],
   "construction": "Generalized weight-6, notched (8,8).",
   "references": [

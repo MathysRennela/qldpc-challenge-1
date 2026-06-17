@@ -581,14 +581,16 @@ def badge(tier):
 
 
 def authors_html(lst):
-    """Render a GitHub-handle author as a profile link, anything else (e.g. a
-    'First Last, ...' citation string) as plain text."""
+    """A GitHub handle is written with a leading '@' in the data and rendered as
+    a profile link; anything else (a paper-author surname or citation string) is
+    plain text. So '@vprusso' links, but 'Kitaev' does not."""
     out = []
     for a in lst:
-        if re.fullmatch(r"[A-Za-z0-9-]+", a):
-            out.append(f'<a href="https://github.com/{a}">@{a}</a>')
+        h = a.strip()
+        if h.startswith("@") and re.fullmatch(r"@[A-Za-z0-9-]+", h):
+            out.append(f'<a href="https://github.com/{h[1:]}">{h}</a>')
         else:
-            out.append(html.escape(a))
+            out.append(html.escape(h))
     return ", ".join(out)
 
 
@@ -868,7 +870,7 @@ def progress_panel(entries, tracks, n_exact, best_eff):
     paper baseline source is not a contributor)."""
     n_ub = len(entries) - n_exact
     handles = {a.strip() for e in entries for a in e["authors_list"]
-               if re.fullmatch(r"[A-Za-z0-9-]+", a.strip())}
+               if a.strip().startswith("@")}
     metrics = [
         (str(len(entries)), "verified codes"),
         (str(n_exact), "certified exact"),
