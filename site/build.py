@@ -378,6 +378,10 @@ font-weight:600}}
 color:var(--mut);font-size:13px}}
 a{{color:var(--ac);text-decoration:none}}a:hover{{text-decoration:underline}}
 code{{background:var(--soft);padding:1px 5px;border-radius:4px;font-size:.9em}}
+.faq{{max-width:64ch;margin:22px 0;padding-bottom:18px;
+border-bottom:1px solid var(--ln)}}
+.faq h3{{font-size:17px;margin:0 0 6px}}
+.faq p{{margin:0;color:var(--mut);line-height:1.6}}
 .hit{{cursor:pointer}}
 #tip{{position:fixed;pointer-events:none;z-index:60;background:#0f172a;
 color:#fff;padding:7px 10px;border-radius:7px;font-size:12px;line-height:1.45;
@@ -877,6 +881,69 @@ def progress_panel(entries, tracks, n_exact, best_eff):
             f'<tbody>{"".join(rows)}</tbody></table></section>')
 
 
+FAQ = [
+    ("What is a qLDPC code?",
+     "A quantum low-density parity-check code. As in classical LDPC codes, the "
+     "parity checks are sparse: each check involves only a few qubits and each "
+     "qubit appears in only a few checks. It is a stabilizer code (here CSS), "
+     "so it has two commuting sets of checks, X-type and Z-type. A code is "
+     "summarized as [[n,k,d]]: n physical qubits encode k logical qubits, and "
+     "the distance d is the lowest weight of an error that can go undetected."),
+    ("Where are qLDPC codes useful?",
+     "Fault-tolerant quantum computing. The surface code works but spends a "
+     "large number of physical qubits per logical qubit. qLDPC codes can encode "
+     "more logical qubits at higher distance for the same number of physical "
+     "qubits, while keeping the checks sparse and low-weight so syndrome "
+     "extraction stays manageable. They are a leading route to lowering the "
+     "qubit overhead of error correction."),
+    ("Why does this page exist?",
+     "To collect the best known qLDPC codes in one place, with every entry's "
+     "parameters checked automatically instead of taken on trust. The "
+     "literature is scattered; this gathers codes, verifies them, and ranks "
+     "them per track on a Pareto frontier, so it is easy to see the current "
+     "state of the art and where there is room to do better."),
+    ("Why is it hard to find good qLDPC codes?",
+     "The checks have to commute (the CSS condition) and stay sparse, which "
+     "constrains the construction. You want high k, high d, and low n at the "
+     "same time, and those pull against each other. Computing the distance d is "
+     "NP-hard, so even measuring how good a candidate is can be expensive. Good "
+     "codes tend to come from algebraic constructions (bicycle, product, "
+     "lifted) whose parameters are hard to predict, so improving on them is "
+     "largely search."),
+    ("What does “verified” mean here?",
+     "CI runs a verifier on every submission. It recomputes n and k over GF(2), "
+     "checks the CSS commutation and the check weights, and confirms the "
+     "distance witness is a genuine nontrivial logical operator of the claimed "
+     "weight. That certifies the distance as an upper bound (d &le;) with no "
+     "trust required. A code shows d= (certified exact) only when an "
+     "independent certificate proves no shorter logical operator exists."),
+    ("What do I get if I find a new code?",
+     "Your code goes on the board, attributed to your GitHub handle, with a "
+     "permanent link to its entry that you can share. If it advances a "
+     "track's frontier it is marked as a record. It is an open community "
+     "leaderboard, so the reward is recognition and a verified, citable record, "
+     "not prize money."),
+    ("How do I submit?",
+     "Add one JSON file under <code>codes/</code> following the schema and open "
+     "a pull request; CI verifies it automatically. See "
+     f"<a href=\"{REPO}/CONTRIBUTING.md\">CONTRIBUTING</a> and "
+     f"<a href=\"{REPO}/schema/SCHEMA.md\">the schema</a>. The "
+     "<a href=\"https://github.com/qLDPCOrg/qLDPC\">qLDPC library</a> is a "
+     "convenient way to build a code and export its parity checks."),
+]
+
+
+def faq_page():
+    P = [head("FAQ | qLDPC Challenge", rel="")]
+    P.append('<div class=wrap>')
+    P.append('<a class=back href="index.html">&larr; back to the board</a>')
+    P.append('<h1 style="margin:.4rem 0 0">FAQ</h1>')
+    for q, a in FAQ:
+        P.append(f'<div class=faq><h3>{html.escape(q)}</h3><p>{a}</p></div>')
+    P.append('</div></body></html>')
+    return "\n".join(P)
+
+
 def build():
     entries = load_entries()
     tracks = {}
@@ -943,6 +1010,7 @@ def build():
         f'<a href="{REPO}/CONTRIBUTING.md">Contribute</a>'
         f'<a href="{REPO}/schema/SCHEMA.md">Schema</a>'
         f'<a href="{REPO}/TRACKS.md">Tracks</a>'
+        '<a href="faq.html">FAQ</a>'
         '<a href="references.html">References</a>'
         '</nav></div>'
         '<div class=footbar>&copy; 2026 &middot; Built by '
@@ -958,6 +1026,8 @@ def build():
         f.write(FAVICON)
     with open(os.path.join(DOCS, "references.html"), "w") as f:
         f.write(references_page(entries))
+    with open(os.path.join(DOCS, "faq.html"), "w") as f:
+        f.write(faq_page())
     for e in entries:
         with open(os.path.join(DOCS, "codes", e["slug"] + ".html"), "w") as f:
             f.write(detail_page(e))
