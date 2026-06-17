@@ -130,18 +130,30 @@ REPO = "https://github.com/unitaryfoundation/qldpc-challenge/blob/main"
 ACCENT = "#4f46e5"
 EXACT = "#059669"
 
-FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+# Logo mark: a logical Z operator (the bright green path) threading a qubit
+# lattice. The weight of such a string is the code distance, which is what the
+# whole board ranks, so the mark is the thing the challenge is about. Used for
+# both the favicon and the hero. All attributes quoted so it is valid as a
+# standalone SVG file (parsed as XML) and inline in HTML.
+MARK = """\
+<defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
 <stop offset="0" stop-color="#1e1b4b"/><stop offset="1" stop-color="#4f46e5"/>
 </linearGradient></defs>
-<rect width="32" height="32" rx="7" fill="url(#g)"/>
-<g fill="#c7d2fe">
-<circle cx="9" cy="9" r="2.3"/><circle cx="16" cy="9" r="2.3"/>
-<circle cx="23" cy="9" r="2.3"/><circle cx="9" cy="16" r="2.3"/>
-<circle cx="23" cy="16" r="2.3"/><circle cx="9" cy="23" r="2.3"/>
-<circle cx="16" cy="23" r="2.3"/></g>
-<circle cx="16" cy="16" r="2.6" fill="#34d399"/>
-<circle cx="23" cy="23" r="2.6" fill="#34d399"/></svg>"""
+<rect x="1" y="1" width="62" height="62" rx="14" fill="url(#lg)" \
+stroke="rgba(255,255,255,0.16)" stroke-width="1.5"/>
+<g fill="#9aa6f5" opacity="0.6">
+<circle cx="20" cy="20" r="2.6"/><circle cx="32" cy="20" r="2.6"/>
+<circle cx="44" cy="20" r="2.6"/><circle cx="20" cy="32" r="2.6"/>
+<circle cx="32" cy="32" r="2.6"/><circle cx="44" cy="32" r="2.6"/>
+<circle cx="20" cy="44" r="2.6"/><circle cx="32" cy="44" r="2.6"/>
+<circle cx="44" cy="44" r="2.6"/></g>
+<path d="M18 18 L46 18 L18 46 L46 46" fill="none" stroke="#34d399" \
+stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="18" cy="18" r="4.5" fill="#6ee7b7"/>
+<circle cx="46" cy="46" r="4.5" fill="#6ee7b7"/>"""
+
+FAVICON = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
+           + MARK + "</svg>")
 
 CSS = f"""
 :root{{--ink:#0f172a;--mut:#64748b;--ln:#e2e8f0;--ac:{ACCENT};--ex:{EXACT};
@@ -153,7 +165,9 @@ margin:0;background:var(--bg);line-height:1.55}}
 .wrap{{max-width:1080px;margin:0 auto;padding:0 24px}}
 header.hero{{background:linear-gradient(160deg,#1e1b4b,#4f46e5);color:#fff;
 padding:60px 0 52px}}
-header.hero h1{{font-size:44px;margin:0 0 8px;letter-spacing:-1px}}
+.brand{{display:flex;align-items:center;gap:16px;margin:0 0 8px}}
+.brand svg{{flex:0 0 auto;filter:drop-shadow(0 4px 14px rgba(0,0,0,.35))}}
+header.hero h1{{font-size:44px;margin:0;letter-spacing:-1px}}
 header.hero h1 a{{color:#fff}}
 header.hero p{{font-size:18px;max-width:640px;margin:0;color:#dbeafe}}
 .stats{{display:flex;gap:40px;margin-top:30px;flex-wrap:wrap}}
@@ -656,7 +670,10 @@ def build():
 
     P = [head("qLDPC Challenge")]
     P.append('<header class=hero><div class=wrap>'
-             '<h1>qLDPC Challenge</h1>'
+             '<div class=brand>'
+             f'<svg width=52 height=52 viewBox="0 0 64 64" '
+             f'aria-label="qLDPC Challenge logo">{MARK}</svg>'
+             '<h1>qLDPC Challenge</h1></div>'
              '<p>Find better quantum LDPC codes.</p>'
              '<div class=stats>'
              f'<div class=stat><div class=v>{len(entries)}</div>'

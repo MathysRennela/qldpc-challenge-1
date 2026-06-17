@@ -8,7 +8,9 @@ margin:0;background:var(--bg);line-height:1.55}
 .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
 header.hero{background:linear-gradient(160deg,#1e1b4b,#4f46e5);color:#fff;
 padding:60px 0 52px}
-header.hero h1{font-size:44px;margin:0 0 8px;letter-spacing:-1px}
+.brand{display:flex;align-items:center;gap:16px;margin:0 0 8px}
+.brand svg{flex:0 0 auto;filter:drop-shadow(0 4px 14px rgba(0,0,0,.35))}
+header.hero h1{font-size:44px;margin:0;letter-spacing:-1px}
 header.hero h1 a{color:#fff}
 header.hero p{font-size:18px;max-width:640px;margin:0;color:#dbeafe}
 .stats{display:flex;gap:40px;margin-top:30px;flex-wrap:wrap}
@@ -104,7 +106,19 @@ padding-left:10px;padding-right:10px}
 .trackbody{flex-direction:column}.plot{flex-basis:auto;width:100%;
 position:static}header.hero h1{font-size:34px}}
 </style></head><body>
-<header class=hero><div class=wrap><h1>qLDPC Challenge</h1><p>Find better quantum LDPC codes.</p><div class=stats><div class=stat><div class=v>15</div><div class=l>verified codes</div></div><div class=stat><div class=v>2</div><div class=l>tracks</div></div><div class=stat><div class=v>13</div><div class=l>certified exact</div></div><div class=stat><div class=v>4</div><div class=l>best kd&sup2;/n</div></div></div></div></header>
+<header class=hero><div class=wrap><div class=brand><svg width=52 height=52 viewBox="0 0 64 64" aria-label="qLDPC Challenge logo"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#1e1b4b"/><stop offset="1" stop-color="#4f46e5"/>
+</linearGradient></defs>
+<rect x="1" y="1" width="62" height="62" rx="14" fill="url(#lg)" stroke="rgba(255,255,255,0.16)" stroke-width="1.5"/>
+<g fill="#9aa6f5" opacity="0.6">
+<circle cx="20" cy="20" r="2.6"/><circle cx="32" cy="20" r="2.6"/>
+<circle cx="44" cy="20" r="2.6"/><circle cx="20" cy="32" r="2.6"/>
+<circle cx="32" cy="32" r="2.6"/><circle cx="44" cy="32" r="2.6"/>
+<circle cx="20" cy="44" r="2.6"/><circle cx="32" cy="44" r="2.6"/>
+<circle cx="44" cy="44" r="2.6"/></g>
+<path d="M18 18 L46 18 L18 46 L46 46" fill="none" stroke="#34d399" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="18" cy="18" r="4.5" fill="#6ee7b7"/>
+<circle cx="46" cy="46" r="4.5" fill="#6ee7b7"/></svg><h1>qLDPC Challenge</h1></div><p>Find better quantum LDPC codes.</p><div class=stats><div class=stat><div class=v>15</div><div class=l>verified codes</div></div><div class=stat><div class=v>2</div><div class=l>tracks</div></div><div class=stat><div class=v>13</div><div class=l>certified exact</div></div><div class=stat><div class=v>4</div><div class=l>best kd&sup2;/n</div></div></div></div></header>
 <div class=wrap>
 <div class=how><div class=card><span class=n>1</span><h3>Build a code</h3><p>A CSS qLDPC code, written as one JSON file with its parity checks and a distance witness.</p></div><div class=card><span class=n>2</span><h3>Open a PR</h3><p>Add it under <code>codes/</code>. CI runs the verifier on every submission automatically.</p></div><div class=card><span class=n>3</span><h3>Climb the board</h3><p>If it advances a track&rsquo;s frontier it is highlighted. Click any row for the witness, certificate, and checks.</p></div></div>
 <div class=legend><span>&#9733; <b>frontier</b>: no code beats it on all of (n, k, d)</span><span><span class="dot ex"></span> certified exact (<span class="b exact">d =</span>)</span><span><span class="dot ac"></span> upper bound (<span class="b ub">d &le;</span>)</span><span><span class="dot ho"></span> open point = dominated</span><span><span class=vswin>&minus;N</span> = N fewer qubits than the paper at the same (k,d), arXiv:2504.08887 Table I (grafted where published)</span></div>
