@@ -158,6 +158,50 @@ stroke-linecap="round"/>
 FAVICON = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
            + MARK + "</svg>")
 
+
+def _txt_w(s):
+    """Rough pixel width of a string at 11px Verdana, for badge sizing."""
+    w = 0.0
+    for c in s:
+        if c in "iIl.:|'!,;":
+            w += 3.2
+        elif c in "ftjr ()":
+            w += 4.2
+        elif c in "mwMW":
+            w += 9.5
+        elif c.isupper():
+            w += 7.5
+        else:
+            w += 6.6
+    return w
+
+
+def shield(label, value, color="#4f46e5"):
+    """A self-contained shields.io-style flat badge as an SVG string. No
+    external service, so it works for a private repo and updates on rebuild."""
+    lw = round(_txt_w(label) + 12)
+    vw = round(_txt_w(str(value)) + 12)
+    W = lw + vw
+    lab, val = html.escape(label), html.escape(str(value))
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="20" '
+        f'role="img" aria-label="{lab}: {val}">'
+        f'<linearGradient id="s" x2="0" y2="100%">'
+        f'<stop offset="0" stop-color="#bbb" stop-opacity=".1"/>'
+        f'<stop offset="1" stop-opacity=".1"/></linearGradient>'
+        f'<clipPath id="r"><rect width="{W}" height="20" rx="3" fill="#fff"/>'
+        f'</clipPath><g clip-path="url(#r)">'
+        f'<rect width="{lw}" height="20" fill="#555"/>'
+        f'<rect x="{lw}" width="{vw}" height="20" fill="{color}"/>'
+        f'<rect width="{W}" height="20" fill="url(#s)"/></g>'
+        f'<g fill="#fff" text-anchor="middle" font-size="11" '
+        f'font-family="Verdana,DejaVu Sans,Geneva,sans-serif">'
+        f'<text x="{lw/2:.0f}" y="15" fill="#010101" fill-opacity=".3">{lab}</text>'
+        f'<text x="{lw/2:.0f}" y="14">{lab}</text>'
+        f'<text x="{lw+vw/2:.0f}" y="15" fill="#010101" fill-opacity=".3">{val}</text>'
+        f'<text x="{lw+vw/2:.0f}" y="14">{val}</text></g></svg>')
+
+
 # GitHub mark (official octocat silhouette), inherits the link color.
 GH_ICON = ('<svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" '
            'aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 '
@@ -779,9 +823,30 @@ def build():
     for e in entries:
         with open(os.path.join(DOCS, "codes", e["slug"] + ".html"), "w") as f:
             f.write(detail_page(e))
+
+    # machine-readable stats + self-contained badges the README links to.
+    beats = sum(1 for e in entries
+                if (vp := vs_paper(e["k"], e["d"], e["n"])) and vp[0] > 0)
+    stats = {"verified_codes": len(entries), "certified_exact": n_exact,
+             "tracks": len(tracks), "beats_paper": beats,
+             "best_kd2_over_n": best_eff}
+    with open(os.path.join(DOCS, "stats.json"), "w") as f:
+        json.dump(stats, f, indent=2)
+    badges = {
+        "codes": shield("codes", len(entries), ACCENT),
+        "certified": shield("certified exact", n_exact, EXACT),
+        "tracks": shield("tracks", len(tracks), ACCENT),
+        "beats-paper": shield("beats the paper", beats, EXACT),
+        "best-eff": shield("best kd²/n", f"{best_eff:g}", ACCENT),
+    }
+    bdir = os.path.join(DOCS, "badges")
+    os.makedirs(bdir, exist_ok=True)
+    for name, svg_data in badges.items():
+        with open(os.path.join(bdir, name + ".svg"), "w") as f:
+            f.write(svg_data)
     print(f"wrote docs/index.html + {len(entries)} detail pages + "
-          f"references.html ({len(REFS)} refs), "
-          f"{len(tracks)} tracks, {n_exact} certified exact")
+          f"references.html ({len(REFS)} refs) + {len(badges)} badges, "
+          f"{len(tracks)} tracks, {n_exact} certified exact, {beats} beat paper")
 
 
 if __name__ == "__main__":
