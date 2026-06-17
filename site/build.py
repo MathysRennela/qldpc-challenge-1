@@ -661,17 +661,6 @@ def detail_page(e):
                      ("kd&sup2;/n", e["eff"]), ("max check wt", e["w"])]:
         P.append(f'<div class=cell><div class=l>{lab}</div>'
                  f'<div class=v>{val}</div></div>')
-    vp = vs_paper(k, d, n)
-    if vp is not None:
-        g = " grafted" if vp[2] else ""
-        if vp[0] > 0:
-            txt = f'<span class=vswin>&minus;{vp[0]} vs {vp[1]}{g}</span>'
-        elif vp[0] < 0:
-            txt = f'<span class=vslose>+{-vp[0]} vs {vp[1]}{g}</span>'
-        else:
-            txt = f'ties {vp[1]}{g}'
-        P.append(f'<div class=cell><div class=l>vs paper (k,d)</div>'
-                 f'<div class=v style="font-size:15px">{txt}</div></div>')
     if "locality" in doc:
         loc = doc["locality"]
         P.append(f'<div class=cell><div class=l>layers</div>'
