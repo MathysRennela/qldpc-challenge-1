@@ -2,9 +2,15 @@
 :root{--ink:#0f172a;--mut:#64748b;--ln:#e2e8f0;--ac:#4f46e5;--ex:#059669;
 --bg:#fff;--soft:#f8fafc}
 *{box-sizing:border-box}
-body{font-family:'Inter',system-ui,-apple-system,sans-serif;color:var(--ink);
-margin:0;background:var(--bg);line-height:1.55}
-.mono{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-weight:600}
+/* Use a locally-installed Blippo if present (no font file is shipped, so no
+   redistribution of a commercial font); fall back to Inter otherwise. */
+@font-face{font-family:'Blippo';font-display:swap;
+src:local('Blippo Black'),local('Blippo-Black'),local('BlippoBlack'),
+local('Blippo')}
+body{font-family:'Blippo','Inter',system-ui,-apple-system,sans-serif;
+color:var(--ink);margin:0;background:var(--bg);line-height:1.55}
+.mono{font-family:'Blippo',ui-monospace,'SF Mono',Menlo,monospace;
+font-weight:600}
 .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
 header.hero{background:linear-gradient(160deg,#1e1b4b,#4f46e5);color:#fff;
 padding:60px 0 52px}
