@@ -299,6 +299,10 @@ border-radius:5px;font-family:ui-monospace,monospace}}
 color:var(--mut)}}
 .vswin{{color:var(--ex);font-weight:700}}.vslose{{color:#b45309}}
 .vsnone{{color:#cbd5e1}}
+.newtag{{display:inline-block;font-size:10px;font-weight:700;
+text-transform:uppercase;letter-spacing:.4px;color:var(--ac);
+background:#eef2ff;border:1px solid #c7d2fe;border-radius:5px;
+padding:0 5px;vertical-align:1px}}
 .gridh{{font-size:14px;color:var(--mut);margin:20px 0 2px;clear:both}}
 table.cells{{border-collapse:collapse;margin:6px 0 4px;font-size:13px;
 clear:both}}
@@ -434,6 +438,7 @@ def load_entries():
             "authors": ", ".join(doc["provenance"]["authors"]),
             "authors_list": doc["provenance"]["authors"],
             "construction": doc["provenance"].get("construction", ""),
+            "date": doc["provenance"].get("date"),
             "doc": doc, "cert": cert,
         })
     return entries
@@ -544,7 +549,9 @@ def table(te, front):
             f'data-auth="{html.escape(e["authors"])}">'
             f'<td class="star">{"&#9733;" if fr else ""}</td>'
             f'<td><span class=mono>[[{e["n"]},{e["k"]},{e["d"]}]]</span> '
-            f'<span class=cname>'
+            + ('<span class=newtag title="most recently added">new</span> '
+               if e.get("new") else "")
+            + f'<span class=cname>'
             f'{html.escape(re.sub(r"^\[\[[^\]]*\]\]\s*", "", e["name"]))}'
             f'</span></td>'
             f'<td class=num>{e["n"]}</td><td class=num>{e["k"]}</td>'
@@ -823,6 +830,12 @@ def build():
     best_eff = max((e["eff"] for e in entries), default=0)
     beats = sum(1 for e in entries
                 if (vp := vs_paper(e["k"], e["d"], e["n"])) and vp[0] > 0)
+    # mark the most recently added codes (latest provenance date). Tied to the
+    # data, not wall-clock, so the build stays deterministic.
+    dated = [e["date"] for e in entries if e.get("date")]
+    latest = max(dated) if dated else None
+    for e in entries:
+        e["new"] = bool(latest and e.get("date") == latest)
 
     P = [head("qLDPC Challenge")]
     P.append('<header class=hero><div class=wrap>'
@@ -856,9 +869,12 @@ def build():
              '<span><span class="dot ac"></span> upper bound '
              '(<span class="b ub">d &le;</span>)</span>'
              '<span><span class="dot ho"></span> open point = dominated</span>'
-             '<span><span class=vswin>&minus;N</span> = N fewer qubits than the '
-             'paper at the same (k,d), arXiv:2504.08887 Table I '
-             '(grafted where published)</span></div>')
+             '<span><span class=newtag>new</span> = most recently added</span>'
+             '<span>The <b>vs paper</b> column compares a code to the smallest '
+             '[[n,k,d]] Liang, Eberhardt, Chen publish at the same k and d: '
+             '<span class=vswin>&minus;7</span> means 7 fewer physical qubits '
+             '(a new record), <span class=vslose>+5</span> means the paper is '
+             'still smaller.</span></div>')
     for t in sorted(tracks):
         te = [entries[i] for i in tracks[t]]
         fr = pareto(te)
