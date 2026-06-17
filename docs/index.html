@@ -23,6 +23,24 @@ header.hero p{font-size:18px;max-width:640px;margin:0;color:#dbeafe}
 .stats{display:flex;gap:40px;margin-top:30px;flex-wrap:wrap}
 .stat .v{font-size:30px;font-weight:700}.stat .l{color:#c7d2fe;font-size:13px;
 text-transform:uppercase;letter-spacing:.05em}
+.progress{margin:28px 0 8px;border:1px solid var(--ln);border-radius:14px;
+padding:20px 22px;background:var(--soft)}
+.ph{font-size:13px;margin:0 0 16px;color:var(--mut);letter-spacing:.6px;
+text-transform:uppercase;font-weight:700}
+.pmetrics{display:flex;flex-wrap:wrap;gap:14px 40px;margin-bottom:18px}
+.pm{display:flex;flex-direction:column}
+.pmn{font-size:26px;font-weight:700;line-height:1.1}
+.pmsub{font-size:17px;color:var(--mut);font-weight:600}
+.pml{font-size:12px;color:var(--mut);margin-top:5px}
+.ptracks{border-collapse:collapse;width:100%;font-size:13px;background:#fff;
+border:1px solid var(--ln);border-radius:8px;overflow:hidden}
+.ptracks th,.ptracks td{padding:.45rem .7rem;border-bottom:1px solid var(--ln)}
+.ptracks tr:last-child td{border-bottom:none}
+.ptracks th{background:var(--soft);color:var(--mut);font-weight:600;
+text-align:left}
+.ptracks td:not(:first-child),.ptracks th:not(:first-child){text-align:center;
+font-variant-numeric:tabular-nums}
+.ptracks td:first-child{font-weight:600}
 .how{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:40px 0}
 .how .card{border:1px solid var(--ln);border-radius:12px;padding:20px;
 background:var(--soft)}
@@ -140,6 +158,7 @@ position:static}header.hero h1{font-size:34px}}
 <g fill="#34d399"><circle cx="18" cy="18" r="3.8"/><circle cx="32" cy="32" r="3.8"/>
 <circle cx="46" cy="46" r="3.8"/></g></svg><h1>qLDPC Challenge</h1></span><a class=ghlink href="https://github.com/unitaryfoundation/qldpc-challenge"><svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg><span>GitHub</span></a></div><p>Find better quantum LDPC codes.</p><div class=stats><div class=stat><div class=v>19</div><div class=l>verified codes</div></div><div class=stat><div class=v>7</div><div class=l>beat the paper</div></div><div class=stat><div class=v>13</div><div class=l>certified exact</div></div><div class=stat><div class=v>3</div><div class=l>tracks</div></div><div class=stat><div class=v>8.403</div><div class=l>best kd&sup2;/n</div></div></div></div></header>
 <div class=wrap>
+<section class=progress><h2 class=ph>Progress at a glance</h2><div class=pmetrics><div class=pm><span class=pmn>19</span><span class=pml>verified codes</span></div><div class=pm><span class=pmn>7</span><span class=pml>records vs the paper</span></div><div class=pm><span class=pmn>13 <span class=pmsub>/ 6</span></span><span class=pml>certified exact / upper bound</span></div><div class=pm><span class=pmn>2</span><span class=pml>contributors</span></div></div><table class=ptracks><thead><tr><th>track</th><th>codes</th><th>on frontier</th><th>certified exact</th><th>upper bound</th></tr></thead><tbody><tr><td>2d-local-bilayer</td><td>12</td><td>11</td><td>10</td><td>2</td></tr><tr><td>weight-6</td><td>15</td><td>13</td><td>13</td><td>2</td></tr><tr><td>weight-8</td><td>4</td><td>4</td><td>0</td><td>4</td></tr></tbody></table></section>
 <div class=how><div class=card><span class=n>1</span><h3>Build a code</h3><p>A CSS qLDPC code, written as one JSON file with its parity checks and a distance witness.</p></div><div class=card><span class=n>2</span><h3>Open a PR</h3><p>Add it under <code>codes/</code>. CI runs the verifier on every submission automatically.</p></div><div class=card><span class=n>3</span><h3>Climb the board</h3><p>If it advances a track&rsquo;s frontier it is highlighted. Click any row for the witness, certificate, and checks.</p></div></div>
 <div class=legend><span>&#9733; <b>frontier</b>: no code beats it on all of (n, k, d)</span><span><span class="dot ex"></span> certified exact (<span class="b exact">d =</span>)</span><span><span class="dot ac"></span> upper bound (<span class="b ub">d &le;</span>)</span><span><span class="dot ho"></span> open point = dominated</span><span><span class=vswin>&minus;N</span> = N fewer qubits than the paper at the same (k,d), arXiv:2504.08887 Table I (grafted where published)</span></div>
 <h2 class=track>2d-local-bilayer <span class=tcount>&middot; 12 codes, 11 on the frontier</span></h2>

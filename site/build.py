@@ -239,6 +239,24 @@ header.hero p{{font-size:18px;max-width:640px;margin:0;color:#dbeafe}}
 .stats{{display:flex;gap:40px;margin-top:30px;flex-wrap:wrap}}
 .stat .v{{font-size:30px;font-weight:700}}.stat .l{{color:#c7d2fe;font-size:13px;
 text-transform:uppercase;letter-spacing:.05em}}
+.progress{{margin:28px 0 8px;border:1px solid var(--ln);border-radius:14px;
+padding:20px 22px;background:var(--soft)}}
+.ph{{font-size:13px;margin:0 0 16px;color:var(--mut);letter-spacing:.6px;
+text-transform:uppercase;font-weight:700}}
+.pmetrics{{display:flex;flex-wrap:wrap;gap:14px 40px;margin-bottom:18px}}
+.pm{{display:flex;flex-direction:column}}
+.pmn{{font-size:26px;font-weight:700;line-height:1.1}}
+.pmsub{{font-size:17px;color:var(--mut);font-weight:600}}
+.pml{{font-size:12px;color:var(--mut);margin-top:5px}}
+.ptracks{{border-collapse:collapse;width:100%;font-size:13px;background:#fff;
+border:1px solid var(--ln);border-radius:8px;overflow:hidden}}
+.ptracks th,.ptracks td{{padding:.45rem .7rem;border-bottom:1px solid var(--ln)}}
+.ptracks tr:last-child td{{border-bottom:none}}
+.ptracks th{{background:var(--soft);color:var(--mut);font-weight:600;
+text-align:left}}
+.ptracks td:not(:first-child),.ptracks th:not(:first-child){{text-align:center;
+font-variant-numeric:tabular-nums}}
+.ptracks td:first-child{{font-weight:600}}
 .how{{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:40px 0}}
 .how .card{{border:1px solid var(--ln);border-radius:12px;padding:20px;
 background:var(--soft)}}
@@ -761,6 +779,38 @@ def references_page(entries):
     return "\n".join(P)
 
 
+def progress_panel(entries, tracks, n_exact, beats):
+    """A distinct status-of-progress panel: headline diagnostics plus a
+    per-track breakdown. Contributors counts GitHub-handle authors only (the
+    paper baseline source is not a contributor)."""
+    n_ub = len(entries) - n_exact
+    handles = {a.strip() for e in entries for a in e["authors_list"]
+               if re.fullmatch(r"[A-Za-z0-9-]+", a.strip())}
+    metrics = [
+        (str(len(entries)), "verified codes"),
+        (str(beats), "records vs the paper"),
+        (f'{n_exact} <span class=pmsub>/ {n_ub}</span>',
+         "certified exact / upper bound"),
+        (str(len(handles)), "contributors"),
+    ]
+    mhtml = "".join(f'<div class=pm><span class=pmn>{v}</span>'
+                    f'<span class=pml>{lab}</span></div>' for v, lab in metrics)
+    rows = []
+    for t in sorted(tracks):
+        te = [entries[i] for i in tracks[t]]
+        fr = len(pareto(te))
+        ex = sum(1 for e in te if e["tier"] == "exact")
+        rows.append(f'<tr><td>{html.escape(t)}</td><td>{len(te)}</td>'
+                    f'<td>{fr}</td><td>{ex}</td>'
+                    f'<td>{len(te) - ex}</td></tr>')
+    return ('<section class=progress><h2 class=ph>Progress at a glance</h2>'
+            f'<div class=pmetrics>{mhtml}</div>'
+            '<table class=ptracks><thead><tr><th>track</th>'
+            '<th>codes</th><th>on frontier</th><th>certified exact</th>'
+            '<th>upper bound</th></tr></thead>'
+            f'<tbody>{"".join(rows)}</tbody></table></section>')
+
+
 def build():
     entries = load_entries()
     tracks = {}
@@ -795,6 +845,7 @@ def build():
              '<div class=l>best kd&sup2;/n</div></div>'
              '</div></div></header>')
     P.append('<div class=wrap>')
+    P.append(progress_panel(entries, tracks, n_exact, beats))
     P.append('<div class=how>'
              '<div class=card><span class=n>1</span><h3>Build a code</h3>'
              '<p>A CSS qLDPC code, written as one JSON file with its parity '
