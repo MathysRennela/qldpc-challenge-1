@@ -313,6 +313,8 @@ font-size:14px}}
 background:var(--soft);border:1px solid var(--ln);border-radius:10px;
 font-size:13px;color:var(--mut)}}
 .legend b{{color:var(--ink)}}
+.collegend{{flex-basis:100%;border-top:1px solid var(--ln);padding-top:10px;
+line-height:1.7}}
 .dot{{display:inline-block;width:11px;height:11px;border-radius:50%;
 vertical-align:-1px;margin-right:2px}}
 .dot.ex{{background:var(--ex)}}.dot.ac{{background:var(--ac)}}
@@ -591,11 +593,17 @@ def table(te, front):
             '<col style="width:10%"><col style="width:9%">'
             '<col style="width:13%"><col style="width:13%">'
             '<col style="width:9%"><col style="width:24%"></colgroup>')
-    head_row = ("<thead><tr><th></th><th data-c=name>code</th>"
-                "<th data-c=n class=num>n</th><th data-c=k class=num>k</th>"
-                "<th data-c=d class=num>d</th><th data-c=eff class=num>kd&sup2;/n</th>"
-                "<th data-c=w class=num>w</th>"
-                "<th data-c=auth>authors</th></tr></thead>")
+    head_row = (
+        "<thead><tr><th></th>"
+        '<th data-c=name title="the code, written [[n,k,d]]">code</th>'
+        '<th data-c=n class=num title="physical qubits">n</th>'
+        '<th data-c=k class=num title="logical qubits encoded">k</th>'
+        '<th data-c=d class=num title="code distance: weight of the smallest '
+        'undetectable error">d</th>'
+        '<th data-c=eff class=num title="k&middot;d&sup2;/n, a figure of merit; '
+        'higher is better">kd&sup2;/n</th>'
+        '<th data-c=w class=num title="maximum stabilizer check weight">w</th>'
+        '<th data-c=auth title="who submitted it">authors</th></tr></thead>')
     order = sorted(range(len(te)), key=lambda i: (-te[i]["k"], -te[i]["d"],
                                                   te[i]["n"]))
     rows = []
@@ -988,6 +996,11 @@ def build():
              '<span><span class="dot ac"></span> upper bound '
              '(<span class="b ub">d &le;</span>)</span>'
              '<span><span class="dot ho"></span> open point = dominated</span>'
+             '<span class=collegend><b>columns:</b> '
+             '<b>n</b> physical qubits &middot; <b>k</b> logical qubits '
+             '&middot; <b>d</b> distance (smallest undetectable error) '
+             '&middot; <b>kd&sup2;/n</b> figure of merit, higher is better '
+             '&middot; <b>w</b> max check weight</span>'
              '</div>')
     for t in sorted(tracks):
         te = [entries[i] for i in tracks[t]]
