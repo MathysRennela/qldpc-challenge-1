@@ -491,7 +491,7 @@ def svg(te, front):
         fill = col if f else "#fff"
         tip = (f'[[{e["n"]},{e["k"]},{e["d"]}]]  kd2/n={e["eff"]}\n'
                f'{"exact" if e["tier"]=="exact" else "upper bound"}'
-               f'{", frontier" if f else ""}\n{e["name"]}')
+               f'{", frontier" if f else ""}')
         cx, cy = sx(e["n"]), sy(e["d"])
         pts.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r}" fill="{fill}" '
                    f'stroke="{col}" stroke-width="2" pointer-events="none"/>')
