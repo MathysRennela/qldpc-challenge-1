@@ -1,4 +1,4 @@
-<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>[[91,5,7]] weight-6 planar (notched, our k=5 family)</title><link rel=icon type="image/svg+xml" href="../favicon.svg"><link rel=preconnect href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel=stylesheet><style>
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>[[128,6,8]] weight-6 planar (generalized BB, our record family)</title><link rel=icon type="image/svg+xml" href="../favicon.svg"><link rel=preconnect href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel=stylesheet><style>
 :root{--ink:#0f172a;--mut:#64748b;--ln:#e2e8f0;--ac:#4f46e5;--ex:#059669;
 --bg:#fff;--soft:#f8fafc}
 *{box-sizing:border-box}
@@ -95,120 +95,170 @@ width:100%;margin:12px 0}header.hero h1{font-size:34px}}
 </style></head><body>
 <div class=wrap>
 <a class=back href="../index.html">&larr; back to the board</a>
-<div class=codehead><span class="mono big">[[91,5,7]]</span> <span class="b exact">d =</span></div>
-<p style="color:var(--mut);margin:.3rem 0 0">[[91,5,7]] weight-6 planar (notched, our k=5 family)</p>
+<div class=codehead><span class="mono big">[[128,6,8]]</span> <span class="b exact">d =</span></div>
+<p style="color:var(--mut);margin:.3rem 0 0">[[128,6,8]] weight-6 planar (generalized BB, our record family)</p>
 <div class=params>
-<div class=cell><div class=l>n</div><div class=v>91</div></div>
-<div class=cell><div class=l>k</div><div class=v>5</div></div>
-<div class=cell><div class=l>d</div><div class=v>7</div></div>
-<div class=cell><div class=l>kd&sup2;/n</div><div class=v>2.692</div></div>
+<div class=cell><div class=l>n</div><div class=v>128</div></div>
+<div class=cell><div class=l>k</div><div class=v>6</div></div>
+<div class=cell><div class=l>d</div><div class=v>8</div></div>
+<div class=cell><div class=l>kd&sup2;/n</div><div class=v>3.0</div></div>
 <div class=cell><div class=l>max check wt</div><div class=v>6</div></div>
+<div class=cell><div class=l>vs paper (k,d)</div><div class=v style="font-size:15px"><span class=vswin>&minus;22 vs [[150,6,8]]</span></div></div>
+<div class=cell><div class=l>layers</div><div class=v>2</div></div>
+<div class=cell><div class=l>radius</div><div class=v>4.12</div></div>
 </div>
 <section class=blk><h3>Distance</h3>
-<div class=kv><b>d_X</b> 7 &middot; witness weight 7 (claimed exact)</div>
-<details><summary>witness operator (support, 7 qubits)</summary><div class=wit>[12, 26, 32, 55, 62, 68, 88]</div></details>
-<div class=kv><b>d_Z</b> 7 &middot; witness weight 7 (claimed exact)</div>
-<details><summary>witness operator (support, 7 qubits)</summary><div class=wit>[0, 4, 5, 12, 45, 46, 50]</div></details>
-<div class=kv><b>certificate</b> <span class=cert-ok>exact, d = 7</span> &middot; scipy/HiGHS cutoff IP</div><div class=kv style="color:var(--mut)">X: no logical &lt; 7 exists; Z: no logical &lt; 7 exists</div>
+<div class=kv><b>d_X</b> 9 &middot; witness weight 9 (claimed exact)</div>
+<details><summary>witness operator (support, 9 qubits)</summary><div class=wit>[10, 26, 33, 41, 82, 89, 97, 98, 120]</div></details>
+<div class=kv><b>d_Z</b> 8 &middot; witness weight 8 (claimed exact)</div>
+<details><summary>witness operator (support, 8 qubits)</summary><div class=wit>[1, 3, 5, 14, 65, 67, 69, 86]</div></details>
+<div class=kv><b>certificate</b> <span class=cert-ok>exact, d = 8</span> &middot; scipy/HiGHS cutoff IP</div><div class=kv style="color:var(--mut)">X: no logical &lt; 9 exists; Z: no logical &lt; 8 exists</div>
 </section>
 <section class=blk><h3>Construction &amp; provenance</h3>
 <div class=kv><b>authors</b> <a href="https://github.com/FarLab">@FarLab</a>, <a href="https://github.com/vprusso">@vprusso</a></div>
-<div class=kv><b>construction</b> Generalized weight-6, notched (7,7).</div>
+<div class=kv><b>construction</b> f = 1 + xy + x^-1 y^2, g = 1 + x^-1 y + x^-2 y^-1; annulus-type boundary engine, (8,8) lattice.</div>
 <div class=kv><b>references</b> <a href="https://arxiv.org/abs/2504.08887">arXiv:2504.08887</a></div>
 <div class=kv><b>date</b> 2026-06-16</div>
-<div class=kv><b>notes</b> k=5 point; the paper&#x27;s Table I has no k=5 row.</div>
-<div class=kv><b>tracks</b> weight-6</div>
+<div class=kv><b>notes</b> Beats the paper Table I k=6 entry at this (k,d).</div>
+<div class=kv><b>tracks</b> weight-6, 2d-local-bilayer</div>
 </section>
 <section class=blk><h3>Parity checks</h3>
-<div class=kv><b>X-checks</b> 41 &middot; <b style="min-width:auto">Z-checks</b> 47</div>
-<details><summary>H_X (41 checks, sparse supports)</summary><div class=wit>[0, 8, 15, 50, 51, 56]
-[1, 9, 16, 51, 52, 57]
-[2, 10, 17, 52, 53, 58]
-[3, 11, 18, 53, 54, 59]
-[4, 12, 19, 54, 55, 60]
-[7, 15, 22, 57, 58, 63]
-[8, 16, 23, 58, 59, 64]
-[9, 17, 24, 59, 60, 65]
-[10, 18, 25, 60, 61, 66]
-[11, 19, 26, 61, 62, 67]
-[14, 22, 29, 64, 65, 70]
-[15, 23, 30, 65, 66, 71]
-[16, 24, 31, 66, 67, 72]
-[17, 25, 32, 67, 68, 73]
-[18, 26, 33, 68, 69, 74]
-[21, 29, 36, 71, 72, 77]
-[22, 30, 37, 72, 73, 78]
-[23, 31, 38, 73, 74, 79]
-[24, 32, 39, 74, 75, 80]
-[25, 33, 40, 75, 76, 81]
-[1, 42]
-[2, 43]
-[3, 44]
-[4, 45]
-[5, 46]
-[6, 47]
-[35, 85, 86]
-[36, 86, 87]
-[37, 87, 88]
-[38, 88, 89]
-[39, 89, 90]
-[8, 42, 43, 44, 49]
-[9, 43, 44, 45, 50]
-[10, 44, 45, 46, 51]
-[11, 45, 46, 47, 52]
-[12, 46, 47, 48, 53]
-[28, 36, 78, 79, 84]
-[29, 37, 79, 80, 85]
-[30, 38, 80, 81, 86]
-[31, 39, 81, 82, 87]
-[32, 40, 82, 83, 88]</div></details>
-<details><summary>H_Z (47 checks, sparse supports)</summary><div class=wit>[2, 7, 8, 43, 50, 58]
-[3, 8, 9, 44, 51, 59]
-[4, 9, 10, 45, 52, 60]
-[5, 10, 11, 46, 53, 61]
-[6, 11, 12, 47, 54, 62]
-[9, 14, 15, 50, 57, 65]
-[10, 15, 16, 51, 58, 66]
-[11, 16, 17, 52, 59, 67]
-[12, 17, 18, 53, 60, 68]
-[13, 18, 19, 54, 61, 69]
-[16, 21, 22, 57, 64, 72]
-[17, 22, 23, 58, 65, 73]
-[18, 23, 24, 59, 66, 74]
-[19, 24, 25, 60, 67, 75]
-[20, 25, 26, 61, 68, 76]
-[23, 28, 29, 64, 71, 79]
-[24, 29, 30, 65, 72, 80]
-[25, 30, 31, 66, 73, 81]
-[26, 31, 32, 67, 74, 82]
-[27, 32, 33, 68, 75, 83]
-[30, 35, 36, 71, 78, 86]
-[31, 36, 37, 72, 79, 87]
-[32, 37, 38, 73, 80, 88]
-[33, 38, 39, 74, 81, 89]
-[34, 39, 40, 75, 82, 90]
-[13]
-[20]
-[27]
-[34]
-[41]
-[0, 56]
-[7, 63]
-[14, 70]
-[21, 77]
-[28, 84]
-[12, 48, 55]
-[19, 55, 62]
-[26, 62, 69]
-[33, 69, 76]
-[40, 76, 83]
-[1, 42, 49, 57, 63]
-[8, 49, 56, 64, 70]
-[15, 56, 63, 71, 77]
-[22, 63, 70, 78, 84]
-[0, 7, 15, 21, 71]
-[7, 14, 22, 28, 78]
-[14, 21, 29, 35, 85]</div></details>
-<div class=kv style="margin-top:10px"><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/codes/ours-7x7-k5.json">raw submission JSON</a></div>
+<div class=kv><b>X-checks</b> 66 &middot; <b style="min-width:auto">Z-checks</b> 69</div>
+<details><summary>H_X (66 checks, sparse supports)</summary><div class=wit>[2, 8, 17, 64, 74, 81]
+[3, 9, 18, 65, 75, 82]
+[4, 10, 19, 66, 76, 83]
+[5, 11, 20, 67, 77, 84]
+[6, 12, 21, 68, 78, 85]
+[7, 13, 22, 69, 79, 86]
+[10, 16, 25, 72, 82, 89]
+[11, 17, 26, 73, 83, 90]
+[12, 18, 27, 74, 84, 91]
+[13, 19, 28, 75, 85, 92]
+[14, 20, 29, 76, 86, 93]
+[15, 21, 30, 77, 87, 94]
+[18, 24, 33, 80, 90, 97]
+[19, 25, 34, 81, 91, 98]
+[20, 26, 35, 82, 92, 99]
+[21, 27, 36, 83, 93, 100]
+[22, 28, 37, 84, 94, 101]
+[23, 29, 38, 85, 95, 102]
+[26, 32, 41, 88, 98, 105]
+[27, 33, 42, 89, 99, 106]
+[28, 34, 43, 90, 100, 107]
+[29, 35, 44, 91, 101, 108]
+[30, 36, 45, 92, 102, 109]
+[31, 37, 46, 93, 103, 110]
+[34, 40, 49, 96, 106, 113]
+[35, 41, 50, 97, 107, 114]
+[36, 42, 51, 98, 108, 115]
+[37, 43, 52, 99, 109, 116]
+[38, 44, 53, 100, 110, 117]
+[39, 45, 54, 101, 111, 118]
+[42, 48, 57, 104, 114, 121]
+[43, 49, 58, 105, 115, 122]
+[44, 50, 59, 106, 116, 123]
+[45, 51, 60, 107, 117, 124]
+[46, 52, 61, 108, 118, 125]
+[47, 53, 62, 109, 119, 126]
+[0, 64]
+[1, 65]
+[2, 66]
+[3, 67]
+[4, 68]
+[5, 69]
+[6, 70]
+[7, 71]
+[58, 120]
+[59, 121]
+[60, 122]
+[61, 123]
+[62, 124]
+[63, 125]
+[9, 64, 66, 73]
+[10, 65, 67, 74]
+[11, 66, 68, 75]
+[12, 67, 69, 76]
+[13, 68, 70, 77]
+[14, 69, 71, 78]
+[52, 114, 120, 124]
+[53, 115, 121, 125]
+[54, 116, 122, 126]
+[55, 117, 123, 127]
+[50, 56, 112, 122]
+[51, 57, 113, 123]
+[52, 58, 114, 124]
+[53, 59, 115, 125]
+[54, 60, 116, 126]
+[55, 61, 117, 127]</div></details>
+<details><summary>H_Z (69 checks, sparse supports)</summary><div class=wit>[1, 8, 18, 65, 74, 80]
+[2, 9, 19, 66, 75, 81]
+[3, 10, 20, 67, 76, 82]
+[4, 11, 21, 68, 77, 83]
+[5, 12, 22, 69, 78, 84]
+[6, 13, 23, 70, 79, 85]
+[9, 16, 26, 73, 82, 88]
+[10, 17, 27, 74, 83, 89]
+[11, 18, 28, 75, 84, 90]
+[12, 19, 29, 76, 85, 91]
+[13, 20, 30, 77, 86, 92]
+[14, 21, 31, 78, 87, 93]
+[17, 24, 34, 81, 90, 96]
+[18, 25, 35, 82, 91, 97]
+[19, 26, 36, 83, 92, 98]
+[20, 27, 37, 84, 93, 99]
+[21, 28, 38, 85, 94, 100]
+[22, 29, 39, 86, 95, 101]
+[25, 32, 42, 89, 98, 104]
+[26, 33, 43, 90, 99, 105]
+[27, 34, 44, 91, 100, 106]
+[28, 35, 45, 92, 101, 107]
+[29, 36, 46, 93, 102, 108]
+[30, 37, 47, 94, 103, 109]
+[33, 40, 50, 97, 106, 112]
+[34, 41, 51, 98, 107, 113]
+[35, 42, 52, 99, 108, 114]
+[36, 43, 53, 100, 109, 115]
+[37, 44, 54, 101, 110, 116]
+[38, 45, 55, 102, 111, 117]
+[41, 48, 58, 105, 114, 120]
+[42, 49, 59, 106, 115, 121]
+[43, 50, 60, 107, 116, 122]
+[44, 51, 61, 108, 117, 123]
+[45, 52, 62, 109, 118, 124]
+[46, 53, 63, 110, 119, 125]
+[16, 72]
+[24, 80]
+[32, 88]
+[40, 96]
+[48, 104]
+[56, 112]
+[15, 87]
+[23, 95]
+[31, 103]
+[39, 111]
+[47, 119]
+[55, 127]
+[33, 72, 80, 89]
+[41, 80, 88, 97]
+[49, 88, 96, 105]
+[57, 96, 104, 113]
+[0, 17, 64, 73]
+[8, 25, 72, 81]
+[16, 33, 80, 89]
+[24, 41, 88, 97]
+[32, 49, 96, 105]
+[40, 57, 104, 113]
+[22, 79, 87, 94]
+[30, 87, 95, 102]
+[38, 95, 103, 110]
+[46, 103, 111, 118]
+[54, 111, 119, 126]
+[7, 14, 71, 86]
+[15, 22, 79, 94]
+[23, 30, 87, 102]
+[31, 38, 95, 110]
+[39, 46, 103, 118]
+[47, 54, 111, 126]</div></details>
+<div class=kv style="margin-top:10px"><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/codes/128-6-8.json">raw submission JSON</a></div>
 </section>
 </div></body></html>
