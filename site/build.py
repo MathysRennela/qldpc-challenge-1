@@ -127,7 +127,8 @@ def vs_paper(k, d, n):
     if not b:
         return None
     return (b["n"] - n, b["label"], b["grafted"])
-REPO = "https://github.com/unitaryfoundation/qldpc-challenge/blob/main"
+REPO_ROOT = "https://github.com/unitaryfoundation/qldpc-challenge"
+REPO = REPO_ROOT + "/blob/main"
 
 ACCENT = "#4f46e5"
 EXACT = "#059669"
@@ -157,6 +158,18 @@ stroke-linecap="round"/>
 FAVICON = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
            + MARK + "</svg>")
 
+# GitHub mark (official octocat silhouette), inherits the link color.
+GH_ICON = ('<svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" '
+           'aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 '
+           '5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49'
+           '-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 '
+           '1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78'
+           '-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 '
+           '0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 '
+           '2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07'
+           '-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 '
+           '.21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>')
+
 CSS = f"""
 :root{{--ink:#0f172a;--mut:#64748b;--ln:#e2e8f0;--ac:{ACCENT};--ex:{EXACT};
 --bg:#fff;--soft:#f8fafc}}
@@ -167,8 +180,15 @@ margin:0;background:var(--bg);line-height:1.55}}
 .wrap{{max-width:1080px;margin:0 auto;padding:0 24px}}
 header.hero{{background:linear-gradient(160deg,#1e1b4b,#4f46e5);color:#fff;
 padding:60px 0 52px}}
-.brand{{display:flex;align-items:center;gap:16px;margin:0 0 8px}}
-.brand svg{{flex:0 0 auto;filter:drop-shadow(0 4px 14px rgba(0,0,0,.35))}}
+.brand{{display:flex;align-items:center;justify-content:space-between;
+gap:16px;margin:0 0 8px}}
+.brandmark{{display:flex;align-items:center;gap:16px}}
+.brand .brandmark svg{{flex:0 0 auto;filter:drop-shadow(0 4px 14px rgba(0,0,0,.35))}}
+.ghlink{{display:inline-flex;align-items:center;gap:8px;color:#fff;
+text-decoration:none;font-size:14px;font-weight:600;
+border:1px solid rgba(255,255,255,.28);border-radius:9px;padding:8px 14px;
+background:rgba(255,255,255,.08)}}
+.ghlink:hover{{background:rgba(255,255,255,.18)}}
 header.hero h1{{font-size:44px;margin:0;letter-spacing:-1px}}
 header.hero h1 a{{color:#fff}}
 header.hero p{{font-size:18px;max-width:640px;margin:0;color:#dbeafe}}
@@ -690,9 +710,12 @@ def build():
     P = [head("qLDPC Challenge")]
     P.append('<header class=hero><div class=wrap>'
              '<div class=brand>'
+             '<span class=brandmark>'
              f'<svg width=52 height=52 viewBox="0 0 64 64" '
              f'aria-label="qLDPC Challenge logo">{MARK}</svg>'
-             '<h1>qLDPC Challenge</h1></div>'
+             '<h1>qLDPC Challenge</h1></span>'
+             f'<a class=ghlink href="{REPO_ROOT}">{GH_ICON}'
+             '<span>GitHub</span></a></div>'
              '<p>Find better quantum LDPC codes.</p>'
              '<div class=stats>'
              f'<div class=stat><div class=v>{len(entries)}</div>'
@@ -741,7 +764,8 @@ def build():
              f'<a href="{REPO}/schema/SCHEMA.md">the schema</a>, '
              f'<a href="{REPO}/TRACKS.md">the tracks</a>, and '
              '<a href="references.html">references</a>. &#9733; marks the '
-             '(n,k,d) Pareto frontier.</footer>')
+             '(n,k,d) Pareto frontier. The site and challenge are open source '
+             f'on <a href="{REPO_ROOT}">GitHub</a>.</footer>')
     P.append('</div><div id=tip></div>')
     P.append(f'<script>{JS}</script></body></html>')
 
