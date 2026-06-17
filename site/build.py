@@ -280,7 +280,7 @@ vertical-align:-1px;margin-right:2px}}
 .dot.ex{{background:var(--ex)}}.dot.ac{{background:var(--ac)}}
 .dot.ho{{background:#fff;border:2px solid var(--ac)}}
 h2.track{{font-size:24px;margin:48px 0 4px;padding-top:24px;
-border-top:1px solid var(--ln)}}
+border-top:1px solid var(--ln);scroll-margin-top:16px}}
 .tcount{{color:var(--mut);font-size:14px;font-weight:400}}
 .trackbody{{display:flex;gap:22px;align-items:flex-start;margin:14px 0 4px}}
 .gridcol{{flex:0 0 auto}}
@@ -761,6 +761,12 @@ def references_page(entries):
     return "\n".join(P)
 
 
+def track_anchor(t):
+    """Stable HTML id for a track's section, used to link the progress panel
+    rows to the track tables below."""
+    return "track-" + re.sub(r"[^a-z0-9]+", "-", t.lower()).strip("-")
+
+
 def progress_panel(entries, tracks, n_exact, best_eff):
     """A distinct status-of-progress panel: headline diagnostics plus a
     per-track breakdown. This is the single home for the board's numbers (the
@@ -783,7 +789,8 @@ def progress_panel(entries, tracks, n_exact, best_eff):
         te = [entries[i] for i in tracks[t]]
         fr = len(pareto(te))
         ex = sum(1 for e in te if e["tier"] == "exact")
-        rows.append(f'<tr><td>{html.escape(t)}</td><td>{len(te)}</td>'
+        rows.append(f'<tr><td><a href="#{track_anchor(t)}">{html.escape(t)}</a>'
+                    f'</td><td>{len(te)}</td>'
                     f'<td>{fr}</td><td>{ex}</td>'
                     f'<td>{len(te) - ex}</td></tr>')
     return ('<section class=progress><h2 class=ph>Progress at a glance</h2>'
@@ -841,7 +848,7 @@ def build():
     for t in sorted(tracks):
         te = [entries[i] for i in tracks[t]]
         fr = pareto(te)
-        P.append(f'<h2 class=track>{html.escape(t)} '
+        P.append(f'<h2 class=track id="{track_anchor(t)}">{html.escape(t)} '
                  f'<span class=tcount>&middot; {len(te)} codes, '
                  f'{len(fr)} on the frontier</span></h2>')
         P.append(table(te, fr))
