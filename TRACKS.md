@@ -35,6 +35,9 @@ These are where we have data and verification today. More can be proposed by PR.
 - `2d-local-bilayer`: geometrically 2D-local on up to 2 physical layers
   (the flip-chip regime of the bivariate-bicycle planar codes), with a stated
   `locality` block. Ranked within a maximum interaction radius.
+- `bivariate bicycle (periodic)`: bivariate bicycle codes on a torus
+  (periodic boundary conditions), no 2D-local layout. Seeded with the
+  canonical codes of Bravyi et al (arXiv:2308.07915).
 - `2d-local-single`: 2D-local on a single layer (surface-code-like
   connectivity). Stricter; mostly a baseline track.
 - `decoding` (planned): a fixed code or an open submission ranked by logical
