@@ -726,9 +726,7 @@ def build():
              f'<a href="{REPO}/schema/SCHEMA.md">the schema</a>, '
              f'<a href="{REPO}/TRACKS.md">the tracks</a>, and '
              '<a href="references.html">references</a>. &#9733; marks the '
-             '(n,k,d) Pareto frontier. Baseline codes from '
-             '<a href="references.html#liang2025planar">Liang, Eberhardt, '
-             'Chen</a>.</footer>')
+             '(n,k,d) Pareto frontier.</footer>')
     P.append('</div><div id=tip></div>')
     P.append(f'<script>{JS}</script></body></html>')
 
