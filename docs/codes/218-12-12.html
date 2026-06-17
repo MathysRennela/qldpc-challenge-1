@@ -1,0 +1,394 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>[[218,12,12]] grafted weight-8 planar BB code</title><link rel=icon type="image/svg+xml" href="../favicon.svg"><link rel=preconnect href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel=stylesheet><style>
+:root{--ink:#0f172a;--mut:#64748b;--ln:#e2e8f0;--ac:#4f46e5;--ex:#059669;
+--bg:#fff;--soft:#f8fafc}
+*{box-sizing:border-box}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;color:var(--ink);
+margin:0;background:var(--bg);line-height:1.55}
+.mono{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-weight:600}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+header.hero{background:linear-gradient(160deg,#1e1b4b,#4f46e5);color:#fff;
+padding:60px 0 52px}
+.brand{display:flex;align-items:center;justify-content:space-between;
+gap:16px;margin:0 0 8px}
+.brandmark{display:flex;align-items:center;gap:16px}
+.brand .brandmark svg{flex:0 0 auto;filter:drop-shadow(0 4px 14px rgba(0,0,0,.35))}
+.ghlink{display:inline-flex;align-items:center;gap:8px;color:#fff;
+text-decoration:none;font-size:14px;font-weight:600;
+border:1px solid rgba(255,255,255,.28);border-radius:9px;padding:8px 14px;
+background:rgba(255,255,255,.08)}
+.ghlink:hover{background:rgba(255,255,255,.18)}
+header.hero h1{font-size:44px;margin:0;letter-spacing:-1px}
+header.hero h1 a{color:#fff}
+header.hero p{font-size:18px;max-width:640px;margin:0;color:#dbeafe}
+.stats{display:flex;gap:40px;margin-top:30px;flex-wrap:wrap}
+.stat .v{font-size:30px;font-weight:700}.stat .l{color:#c7d2fe;font-size:13px;
+text-transform:uppercase;letter-spacing:.05em}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:40px 0}
+.how .card{border:1px solid var(--ln);border-radius:12px;padding:20px;
+background:var(--soft)}
+.how .n{display:inline-flex;width:26px;height:26px;border-radius:50%;
+background:var(--ac);color:#fff;align-items:center;justify-content:center;
+font-size:14px;font-weight:700;margin-bottom:10px}
+.how h3{margin:.2rem 0;font-size:16px}.how p{margin:0;color:var(--mut);
+font-size:14px}
+.legend{display:flex;flex-wrap:wrap;gap:18px;margin:28px 0 4px;padding:14px 16px;
+background:var(--soft);border:1px solid var(--ln);border-radius:10px;
+font-size:13px;color:var(--mut)}
+.legend b{color:var(--ink)}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;
+vertical-align:-1px;margin-right:2px}
+.dot.ex{background:var(--ex)}.dot.ac{background:var(--ac)}
+.dot.ho{background:#fff;border:2px solid var(--ac)}
+h2.track{font-size:24px;margin:48px 0 4px;padding-top:24px;
+border-top:1px solid var(--ln)}
+.tcount{color:var(--mut);font-size:14px;font-weight:400}
+.trackbody{display:flex;gap:22px;align-items:flex-start;margin:14px 0 4px}
+.gridcol{flex:0 0 auto}
+.plot{flex:1 1 0;min-width:0;max-width:520px;align-self:flex-start;
+border:1px solid var(--ln);border-radius:12px;background:#fff;padding:8px}
+table.board{border-collapse:collapse;width:100%;font-size:14px;margin:12px 0}
+.board th,.board td{padding:.55rem .7rem;text-align:left;
+border-bottom:1px solid var(--ln)}
+.board th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;
+color:var(--mut);cursor:pointer;user-select:none;border-bottom:2px solid var(--ln)}
+.board th:hover{color:var(--ink)}.board td.num,.board th.num{text-align:right;
+font-variant-numeric:tabular-nums}
+.board tbody tr{cursor:pointer}.board tbody tr:hover{background:#eef2ff}
+.board tr.fr{background:#f5f3ff}.board tr.fr td:first-child{
+box-shadow:inset 3px 0 0 var(--ac)}
+.board tr.fr:hover{background:#ecebff}
+.star{color:var(--ac);width:18px}.cname{color:var(--mut);font-size:13px}
+.auth{color:var(--mut);font-size:13px}
+.b{display:inline-block;font-size:11px;font-weight:700;padding:1px 6px;
+border-radius:5px;font-family:ui-monospace,monospace}
+.b.exact{background:#d1fae5;color:var(--ex)}.b.ub{background:#eef2f7;
+color:var(--mut)}
+.vswin{color:var(--ex);font-weight:700}.vslose{color:#b45309}
+.vsnone{color:#cbd5e1}
+.gridh{font-size:14px;color:var(--mut);margin:20px 0 2px;clear:both}
+table.cells{border-collapse:collapse;margin:6px 0 4px;font-size:13px;
+clear:both}
+.cells th,.cells td{border:1px solid var(--ln);padding:.3rem .45rem;
+text-align:center;min-width:30px}
+.cells th{background:var(--soft);color:var(--mut);font-weight:600}
+.cells td.cellwin{background:#ecfdf5}.cells td.celllose{background:#fff7ed}
+.cells td a{font-variant-numeric:tabular-nums}
+footer{margin:64px 0 48px;padding-top:24px;border-top:1px solid var(--ln);
+color:var(--mut);font-size:14px}
+a{color:var(--ac);text-decoration:none}a:hover{text-decoration:underline}
+code{background:var(--soft);padding:1px 5px;border-radius:4px;font-size:.9em}
+.hit{cursor:pointer}
+#tip{position:fixed;pointer-events:none;z-index:60;background:#0f172a;
+color:#fff;padding:7px 10px;border-radius:7px;font-size:12px;line-height:1.45;
+white-space:pre-line;box-shadow:0 6px 20px rgba(2,6,23,.28);opacity:0;
+transition:opacity .06s;max-width:300px}
+#tip.show{opacity:1}
+/* detail page */
+.back{display:inline-block;margin:24px 0 0;font-size:14px}
+.codehead{margin:8px 0 0}.codehead .big{font-size:32px;letter-spacing:-.5px}
+.params{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+gap:1px;background:var(--ln);border:1px solid var(--ln);border-radius:10px;
+overflow:hidden;margin:20px 0}
+.params .cell{background:#fff;padding:12px 14px}
+.params .l{font-size:11px;text-transform:uppercase;letter-spacing:.04em;
+color:var(--mut)}.params .v{font-size:20px;font-weight:700;margin-top:2px}
+section.blk{margin:28px 0}section.blk h3{font-size:16px;margin:0 0 8px;
+padding-bottom:6px;border-bottom:1px solid var(--ln)}
+.kv{font-size:14px;margin:4px 0}.kv b{color:var(--mut);font-weight:600;
+display:inline-block;min-width:120px}
+.wit{font-family:ui-monospace,monospace;font-size:12px;background:var(--soft);
+border:1px solid var(--ln);border-radius:8px;padding:10px;
+white-space:pre-wrap;word-break:break-word}
+details{margin:8px 0}summary{cursor:pointer;color:var(--ac);font-size:14px}
+.cert-ok{color:var(--ex);font-weight:600}.cert-no{color:var(--mut)}
+.ref{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--ln);
+font-size:15px;line-height:1.55;scroll-margin-top:16px}
+.ref:target{background:var(--soft);border-radius:8px;padding:16px 12px}
+.refkey{flex:0 0 auto;width:170px;font-family:ui-monospace,monospace;
+font-size:12px;color:var(--ac);word-break:break-all}
+.refbody{flex:1 1 0;min-width:0}
+.refauth{color:var(--mut)}
+.reftitle{font-style:italic}
+.refmeta{color:var(--mut)}
+.refcited{font-size:12px;color:var(--mut);margin-top:8px;
+display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.refcited a{font-family:ui-monospace,monospace;font-size:11px;
+color:var(--mut);background:var(--soft);border:1px solid var(--ln);
+border-radius:5px;padding:1px 6px;white-space:nowrap;text-decoration:none}
+.refcited a:hover{color:var(--ac);border-color:var(--ac)}
+@media(max-width:680px){.ref{flex-direction:column;gap:4px}
+.refkey{width:auto}}
+@media(max-width:880px){.how{grid-template-columns:1fr}
+.trackbody{flex-direction:column}.plot{flex-basis:auto;width:100%;
+position:static}header.hero h1{font-size:34px}}
+</style></head><body>
+<div class=wrap>
+<a class=back href="../index.html">&larr; back to the board</a>
+<div class=codehead><span class="mono big">[[218,12,12]]</span> <span class="b ub">d &le;</span></div>
+<p style="color:var(--mut);margin:.3rem 0 0">[[218,12,12]] grafted weight-8 planar BB code</p>
+<div class=params>
+<div class=cell><div class=l>n</div><div class=v>218</div></div>
+<div class=cell><div class=l>k</div><div class=v>12</div></div>
+<div class=cell><div class=l>d</div><div class=v>12</div></div>
+<div class=cell><div class=l>kd&sup2;/n</div><div class=v>7.927</div></div>
+<div class=cell><div class=l>max check wt</div><div class=v>8</div></div>
+</div>
+<section class=blk><h3>Distance</h3>
+<div class=kv><b>d_X</b> 12 &middot; witness weight 12 (claimed exact)</div>
+<details><summary>witness operator (support, 12 qubits)</summary><div class=wit>[14, 15, 34, 36, 45, 47, 68, 91, 120, 130, 131, 191]</div></details>
+<div class=kv><b>d_Z</b> 12 &middot; witness weight 12 (claimed upper_bound)</div>
+<details><summary>witness operator (support, 12 qubits)</summary><div class=wit>[35, 38, 41, 59, 63, 76, 149, 161, 162, 164, 170, 172]</div></details>
+<div class=kv><b>certificate</b> <span class=cert-no>none yet &middot; distance stands as a self-certified upper bound (d &le;)</span></div>
+</section>
+<section class=blk><h3>Construction &amp; provenance</h3>
+<div class=kv><b>authors</b> <a href="https://github.com/FarLab">@FarLab</a></div>
+<div class=kv><b>construction</b> Bivariate-bicycle weight-8 code converted to open planar boundaries (boundary anyon condensation) and optimized by lattice grafting (qubit removal). d_X MILP-certified (witness + HiGHS optimality); d_Z certified per research notes.</div>
+<div class=kv><b>references</b> <a href="https://arxiv.org/abs/2504.08887">arXiv:2504.08887</a></div>
+<div class=kv><b>date</b> 2026-06-17</div>
+<div class=kv><b>notes</b> Witnesses re-verified: in ker(opposite), outside rowspace(own), weight=d.</div>
+<div class=kv><b>tracks</b> weight-8</div>
+</section>
+<section class=blk><h3>Parity checks</h3>
+<div class=kv><b>X-checks</b> 122 &middot; <b style="min-width:auto">Z-checks</b> 117</div>
+<details><summary>H_X (122 checks, sparse supports)</summary><div class=wit>[3, 22, 25, 109, 111, 120, 130]
+[4, 23, 26, 110, 112, 121, 131]
+[5, 24, 27, 111, 113, 122, 132]
+[6, 25, 28, 112, 114, 123, 133]
+[7, 26, 29, 113, 115, 124, 134]
+[8, 27, 30, 114, 116, 125, 135]
+[9, 28, 31, 115, 117, 126, 136]
+[10, 29, 32, 116, 118, 127, 137]
+[1, 14, 33, 36, 119, 121, 130, 140]
+[2, 15, 34, 37, 120, 122, 131, 141]
+[3, 16, 35, 38, 121, 123, 132, 142]
+[4, 17, 36, 39, 122, 124, 133, 143]
+[5, 18, 37, 40, 123, 125, 134, 144]
+[6, 19, 38, 41, 124, 126, 135, 145]
+[7, 20, 39, 42, 125, 127, 136, 146]
+[8, 21, 40, 43, 126, 128, 137, 147]
+[12, 25, 44, 47, 129, 131, 140, 150]
+[13, 26, 45, 48, 130, 132, 141, 151]
+[14, 27, 46, 49, 131, 133, 142, 152]
+[15, 28, 47, 50, 132, 134, 143, 153]
+[16, 29, 48, 51, 133, 135, 144, 154]
+[17, 30, 49, 52, 134, 136, 145, 155]
+[18, 31, 50, 53, 135, 137, 146, 156]
+[19, 32, 51, 54, 136, 138, 147, 157]
+[23, 36, 55, 58, 139, 141, 150, 160]
+[24, 37, 56, 59, 140, 142, 151, 161]
+[25, 38, 57, 60, 141, 143, 152, 162]
+[26, 39, 58, 61, 142, 144, 153, 163]
+[27, 40, 59, 62, 143, 145, 154, 164]
+[28, 41, 60, 63, 144, 146, 155, 165]
+[29, 42, 61, 64, 145, 147, 156, 166]
+[30, 43, 62, 65, 146, 148, 157, 167]
+[34, 47, 66, 69, 149, 151, 160, 170]
+[35, 48, 67, 70, 150, 152, 161, 171]
+[36, 49, 68, 71, 151, 153, 162, 172]
+[37, 50, 69, 72, 152, 154, 163, 173]
+[38, 51, 70, 73, 153, 155, 164, 174]
+[39, 52, 71, 74, 154, 156, 165, 175]
+[40, 53, 72, 75, 155, 157, 166, 176]
+[41, 54, 73, 76, 156, 158, 167, 177]
+[45, 58, 77, 80, 159, 161, 170, 180]
+[46, 59, 78, 81, 160, 162, 171, 181]
+[47, 60, 79, 82, 161, 163, 172, 182]
+[48, 61, 80, 83, 162, 164, 173, 183]
+[49, 62, 81, 84, 163, 165, 174, 184]
+[50, 63, 82, 85, 164, 166, 175, 185]
+[51, 64, 83, 86, 165, 167, 176, 186]
+[52, 65, 84, 87, 166, 168, 177, 187]
+[56, 69, 88, 91, 169, 171, 180, 190]
+[57, 70, 89, 92, 170, 172, 181, 191]
+[58, 71, 90, 93, 171, 173, 182, 192]
+[59, 72, 91, 94, 172, 174, 183, 193]
+[60, 73, 92, 95, 173, 175, 184, 194]
+[61, 74, 93, 96, 174, 176, 185, 195]
+[62, 75, 94, 97, 175, 177, 186, 196]
+[63, 76, 95, 98, 176, 178, 187, 197]
+[67, 80, 99, 101, 179, 181, 190, 200]
+[68, 81, 100, 102, 180, 182, 191, 201]
+[69, 82, 103, 181, 183, 192, 202]
+[70, 83, 101, 104, 182, 184, 193, 203]
+[71, 84, 102, 105, 183, 185, 194, 204]
+[72, 85, 103, 106, 184, 186, 195, 205]
+[73, 86, 104, 107, 185, 187, 196, 206]
+[74, 87, 105, 108, 186, 188, 197, 207]
+[0, 3, 110]
+[1, 4, 111]
+[2, 5, 112]
+[3, 6, 113]
+[4, 7, 114]
+[5, 8, 115]
+[6, 9, 116]
+[7, 10, 117]
+[11, 14, 110, 120]
+[12, 15, 111, 121]
+[13, 16, 112, 122]
+[14, 17, 113, 123]
+[15, 18, 114, 124]
+[16, 19, 115, 125]
+[17, 20, 116, 126]
+[18, 21, 117, 127]
+[0, 11, 14, 22, 25, 109, 111, 130]
+[1, 12, 15, 23, 26, 110, 112, 131]
+[2, 13, 16, 24, 27, 111, 113, 132]
+[3, 14, 17, 25, 28, 112, 114, 133]
+[4, 15, 18, 26, 29, 113, 115, 134]
+[5, 16, 19, 27, 30, 114, 116, 135]
+[6, 17, 20, 28, 31, 115, 117, 136]
+[7, 18, 21, 29, 32, 116, 118, 137]
+[11, 14, 110, 120]
+[12, 15, 111, 121]
+[13, 16, 112, 122]
+[14, 17, 113, 123]
+[15, 18, 114, 124]
+[16, 19, 115, 125]
+[17, 20, 116, 126]
+[18, 21, 117, 127]
+[69, 82, 103, 181, 183, 192, 202, 210]
+[71, 84, 105, 183, 185, 194, 204, 213]
+[78, 91, 189, 191, 200, 210]
+[79, 92, 190, 192, 201, 211]
+[80, 93, 191, 193, 202]
+[81, 94, 192, 194, 203, 212]
+[82, 95, 193, 195, 204, 213]
+[83, 96, 194, 196, 205, 214]
+[84, 97, 195, 197, 206, 215]
+[85, 98, 196, 198, 207, 216]
+[100, 209, 211]
+[210]
+[101, 211, 212]
+[102, 213]
+[103, 212, 214]
+[104, 213, 215]
+[105, 214, 216]
+[106, 215, 217]
+[89, 101, 199, 201, 210]
+[90, 102, 200, 202, 211]
+[91, 103, 201, 203]
+[92, 104, 202, 204, 212]
+[93, 105, 203, 205, 213]
+[94, 106, 204, 206, 214]
+[95, 107, 205, 207, 215]
+[96, 108, 206, 208, 216]</div></details>
+<details><summary>H_Z (117 checks, sparse supports)</summary><div class=wit>[2, 13, 23, 25, 109, 112, 129, 141]
+[3, 14, 24, 26, 110, 113, 130, 142]
+[4, 15, 25, 27, 111, 114, 131, 143]
+[5, 16, 26, 28, 112, 115, 132, 144]
+[6, 17, 27, 29, 113, 116, 133, 145]
+[7, 18, 28, 30, 114, 117, 134, 146]
+[8, 19, 29, 31, 115, 118, 135, 147]
+[9, 20, 30, 32, 116, 136, 148]
+[13, 24, 34, 36, 119, 122, 139, 151]
+[14, 25, 35, 37, 120, 123, 140, 152]
+[15, 26, 36, 38, 121, 124, 141, 153]
+[16, 27, 37, 39, 122, 125, 142, 154]
+[17, 28, 38, 40, 123, 126, 143, 155]
+[18, 29, 39, 41, 124, 127, 144, 156]
+[19, 30, 40, 42, 125, 128, 145, 157]
+[20, 31, 41, 43, 126, 146, 158]
+[24, 35, 45, 47, 129, 132, 149, 161]
+[25, 36, 46, 48, 130, 133, 150, 162]
+[26, 37, 47, 49, 131, 134, 151, 163]
+[27, 38, 48, 50, 132, 135, 152, 164]
+[28, 39, 49, 51, 133, 136, 153, 165]
+[29, 40, 50, 52, 134, 137, 154, 166]
+[30, 41, 51, 53, 135, 138, 155, 167]
+[31, 42, 52, 54, 136, 156, 168]
+[35, 46, 56, 58, 139, 142, 159, 171]
+[36, 47, 57, 59, 140, 143, 160, 172]
+[37, 48, 58, 60, 141, 144, 161, 173]
+[38, 49, 59, 61, 142, 145, 162, 174]
+[39, 50, 60, 62, 143, 146, 163, 175]
+[40, 51, 61, 63, 144, 147, 164, 176]
+[41, 52, 62, 64, 145, 148, 165, 177]
+[42, 53, 63, 65, 146, 166, 178]
+[46, 57, 67, 69, 149, 152, 169, 181]
+[47, 58, 68, 70, 150, 153, 170, 182]
+[48, 59, 69, 71, 151, 154, 171, 183]
+[49, 60, 70, 72, 152, 155, 172, 184]
+[50, 61, 71, 73, 153, 156, 173, 185]
+[51, 62, 72, 74, 154, 157, 174, 186]
+[52, 63, 73, 75, 155, 158, 175, 187]
+[53, 64, 74, 76, 156, 176, 188]
+[57, 68, 78, 80, 159, 162, 179, 191]
+[58, 69, 79, 81, 160, 163, 180, 192]
+[59, 70, 80, 82, 161, 164, 181, 193]
+[60, 71, 81, 83, 162, 165, 182, 194]
+[61, 72, 82, 84, 163, 166, 183, 195]
+[62, 73, 83, 85, 164, 167, 184, 196]
+[63, 74, 84, 86, 165, 168, 185, 197]
+[64, 75, 85, 87, 166, 186, 198]
+[68, 79, 89, 91, 169, 172, 189, 201]
+[69, 80, 90, 92, 170, 173, 190, 202]
+[70, 81, 91, 93, 171, 174, 191, 203]
+[71, 82, 92, 94, 172, 175, 192, 204]
+[72, 83, 93, 95, 173, 176, 193, 205]
+[73, 84, 94, 96, 174, 177, 194, 206]
+[74, 85, 95, 97, 175, 178, 195, 207]
+[75, 86, 96, 98, 176, 196, 208]
+[79, 90, 100, 101, 179, 182, 199, 211]
+[81, 92, 101, 103, 181, 184, 201, 212]
+[82, 93, 102, 104, 182, 185, 202, 213]
+[83, 94, 103, 105, 183, 186, 203, 214]
+[84, 95, 104, 106, 184, 187, 204, 215]
+[85, 96, 105, 107, 185, 188, 205, 216]
+[86, 97, 106, 108, 186, 206, 217]
+[22, 109]
+[33, 119]
+[44, 129]
+[55, 139]
+[66, 149]
+[77, 159]
+[88, 169]
+[99, 179]
+[0, 11, 23, 110, 139]
+[11, 22, 34, 120, 149]
+[22, 33, 45, 130, 159]
+[33, 44, 56, 140, 169]
+[44, 55, 67, 150, 179]
+[55, 66, 78, 160, 189]
+[66, 77, 89, 170, 199]
+[77, 88, 100, 180, 209]
+[1, 12, 22, 24, 111, 140]
+[12, 23, 33, 35, 121, 150]
+[23, 34, 44, 46, 131, 160]
+[34, 45, 55, 57, 141, 170]
+[45, 56, 66, 68, 151, 180]
+[56, 67, 77, 79, 161, 190]
+[67, 78, 88, 90, 171, 200]
+[2, 13, 22, 23, 25, 112, 129, 141]
+[13, 24, 33, 34, 36, 122, 139, 151]
+[24, 35, 44, 45, 47, 132, 149, 161]
+[35, 46, 55, 56, 58, 142, 159, 171]
+[46, 57, 66, 67, 69, 152, 169, 181]
+[57, 68, 77, 78, 80, 162, 179, 191]
+[68, 79, 88, 89, 91, 172, 189, 201]
+[79, 90, 99, 100, 101, 182, 199, 211]
+[10, 21, 31, 32, 117, 118, 137, 138]
+[21, 32, 42, 43, 127, 128, 147, 148]
+[32, 43, 53, 54, 137, 138, 157, 158]
+[43, 54, 64, 65, 147, 148, 167, 168]
+[54, 65, 75, 76, 157, 158, 177, 178]
+[65, 76, 86, 87, 167, 168, 187, 188]
+[76, 87, 97, 98, 177, 178, 197, 198]
+[32, 118, 138]
+[43, 128, 148]
+[54, 138, 158]
+[65, 148, 168]
+[76, 158, 178]
+[87, 168, 188]
+[98, 178, 198]
+[108, 188, 208]
+[10, 21, 31, 117, 137]
+[21, 32, 42, 127, 147]
+[32, 43, 53, 137, 157]
+[43, 54, 64, 147, 167]
+[54, 65, 75, 157, 177]
+[65, 76, 86, 167, 187]
+[76, 87, 97, 177, 197]
+[87, 98, 107, 187, 207]</div></details>
+<div class=kv style="margin-top:10px"><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/codes/218-12-12.json">raw submission JSON</a></div>
+</section>
+</div></body></html>
