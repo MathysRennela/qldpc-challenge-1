@@ -316,8 +316,6 @@ font-size:13px;color:var(--mut)}}
 .legend b{{color:var(--ink)}}
 .collegend{{flex-basis:100%;border-top:1px solid var(--ln);padding-top:10px;
 line-height:1.7}}
-.lead{{max-width:70ch;margin:30px 0 4px;font-size:17px;line-height:1.6;
-color:var(--ink)}}
 .dot{{display:inline-block;width:11px;height:11px;border-radius:50%;
 vertical-align:-1px;margin-right:2px}}
 .dot.ex{{background:var(--ex)}}.dot.ac{{background:var(--ac)}}
@@ -918,6 +916,12 @@ FAQ = [
      "literature is scattered; this gathers codes, verifies them, and ranks "
      "them per track on a Pareto frontier, so it is easy to see the current "
      "state of the art and where there is room to do better."),
+    ("What counts as a better code?",
+     "Each track ranks codes on a Pareto frontier over (n, k, d). A submission "
+     "earns a place by beating that frontier: fewer physical qubits n, more "
+     "logical qubits k, or a higher distance d than the codes currently on it. "
+     "The board holds the best we know of in each track so you know what to aim "
+     "past; it is the bar to beat, not a catalog of every code."),
     ("Why is it hard to find good qLDPC codes?",
      "The checks have to commute (the CSS condition) and stay sparse, which "
      "constrains the construction. You want high k, high d, and low n at the "
@@ -984,13 +988,6 @@ def build():
              '<p>Find better quantum LDPC codes.</p>'
              '</div></header>')
     P.append('<div class=wrap>')
-    P.append(
-        '<p class=lead>The codes here are the best we currently know of in '
-        'each track: the bar to beat. The challenge is to find better '
-        'ones: submit a code that uses fewer physical qubits, encodes more '
-        'logical qubits, or reaches a higher distance than the frontier, and '
-        'once CI verifies it, it joins the board under your name. It is a '
-        'challenge, not a catalog.</p>')
     P.append(progress_panel(entries, tracks, n_exact, best_eff))
     P.append('<div class=how>'
              '<div class=card><span class=n>1</span><h3>Build a code</h3>'
