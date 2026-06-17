@@ -493,8 +493,7 @@ def build():
     P = [head("qLDPC Challenge")]
     P.append('<header class=hero><div class=wrap>'
              '<h1>qLDPC Challenge</h1>'
-             '<p>Submit a quantum LDPC code; if it passes verification, it '
-             'goes on the board.</p>'
+             '<p>Find better quantum LDPC codes.</p>'
              '<div class=stats>'
              f'<div class=stat><div class=v>{len(entries)}</div>'
              '<div class=l>verified codes</div></div>'
