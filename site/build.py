@@ -857,8 +857,8 @@ def progress_panel(entries, tracks, n_exact, best_eff):
                if re.fullmatch(r"[A-Za-z0-9-]+", a.strip())}
     metrics = [
         (str(len(entries)), "verified codes"),
-        (f'{n_exact} <span class=pmsub>/ {n_ub}</span>',
-         "certified exact / upper bound"),
+        (str(n_exact), "certified exact"),
+        (str(n_ub), "upper bound"),
         (f"{best_eff:g}", "best kd&sup2;/n"),
         (str(len(handles)), "contributors"),
     ]
