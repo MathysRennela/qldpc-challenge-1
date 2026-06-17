@@ -65,12 +65,15 @@ border-top:1px solid var(--ln)}
 .plot{flex:1 1 0;min-width:0;max-width:520px;align-self:flex-start;
 border:1px solid var(--ln);border-radius:12px;background:#fff;padding:8px}
 table.board{border-collapse:collapse;width:100%;font-size:14px;margin:12px 0}
-.board th,.board td{padding:.55rem .7rem;text-align:left;
+.board th,.board td{padding:.55rem .9rem;text-align:left;white-space:nowrap;
 border-bottom:1px solid var(--ln)}
 .board th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;
 color:var(--mut);cursor:pointer;user-select:none;border-bottom:2px solid var(--ln)}
 .board th:hover{color:var(--ink)}.board td.num,.board th.num{text-align:right;
 font-variant-numeric:tabular-nums}
+/* let the authors column absorb the slack so the data columns hug their
+   content (no stray gap after the code id) */
+.board td.auth,.board th[data-c=auth]{width:100%;white-space:normal}
 .board tbody tr{cursor:pointer}.board tbody tr:hover{background:#eef2ff}
 .board tr.fr{background:#f5f3ff}.board tr.fr td:first-child{
 box-shadow:inset 3px 0 0 var(--ac)}
@@ -83,10 +86,6 @@ border-radius:5px;font-family:ui-monospace,monospace}
 color:var(--mut)}
 .vswin{color:var(--ex);font-weight:700}.vslose{color:#b45309}
 .vsnone{color:#cbd5e1}
-.newtag{display:inline-block;font-size:10px;font-weight:700;
-text-transform:uppercase;letter-spacing:.4px;color:var(--ac);
-background:#eef2ff;border:1px solid #c7d2fe;border-radius:5px;
-padding:0 5px;vertical-align:1px}
 .gridh{font-size:14px;color:var(--mut);margin:20px 0 2px;clear:both}
 table.cells{border-collapse:collapse;margin:6px 0 4px;font-size:13px;
 clear:both}

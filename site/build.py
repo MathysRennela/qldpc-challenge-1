@@ -281,12 +281,15 @@ border-top:1px solid var(--ln)}}
 .plot{{flex:1 1 0;min-width:0;max-width:520px;align-self:flex-start;
 border:1px solid var(--ln);border-radius:12px;background:#fff;padding:8px}}
 table.board{{border-collapse:collapse;width:100%;font-size:14px;margin:12px 0}}
-.board th,.board td{{padding:.55rem .7rem;text-align:left;
+.board th,.board td{{padding:.55rem .9rem;text-align:left;white-space:nowrap;
 border-bottom:1px solid var(--ln)}}
 .board th{{font-size:12px;text-transform:uppercase;letter-spacing:.04em;
 color:var(--mut);cursor:pointer;user-select:none;border-bottom:2px solid var(--ln)}}
 .board th:hover{{color:var(--ink)}}.board td.num,.board th.num{{text-align:right;
 font-variant-numeric:tabular-nums}}
+/* let the authors column absorb the slack so the data columns hug their
+   content (no stray gap after the code id) */
+.board td.auth,.board th[data-c=auth]{{width:100%;white-space:normal}}
 .board tbody tr{{cursor:pointer}}.board tbody tr:hover{{background:#eef2ff}}
 .board tr.fr{{background:#f5f3ff}}.board tr.fr td:first-child{{
 box-shadow:inset 3px 0 0 var(--ac)}}
@@ -299,10 +302,6 @@ border-radius:5px;font-family:ui-monospace,monospace}}
 color:var(--mut)}}
 .vswin{{color:var(--ex);font-weight:700}}.vslose{{color:#b45309}}
 .vsnone{{color:#cbd5e1}}
-.newtag{{display:inline-block;font-size:10px;font-weight:700;
-text-transform:uppercase;letter-spacing:.4px;color:var(--ac);
-background:#eef2ff;border:1px solid #c7d2fe;border-radius:5px;
-padding:0 5px;vertical-align:1px}}
 .gridh{{font-size:14px;color:var(--mut);margin:20px 0 2px;clear:both}}
 table.cells{{border-collapse:collapse;margin:6px 0 4px;font-size:13px;
 clear:both}}
@@ -438,7 +437,6 @@ def load_entries():
             "authors": ", ".join(doc["provenance"]["authors"]),
             "authors_list": doc["provenance"]["authors"],
             "construction": doc["provenance"].get("construction", ""),
-            "date": doc["provenance"].get("date"),
             "doc": doc, "cert": cert,
         })
     return entries
@@ -536,10 +534,7 @@ def table(te, front):
             f'data-w="{e["w"]}" '
             f'data-auth="{html.escape(e["authors"])}">'
             f'<td class="star">{"&#9733;" if fr else ""}</td>'
-            f'<td><span class=mono>[[{e["n"]},{e["k"]},{e["d"]}]]</span>'
-            + (' <span class=newtag title="most recently added">new</span>'
-               if e.get("new") else "")
-            + '</td>'
+            f'<td><span class=mono>[[{e["n"]},{e["k"]},{e["d"]}]]</span></td>'
             f'<td class=num>{e["n"]}</td><td class=num>{e["k"]}</td>'
             f'<td class=num>{badge(e["tier"])} {e["d"]}</td>'
             f'<td class=num>{e["eff"]}</td><td class=num>{e["w"]}</td>'
@@ -796,12 +791,6 @@ def build():
     best_eff = max((e["eff"] for e in entries), default=0)
     beats = sum(1 for e in entries
                 if (vp := vs_paper(e["k"], e["d"], e["n"])) and vp[0] > 0)
-    # mark the most recently added codes (latest provenance date). Tied to the
-    # data, not wall-clock, so the build stays deterministic.
-    dated = [e["date"] for e in entries if e.get("date")]
-    latest = max(dated) if dated else None
-    for e in entries:
-        e["new"] = bool(latest and e.get("date") == latest)
 
     P = [head("qLDPC Challenge")]
     P.append('<header class=hero><div class=wrap>'
@@ -835,7 +824,6 @@ def build():
              '<span><span class="dot ac"></span> upper bound '
              '(<span class="b ub">d &le;</span>)</span>'
              '<span><span class="dot ho"></span> open point = dominated</span>'
-             '<span><span class=newtag>new</span> = most recently added</span>'
              '</div>')
     for t in sorted(tracks):
         te = [entries[i] for i in tracks[t]]
