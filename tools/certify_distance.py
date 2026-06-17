@@ -53,7 +53,8 @@ def min_logical(checks, logical_row, time_limit):
                     np.concatenate([np.ones(n), np.full(m + 1, n)]))
     res = milp(c, constraints=LinearConstraint(A, lo, hi),
                integrality=np.ones(nv), bounds=bounds,
-               options={"time_limit": time_limit, "mip_rel_gap": 0.0})
+               options={"time_limit": time_limit, "mip_rel_gap": 0.0,
+                        "threads": 4})
     if res.x is None:
         return None, None, False
     w = np.round(res.x[:n]).astype(int) % 2
