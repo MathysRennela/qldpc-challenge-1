@@ -59,11 +59,12 @@ def load_refs():
             name, val = fm.group(1).lower(), fm.group(2).strip()
             if name == key.split(",")[0]:  # skip the key token itself
                 continue
-            val = val.strip().strip("{}").strip()
-            val = re.sub(r"\s+", " ", val).strip(", ")
-            # strip the few LaTeX accents that appear in author names
+            val = re.sub(r"\s+", " ", val).strip().strip(",").strip()
+            # resolve the few LaTeX accents, then drop all BibTeX braces (they
+            # are case-protection markup, not part of the displayed text).
             val = (val.replace("{\\'e}", "e").replace("\\'e", "e")
-                      .replace("{\\\"o}", "o"))
+                      .replace('{\\"o}', "o").replace('\\"o', "o"))
+            val = val.replace("{", "").replace("}", "")
             fields[name] = val
         entries.append(fields)
     return entries
@@ -252,14 +253,23 @@ border:1px solid var(--ln);border-radius:8px;padding:10px;
 white-space:pre-wrap;word-break:break-word}}
 details{{margin:8px 0}}summary{{cursor:pointer;color:var(--ac);font-size:14px}}
 .cert-ok{{color:var(--ex);font-weight:600}}.cert-no{{color:var(--mut)}}
-.ref{{padding:14px 0;border-bottom:1px solid var(--ln);font-size:15px;
-line-height:1.5;scroll-margin-top:16px}}
-.ref:target{{background:var(--soft);border-radius:8px;
-padding-left:10px;padding-right:10px}}
-.refauth{{color:var(--mut)}}.reftitle{{font-weight:600}}
+.ref{{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--ln);
+font-size:15px;line-height:1.55;scroll-margin-top:16px}}
+.ref:target{{background:var(--soft);border-radius:8px;padding:16px 12px}}
+.refkey{{flex:0 0 auto;width:170px;font-family:ui-monospace,monospace;
+font-size:12px;color:var(--ac);word-break:break-all}}
+.refbody{{flex:1 1 0;min-width:0}}
+.refauth{{color:var(--mut)}}
+.reftitle{{font-style:italic}}
 .refmeta{{color:var(--mut)}}
-.refnote{{color:var(--mut);font-size:13px;margin-top:4px}}
-.refcited{{font-size:13px;color:var(--mut);margin-top:6px}}
+.refcited{{font-size:12px;color:var(--mut);margin-top:8px;
+display:flex;flex-wrap:wrap;gap:6px;align-items:center}}
+.refcited a{{font-family:ui-monospace,monospace;font-size:11px;
+color:var(--mut);background:var(--soft);border:1px solid var(--ln);
+border-radius:5px;padding:1px 6px;white-space:nowrap;text-decoration:none}}
+.refcited a:hover{{color:var(--ac);border-color:var(--ac)}}
+@media(max-width:680px){{.ref{{flex-direction:column;gap:4px}}
+.refkey{{width:auto}}}}
 @media(max-width:880px){{.how{{grid-template-columns:1fr}}
 .trackbody{{flex-direction:column}}.plot{{flex-basis:auto;width:100%;
 position:static}}header.hero h1{{font-size:34px}}}}
@@ -586,8 +596,9 @@ def detail_page(e):
     return "\n".join(P)
 
 
-def fmt_citation(e):
-    """One reference, formatted as HTML: authors, title, venue/year, links."""
+def fmt_citation(e, extra=""):
+    """One reference, formatted as HTML: bibtag, authors, title, venue/year,
+    links, plus an optional trailing block (e.g. the citing codes)."""
     sn = e.get("author", "")
     authors = " and ".join(a.strip() for a in sn.split(" and ")) if sn else ""
     title = html.escape(e.get("title", e["key"]))
@@ -619,6 +630,8 @@ def fmt_citation(e):
         host = re.sub(r"^https?://(www\.)?|/.*$", "", e["url"]) or "link"
         links.append(f'<a href="{html.escape(e["url"])}">{html.escape(host)}</a>')
     out = [f'<div class=ref id="{html.escape(e["key"])}">']
+    out.append(f'<span class=refkey>{html.escape(e["key"])}</span>')
+    out.append('<div class=refbody>')
     if authors:
         sep = "" if authors.endswith(".") else "."
         out.append(f'<span class=refauth>{html.escape(authors)}{sep}</span> ')
@@ -627,9 +640,8 @@ def fmt_citation(e):
         out.append(f' <span class=refmeta>{". ".join(bits)}.</span>')
     if links:
         out.append(f' {" &middot; ".join(links)}')
-    if e.get("note"):
-        out.append(f'<div class=refnote>{html.escape(e["note"])}</div>')
-    out.append('</div>')
+    out.append(extra)
+    out.append('</div></div>')
     return "".join(out)
 
 
@@ -653,13 +665,15 @@ def references_page(entries):
              'it. The machine-readable source is '
              f'<a href="{REPO}/refs.bib">refs.bib</a>.</p>')
     for e in REFS:
-        P.append(fmt_citation(e))
         cs = citers.get(e["key"], [])
+        extra = ""
         if cs:
-            links = ", ".join(f'<a href="codes/{s}.html" class=mono>'
-                              f'[[{n},{k},{d}]]</a>'
-                              for s, n, k, d in sorted(cs, key=lambda c: (c[2], -c[3], c[1])))
-            P.append(f'<div class=refcited>cited by {links}</div>')
+            links = "".join(f'<a href="codes/{s}.html">[[{n},{k},{d}]]</a>'
+                            for s, n, k, d in
+                            sorted(cs, key=lambda c: (c[2], -c[3], c[1])))
+            extra = (f'<div class=refcited><span>cited by {len(cs)}</span>'
+                     f'{links}</div>')
+        P.append(fmt_citation(e, extra))
     P.append('</div></body></html>')
     return "\n".join(P)
 
