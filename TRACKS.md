@@ -38,6 +38,9 @@ These are where we have data and verification today. More can be proposed by PR.
 - `bivariate bicycle (periodic)`: bivariate bicycle codes on a torus
   (periodic boundary conditions), no 2D-local layout. Seeded with the
   canonical codes of Bravyi et al (arXiv:2308.07915).
+- `generalized bicycle`: univariate quasi-cyclic codes from two circulant
+  polynomials (the one-variable cousin of bivariate bicycle codes), seeded
+  from the literature (arXiv:2203.17216).
 - `2d-local-single`: 2D-local on a single layer (surface-code-like
   connectivity). Stricter; mostly a baseline track.
 - `decoding` (planned): a fixed code or an open submission ranked by logical
