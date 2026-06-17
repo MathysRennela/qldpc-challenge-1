@@ -316,6 +316,8 @@ font-size:13px;color:var(--mut)}}
 .legend b{{color:var(--ink)}}
 .collegend{{flex-basis:100%;border-top:1px solid var(--ln);padding-top:10px;
 line-height:1.7}}
+.lead{{max-width:70ch;margin:30px 0 4px;font-size:17px;line-height:1.6;
+color:var(--ink)}}
 .dot{{display:inline-block;width:11px;height:11px;border-radius:50%;
 vertical-align:-1px;margin-right:2px}}
 .dot.ex{{background:var(--ex)}}.dot.ac{{background:var(--ac)}}
@@ -977,6 +979,13 @@ def build():
              '<p>Find better quantum LDPC codes.</p>'
              '</div></header>')
     P.append('<div class=wrap>')
+    P.append(
+        '<p class=lead>The codes here are the best we currently know of in '
+        'each track: the bar to beat. The challenge is to find better '
+        'ones: submit a code that uses fewer physical qubits, encodes more '
+        'logical qubits, or reaches a higher distance than the frontier, and '
+        'once CI verifies it, it joins the board under your name. It is a '
+        'challenge, not a catalog.</p>')
     P.append(progress_panel(entries, tracks, n_exact, best_eff))
     P.append('<div class=how>'
              '<div class=card><span class=n>1</span><h3>Build a code</h3>'
