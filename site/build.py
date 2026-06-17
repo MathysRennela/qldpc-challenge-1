@@ -779,9 +779,10 @@ def references_page(entries):
     return "\n".join(P)
 
 
-def progress_panel(entries, tracks, n_exact, beats):
+def progress_panel(entries, tracks, n_exact, beats, best_eff):
     """A distinct status-of-progress panel: headline diagnostics plus a
-    per-track breakdown. Contributors counts GitHub-handle authors only (the
+    per-track breakdown. This is the single home for the board's numbers (the
+    hero carries none). Contributors counts GitHub-handle authors only (the
     paper baseline source is not a contributor)."""
     n_ub = len(entries) - n_exact
     handles = {a.strip() for e in entries for a in e["authors_list"]
@@ -791,6 +792,7 @@ def progress_panel(entries, tracks, n_exact, beats):
         (str(beats), "records vs the paper"),
         (f'{n_exact} <span class=pmsub>/ {n_ub}</span>',
          "certified exact / upper bound"),
+        (f"{best_eff:g}", "best kd&sup2;/n"),
         (str(len(handles)), "contributors"),
     ]
     mhtml = "".join(f'<div class=pm><span class=pmn>{v}</span>'
@@ -832,20 +834,9 @@ def build():
              f'<a class=ghlink href="{REPO_ROOT}">{GH_ICON}'
              '<span>GitHub</span></a></div>'
              '<p>Find better quantum LDPC codes.</p>'
-             '<div class=stats>'
-             f'<div class=stat><div class=v>{len(entries)}</div>'
-             '<div class=l>verified codes</div></div>'
-             f'<div class=stat><div class=v>{beats}</div>'
-             '<div class=l>beat the paper</div></div>'
-             f'<div class=stat><div class=v>{n_exact}</div>'
-             '<div class=l>certified exact</div></div>'
-             f'<div class=stat><div class=v>{len(tracks)}</div>'
-             '<div class=l>tracks</div></div>'
-             f'<div class=stat><div class=v>{best_eff:g}</div>'
-             '<div class=l>best kd&sup2;/n</div></div>'
-             '</div></div></header>')
+             '</div></header>')
     P.append('<div class=wrap>')
-    P.append(progress_panel(entries, tracks, n_exact, beats))
+    P.append(progress_panel(entries, tracks, n_exact, beats, best_eff))
     P.append('<div class=how>'
              '<div class=card><span class=n>1</span><h3>Build a code</h3>'
              '<p>A CSS qLDPC code, written as one JSON file with its parity '
