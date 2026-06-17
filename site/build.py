@@ -550,7 +550,7 @@ def table(te, front):
         fr = i in front
         rows.append(
             f'<tr class="{"fr" if fr else ""}" data-href="codes/{e["slug"]}.html" '
-            f'data-name="{html.escape(e["name"])}" data-n="{e["n"]}" '
+            f'data-name="[[{e["n"]},{e["k"]},{e["d"]}]]" data-n="{e["n"]}" '
             f'data-k="{e["k"]}" data-d="{e["d"]}" data-eff="{e["eff"]}" '
             f'data-w="{e["w"]}" '
             f'data-auth="{html.escape(e["authors"])}">'
@@ -600,12 +600,11 @@ def cell_grid(te):
 def detail_page(e):
     doc, cert = e["doc"], e["cert"]
     n, k, d = e["n"], e["k"], e["d"]
-    P = [head(e["name"], rel="../")]
+    P = [head(f"[[{n},{k},{d}]] · qLDPC Challenge", rel="../")]
     P.append('<div class=wrap>')
     P.append('<a class=back href="../index.html">&larr; back to the board</a>')
     P.append(f'<div class=codehead><span class="mono big">[[{n},{k},{d}]]</span> '
              f'{badge(e["tier"])}</div>')
-    P.append(f'<p style="color:var(--mut);margin:.3rem 0 0">{html.escape(e["name"])}</p>')
 
     P.append('<div class=params>')
     for lab, val in [("n", n), ("k", k), ("d", d),
