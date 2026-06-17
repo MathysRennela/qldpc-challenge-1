@@ -769,6 +769,8 @@ def build():
             tracks.setdefault(t, []).append(i)
     n_exact = sum(1 for e in entries if e["tier"] == "exact")
     best_eff = max((e["eff"] for e in entries), default=0)
+    beats = sum(1 for e in entries
+                if (vp := vs_paper(e["k"], e["d"], e["n"])) and vp[0] > 0)
 
     P = [head("qLDPC Challenge")]
     P.append('<header class=hero><div class=wrap>'
@@ -783,10 +785,12 @@ def build():
              '<div class=stats>'
              f'<div class=stat><div class=v>{len(entries)}</div>'
              '<div class=l>verified codes</div></div>'
-             f'<div class=stat><div class=v>{len(tracks)}</div>'
-             '<div class=l>tracks</div></div>'
+             f'<div class=stat><div class=v>{beats}</div>'
+             '<div class=l>beat the paper</div></div>'
              f'<div class=stat><div class=v>{n_exact}</div>'
              '<div class=l>certified exact</div></div>'
+             f'<div class=stat><div class=v>{len(tracks)}</div>'
+             '<div class=l>tracks</div></div>'
              f'<div class=stat><div class=v>{best_eff:g}</div>'
              '<div class=l>best kd&sup2;/n</div></div>'
              '</div></div></header>')
@@ -846,8 +850,6 @@ def build():
             f.write(detail_page(e))
 
     # machine-readable stats + self-contained badges the README links to.
-    beats = sum(1 for e in entries
-                if (vp := vs_paper(e["k"], e["d"], e["n"])) and vp[0] > 0)
     stats = {"verified_codes": len(entries), "certified_exact": n_exact,
              "tracks": len(tracks), "beats_paper": beats,
              "best_kd2_over_n": best_eff}
