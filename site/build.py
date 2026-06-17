@@ -359,6 +359,9 @@ clear:both}}
 text-align:center;min-width:30px}}
 .cells th{{background:var(--soft);color:var(--mut);font-weight:600}}
 .cells td.cellwin{{background:#ecfdf5}}.cells td.celllose{{background:#fff7ed}}
+.cells td.cellopen{{color:#cbd5e1;background:repeating-linear-gradient(45deg,
+transparent,transparent 4px,#f1f5f9 4px,#f1f5f9 5px)}}
+.opendot{{color:#94a3b8;font-weight:700}}
 .cells td a{{font-variant-numeric:tabular-nums}}
 .gridkey{{display:flex;flex-direction:column;gap:3px;margin:6px 0 2px;
 font-size:12px;color:var(--mut)}}
@@ -649,7 +652,8 @@ def cell_grid(te):
         for d in ds:
             e = by.get((k, d))
             if not e:
-                cells.append("<td></td>")
+                cells.append('<td class=cellopen title="no code on the board at '
+                             'this (k, d) yet">&middot;</td>')
                 continue
             cells.append(
                 f'<td><a href="codes/{e["slug"]}.html" '
@@ -658,8 +662,9 @@ def cell_grid(te):
         rows.append("<tr>" + "".join(cells) + "</tr>")
     return ('<h3 class=gridh>Minimal n by (k, d)</h3>'
             f'<table class=cells>{head_row}{"".join(rows)}</table>'
-            '<div class=gridkey><span>each cell is the smallest n on the board '
-            'for that (k, d); click it for the code</span></div>')
+            '<div class=gridkey><span>each filled cell is the smallest n on the '
+            'board for that (k, d)</span><span><span class=opendot>&middot;</span> '
+            'open territory (no code there yet)</span></div>')
 
 
 def detail_page(e):
