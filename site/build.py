@@ -614,9 +614,13 @@ def fmt_citation(e):
                      f'arXiv:{html.escape(e["eprint"])}</a>')
     if e.get("doi"):
         links.append(f'<a href="https://doi.org/{html.escape(e["doi"])}">doi</a>')
+    if e.get("url") and not e.get("eprint") and not e.get("doi"):
+        host = re.sub(r"^https?://(www\.)?|/.*$", "", e["url"]) or "link"
+        links.append(f'<a href="{html.escape(e["url"])}">{html.escape(host)}</a>')
     out = [f'<div class=ref id="{html.escape(e["key"])}">']
     if authors:
-        out.append(f'<span class=refauth>{html.escape(authors)}.</span> ')
+        sep = "" if authors.endswith(".") else "."
+        out.append(f'<span class=refauth>{html.escape(authors)}{sep}</span> ')
     out.append(f'<span class=reftitle>{title}.</span>')
     if bits:
         out.append(f' <span class=refmeta>{". ".join(bits)}.</span>')
