@@ -497,7 +497,6 @@
   "references": [
    "arXiv:2203.17216"
   ],
-  "date": "2022-03-31",
   "notes": "Distance d=8 from arXiv:2203.17216; witness here is a decoder-found logical operator of that weight (upper bound)."
  },
  "tracks": [

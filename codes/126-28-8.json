@@ -1561,7 +1561,6 @@
   "references": [
    "arXiv:1904.02703"
   ],
-  "date": "2021-01-01",
   "notes": "Distance certified exact by MILP (HiGHS); every logical-generator coset proven minimal."
  },
  "tracks": [

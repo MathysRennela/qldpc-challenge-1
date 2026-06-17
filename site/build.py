@@ -1056,9 +1056,14 @@ def build():
         f.write(references_page(entries))
     with open(os.path.join(DOCS, "faq.html"), "w") as f:
         f.write(faq_page())
+    slugs = {e["slug"] for e in entries}
     for e in entries:
         with open(os.path.join(DOCS, "codes", e["slug"] + ".html"), "w") as f:
             f.write(detail_page(e))
+    # prune orphan detail pages left behind when a code is removed
+    for f in glob.glob(os.path.join(DOCS, "codes", "*.html")):
+        if os.path.splitext(os.path.basename(f))[0] not in slugs:
+            os.remove(f)
 
     # machine-readable stats + self-contained badges the README links to.
     stats = {"verified_codes": len(entries), "certified_exact": n_exact,
