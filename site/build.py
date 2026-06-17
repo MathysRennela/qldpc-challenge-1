@@ -90,7 +90,9 @@ vertical-align:-1px;margin-right:2px}}
 h2.track{{font-size:24px;margin:48px 0 4px;padding-top:24px;
 border-top:1px solid var(--ln)}}
 .tcount{{color:var(--mut);font-size:14px;font-weight:400}}
-.plot{{float:right;width:46%;min-width:360px;margin:0 0 12px 24px;
+.trackbody{{display:flex;gap:22px;align-items:flex-start;margin:14px 0 4px}}
+.gridcol{{flex:0 0 auto}}
+.plot{{flex:1 1 0;min-width:0;max-width:520px;align-self:flex-start;
 border:1px solid var(--ln);border-radius:12px;background:#fff;padding:8px}}
 table.board{{border-collapse:collapse;width:100%;font-size:14px;margin:12px 0}}
 .board th,.board td{{padding:.55rem .7rem;text-align:left;
@@ -114,8 +116,8 @@ color:var(--mut)}}
 .gridh{{font-size:14px;color:var(--mut);margin:20px 0 2px;clear:both}}
 table.cells{{border-collapse:collapse;margin:6px 0 4px;font-size:13px;
 clear:both}}
-.cells th,.cells td{{border:1px solid var(--ln);padding:.35rem .6rem;
-text-align:center;min-width:40px}}
+.cells th,.cells td{{border:1px solid var(--ln);padding:.3rem .45rem;
+text-align:center;min-width:30px}}
 .cells th{{background:var(--soft);color:var(--mut);font-weight:600}}
 .cells td.cellwin{{background:#ecfdf5}}.cells td.celllose{{background:#fff7ed}}
 .cells td a{{font-variant-numeric:tabular-nums}}
@@ -147,8 +149,9 @@ border:1px solid var(--ln);border-radius:8px;padding:10px;
 white-space:pre-wrap;word-break:break-word}}
 details{{margin:8px 0}}summary{{cursor:pointer;color:var(--ac);font-size:14px}}
 .cert-ok{{color:var(--ex);font-weight:600}}.cert-no{{color:var(--mut)}}
-@media(max-width:760px){{.how{{grid-template-columns:1fr}}.plot{{float:none;
-width:100%;margin:12px 0}}header.hero h1{{font-size:34px}}}}
+@media(max-width:880px){{.how{{grid-template-columns:1fr}}
+.trackbody{{flex-direction:column}}.plot{{flex-basis:auto;width:100%;
+position:static}}header.hero h1{{font-size:34px}}}}
 """
 
 JS = """
@@ -315,7 +318,7 @@ def table(te, front):
         fr = i in front
         vp = vs_paper(e["k"], e["d"], e["n"])
         if vp is None:
-            vs_cell, vs_sort = '<span class=vsnone>&mdash;</span>', 0
+            vs_cell, vs_sort = '<span class=vsnone>&middot;</span>', 0
         elif vp[0] > 0:
             g = " (grafted)" if vp[2] else ""
             vs_cell = (f'<span class=vswin title="beats paper {vp[1]}{g} '
@@ -333,7 +336,9 @@ def table(te, front):
             f'data-auth="{html.escape(e["authors"])}">'
             f'<td class="star">{"&#9733;" if fr else ""}</td>'
             f'<td><span class=mono>[[{e["n"]},{e["k"]},{e["d"]}]]</span> '
-            f'<span class=cname>{html.escape(e["name"])}</span></td>'
+            f'<span class=cname>'
+            f'{html.escape(re.sub(r"^\[\[[^\]]*\]\]\s*", "", e["name"]))}'
+            f'</span></td>'
             f'<td class=num>{e["n"]}</td><td class=num>{e["k"]}</td>'
             f'<td class=num>{badge(e["tier"])} {e["d"]}</td>'
             f'<td class=num>{e["eff"]}</td><td class=num>{e["w"]}</td>'
@@ -488,10 +493,8 @@ def build():
     P = [head("qLDPC Challenge")]
     P.append('<header class=hero><div class=wrap>'
              '<h1>qLDPC Challenge</h1>'
-             '<p>Find better quantum low-density parity-check codes. Submit one '
-             'as a pull request, and the verifier checks every parameter '
-             'automatically &mdash; including a proof of the distance. If it '
-             'holds up, it lands on the board.</p>'
+             '<p>Submit a quantum LDPC code; if it passes verification, it '
+             'goes on the board.</p>'
              '<div class=stats>'
              f'<div class=stat><div class=v>{len(entries)}</div>'
              '<div class=l>verified codes</div></div>'
@@ -531,10 +534,10 @@ def build():
         P.append(f'<h2 class=track>{html.escape(t)} '
                  f'<span class=tcount>&middot; {len(te)} codes, '
                  f'{len(fr)} on the frontier</span></h2>')
-        P.append(svg(te, fr))
         P.append(table(te, fr))
-        P.append(cell_grid(te))
-    P.append('<footer>Submit a code by pull request &mdash; see '
+        P.append(f'<div class=trackbody><div class=gridcol>{cell_grid(te)}'
+                 f'</div>{svg(te, fr)}</div>')
+    P.append('<footer>Submit a code by pull request. See '
              f'<a href="{REPO}/CONTRIBUTING.md">CONTRIBUTING</a>, '
              f'<a href="{REPO}/schema/SCHEMA.md">the schema</a>, and '
              f'<a href="{REPO}/TRACKS.md">the tracks</a>. &#9733; marks the '
