@@ -521,7 +521,7 @@ def table(te, front):
     head_row = ("<thead><tr><th></th><th data-c=name>code</th>"
                 "<th data-c=n class=num>n</th><th data-c=k class=num>k</th>"
                 "<th data-c=d class=num>d</th><th data-c=eff class=num>kd&sup2;/n</th>"
-                "<th data-c=w class=num>w</th><th data-c=vs class=num>vs paper</th>"
+                "<th data-c=w class=num>w</th>"
                 "<th data-c=auth>authors</th></tr></thead>")
     order = sorted(range(len(te)), key=lambda i: (-te[i]["k"], -te[i]["d"],
                                                   te[i]["n"]))
@@ -529,23 +529,11 @@ def table(te, front):
     for i in order:
         e = te[i]
         fr = i in front
-        vp = vs_paper(e["k"], e["d"], e["n"])
-        if vp is None:
-            vs_cell, vs_sort = '<span class=vsnone>&middot;</span>', 0
-        elif vp[0] > 0:
-            g = " (grafted)" if vp[2] else ""
-            vs_cell = (f'<span class=vswin title="beats paper {vp[1]}{g} '
-                       f'at this (k,d)">&minus;{vp[0]}</span>')
-            vs_sort = vp[0]
-        else:
-            vs_cell = (f'<span class=vslose title="paper {vp[1]} is smaller '
-                       f'here">+{-vp[0]}</span>')
-            vs_sort = vp[0]
         rows.append(
             f'<tr class="{"fr" if fr else ""}" data-href="codes/{e["slug"]}.html" '
             f'data-name="{html.escape(e["name"])}" data-n="{e["n"]}" '
             f'data-k="{e["k"]}" data-d="{e["d"]}" data-eff="{e["eff"]}" '
-            f'data-w="{e["w"]}" data-vs="{vs_sort}" '
+            f'data-w="{e["w"]}" '
             f'data-auth="{html.escape(e["authors"])}">'
             f'<td class="star">{"&#9733;" if fr else ""}</td>'
             f'<td><span class=mono>[[{e["n"]},{e["k"]},{e["d"]}]]</span> '
@@ -557,7 +545,6 @@ def table(te, front):
             f'<td class=num>{e["n"]}</td><td class=num>{e["k"]}</td>'
             f'<td class=num>{badge(e["tier"])} {e["d"]}</td>'
             f'<td class=num>{e["eff"]}</td><td class=num>{e["w"]}</td>'
-            f'<td class=num>{vs_cell}</td>'
             f'<td class=auth>{authors_html(e["authors_list"])}</td></tr>')
     return f'<table class=board>{head_row}<tbody>{"".join(rows)}</tbody></table>'
 
@@ -577,7 +564,6 @@ def cell_grid(te):
     head_row = ("<tr><th>k \\ d</th>"
                 + "".join(f"<th>{d}</th>" for d in ds) + "</tr>")
     rows = []
-    any_win = any_lose = False
     for k in ks:
         cells = [f"<th>{k}</th>"]
         for d in ds:
@@ -585,32 +571,15 @@ def cell_grid(te):
             if not e:
                 cells.append("<td></td>")
                 continue
-            vp = vs_paper(k, d, e["n"])
-            cls = ""
-            if vp and vp[0] > 0:
-                cls = " class=cellwin"
-                any_win = True
-            elif vp and vp[0] < 0:
-                cls = " class=celllose"
-                any_lose = True
             cells.append(
-                f'<td{cls}><a href="codes/{e["slug"]}.html" '
+                f'<td><a href="codes/{e["slug"]}.html" '
                 f'title="[[{e["n"]},{k},{d}]] &middot; '
                 f'{html.escape(e["authors"])}">{e["n"]}</a></td>')
         rows.append("<tr>" + "".join(cells) + "</tr>")
-    # explain the cell shading; only show the keys that actually appear.
-    key = []
-    if any_win:
-        key.append('<span><i class="sw win"></i>fewer qubits than the '
-                   'paper at this (k, d)</span>')
-    if any_lose:
-        key.append('<span><i class="sw lose"></i>paper&rsquo;s best is '
-                   'still smaller</span>')
-    key.append('<span>each cell is the smallest n on the board for that '
-               '(k, d); click it for the code</span>')
     return ('<h3 class=gridh>Minimal n by (k, d)</h3>'
             f'<table class=cells>{head_row}{"".join(rows)}</table>'
-            f'<div class=gridkey>{"".join(key)}</div>')
+            '<div class=gridkey><span>each cell is the smallest n on the board '
+            'for that (k, d); click it for the code</span></div>')
 
 
 def detail_page(e):
@@ -786,7 +755,7 @@ def references_page(entries):
     return "\n".join(P)
 
 
-def progress_panel(entries, tracks, n_exact, beats, best_eff):
+def progress_panel(entries, tracks, n_exact, best_eff):
     """A distinct status-of-progress panel: headline diagnostics plus a
     per-track breakdown. This is the single home for the board's numbers (the
     hero carries none). Contributors counts GitHub-handle authors only (the
@@ -796,7 +765,6 @@ def progress_panel(entries, tracks, n_exact, beats, best_eff):
                if re.fullmatch(r"[A-Za-z0-9-]+", a.strip())}
     metrics = [
         (str(len(entries)), "verified codes"),
-        (str(beats), "records vs the paper"),
         (f'{n_exact} <span class=pmsub>/ {n_ub}</span>',
          "certified exact / upper bound"),
         (f"{best_eff:g}", "best kd&sup2;/n"),
@@ -849,7 +817,7 @@ def build():
              '<p>Find better quantum LDPC codes.</p>'
              '</div></header>')
     P.append('<div class=wrap>')
-    P.append(progress_panel(entries, tracks, n_exact, beats, best_eff))
+    P.append(progress_panel(entries, tracks, n_exact, best_eff))
     P.append('<div class=how>'
              '<div class=card><span class=n>1</span><h3>Build a code</h3>'
              '<p>A CSS qLDPC code, written as one JSON file with its parity '
@@ -870,11 +838,7 @@ def build():
              '(<span class="b ub">d &le;</span>)</span>'
              '<span><span class="dot ho"></span> open point = dominated</span>'
              '<span><span class=newtag>new</span> = most recently added</span>'
-             '<span>The <b>vs paper</b> column compares a code to the smallest '
-             '[[n,k,d]] Liang, Eberhardt, Chen publish at the same k and d: '
-             '<span class=vswin>&minus;7</span> means 7 fewer physical qubits '
-             '(a new record), <span class=vslose>+5</span> means the paper is '
-             'still smaller.</span></div>')
+             '</div>')
     for t in sorted(tracks):
         te = [entries[i] for i in tracks[t]]
         fr = pareto(te)
@@ -917,7 +881,6 @@ def build():
         "codes": shield("codes", len(entries), ACCENT),
         "certified": shield("certified exact", n_exact, EXACT),
         "tracks": shield("tracks", len(tracks), ACCENT),
-        "beats-paper": shield("beats the paper", beats, EXACT),
         "best-eff": shield("best kd²/n", f"{best_eff:g}", ACCENT),
     }
     bdir = os.path.join(DOCS, "badges")

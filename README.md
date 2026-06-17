@@ -2,7 +2,6 @@
 
 ![codes](docs/badges/codes.svg)
 ![certified exact](docs/badges/certified.svg)
-![beats the paper](docs/badges/beats-paper.svg)
 ![tracks](docs/badges/tracks.svg)
 ![best kd²/n](docs/badges/best-eff.svg)
 
