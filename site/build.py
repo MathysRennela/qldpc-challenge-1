@@ -24,11 +24,6 @@ from qldpc_verify import verify
 DOCS = os.path.join(ROOT, "docs")
 CERTS = os.path.join(ROOT, "certs")
 
-try:
-    BASELINES = json.load(open(os.path.join(ROOT, "baselines.json")))["cells"]
-except Exception:
-    BASELINES = {}
-
 
 def load_refs():
     """Parse refs.bib into an ordered list of entries. Each entry is a dict of
@@ -121,14 +116,6 @@ def cite(s, rel=""):
     return html.escape(s)
 
 
-def vs_paper(k, d, n):
-    """Compare to the paper's best published n at (k,d). Returns
-    (delta, label, grafted) where delta = paper_n - n (>0 means we beat it),
-    or None if no baseline for this cell."""
-    b = BASELINES.get(f"{k},{d}")
-    if not b:
-        return None
-    return (b["n"] - n, b["label"], b["grafted"])
 REPO_ROOT = "https://github.com/unitaryfoundation/qldpc-challenge"
 REPO = REPO_ROOT + "/blob/main"
 # Public base URL of the deployed site, used to build shareable per-code links.
@@ -633,8 +620,8 @@ def table(te, front):
 
 
 def cell_grid(te):
-    """Code-tables view: minimal n at each (k, d) cell. Green = beats the
-    paper's best at that cell, orange = paper still smaller."""
+    """Code-tables view: the minimal n at each (k, d) cell for this track.
+    Empty cells are flagged as open territory."""
     by = {}
     for e in te:
         key = (e["k"], e["d"])
@@ -975,8 +962,6 @@ def build():
             tracks.setdefault(t, []).append(i)
     n_exact = sum(1 for e in entries if e["tier"] == "exact")
     best_eff = max((e["eff"] for e in entries), default=0)
-    beats = sum(1 for e in entries
-                if (vp := vs_paper(e["k"], e["d"], e["n"])) and vp[0] > 0)
 
     P = [head("qLDPC Challenge")]
     P.append('<header class=hero><div class=wrap>'
@@ -1067,8 +1052,7 @@ def build():
 
     # machine-readable stats + self-contained badges the README links to.
     stats = {"verified_codes": len(entries), "certified_exact": n_exact,
-             "tracks": len(tracks), "beats_paper": beats,
-             "best_kd2_over_n": best_eff}
+             "tracks": len(tracks), "best_kd2_over_n": best_eff}
     with open(os.path.join(DOCS, "stats.json"), "w") as f:
         json.dump(stats, f, indent=2)
     badges = {
@@ -1084,7 +1068,7 @@ def build():
             f.write(svg_data)
     print(f"wrote docs/index.html + {len(entries)} detail pages + "
           f"references.html ({len(REFS)} refs) + {len(badges)} badges, "
-          f"{len(tracks)} tracks, {n_exact} certified exact, {beats} beat paper")
+          f"{len(tracks)} tracks, {n_exact} certified exact")
 
 
 if __name__ == "__main__":
