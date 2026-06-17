@@ -111,6 +111,14 @@ border-radius:5px;font-family:ui-monospace,monospace}}
 color:var(--mut)}}
 .vswin{{color:var(--ex);font-weight:700}}.vslose{{color:#b45309}}
 .vsnone{{color:#cbd5e1}}
+.gridh{{font-size:14px;color:var(--mut);margin:20px 0 2px;clear:both}}
+table.cells{{border-collapse:collapse;margin:6px 0 4px;font-size:13px;
+clear:both}}
+.cells th,.cells td{{border:1px solid var(--ln);padding:.35rem .6rem;
+text-align:center;min-width:40px}}
+.cells th{{background:var(--soft);color:var(--mut);font-weight:600}}
+.cells td.cellwin{{background:#ecfdf5}}.cells td.celllose{{background:#fff7ed}}
+.cells td a{{font-variant-numeric:tabular-nums}}
 footer{{margin:64px 0 48px;padding-top:24px;border-top:1px solid var(--ln);
 color:var(--mut);font-size:14px}}
 a{{color:var(--ac);text-decoration:none}}a:hover{{text-decoration:underline}}
@@ -334,6 +342,43 @@ def table(te, front):
     return f'<table class=board>{head_row}<tbody>{"".join(rows)}</tbody></table>'
 
 
+def cell_grid(te):
+    """Code-tables view: minimal n at each (k, d) cell. Green = beats the
+    paper's best at that cell, orange = paper still smaller."""
+    by = {}
+    for e in te:
+        key = (e["k"], e["d"])
+        if key not in by or e["n"] < by[key]["n"]:
+            by[key] = e
+    if not by:
+        return ""
+    ks = sorted({k for k, _ in by}, reverse=True)
+    ds = sorted({d for _, d in by})
+    head_row = ("<tr><th>k \\ d</th>"
+                + "".join(f"<th>{d}</th>" for d in ds) + "</tr>")
+    rows = []
+    for k in ks:
+        cells = [f"<th>{k}</th>"]
+        for d in ds:
+            e = by.get((k, d))
+            if not e:
+                cells.append("<td></td>")
+                continue
+            vp = vs_paper(k, d, e["n"])
+            cls = ""
+            if vp and vp[0] > 0:
+                cls = " class=cellwin"
+            elif vp and vp[0] < 0:
+                cls = " class=celllose"
+            cells.append(
+                f'<td{cls}><a href="codes/{e["slug"]}.html" '
+                f'title="[[{e["n"]},{k},{d}]] &middot; '
+                f'{html.escape(e["authors"])}">{e["n"]}</a></td>')
+        rows.append("<tr>" + "".join(cells) + "</tr>")
+    return ('<h3 class=gridh>Minimal n by (k, d)</h3>'
+            f'<table class=cells>{head_row}{"".join(rows)}</table>')
+
+
 def detail_page(e):
     doc, cert = e["doc"], e["cert"]
     n, k, d = e["n"], e["k"], e["d"]
@@ -479,8 +524,7 @@ def build():
              '<span><span class="dot ho"></span> open point = dominated</span>'
              '<span><span class=vswin>&minus;N</span> = N fewer qubits than the '
              'paper at the same (k,d), arXiv:2504.08887 Table I '
-             '(grafted where published)</span>'
-             '<span>rows are clickable; hover plot points</span></div>')
+             '(grafted where published)</span></div>')
     for t in sorted(tracks):
         te = [entries[i] for i in tracks[t]]
         fr = pareto(te)
@@ -489,6 +533,7 @@ def build():
                  f'{len(fr)} on the frontier</span></h2>')
         P.append(svg(te, fr))
         P.append(table(te, fr))
+        P.append(cell_grid(te))
     P.append('<footer>Submit a code by pull request &mdash; see '
              f'<a href="{REPO}/CONTRIBUTING.md">CONTRIBUTING</a>, '
              f'<a href="{REPO}/schema/SCHEMA.md">the schema</a>, and '

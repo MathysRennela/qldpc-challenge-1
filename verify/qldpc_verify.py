@@ -65,26 +65,38 @@ def structure_errors(doc):
 
 
 def signature(doc):
-    """Permutation-invariant fingerprint. Two codes equal up to a qubit
-    permutation must share this; differing signatures are provably distinct
-    codes. Equal signatures only FLAG a possible duplicate (necessary, not
-    sufficient). Full code equivalence is not auto-decided."""
+    """Permutation-invariant fingerprint via Weisfeiler-Leman color refinement
+    on the Tanner graph (qubits + X-checks + Z-checks). Two codes equal up to a
+    qubit permutation must share this hash; differing hashes are provably
+    inequivalent. A collision only FLAGS a possible duplicate (WL is a strong
+    necessary condition, not a complete equivalence test). Much finer than a
+    plain degree multiset: it propagates neighborhood structure several hops."""
+    import hashlib
     n = doc["n"]
     X, Z = doc["checks"]["X"], doc["checks"]["Z"]
-    xw = sorted(len(s) for s in X)
-    zw = sorted(len(s) for s in Z)
-    xdeg = [0] * n
-    zdeg = [0] * n
-    for s in X:
+    mx = len(X)
+    # node ids: qubit q -> q; X-check i -> n+i; Z-check j -> n+mx+j
+    nbr = [[] for _ in range(n + mx + len(Z))]
+    for i, s in enumerate(X):
         for q in s:
-            xdeg[q] += 1
-    for s in Z:
+            nbr[q].append(n + i)
+            nbr[n + i].append(q)
+    for j, s in enumerate(Z):
         for q in s:
-            zdeg[q] += 1
-    qtypes = sorted(zip(xdeg, zdeg))
-    payload = json.dumps([n, doc["k"], doc["distance"]["d"], xw, zw, qtypes],
-                         sort_keys=True)
-    import hashlib
+            nbr[q].append(n + mx + j)
+            nbr[n + mx + j].append(q)
+    # initial colors by node type: qubit=0, X-check=1, Z-check=2
+    color = [0] * n + [1] * mx + [2] * len(Z)
+    for _ in range(min(6, len(nbr))):
+        keyed = [(color[v], tuple(sorted(color[u] for u in nbr[v])))
+                 for v in range(len(nbr))]
+        order = {k: idx for idx, k in enumerate(sorted(set(keyed)))}
+        newc = [order[k] for k in keyed]
+        if newc == color:
+            break
+        color = newc
+    cert = sorted(color)  # permutation-invariant multiset of final colors
+    payload = json.dumps([n, doc["k"], doc["distance"]["d"], cert])
     return {"hash": hashlib.sha256(payload.encode()).hexdigest()[:16],
             "n": n, "k": doc["k"], "d": doc["distance"]["d"]}
 
@@ -144,6 +156,14 @@ def _verify_semantic(doc, report, record):
     # index bounds already gated in verify(); safe to build matrices.
     HX = _matrix(doc["checks"]["X"], n)
     HZ = _matrix(doc["checks"]["Z"], n)
+
+    # exact-duplicate fingerprint: the reduced row echelon forms pin the
+    # stabilizer GROUP (invariant to row recombination/reordering, sensitive
+    # to qubit relabeling). Equal fingerprint => identical code, not just
+    # equivalent. Permuted copies are caught by the WL signature instead.
+    import hashlib
+    fp = (gf2.rref(HX)[0].tobytes() + b"|" + gf2.rref(HZ)[0].tobytes())
+    report["fingerprint"] = hashlib.sha256(fp).hexdigest()[:16]
 
     # checks have distinct supports per row (no repeated qubit within a row
     #    would have been XORed away; flag any that collapsed)

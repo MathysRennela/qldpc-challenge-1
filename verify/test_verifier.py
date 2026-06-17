@@ -122,10 +122,21 @@ def main():
     except Exception as e:
         check(f"non-object rejected cleanly (raised {type(e).__name__})", False)
 
-    # 10. duplicate detection: a code shares the signature of itself
-    s1 = rep(GOOD)["signature"]["hash"]
-    s2 = rep(copy.deepcopy(GOOD))["signature"]["hash"]
-    check("identical codes get identical signatures (dedup hook)", s1 == s2)
+    # 10. duplicate detection: a code shares signature AND fingerprint with
+    #     itself, and is invariant to row reordering (same stabilizer group).
+    r1 = rep(GOOD)
+    d = copy.deepcopy(GOOD)
+    d["checks"]["X"] = list(reversed(d["checks"]["X"]))  # reorder checks
+    r2 = rep(d)
+    check("identical codes share WL signature", r1["signature"]["hash"]
+          == r2["signature"]["hash"])
+    check("row-reordered code has same exact fingerprint",
+          r1["fingerprint"] == r2["fingerprint"])
+
+    # 11. a genuinely different code has a different WL signature
+    other = json.load(open(os.path.join(ROOT, "codes", "ours-8x8-k6.json")))
+    check("distinct codes have distinct WL signatures",
+          rep(other)["signature"]["hash"] != r1["signature"]["hash"])
 
     # every shipped example/code still verifies
     print("\nshipped submissions still verify:")
