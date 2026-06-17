@@ -218,9 +218,10 @@ CSS = f"""
 :root{{--ink:#0f172a;--mut:#64748b;--ln:#e2e8f0;--ac:{ACCENT};--ex:{EXACT};
 --bg:#fff;--soft:#f8fafc}}
 *{{box-sizing:border-box}}
-body{{font-family:'Inter',system-ui,-apple-system,sans-serif;color:var(--ink);
+body{{font-family:'Fredoka',system-ui,-apple-system,sans-serif;color:var(--ink);
 margin:0;background:var(--bg);line-height:1.55}}
-.mono{{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-weight:600}}
+.mono{{font-family:'Fredoka',system-ui,sans-serif;font-weight:600;
+letter-spacing:.2px}}
 .wrap{{max-width:1080px;margin:0 auto;padding:0 24px}}
 header.hero{{background:linear-gradient(160deg,#1e1b4b,#4f46e5);color:#fff;
 padding:60px 0 52px}}
@@ -402,8 +403,9 @@ def head(title, rel=""):
         f"<title>{html.escape(title)}</title>",
         f'<link rel=icon type="image/svg+xml" href="{rel}favicon.svg">',
         '<link rel=preconnect href="https://fonts.googleapis.com">',
-        '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;'
-        '600;700&display=swap" rel=stylesheet>',
+        '<link rel=preconnect href="https://fonts.gstatic.com" crossorigin>',
+        '<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;'
+        '500;600;700&display=swap" rel=stylesheet>',
         f"<style>{CSS}</style></head><body>"]))
 
 
