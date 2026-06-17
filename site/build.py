@@ -22,6 +22,21 @@ from qldpc_verify import verify
 
 DOCS = os.path.join(ROOT, "docs")
 CERTS = os.path.join(ROOT, "certs")
+
+try:
+    BASELINES = json.load(open(os.path.join(ROOT, "baselines.json")))["cells"]
+except Exception:
+    BASELINES = {}
+
+
+def vs_paper(k, d, n):
+    """Compare to the paper's best published n at (k,d). Returns
+    (delta, label, grafted) where delta = paper_n - n (>0 means we beat it),
+    or None if no baseline for this cell."""
+    b = BASELINES.get(f"{k},{d}")
+    if not b:
+        return None
+    return (b["n"] - n, b["label"], b["grafted"])
 REPO = "https://github.com/unitaryfoundation/qldpc-challenge/blob/main"
 
 ACCENT = "#4f46e5"
@@ -94,6 +109,8 @@ box-shadow:inset 3px 0 0 var(--ac)}}
 border-radius:5px;font-family:ui-monospace,monospace}}
 .b.exact{{background:#d1fae5;color:var(--ex)}}.b.ub{{background:#eef2f7;
 color:var(--mut)}}
+.vswin{{color:var(--ex);font-weight:700}}.vslose{{color:#b45309}}
+.vsnone{{color:#cbd5e1}}
 footer{{margin:64px 0 48px;padding-top:24px;border-top:1px solid var(--ln);
 color:var(--mut);font-size:14px}}
 a{{color:var(--ac);text-decoration:none}}a:hover{{text-decoration:underline}}
@@ -280,24 +297,39 @@ def table(te, front):
     head_row = ("<thead><tr><th></th><th data-c=name>code</th>"
                 "<th data-c=n class=num>n</th><th data-c=k class=num>k</th>"
                 "<th data-c=d class=num>d</th><th data-c=eff class=num>kd&sup2;/n</th>"
-                "<th data-c=w class=num>w</th><th data-c=auth>authors</th></tr></thead>")
+                "<th data-c=w class=num>w</th><th data-c=vs class=num>vs paper</th>"
+                "<th data-c=auth>authors</th></tr></thead>")
     order = sorted(range(len(te)), key=lambda i: (-te[i]["k"], -te[i]["d"],
                                                   te[i]["n"]))
     rows = []
     for i in order:
         e = te[i]
         fr = i in front
+        vp = vs_paper(e["k"], e["d"], e["n"])
+        if vp is None:
+            vs_cell, vs_sort = '<span class=vsnone>&mdash;</span>', 0
+        elif vp[0] > 0:
+            g = " (grafted)" if vp[2] else ""
+            vs_cell = (f'<span class=vswin title="beats paper {vp[1]}{g} '
+                       f'at this (k,d)">&minus;{vp[0]}</span>')
+            vs_sort = vp[0]
+        else:
+            vs_cell = (f'<span class=vslose title="paper {vp[1]} is smaller '
+                       f'here">+{-vp[0]}</span>')
+            vs_sort = vp[0]
         rows.append(
             f'<tr class="{"fr" if fr else ""}" data-href="codes/{e["slug"]}.html" '
             f'data-name="{html.escape(e["name"])}" data-n="{e["n"]}" '
             f'data-k="{e["k"]}" data-d="{e["d"]}" data-eff="{e["eff"]}" '
-            f'data-w="{e["w"]}" data-auth="{html.escape(e["authors"])}">'
+            f'data-w="{e["w"]}" data-vs="{vs_sort}" '
+            f'data-auth="{html.escape(e["authors"])}">'
             f'<td class="star">{"&#9733;" if fr else ""}</td>'
             f'<td><span class=mono>[[{e["n"]},{e["k"]},{e["d"]}]]</span> '
             f'<span class=cname>{html.escape(e["name"])}</span></td>'
             f'<td class=num>{e["n"]}</td><td class=num>{e["k"]}</td>'
             f'<td class=num>{badge(e["tier"])} {e["d"]}</td>'
             f'<td class=num>{e["eff"]}</td><td class=num>{e["w"]}</td>'
+            f'<td class=num>{vs_cell}</td>'
             f'<td class=auth>{authors_html(e["authors_list"])}</td></tr>')
     return f'<table class=board>{head_row}<tbody>{"".join(rows)}</tbody></table>'
 
@@ -317,6 +349,17 @@ def detail_page(e):
                      ("kd&sup2;/n", e["eff"]), ("max check wt", e["w"])]:
         P.append(f'<div class=cell><div class=l>{lab}</div>'
                  f'<div class=v>{val}</div></div>')
+    vp = vs_paper(k, d, n)
+    if vp is not None:
+        g = " grafted" if vp[2] else ""
+        if vp[0] > 0:
+            txt = f'<span class=vswin>&minus;{vp[0]} vs {vp[1]}{g}</span>'
+        elif vp[0] < 0:
+            txt = f'<span class=vslose>+{-vp[0]} vs {vp[1]}{g}</span>'
+        else:
+            txt = f'ties {vp[1]}{g}'
+        P.append(f'<div class=cell><div class=l>vs paper (k,d)</div>'
+                 f'<div class=v style="font-size:15px">{txt}</div></div>')
     if "locality" in doc:
         loc = doc["locality"]
         P.append(f'<div class=cell><div class=l>layers</div>'
@@ -434,6 +477,9 @@ def build():
              '<span><span class="dot ac"></span> upper bound '
              '(<span class="b ub">d &le;</span>)</span>'
              '<span><span class="dot ho"></span> open point = dominated</span>'
+             '<span><span class=vswin>&minus;N</span> = N fewer qubits than the '
+             'paper at the same (k,d), arXiv:2504.08887 Table I '
+             '(grafted where published)</span>'
              '<span>rows are clickable; hover plot points</span></div>')
     for t in sorted(tracks):
         te = [entries[i] for i in tracks[t]]

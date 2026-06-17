@@ -120,6 +120,16 @@ def verify(doc):
     record("schema_valid", not serr, "; ".join(serr[:4]))
     if serr:
         return report
+    # index bounds, gated before anything that indexes by qubit (signature,
+    # matrix building) so an out-of-range index is reported here, cleanly,
+    # rather than crashing into the generic guard below.
+    n = doc["n"]
+    sup = doc["checks"]["X"] + doc["checks"]["Z"]
+    max_idx = max((max(s) for s in sup if s), default=-1)
+    in_range = 0 <= max_idx < n
+    record("qubit_indices_in_range", in_range, f"max index {max_idx}, n={n}")
+    if not in_range:
+        return report
     try:
         report["signature"] = signature(doc)
         return _verify_semantic(doc, report, record)
@@ -131,16 +141,11 @@ def verify(doc):
 def _verify_semantic(doc, report, record):
 
     n = doc["n"]
+    # index bounds already gated in verify(); safe to build matrices.
     HX = _matrix(doc["checks"]["X"], n)
     HZ = _matrix(doc["checks"]["Z"], n)
 
-    # 1. index bounds / implied n
-    max_idx = max((max(s) for s in doc["checks"]["X"] + doc["checks"]["Z"]
-                   if s), default=-1)
-    record("qubit_indices_in_range", max_idx < n,
-           f"max index {max_idx}, n={n}")
-
-    # 2. checks have distinct supports per row (no repeated qubit within a row
+    # checks have distinct supports per row (no repeated qubit within a row
     #    would have been XORed away; flag any that collapsed)
     empty_rows = [i for i, s in enumerate(doc["checks"]["X"] + doc["checks"]["Z"])
                   if len(set(s)) != len(s)]
