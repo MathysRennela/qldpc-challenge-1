@@ -133,8 +133,11 @@ def main():
     check("row-reordered code has same exact fingerprint",
           r1["fingerprint"] == r2["fingerprint"])
 
-    # 11. a genuinely different code has a different WL signature
-    other = json.load(open(os.path.join(ROOT, "codes", "ours-8x8-k6.json")))
+    # 11. a genuinely different code has a different WL signature. Pick any
+    #     board code that is not the [[72,6,6]] used above.
+    others = [p for p in glob.glob(os.path.join(ROOT, "codes", "*.json"))
+              if os.path.basename(p) != "72-6-6.json"]
+    other = json.load(open(others[0]))
     check("distinct codes have distinct WL signatures",
           rep(other)["signature"]["hash"] != r1["signature"]["hash"])
 
