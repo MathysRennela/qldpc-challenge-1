@@ -280,16 +280,17 @@ border-top:1px solid var(--ln)}}
 .gridcol{{flex:0 0 auto}}
 .plot{{flex:1 1 0;min-width:0;max-width:520px;align-self:flex-start;
 border:1px solid var(--ln);border-radius:12px;background:#fff;padding:8px}}
-table.board{{border-collapse:collapse;width:100%;font-size:14px;margin:12px 0}}
+/* size the table to its content so it doesn't stretch full width and leave a
+   trailing empty region; columns hug their data. */
+table.board{{border-collapse:collapse;width:auto;max-width:100%;
+font-size:14px;margin:12px 0}}
 .board th,.board td{{padding:.55rem .9rem;text-align:left;white-space:nowrap;
 border-bottom:1px solid var(--ln)}}
 .board th{{font-size:12px;text-transform:uppercase;letter-spacing:.04em;
 color:var(--mut);cursor:pointer;user-select:none;border-bottom:2px solid var(--ln)}}
 .board th:hover{{color:var(--ink)}}.board td.num,.board th.num{{text-align:right;
 font-variant-numeric:tabular-nums}}
-/* let the authors column absorb the slack so the data columns hug their
-   content (no stray gap after the code id) */
-.board td.auth,.board th[data-c=auth]{{width:100%;white-space:normal}}
+.board td.auth{{white-space:normal;max-width:280px}}
 .board tbody tr{{cursor:pointer}}.board tbody tr:hover{{background:#eef2ff}}
 .board tr.fr{{background:#f5f3ff}}.board tr.fr td:first-child{{
 box-shadow:inset 3px 0 0 var(--ac)}}
