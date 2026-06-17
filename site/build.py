@@ -106,14 +106,15 @@ def resolve_ref(s):
 
 
 def cite(s, rel=""):
-    """Render a reference string as a link to the references page anchor when it
-    resolves to a bib entry, else fall back to a plain arXiv link or text."""
-    key = resolve_ref(s)
-    if key:
-        return (f'<a href="{rel}references.html#{key}">{html.escape(s)}</a>')
+    """Render a reference string as a link. An arXiv reference links straight to
+    the paper on arXiv; any other reference that resolves to a bib entry links
+    to its entry on the references page (reachable from the footer too)."""
     if s.lower().startswith("arxiv:"):
         aid = s.split(":", 1)[1]
         return f'<a href="https://arxiv.org/abs/{aid}">{html.escape(s)}</a>'
+    key = resolve_ref(s)
+    if key:
+        return (f'<a href="{rel}references.html#{key}">{html.escape(s)}</a>')
     return html.escape(s)
 
 
