@@ -1222,6 +1222,8 @@ def build():
     P.append(f'<script>{JS}</script></body></html>')
 
     os.makedirs(os.path.join(DOCS, "codes"), exist_ok=True)
+    # serve the raw static files on GitHub Pages without Jekyll processing
+    open(os.path.join(DOCS, ".nojekyll"), "w").close()
     with open(os.path.join(DOCS, "index.html"), "w") as f:
         f.write("\n".join(P))
     with open(os.path.join(DOCS, "favicon.svg"), "w") as f:
