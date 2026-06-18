@@ -303,8 +303,30 @@ text-transform:uppercase;font-weight:700}}
 .pmsub{{font-size:17px;color:var(--mut);font-weight:600}}
 .pml{{font-size:12px;color:var(--mut);margin-top:5px}}
 .pintro{{margin:-6px 0 16px;font-size:13px;color:var(--mut);max-width:72ch}}
-.progress+.progress{{margin-top:18px}}
-.lbrank{{color:var(--mut);font-variant-numeric:tabular-nums}}
+.lb{{margin:44px 0 8px;border:1px solid var(--ln);border-radius:14px;
+background:#fff;overflow:hidden}}
+.lbhead{{display:flex;justify-content:space-between;align-items:center;gap:16px;
+padding:16px 20px;background:var(--soft);border-bottom:1px solid var(--ln)}}
+.lbh{{font-size:18px;margin:0}}
+.lbsub{{margin:4px 0 0;font-size:13px;color:var(--mut)}}
+.lbcta{{flex:0 0 auto;font-size:13px;font-weight:600;color:#fff;
+background:var(--ac);border-radius:8px;padding:8px 14px;text-decoration:none}}
+.lbcta:hover{{filter:brightness(1.08)}}
+.lblist{{max-height:336px;overflow-y:auto}}
+.lbrow{{display:flex;align-items:center;gap:14px;padding:11px 20px;
+border-bottom:1px solid var(--ln);text-decoration:none;color:var(--ink)}}
+.lbrow:last-child{{border-bottom:none}}.lbrow:hover{{background:#f7f8fc}}
+.lbrank{{width:20px;text-align:center;color:var(--mut);font-weight:600;
+font-variant-numeric:tabular-nums}}
+.lbav{{width:34px;height:34px;border-radius:50%;background:var(--soft);
+object-fit:cover;flex:0 0 auto}}
+.lbname{{flex:1 1 auto;font-weight:600;min-width:0;color:var(--ac)}}
+.lbcrown{{margin-left:5px}}
+.lbm{{display:flex;flex-direction:column;align-items:center;width:82px;
+flex:0 0 auto}}
+.lbm b{{font-size:17px;font-variant-numeric:tabular-nums}}
+.lbml{{font-size:11px;color:var(--mut);margin-top:1px;white-space:nowrap}}
+@media(max-width:680px){{.lbm:nth-child(n+5){{display:none}}.lbm{{width:64px}}}}
 .pm.hero{{border-left:3px solid var(--ac);padding-left:13px;cursor:default}}
 .pm.hero .pmn{{color:var(--ac)}}
 .ptracks{{border-collapse:collapse;width:100%;font-size:13px;background:#fff;
@@ -1001,22 +1023,35 @@ def contributors_panel(entries, tracks):
     order = sorted(stats.items(),
                    key=lambda kv: (-kv[1]["codes"], -kv[1]["front"],
                                    -kv[1]["eff"], kv[0]))
-    rows = "".join(
-        f'<tr><td class=lbrank>{r}</td>'
-        f'<td><a href="https://github.com/{h[1:]}">{html.escape(h)}</a></td>'
-        f'<td>{s["codes"]}</td><td>{s["front"]}</td><td>{s["exact"]}</td>'
-        f'<td>{s["eff"]:g}</td></tr>'
-        for r, (h, s) in enumerate(order, 1))
-    return ('<section class=progress id=contributors>'
-            '<h2 class=ph>Contributors</h2>'
-            '<p class=pintro>Who has found the codes on the board. Add yours '
-            f'by <a href="{REPO}/CONTRIBUTING.md">opening a PR</a>.</p>'
-            '<table class=ptracks><thead><tr><th>#</th><th>contributor</th>'
-            '<th title="codes contributed to the board">codes</th>'
-            '<th title="of those, how many sit on a track frontier">'
-            'on frontier</th><th>certified exact</th>'
-            '<th>best kd&sup2;/n</th></tr></thead>'
-            f'<tbody>{rows}</tbody></table></section>')
+    n_codes = sum(1 for e in entries if e["origin"] != "baseline")
+
+    def metric(v, lab):
+        return (f'<span class=lbm><b>{v}</b>'
+                f'<span class=lbml>{lab}</span></span>')
+
+    rows = []
+    for r, (h, s) in enumerate(order, 1):
+        crown = ' <span class=lbcrown title="top contributor">&#128081;</span>' \
+            if r == 1 else ''
+        rows.append(
+            f'<a class=lbrow href="https://github.com/{h[1:]}">'
+            f'<span class=lbrank>{r}</span>'
+            f'<img class=lbav loading=lazy alt="" '
+            f'src="https://github.com/{h[1:]}.png?size=64">'
+            f'<span class=lbname>{html.escape(h)}{crown}</span>'
+            + metric(s["codes"], "codes")
+            + metric(s["front"], "on frontier")
+            + metric(s["exact"], "exact")
+            + metric(f'{s["eff"]:g}', "best kd&sup2;/n")
+            + '</a>')
+    return ('<section class=lb id=contributors><div class=lbhead>'
+            '<div><h2 class=lbh>Contributors</h2>'
+            f'<p class=lbsub>{len(order)} contributor'
+            f'{"" if len(order) == 1 else "s"} &middot; {n_codes} codes found '
+            'through the challenge</p></div>'
+            f'<a class=lbcta href="{REPO}/CONTRIBUTING.md">Add yours</a>'
+            '</div>'
+            f'<div class=lblist>{"".join(rows)}</div></section>')
 
 
 FAQ = [
@@ -1118,7 +1153,6 @@ def build():
              '</div></header>')
     P.append('<div class=wrap>')
     P.append(progress_panel(entries, tracks, n_exact, best_eff))
-    P.append(contributors_panel(entries, tracks))
     P.append('<div class=how>'
              '<div class=card><span class=n>1</span><h3>Build a code</h3>'
              '<p>A CSS qLDPC code, written as one JSON file with its parity '
@@ -1163,6 +1197,7 @@ def build():
         P.append(f'<div class=trackbody><div class=gridcol>{cell_grid(te)}'
                  f'</div>{svg(te, fr)}</div>')
         P.append('</section>')
+    P.append(contributors_panel(entries, tracks))
     P.append('</div>')  # close the main content wrap; footer is full-width
     P.append(
         '<footer class=foot><div class=footmain>'
