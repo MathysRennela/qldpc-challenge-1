@@ -962,11 +962,12 @@ def progress_panel(entries, tracks, n_exact, best_eff):
     n_base = sum(1 for e in entries if e["origin"] == "baseline")
     n_contrib = len(entries) - n_base
     metrics = [
-        (str(n_contrib), "codes contributed",
+        (str(n_contrib), "new codes",
          "new codes found and submitted through the challenge"),
         (str(n_base), "literature baselines",
          "published codes seeded as the bar to beat"),
-        (str(len(entries)), "verified codes", ""),
+        (str(len(entries)), "on the board",
+         "every code is machine-verified before it is listed"),
         (str(n_exact), "certified exact", ""),
         (f"{best_eff:g}", "best kd&sup2;/n", ""),
     ]
@@ -984,9 +985,9 @@ def progress_panel(entries, tracks, n_exact, best_eff):
                     f'</td><td>{len(te)}</td>'
                     f'<td>{fr}</td><td>{ex}</td></tr>')
     return ('<section class=progress><h2 class=ph>Progress</h2>'
-            '<p class=pintro>New codes contributed through the challenge, '
-            'measured against the published baselines the board is seeded '
-            'with.</p>'
+            '<p class=pintro>New codes found through the challenge, measured '
+            'against the published baselines the board is seeded with. Every '
+            'code is automatically verified before it lands.</p>'
             f'<div class=pmetrics>{mhtml}</div>'
             '<table class=ptracks><thead><tr><th>track</th>'
             '<th>codes</th><th>on frontier</th>'
