@@ -447,6 +447,16 @@ position:static}}header.hero h1{{font-size:34px}}}}
 """
 
 JS = """
+// Remember where the user was on the board when they open a code, so the
+// detail page's "back to the board" link (and the browser back button) return
+// to that spot rather than the top of the page.
+document.addEventListener('click',e=>{
+ if(e.target.closest('a[href^="codes/"],tr[data-href],circle.hit[data-code]'))
+  sessionStorage.setItem('boardY', String(window.scrollY));
+},true);
+(function(){const y=sessionStorage.getItem('boardY');
+ if(y!==null){sessionStorage.removeItem('boardY');
+  requestAnimationFrame(()=>window.scrollTo(0, parseInt(y,10)));}})();
 document.querySelectorAll('table.board').forEach(t=>{
  t.querySelectorAll('th[data-c]').forEach((th)=>{
   let asc=true;
