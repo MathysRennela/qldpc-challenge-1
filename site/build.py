@@ -310,6 +310,7 @@ vertical-align:-1px;margin-right:2px}}
 h2.track{{font-size:24px;margin:48px 0 4px;padding-top:24px;
 border-top:1px solid var(--ln);scroll-margin-top:16px}}
 .tcount{{color:var(--mut);font-size:14px;font-weight:400}}
+.tracknote{{max-width:70ch;margin:6px 0 0;font-size:13px;color:var(--mut)}}
 .trackbody{{display:flex;gap:22px;align-items:flex-start;margin:14px 0 4px}}
 .gridcol{{flex:0 0 auto}}
 .plot{{flex:1 1 0;min-width:0;max-width:520px;align-self:flex-start;
@@ -1007,6 +1008,12 @@ def build():
         P.append(f'<h2 class=track id="{track_anchor(t)}">{html.escape(t)} '
                  f'<span class=tcount>&middot; {len(te)} codes, '
                  f'{len(fr)} on the frontier</span></h2>')
+        if t.startswith("2d-local"):
+            P.append('<p class=tracknote>For 2D-local codes kd&sup2;/n is '
+                     'bounded by a constant (Bravyi-Poulin-Terhal); the exact '
+                     'ceiling is open, so the challenge is to push kd&sup2;/n '
+                     'as high as possible. See the '
+                     '<a href="planar_code_challenge.pdf">writeup</a>.</p>')
         P.append(table(te, fr))
         P.append(f'<div class=trackbody><div class=gridcol>{cell_grid(te)}'
                  f'</div>{svg(te, fr)}</div>')
@@ -1025,6 +1032,7 @@ def build():
         f'<a href="{REPO}/TRACKS.md">Tracks</a>'
         '<a href="faq.html">FAQ</a>'
         '<a href="references.html">References</a>'
+        '<a href="planar_code_challenge.pdf">Writeup</a>'
         '</nav></div>'
         '<div class=footbar>&copy; 2026 &middot; Built by '
         '<a href="https://unitary.foundation">Unitary Foundation</a> '

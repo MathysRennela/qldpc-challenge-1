@@ -77,7 +77,8 @@ def certify(doc, tlim=600):
     HX = _matrix(doc["checks"]["X"], n)
     HZ = _matrix(doc["checks"]["Z"], n)
     d = doc["distance"]["d"]
-    result = {"name": doc.get("name"), "d": d, "sides": {}}
+    result = {"name": doc.get("name"), "d": d, "solver": "scipy/HiGHS MILP",
+              "sides": {}}
     overall = True
     for side, H, LZ in (("X", HZ, gf2.logical_basis(HX, HZ)),
                         ("Z", HX, gf2.logical_basis(HZ, HX))):
