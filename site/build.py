@@ -339,6 +339,10 @@ color:var(--mut);cursor:pointer;user-select:none;border-bottom:2px solid var(--l
 .board th:hover{{color:var(--ink)}}.board td.num,.board th.num{{text-align:center;
 font-variant-numeric:tabular-nums}}
 .board td.auth{{white-space:normal}}
+.src{{display:inline-block;margin-left:8px;font-size:10px;font-weight:700;
+letter-spacing:.4px;text-transform:uppercase;color:var(--ac);
+background:#eef2ff;border:1px solid #c7d2fe;border-radius:5px;padding:1px 5px;
+vertical-align:1px}}
 .board tbody tr{{cursor:pointer}}.board tbody tr:hover{{background:#eef2ff}}
 .board tr.fr{{background:#f5f3ff}}.board tr.fr td:first-child{{
 box-shadow:inset 3px 0 0 var(--ac)}}
@@ -663,7 +667,11 @@ def table(te, front):
             f'data-w="{e["w"]}" '
             f'data-auth="{html.escape(e["authors"])}">'
             f'<td class="star">{"&#9733;" if fr else ""}</td>'
-            f'<td><span class=mono>[[{e["n"]},{e["k"]},{e["d"]}]]</span></td>'
+            f'<td><span class=mono>[[{e["n"]},{e["k"]},{e["d"]}]]</span>'
+            + ('<span class=src title="found and submitted through the '
+               'challenge">challenge</span>'
+               if e["origin"] != "baseline" else "")
+            + '</td>'
             f'<td class=num>{e["n"]}</td><td class=num>{e["k"]}</td>'
             f'<td class=num>{badge(e["tier"])} {e["d"]}</td>'
             f'<td class=num>{e["eff"]}</td><td class=num>{e["w"]}</td>'
@@ -1067,6 +1075,8 @@ def build():
              '<span><span class="dot ac"></span> upper bound '
              '(<span class="b ub">d &le;</span>)</span>'
              '<span><span class="dot ho"></span> open point = dominated</span>'
+             '<span><span class="src" style="margin-left:0">challenge</span> '
+             'found through the challenge (unmarked = literature baseline)</span>'
              '<span class=collegend><b>columns:</b> '
              '<b>n</b> physical qubits &middot; <b>k</b> logical qubits '
              '&middot; <b>d</b> distance (smallest undetectable error) '
