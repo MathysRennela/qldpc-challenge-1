@@ -1044,8 +1044,8 @@ def contributors_panel(entries, tracks):
             + metric(s["exact"], "exact")
             + metric(f'{s["eff"]:g}', "best kd&sup2;/n")
             + '</a>')
-    return ('<section class=lb id=contributors><div class=lbhead>'
-            '<div><h2 class=lbh>Contributors</h2>'
+    return ('<section class=lb id=leaderboard><div class=lbhead>'
+            '<div><h2 class=lbh>Leaderboard</h2>'
             f'<p class=lbsub>{len(order)} contributor'
             f'{"" if len(order) == 1 else "s"} &middot; {n_codes} codes found '
             'through the challenge</p></div>'
@@ -1145,7 +1145,7 @@ def build():
              '<nav class=topnav>'
              '<a href="faq.html">FAQ</a>'
              f'<a href="{REPO}/CONTRIBUTING.md">How to contribute</a>'
-             '<a href="#contributors">Contributors</a>'
+             '<a href="#leaderboard">Leaderboard</a>'
              f'<a href="{REPO}/TRACKS.md">Tracks</a>'
              '<a href="references.html">References</a>'
              f'<a href="{REPO_ROOT}">{GH_ICON}GitHub</a>'
