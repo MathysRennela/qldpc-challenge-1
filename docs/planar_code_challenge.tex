@@ -132,8 +132,9 @@
 	asymptotic, so small finite codes routinely exceed any limiting family's
 	constant; this is exactly why the board buckets and compares like with like
 	rather than ranking a $[[120,\dots]]$ entry against a $[[10^4,\dots]]$ one.
-	Reference points the boards are seeded with (all $q=2$; $w$ = max check
-	weight):
+	Reference points from the literature --- the published planar records
+	(Liang--Eberhardt--Chen) alongside the periodic and topological baselines
+	the board is seeded against (all $q=2$; $w$ = max check weight):
 	\begin{center}
 		\begin{tabular}{lcccc}
 			\toprule
@@ -299,8 +300,9 @@
 	live board, so they track the current numbers rather than a hand-typed
 	count. At the time of writing the board holds on the order of three dozen
 	verified codes (around twenty certified exact) across six populated tracks,
-	with a best $\eff\approx 14.2$ (a $[[126,28,8]]$ weight-8 entry); the live
-	figures are in \texttt{docs/stats.json}.
+	with a best $\eff\approx 14.2$ (the $[[126,28,8]]$ generalized-bicycle code
+	of Panteleev--Kalachev, weight-10 checks); the live figures are in
+	\texttt{docs/stats.json}.
 
 	\section{Open questions this could surface}
 
@@ -323,8 +325,10 @@
 		\textbf{627}, 778 (2024), arXiv:2308.07915 --- the $[[144,12,12]]$ gross
 		code and bivariate-bicycle codes (periodic-track seed).
 		\item Wang, Pryadko, Symmetry \textbf{14}, 1348 (2022),
-		arXiv:2203.17216 --- distance bounds for generalized bicycle codes
-		(generalized-bicycle-track seed).
+		arXiv:2203.17216 --- distance bounds for generalized bicycle codes; and
+		Panteleev, Kalachev, Quantum \textbf{5}, 585 (2021), arXiv:1904.02703
+		--- generalized bicycle codes including the $[[126,28,8]]$ headline
+		entry (generalized-bicycle-track seeds).
 		\item Kitaev, Ann.\ Phys.\ \textbf{303}, 2 (2003),
 		arXiv:quant-ph/9707021 --- the toric code; Steane,
 		arXiv:quant-ph/9601029 --- CSS codes (topological-track baseline).
