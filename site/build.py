@@ -288,7 +288,6 @@ text-transform:uppercase;font-weight:700}}
 .pmsub{{font-size:17px;color:var(--mut);font-weight:600}}
 .pml{{font-size:12px;color:var(--mut);margin-top:5px}}
 .pintro{{margin:-6px 0 16px;font-size:13px;color:var(--mut);max-width:72ch}}
-.pnote{{margin:12px 0 0;font-size:12px;color:var(--mut);max-width:78ch}}
 .pm.hero{{border-left:3px solid var(--ac);padding-left:13px;cursor:default}}
 .pm.hero .pmn{{color:var(--ac)}}
 .ptracks{{border-collapse:collapse;width:100%;font-size:13px;background:#fff;
@@ -558,33 +557,6 @@ def pareto(te):
                    for j, b in enumerate(te)):
             front.add(i)
     return front
-
-
-def _dominates(a, b):
-    return (a["n"] <= b["n"] and a["k"] >= b["k"] and a["d"] >= b["d"]
-            and (a["n"] < b["n"] or a["k"] > b["k"] or a["d"] > b["d"]))
-
-
-def records_beyond_published(entries, tracks):
-    """Submission codes that sit on a track's frontier and that no seeded
-    baseline in that track dominates: they extend the published frontier into
-    (n, k, d) territory the literature on the board does not reach. Only tracks
-    that actually carry a baseline are eligible (nothing published to compare
-    against otherwise). Returns (overall_slugs, per_track) where per_track maps
-    a track to its record count, or None if the track has no baseline."""
-    overall, per_track = set(), {}
-    for t, idxs in tracks.items():
-        te = [entries[i] for i in idxs]
-        base = [e for e in te if e["origin"] == "baseline"]
-        if not base:
-            per_track[t] = None
-            continue
-        recs = [s["slug"] for s in te if s["origin"] == "submission"
-                and not any(_dominates(o, s) for o in te if o is not s)
-                and not any(_dominates(b, s) for b in base)]
-        per_track[t] = len(recs)
-        overall.update(recs)
-    return overall, per_track
 
 
 def svg(te, front):
@@ -942,17 +914,14 @@ def progress_panel(entries, tracks, n_exact, best_eff):
     per-track breakdown. This is the single home for the board's numbers (the
     hero carries none). Contributors counts GitHub-handle authors only (the
     paper baseline source is not a contributor)."""
-    n_ub = len(entries) - n_exact
-    handles = {a.strip() for e in entries for a in e["authors_list"]
-               if a.strip().startswith("@")}
-    rec_slugs, rec_track = records_beyond_published(entries, tracks)
     n_base = sum(1 for e in entries if e["origin"] == "baseline")
+    n_contrib = len(entries) - n_base
     metrics = [
-        (str(len(rec_slugs)), "beyond published",
-         "submitted codes on a track frontier that no seeded literature "
-         "baseline reaches"),
+        (str(n_contrib), "codes contributed",
+         "new codes found and submitted through the challenge"),
+        (str(n_base), "literature baselines",
+         "published codes seeded as the bar to beat"),
         (str(len(entries)), "verified codes", ""),
-        (str(n_base), "literature baselines", "seeded for comparison"),
         (str(n_exact), "certified exact", ""),
         (f"{best_eff:g}", "best kd&sup2;/n", ""),
     ]
@@ -966,29 +935,18 @@ def progress_panel(entries, tracks, n_exact, best_eff):
         te = [entries[i] for i in tracks[t]]
         fr = len(pareto(te))
         ex = sum(1 for e in te if e["tier"] == "exact")
-        rc = rec_track.get(t)
-        rcell = (f'<td title="no published baseline seeded for this track yet">'
-                 '&middot;</td>' if rc is None else f'<td>{rc}</td>')
         rows.append(f'<tr><td><a href="#{track_anchor(t)}">{html.escape(t)}</a>'
                     f'</td><td>{len(te)}</td>'
-                    f'<td>{fr}</td>{rcell}<td>{ex}</td></tr>')
-    sum_rc = sum(v for v in rec_track.values() if v)
-    note = ""
-    if sum_rc > len(rec_slugs):
-        note = ('<p class=pnote>A code can enter more than one track (the '
-                'weight-6 planar codes are also 2d-local-bilayer), so the '
-                'per-track counts add up to more than the '
-                f'{len(rec_slugs)} distinct codes beyond published. The '
-                'headline counts each code once.</p>')
+                    f'<td>{fr}</td><td>{ex}</td></tr>')
     return ('<section class=progress><h2 class=ph>Progress</h2>'
-            '<p class=pintro>How far the board pushes past the published '
-            'baselines it is seeded with.</p>'
+            '<p class=pintro>New codes contributed through the challenge, '
+            'measured against the published baselines the board is seeded '
+            'with.</p>'
             f'<div class=pmetrics>{mhtml}</div>'
             '<table class=ptracks><thead><tr><th>track</th>'
             '<th>codes</th><th>on frontier</th>'
-            '<th title="submitted codes beyond the seeded baseline">'
-            'beyond published</th><th>certified exact</th></tr></thead>'
-            f'<tbody>{"".join(rows)}</tbody></table>{note}</section>')
+            '<th>certified exact</th></tr></thead>'
+            f'<tbody>{"".join(rows)}</tbody></table></section>')
 
 
 FAQ = [
