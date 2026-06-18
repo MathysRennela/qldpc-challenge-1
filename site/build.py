@@ -149,6 +149,21 @@ stroke="rgba(255,255,255,0.16)" stroke-width="1.5"/>
 FAVICON = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
            + MARK + "</svg>")
 
+# Small inline copy of the site mark (the hexagon graph), without the dark
+# tile and recoloured to the accent so it reads on a light row. Used to flag a
+# code as found through the challenge, the way the star flags the frontier.
+HEX_MARK = (
+    '<svg class=hexmark viewBox="0 0 64 64" width="15" height="15" '
+    'aria-hidden="true">'
+    '<g stroke="currentColor" stroke-width="5" stroke-linecap="round">'
+    '<line x1="32" y1="14" x2="16" y2="23"/><line x1="16" y1="23" x2="16" y2="41"/>'
+    '<line x1="16" y1="41" x2="32" y2="50"/><line x1="32" y1="50" x2="48" y2="41"/>'
+    '<line x1="48" y1="41" x2="48" y2="23"/><line x1="48" y1="23" x2="32" y2="14"/></g>'
+    '<g fill="currentColor"><circle cx="16" cy="23" r="6"/>'
+    '<circle cx="16" cy="41" r="6"/><circle cx="32" cy="50" r="6"/>'
+    '<circle cx="48" cy="41" r="6"/><circle cx="48" cy="23" r="6"/></g>'
+    f'<circle cx="32" cy="14" r="6.5" fill="{GREEN_BRIGHT}"/></svg>')
+
 
 def _txt_w(s):
     """Rough pixel width of a string at 11px Verdana, for badge sizing."""
@@ -339,10 +354,8 @@ color:var(--mut);cursor:pointer;user-select:none;border-bottom:2px solid var(--l
 .board th:hover{{color:var(--ink)}}.board td.num,.board th.num{{text-align:center;
 font-variant-numeric:tabular-nums}}
 .board td.auth{{white-space:normal}}
-.src{{display:inline-block;margin-left:8px;font-size:10px;font-weight:700;
-letter-spacing:.4px;text-transform:uppercase;color:var(--ac);
-background:#eef2ff;border:1px solid #c7d2fe;border-radius:5px;padding:1px 5px;
-vertical-align:1px}}
+.hexwrap{{display:inline-flex;align-items:center;margin-left:8px}}
+.hexmark{{color:var(--ac);vertical-align:-2px}}
 .board tbody tr{{cursor:pointer}}.board tbody tr:hover{{background:#eef2ff}}
 .board tr.fr{{background:#f5f3ff}}.board tr.fr td:first-child{{
 box-shadow:inset 3px 0 0 var(--ac)}}
@@ -668,8 +681,8 @@ def table(te, front):
             f'data-auth="{html.escape(e["authors"])}">'
             f'<td class="star">{"&#9733;" if fr else ""}</td>'
             f'<td><span class=mono>[[{e["n"]},{e["k"]},{e["d"]}]]</span>'
-            + ('<span class=src title="found and submitted through the '
-               'challenge">challenge</span>'
+            + ('<span class=hexwrap title="found and submitted through the '
+               f'challenge">{HEX_MARK}</span>'
                if e["origin"] != "baseline" else "")
             + '</td>'
             f'<td class=num>{e["n"]}</td><td class=num>{e["k"]}</td>'
@@ -1075,7 +1088,7 @@ def build():
              '<span><span class="dot ac"></span> upper bound '
              '(<span class="b ub">d &le;</span>)</span>'
              '<span><span class="dot ho"></span> open point = dominated</span>'
-             '<span><span class="src" style="margin-left:0">challenge</span> '
+             f'<span><span class=hexwrap style="margin-left:0">{HEX_MARK}</span> '
              'found through the challenge (unmarked = literature baseline)</span>'
              '<span class=collegend><b>columns:</b> '
              '<b>n</b> physical qubits &middot; <b>k</b> logical qubits '
