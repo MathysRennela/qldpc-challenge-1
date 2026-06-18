@@ -268,6 +268,7 @@ background:rgba(255,255,255,.08)}}
 header.hero h1{{font-size:44px;margin:0;letter-spacing:-1px}}
 header.hero h1 a{{color:#fff}}
 header.hero p{{font-size:18px;max-width:640px;margin:0;color:#dbeafe}}
+header.hero p a{{color:#fff;text-decoration:underline}}
 .stats{{display:flex;gap:40px;margin-top:30px;flex-wrap:wrap}}
 .stat .v{{font-size:30px;font-weight:700}}.stat .l{{color:#c7d2fe;font-size:13px;
 text-transform:uppercase;letter-spacing:.05em}}
@@ -976,7 +977,8 @@ def build():
              '<h1>qLDPC Challenge</h1></span>'
              f'<a class=ghlink href="{REPO_ROOT}">{GH_ICON}'
              '<span>GitHub</span></a></div>'
-             '<p>Find better quantum LDPC codes.</p>'
+             '<p>Find better quantum LDPC codes. '
+             '<a href="planar_code_challenge.pdf">Read the whitepaper.</a></p>'
              '</div></header>')
     P.append('<div class=wrap>')
     P.append(progress_panel(entries, tracks, n_exact, best_eff))
@@ -1016,8 +1018,7 @@ def build():
             P.append('<p class=tracknote>For 2D-local codes kd&sup2;/n is '
                      'bounded by a constant (Bravyi-Poulin-Terhal); the exact '
                      'ceiling is open, so the challenge is to push kd&sup2;/n '
-                     'as high as possible. See the '
-                     '<a href="planar_code_challenge.pdf">whitepaper</a>.</p>')
+                     'as high as possible.</p>')
         P.append(table(te, fr))
         P.append(f'<div class=trackbody><div class=gridcol>{cell_grid(te)}'
                  f'</div>{svg(te, fr)}</div>')
