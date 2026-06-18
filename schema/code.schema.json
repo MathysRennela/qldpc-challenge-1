@@ -52,6 +52,10 @@
       "additionalProperties": false,
       "properties": {
         "authors": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "origin": {
+          "enum": ["baseline", "submission"],
+          "description": "baseline: a published code seeded for comparison. submission: a code contributed through the challenge. Defaults to submission when omitted."
+        },
         "construction": {"type": "string", "minLength": 1, "description": "how the code was built (family, polynomials, search, reference)"},
         "references": {"type": "array", "items": {"type": "string"}},
         "date": {"type": "string", "format": "date"},

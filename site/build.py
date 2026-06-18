@@ -269,6 +269,11 @@ header.hero h1{{font-size:44px;margin:0;letter-spacing:-1px}}
 header.hero h1 a{{color:#fff}}
 header.hero p{{font-size:18px;max-width:640px;margin:0;color:#dbeafe}}
 header.hero p a{{color:#fff;text-decoration:underline}}
+.topnav{{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}}
+.topnav a{{color:#dbeafe;font-size:14px;font-weight:600;padding:7px 14px;
+border:1px solid rgba(255,255,255,.18);border-radius:8px;
+background:rgba(255,255,255,.06)}}
+.topnav a:hover{{background:rgba(255,255,255,.16);color:#fff}}
 .stats{{display:flex;gap:40px;margin-top:30px;flex-wrap:wrap}}
 .stat .v{{font-size:30px;font-weight:700}}.stat .l{{color:#c7d2fe;font-size:13px;
 text-transform:uppercase;letter-spacing:.05em}}
@@ -281,6 +286,9 @@ text-transform:uppercase;font-weight:700}}
 .pmn{{font-size:26px;font-weight:700;line-height:1.1}}
 .pmsub{{font-size:17px;color:var(--mut);font-weight:600}}
 .pml{{font-size:12px;color:var(--mut);margin-top:5px}}
+.pintro{{margin:-6px 0 16px;font-size:13px;color:var(--mut);max-width:72ch}}
+.pm.hero{{border-left:3px solid var(--ac);padding-left:13px;cursor:default}}
+.pm.hero .pmn{{color:var(--ac)}}
 .ptracks{{border-collapse:collapse;width:100%;font-size:13px;background:#fff;
 border:1px solid var(--ln);border-radius:8px;overflow:hidden}}
 .ptracks th,.ptracks td{{padding:.45rem .7rem;border-bottom:1px solid var(--ln)}}
@@ -338,6 +346,7 @@ box-shadow:inset 3px 0 0 var(--ac)}}
 .board tbody tr.xh td:first-child{{box-shadow:inset 3px 0 0 #f59e0b}}
 .cells td.xh{{background:#fde68a;outline:2px solid #f59e0b;outline-offset:-2px}}
 .plot circle.pt.xh{{stroke:#f59e0b;stroke-width:4;r:7}}
+.plot circle.hit{{cursor:pointer}}
 .star{{color:var(--ac);width:18px}}.cname{{color:var(--mut);font-size:13px}}
 .auth{{color:var(--mut);font-size:13px}}
 .b{{display:inline-block;font-size:11px;font-weight:700;padding:1px 6px;
@@ -472,6 +481,9 @@ if(tip)document.querySelectorAll('circle.hit').forEach(c=>{
   tip.style.left=x+'px';tip.style.top=y+'px';});
  c.addEventListener('mouseleave',()=>tip.classList.remove('show'));
 });
+document.querySelectorAll('circle.hit[data-code]').forEach(c=>{
+ c.addEventListener('click',()=>{location.href='codes/'+c.dataset.code+'.html';});
+});
 """
 
 
@@ -516,6 +528,7 @@ def load_entries():
             "eff": round(k * d * d / n, 3), "tier": tier,
             "w": rep["computed"].get("max_check_weight"),
             "tracks": doc["tracks"],
+            "origin": doc["provenance"].get("origin", "submission"),
             "authors": ", ".join(doc["provenance"]["authors"]),
             "authors_list": doc["provenance"]["authors"],
             "construction": doc["provenance"].get("construction", ""),
@@ -533,6 +546,33 @@ def pareto(te):
                    for j, b in enumerate(te)):
             front.add(i)
     return front
+
+
+def _dominates(a, b):
+    return (a["n"] <= b["n"] and a["k"] >= b["k"] and a["d"] >= b["d"]
+            and (a["n"] < b["n"] or a["k"] > b["k"] or a["d"] > b["d"]))
+
+
+def records_beyond_published(entries, tracks):
+    """Submission codes that sit on a track's frontier and that no seeded
+    baseline in that track dominates: they extend the published frontier into
+    (n, k, d) territory the literature on the board does not reach. Only tracks
+    that actually carry a baseline are eligible (nothing published to compare
+    against otherwise). Returns (overall_slugs, per_track) where per_track maps
+    a track to its record count, or None if the track has no baseline."""
+    overall, per_track = set(), {}
+    for t, idxs in tracks.items():
+        te = [entries[i] for i in idxs]
+        base = [e for e in te if e["origin"] == "baseline"]
+        if not base:
+            per_track[t] = None
+            continue
+        recs = [s["slug"] for s in te if s["origin"] == "submission"
+                and not any(_dominates(o, s) for o in te if o is not s)
+                and not any(_dominates(b, s) for b in base)]
+        per_track[t] = len(recs)
+        overall.update(recs)
+    return overall, per_track
 
 
 def svg(te, front):
@@ -585,6 +625,14 @@ def svg(te, front):
 def badge(tier):
     return ('<span class="b exact">d =</span>' if tier == "exact"
             else '<span class="b ub">d &le;</span>')
+
+
+def mathfmt(s):
+    """Light typographic math for the construction strings: render Python-style
+    (x**3) and caret-style (x^-2) powers as superscripts. Laurent exponents can
+    be negative. Variables are left in normal text on purpose (the strings mix
+    in prose, so blanket italics would catch letters inside words)."""
+    return re.sub(r"(?:\*\*|\^)(-?\d+)", r"<sup>\1</sup>", html.escape(s))
 
 
 def authors_html(lst):
@@ -685,17 +733,23 @@ def detail_page(e):
              f'{badge(e["tier"])}</div>')
 
     P.append('<div class=params>')
-    for lab, val in [("n", n), ("k", k), ("d", d),
-                     ("kd&sup2;/n", e["eff"]), ("max check wt", e["w"])]:
-        P.append(f'<div class=cell><div class=l>{lab}</div>'
-                 f'<div class=v>{val}</div></div>')
+    params = [
+        ("n", n, "physical qubits"),
+        ("k", k, "logical qubits"),
+        ("d", d, "distance (smallest undetectable error)"),
+        ("kd&sup2;/n", e["eff"], "figure of merit, higher is better"),
+        ("w", e["w"], "max check weight"),
+    ]
     if "locality" in doc:
         loc = doc["locality"]
-        P.append(f'<div class=cell><div class=l>layers</div>'
-                 f'<div class=v>{loc.get("layers","?")}</div></div>')
+        params.append(("layers", loc.get("layers", "?"),
+                       "physical layers (e.g. 2 for a flip-chip bilayer)"))
         if "interaction_radius" in loc:
-            P.append(f'<div class=cell><div class=l>radius</div>'
-                     f'<div class=v>{loc["interaction_radius"]:.2f}</div></div>')
+            params.append(("radius", f'{loc["interaction_radius"]:.2f}',
+                           "interaction radius: max check diameter in the layout"))
+    for lab, val, tip in params:
+        P.append(f'<div class=cell title="{html.escape(tip)}">'
+                 f'<div class=l>{lab}</div><div class=v>{val}</div></div>')
     P.append('</div>')
 
     # share: a link back to this entry plus pre-filled posts
@@ -749,7 +803,7 @@ def detail_page(e):
     pr = doc["provenance"]
     P.append('<section class=blk><h3>Construction &amp; provenance</h3>')
     P.append(f'<div class=kv><b>authors</b> {authors_html(pr["authors"])}</div>')
-    P.append(f'<div class=kv><b>construction</b> {html.escape(pr.get("construction",""))}</div>')
+    P.append(f'<div class=kv><b>construction</b> {mathfmt(pr.get("construction",""))}</div>')
     if pr.get("references"):
         refs = [cite(r, rel="../") for r in pr["references"]]
         P.append(f'<div class=kv><b>references</b> {", ".join(refs)}</div>')
@@ -879,29 +933,41 @@ def progress_panel(entries, tracks, n_exact, best_eff):
     n_ub = len(entries) - n_exact
     handles = {a.strip() for e in entries for a in e["authors_list"]
                if a.strip().startswith("@")}
+    rec_slugs, rec_track = records_beyond_published(entries, tracks)
+    n_base = sum(1 for e in entries if e["origin"] == "baseline")
     metrics = [
-        (str(len(entries)), "verified codes"),
-        (str(n_exact), "certified exact"),
-        (str(n_ub), "upper bound"),
-        (f"{best_eff:g}", "best kd&sup2;/n"),
-        (str(len(handles)), "contributors"),
+        (str(len(rec_slugs)), "beyond published",
+         "submitted codes on a track frontier that no seeded literature "
+         "baseline reaches"),
+        (str(len(entries)), "verified codes", ""),
+        (str(n_base), "literature baselines", "seeded for comparison"),
+        (str(n_exact), "certified exact", ""),
+        (f"{best_eff:g}", "best kd&sup2;/n", ""),
     ]
-    mhtml = "".join(f'<div class=pm><span class=pmn>{v}</span>'
-                    f'<span class=pml>{lab}</span></div>' for v, lab in metrics)
+    mhtml = "".join(f'<div class="pm{" hero" if i == 0 else ""}"'
+                    f'{f" title=\"{t}\"" if t else ""}>'
+                    f'<span class=pmn>{v}</span>'
+                    f'<span class=pml>{lab}</span></div>'
+                    for i, (v, lab, t) in enumerate(metrics))
     rows = []
     for t in sorted(tracks):
         te = [entries[i] for i in tracks[t]]
         fr = len(pareto(te))
         ex = sum(1 for e in te if e["tier"] == "exact")
+        rc = rec_track.get(t)
+        rcell = (f'<td title="no published baseline seeded for this track yet">'
+                 '&middot;</td>' if rc is None else f'<td>{rc}</td>')
         rows.append(f'<tr><td><a href="#{track_anchor(t)}">{html.escape(t)}</a>'
                     f'</td><td>{len(te)}</td>'
-                    f'<td>{fr}</td><td>{ex}</td>'
-                    f'<td>{len(te) - ex}</td></tr>')
+                    f'<td>{fr}</td>{rcell}<td>{ex}</td></tr>')
     return ('<section class=progress><h2 class=ph>Progress</h2>'
+            '<p class=pintro>How far the board pushes past the published '
+            'baselines it is seeded with.</p>'
             f'<div class=pmetrics>{mhtml}</div>'
             '<table class=ptracks><thead><tr><th>track</th>'
-            '<th>codes</th><th>on frontier</th><th>certified exact</th>'
-            '<th>upper bound</th></tr></thead>'
+            '<th>codes</th><th>on frontier</th>'
+            '<th title="submitted codes beyond the seeded baseline">'
+            'beyond published</th><th>certified exact</th></tr></thead>'
             f'<tbody>{"".join(rows)}</tbody></table></section>')
 
 
@@ -995,6 +1061,12 @@ def build():
              '<span>GitHub</span></a></div>'
              '<p>Find better quantum LDPC codes. '
              '<a href="planar_code_challenge.pdf">Read the whitepaper.</a></p>'
+             '<nav class=topnav>'
+             '<a href="faq.html">FAQ</a>'
+             f'<a href="{REPO}/CONTRIBUTING.md">How to contribute</a>'
+             f'<a href="{REPO}/TRACKS.md">Tracks</a>'
+             '<a href="references.html">References</a>'
+             '</nav>'
              '</div></header>')
     P.append('<div class=wrap>')
     P.append(progress_panel(entries, tracks, n_exact, best_eff))

@@ -313,6 +313,7 @@
   "authors": [
    "Kitaev"
   ],
+  "origin": "baseline",
   "construction": "Rotated surface code, distance 7.",
   "references": [
    "arXiv:quant-ph/9707021"

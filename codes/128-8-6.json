@@ -857,6 +857,7 @@
   "authors": [
    "Liang, Eberhardt, Chen"
   ],
+  "origin": "baseline",
   "construction": "Liang-Eberhardt-Chen [[288,8,12]] family, (8,8) lattice.",
   "references": [
    "arXiv:2504.08887"

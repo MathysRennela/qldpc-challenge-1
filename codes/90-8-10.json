@@ -769,6 +769,7 @@
   "authors": [
    "Bravyi, Cross, Gambetta, Maslov, Rall, Yoder"
   ],
+  "origin": "baseline",
   "construction": "Bivariate bicycle code, orders (15, 3), A=x**9 + y**2 + y, B=x**7 + x**2 + 1 (periodic boundary conditions).",
   "references": [
    "arXiv:2308.07915"

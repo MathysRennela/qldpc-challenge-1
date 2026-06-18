@@ -2864,6 +2864,7 @@
   "authors": [
    "@FarLab"
   ],
+  "origin": "submission",
   "construction": "Bivariate bicycle weight-8 code on open planar boundaries (boundary anyon condensation), optimized by lattice grafting (qubit removal).",
   "references": [
    "arXiv:2504.08887"

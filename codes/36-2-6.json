@@ -257,6 +257,7 @@
   "authors": [
    "Kitaev"
   ],
+  "origin": "baseline",
   "construction": "Rotated toric code on an 6x6 torus, distance 6.",
   "references": [
    "arXiv:quant-ph/9707021"

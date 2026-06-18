@@ -632,6 +632,7 @@
    "@FarLab",
    "@vprusso"
   ],
+  "origin": "submission",
   "construction": "Generalized weight-6, notched (7,7).",
   "references": [
    "arXiv:2504.08887"

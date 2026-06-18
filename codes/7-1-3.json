@@ -71,6 +71,7 @@
   "authors": [
    "Steane"
   ],
+  "origin": "baseline",
   "construction": "Steane code: the distance-3 2D color code.",
   "references": [
    "arXiv:quant-ph/9601029"
