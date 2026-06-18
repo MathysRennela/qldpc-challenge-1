@@ -1149,7 +1149,6 @@ def build():
              '</div></header>')
     P.append('<div class=wrap>')
     P.append(progress_panel(entries, tracks, n_exact, best_eff))
-    P.append(contributors_panel(entries, tracks))
     P.append('<div class=how>'
              '<div class=card><span class=n>1</span><h3>Build a code</h3>'
              '<p>A CSS qLDPC code, written as one JSON file with its parity '
@@ -1161,6 +1160,7 @@ def build():
              '<p>If it advances a track&rsquo;s frontier it is highlighted. '
              'Click any row for the witness, certificate, and checks.</p>'
              '</div></div>')
+    P.append(contributors_panel(entries, tracks))
     P.append('<div class=legend>'
              '<span class=legbreak><span class=swatch></span>&#9733; '
              '<b>frontier</b> (shaded rows): no other code beats it on all '
