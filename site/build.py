@@ -334,6 +334,10 @@ font-variant-numeric:tabular-nums}}
 .board tr.fr{{background:#f5f3ff}}.board tr.fr td:first-child{{
 box-shadow:inset 3px 0 0 var(--ac)}}
 .board tr.fr:hover{{background:#ecebff}}
+.board tbody tr.xh,.board tbody tr.fr.xh{{background:#fef3c7}}
+.board tbody tr.xh td:first-child{{box-shadow:inset 3px 0 0 #f59e0b}}
+.cells td.xh{{background:#fde68a;outline:2px solid #f59e0b;outline-offset:-2px}}
+.plot circle.pt.xh{{stroke:#f59e0b;stroke-width:4;r:7}}
 .star{{color:var(--ac);width:18px}}.cname{{color:var(--mut);font-size:13px}}
 .auth{{color:var(--mut);font-size:13px}}
 .b{{display:inline-block;font-size:11px;font-weight:700;padding:1px 6px;
@@ -450,6 +454,15 @@ document.querySelectorAll('table.board').forEach(t=>{
 document.querySelectorAll('tr[data-href]').forEach(r=>{
  r.addEventListener('click',()=>{location.href=r.dataset.href;});
 });
+document.querySelectorAll('.tracksec').forEach(sec=>{
+ const mark=(code,on)=>sec.querySelectorAll('[data-code="'+code+'"]')
+  .forEach(el=>el.classList.toggle('xh',on));
+ sec.querySelectorAll('[data-code]').forEach(el=>{
+  const code=el.dataset.code;
+  el.addEventListener('mouseenter',()=>mark(code,true));
+  el.addEventListener('mouseleave',()=>mark(code,false));
+ });
+});
 const tip=document.getElementById('tip');
 if(tip)document.querySelectorAll('circle.hit').forEach(c=>{
  c.addEventListener('mouseenter',()=>{tip.textContent=c.dataset.tip;
@@ -554,9 +567,11 @@ def svg(te, front):
                f'{"exact" if e["tier"]=="exact" else "upper bound"}'
                f'{", frontier" if f else ""}')
         cx, cy = sx(e["n"]), sy(e["d"])
-        pts.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r}" fill="{fill}" '
+        pts.append(f'<circle class=pt data-code="{e["slug"]}" cx="{cx:.1f}" '
+                   f'cy="{cy:.1f}" r="{r}" fill="{fill}" '
                    f'stroke="{col}" stroke-width="2" pointer-events="none"/>')
-        pts.append(f'<circle class=hit cx="{cx:.1f}" cy="{cy:.1f}" r="12" '
+        pts.append(f'<circle class=hit data-code="{e["slug"]}" cx="{cx:.1f}" '
+                   f'cy="{cy:.1f}" r="12" '
                    f'fill="transparent" data-tip="{html.escape(tip)}"/>')
     return (f'<svg viewBox="0 0 {W} {H}" class="plot" role="img">'
             + "".join(grid)
@@ -610,6 +625,7 @@ def table(te, front):
         fr = i in front
         rows.append(
             f'<tr class="{"fr" if fr else ""}" data-href="codes/{e["slug"]}.html" '
+            f'data-code="{e["slug"]}" '
             f'data-name="[[{e["n"]},{e["k"]},{e["d"]}]]" data-n="{e["n"]}" '
             f'data-k="{e["k"]}" data-d="{e["d"]}" data-eff="{e["eff"]}" '
             f'data-w="{e["w"]}" '
@@ -648,7 +664,7 @@ def cell_grid(te):
                              'this (k, d) yet">&middot;</td>')
                 continue
             cells.append(
-                f'<td><a href="codes/{e["slug"]}.html" '
+                f'<td data-code="{e["slug"]}"><a href="codes/{e["slug"]}.html" '
                 f'title="[[{e["n"]},{k},{d}]] &middot; '
                 f'{html.escape(e["authors"])}">{e["n"]}</a></td>')
         rows.append("<tr>" + "".join(cells) + "</tr>")
@@ -1011,6 +1027,7 @@ def build():
     for t in sorted(tracks):
         te = [entries[i] for i in tracks[t]]
         fr = pareto(te)
+        P.append('<section class=tracksec>')
         P.append(f'<h2 class=track id="{track_anchor(t)}">{html.escape(t)} '
                  f'<span class=tcount>&middot; {len(te)} codes, '
                  f'{len(fr)} on the frontier</span></h2>')
@@ -1022,6 +1039,7 @@ def build():
         P.append(table(te, fr))
         P.append(f'<div class=trackbody><div class=gridcol>{cell_grid(te)}'
                  f'</div>{svg(te, fr)}</div>')
+        P.append('</section>')
     P.append('</div>')  # close the main content wrap; footer is full-width
     P.append(
         '<footer class=foot><div class=footmain>'
