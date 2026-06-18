@@ -984,8 +984,7 @@ def progress_panel(entries, tracks, n_exact, best_eff):
                     f'</td><td>{len(te)}</td>'
                     f'<td>{fr}</td><td>{ex}</td></tr>')
     return ('<section class=progress><h2 class=ph>Progress</h2>'
-            '<p class=pintro>New codes found through the challenge, measured '
-            'against the published baselines the board is seeded with. Every '
+            '<p class=pintro>New codes found through the challenge. Every '
             'code is automatically verified before it lands.</p>'
             f'<div class=pmetrics>{mhtml}</div>'
             '<table class=ptracks><thead><tr><th>track</th>'
