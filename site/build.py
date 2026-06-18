@@ -966,9 +966,8 @@ def progress_panel(entries, tracks, n_exact, best_eff):
          "new codes found and submitted through the challenge"),
         (str(n_base), "literature baselines",
          "published codes seeded as the bar to beat"),
-        (str(len(entries)), "on the board",
-         "every code is machine-verified before it is listed"),
-        (str(n_exact), "certified exact", ""),
+        (str(n_exact), "certified exact",
+         "distance proven exact by server-side certification (d =)"),
         (f"{best_eff:g}", "best kd&sup2;/n", ""),
     ]
     mhtml = "".join(f'<div class="pm{" hero" if i == 0 else ""}"'
