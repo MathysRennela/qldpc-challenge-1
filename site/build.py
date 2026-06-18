@@ -1016,9 +1016,9 @@ def build():
                  f'{len(fr)} on the frontier</span></h2>')
         if t.startswith("2d-local"):
             P.append('<p class=tracknote>For 2D-local codes kd&sup2;/n is '
-                     'bounded by a constant (Bravyi-Poulin-Terhal); the exact '
-                     'ceiling is open, so the challenge is to push kd&sup2;/n '
-                     'as high as possible.</p>')
+                     'capped by a constant (Bravyi-Poulin-Terhal), unlike '
+                     'general qLDPC codes where it can grow with n. The exact '
+                     'constant is open.</p>')
         P.append(table(te, fr))
         P.append(f'<div class=trackbody><div class=gridcol>{cell_grid(te)}'
                  f'</div>{svg(te, fr)}</div>')
