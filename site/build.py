@@ -1017,7 +1017,7 @@ def build():
                      'bounded by a constant (Bravyi-Poulin-Terhal); the exact '
                      'ceiling is open, so the challenge is to push kd&sup2;/n '
                      'as high as possible. See the '
-                     '<a href="planar_code_challenge.pdf">writeup</a>.</p>')
+                     '<a href="planar_code_challenge.pdf">whitepaper</a>.</p>')
         P.append(table(te, fr))
         P.append(f'<div class=trackbody><div class=gridcol>{cell_grid(te)}'
                  f'</div>{svg(te, fr)}</div>')
@@ -1036,7 +1036,7 @@ def build():
         f'<a href="{REPO}/TRACKS.md">Tracks</a>'
         '<a href="faq.html">FAQ</a>'
         '<a href="references.html">References</a>'
-        '<a href="planar_code_challenge.pdf">Writeup</a>'
+        '<a href="planar_code_challenge.pdf">Whitepaper</a>'
         '</nav></div>'
         '<div class=footbar>&copy; 2026 &middot; Built by '
         '<a href="https://unitary.foundation">Unitary Foundation</a> '
