@@ -302,7 +302,6 @@ text-transform:uppercase;font-weight:700}}
 .pmn{{font-size:26px;font-weight:700;line-height:1.1}}
 .pmsub{{font-size:17px;color:var(--mut);font-weight:600}}
 .pml{{font-size:12px;color:var(--mut);margin-top:5px}}
-.pintro{{margin:-6px 0 16px;font-size:13px;color:var(--mut);max-width:72ch}}
 .lb{{margin:18px 0 8px;border:1px solid var(--ln);border-radius:14px;
 background:#fff;overflow:hidden}}
 .lbhead{{display:flex;justify-content:space-between;align-items:center;gap:16px;
@@ -984,7 +983,6 @@ def progress_panel(entries, tracks, n_exact, best_eff):
                     f'</td><td>{len(te)}</td>'
                     f'<td>{fr}</td><td>{ex}</td></tr>')
     return ('<section class=progress><h2 class=ph>Progress</h2>'
-            '<p class=pintro>New codes found through the challenge.</p>'
             f'<div class=pmetrics>{mhtml}</div>'
             '<table class=ptracks><thead><tr><th>track</th>'
             '<th>codes</th><th>on frontier</th>'
