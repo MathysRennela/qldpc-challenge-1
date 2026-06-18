@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/favicon.svg" width="96" height="96" alt="qLDPC Challenge logo">
+</p>
+
 # qLDPC Challenge
 
 ![codes](docs/badges/codes.svg)
@@ -9,9 +13,8 @@ A public, automatically verified leaderboard for quantum low-density
 parity-check (qLDPC) codes. Submit a code, the verifier checks it, and if it
 holds up it goes on the board.
 
-Repo: https://github.com/unitaryfoundation/qldpc-challenge. The leaderboard
-site is generated into `docs/` by `site/build.py` (run `uv run python
-site/build.py`); open `docs/index.html` to view it.
+The leaderboard site is generated into `docs/` by `site/build.py` (run `uv run
+python site/build.py`); open `docs/index.html` to view it.
 
 The badges above are regenerated on every build from the live board data
 (`docs/stats.json`), so they track the current numbers rather than a hand-typed

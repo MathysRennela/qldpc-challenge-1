@@ -307,6 +307,8 @@ line-height:1.7}}
 vertical-align:-1px;margin-right:2px}}
 .dot.ex{{background:var(--ex)}}.dot.ac{{background:var(--ac)}}
 .dot.ho{{background:#fff;border:2px solid var(--ac)}}
+.swatch{{display:inline-block;width:18px;height:11px;vertical-align:-1px;
+margin-right:3px;background:#f5f3ff;border-left:3px solid var(--ac)}}
 h2.track{{font-size:24px;margin:48px 0 4px;padding-top:24px;
 border-top:1px solid var(--ln);scroll-margin-top:16px}}
 .tcount{{color:var(--mut);font-size:14px;font-weight:400}}
@@ -989,8 +991,9 @@ def build():
              'Click any row for the witness, certificate, and checks.</p>'
              '</div></div>')
     P.append('<div class=legend>'
-             '<span>&#9733; <b>frontier</b>: no code beats it on all of '
-             '(n, k, d)</span>'
+             '<span><span class=swatch></span>&#9733; <b>frontier</b> '
+             '(shaded rows): no other code beats it on all of (n, k, d). '
+             'Plain (unshaded) rows are dominated.</span>'
              '<span><span class="dot ex"></span> certified exact '
              '(<span class="b exact">d =</span>)</span>'
              '<span><span class="dot ac"></span> upper bound '
