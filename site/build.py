@@ -270,7 +270,8 @@ header.hero h1 a{{color:#fff}}
 header.hero p{{font-size:18px;max-width:640px;margin:0;color:#dbeafe}}
 header.hero p a{{color:#fff;text-decoration:underline}}
 .topnav{{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}}
-.topnav a{{color:#dbeafe;font-size:14px;font-weight:600;padding:7px 14px;
+.topnav a{{display:inline-flex;align-items:center;gap:7px;color:#dbeafe;
+font-size:14px;font-weight:600;padding:7px 14px;
 border:1px solid rgba(255,255,255,.18);border-radius:8px;
 background:rgba(255,255,255,.06)}}
 .topnav a:hover{{background:rgba(255,255,255,.16);color:#fff}}
@@ -287,6 +288,7 @@ text-transform:uppercase;font-weight:700}}
 .pmsub{{font-size:17px;color:var(--mut);font-weight:600}}
 .pml{{font-size:12px;color:var(--mut);margin-top:5px}}
 .pintro{{margin:-6px 0 16px;font-size:13px;color:var(--mut);max-width:72ch}}
+.pnote{{margin:12px 0 0;font-size:12px;color:var(--mut);max-width:78ch}}
 .pm.hero{{border-left:3px solid var(--ac);padding-left:13px;cursor:default}}
 .pm.hero .pmn{{color:var(--ac)}}
 .ptracks{{border-collapse:collapse;width:100%;font-size:13px;background:#fff;
@@ -970,6 +972,14 @@ def progress_panel(entries, tracks, n_exact, best_eff):
         rows.append(f'<tr><td><a href="#{track_anchor(t)}">{html.escape(t)}</a>'
                     f'</td><td>{len(te)}</td>'
                     f'<td>{fr}</td>{rcell}<td>{ex}</td></tr>')
+    sum_rc = sum(v for v in rec_track.values() if v)
+    note = ""
+    if sum_rc > len(rec_slugs):
+        note = ('<p class=pnote>A code can enter more than one track (the '
+                'weight-6 planar codes are also 2d-local-bilayer), so the '
+                'per-track counts add up to more than the '
+                f'{len(rec_slugs)} distinct codes beyond published. The '
+                'headline counts each code once.</p>')
     return ('<section class=progress><h2 class=ph>Progress</h2>'
             '<p class=pintro>How far the board pushes past the published '
             'baselines it is seeded with.</p>'
@@ -978,7 +988,7 @@ def progress_panel(entries, tracks, n_exact, best_eff):
             '<th>codes</th><th>on frontier</th>'
             '<th title="submitted codes beyond the seeded baseline">'
             'beyond published</th><th>certified exact</th></tr></thead>'
-            f'<tbody>{"".join(rows)}</tbody></table></section>')
+            f'<tbody>{"".join(rows)}</tbody></table>{note}</section>')
 
 
 FAQ = [
@@ -1066,9 +1076,7 @@ def build():
              '<span class=brandmark>'
              f'<svg width=52 height=52 viewBox="0 0 64 64" '
              f'aria-label="qLDPC Challenge logo">{MARK}</svg>'
-             '<h1>qLDPC Challenge</h1></span>'
-             f'<a class=ghlink href="{REPO_ROOT}">{GH_ICON}'
-             '<span>GitHub</span></a></div>'
+             '<h1>qLDPC Challenge</h1></span></div>'
              '<p>Find better quantum LDPC codes. '
              '<a href="planar_code_challenge.pdf">Read the whitepaper.</a></p>'
              '<nav class=topnav>'
@@ -1076,6 +1084,7 @@ def build():
              f'<a href="{REPO}/CONTRIBUTING.md">How to contribute</a>'
              f'<a href="{REPO}/TRACKS.md">Tracks</a>'
              '<a href="references.html">References</a>'
+             f'<a href="{REPO_ROOT}">{GH_ICON}GitHub</a>'
              '</nav>'
              '</div></header>')
     P.append('<div class=wrap>')
