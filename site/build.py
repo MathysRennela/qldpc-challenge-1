@@ -303,7 +303,7 @@ text-transform:uppercase;font-weight:700}}
 .pmsub{{font-size:17px;color:var(--mut);font-weight:600}}
 .pml{{font-size:12px;color:var(--mut);margin-top:5px}}
 .pintro{{margin:-6px 0 16px;font-size:13px;color:var(--mut);max-width:72ch}}
-.lb{{margin:44px 0 8px;border:1px solid var(--ln);border-radius:14px;
+.lb{{margin:18px 0 8px;border:1px solid var(--ln);border-radius:14px;
 background:#fff;overflow:hidden}}
 .lbhead{{display:flex;justify-content:space-between;align-items:center;gap:16px;
 padding:16px 20px;background:var(--soft);border-bottom:1px solid var(--ln)}}
@@ -312,7 +312,7 @@ padding:16px 20px;background:var(--soft);border-bottom:1px solid var(--ln)}}
 .lbcta{{flex:0 0 auto;font-size:13px;font-weight:600;color:#fff;
 background:var(--ac);border-radius:8px;padding:8px 14px;text-decoration:none}}
 .lbcta:hover{{filter:brightness(1.08)}}
-.lblist{{max-height:336px;overflow-y:auto}}
+.lblist{{max-height:232px;overflow-y:auto}}
 .lbrow{{display:flex;align-items:center;gap:14px;padding:11px 20px;
 border-bottom:1px solid var(--ln);text-decoration:none;color:var(--ink)}}
 .lbrow:last-child{{border-bottom:none}}.lbrow:hover{{background:#f7f8fc}}
@@ -1153,6 +1153,7 @@ def build():
              '</div></header>')
     P.append('<div class=wrap>')
     P.append(progress_panel(entries, tracks, n_exact, best_eff))
+    P.append(contributors_panel(entries, tracks))
     P.append('<div class=how>'
              '<div class=card><span class=n>1</span><h3>Build a code</h3>'
              '<p>A CSS qLDPC code, written as one JSON file with its parity '
@@ -1197,7 +1198,6 @@ def build():
         P.append(f'<div class=trackbody><div class=gridcol>{cell_grid(te)}'
                  f'</div>{svg(te, fr)}</div>')
         P.append('</section>')
-    P.append(contributors_panel(entries, tracks))
     P.append('</div>')  # close the main content wrap; footer is full-width
     P.append(
         '<footer class=foot><div class=footmain>'
