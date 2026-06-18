@@ -301,6 +301,7 @@ font-size:14px}}
 background:var(--soft);border:1px solid var(--ln);border-radius:10px;
 font-size:13px;color:var(--mut)}}
 .legend b{{color:var(--ink)}}
+.legbreak{{flex-basis:100%}}
 .collegend{{flex-basis:100%;border-top:1px solid var(--ln);padding-top:10px;
 line-height:1.7}}
 .dot{{display:inline-block;width:11px;height:11px;border-radius:50%;
@@ -991,9 +992,9 @@ def build():
              'Click any row for the witness, certificate, and checks.</p>'
              '</div></div>')
     P.append('<div class=legend>'
-             '<span><span class=swatch></span>&#9733; <b>frontier</b> '
-             '(shaded rows): no other code beats it on all of (n, k, d). '
-             'Plain (unshaded) rows are dominated.</span>'
+             '<span class=legbreak><span class=swatch></span>&#9733; '
+             '<b>frontier</b> (shaded rows): no other code beats it on all '
+             'of (n, k, d). Plain (unshaded) rows are dominated.</span>'
              '<span><span class="dot ex"></span> certified exact '
              '(<span class="b exact">d =</span>)</span>'
              '<span><span class="dot ac"></span> upper bound '
