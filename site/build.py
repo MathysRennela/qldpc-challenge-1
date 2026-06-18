@@ -303,6 +303,8 @@ text-transform:uppercase;font-weight:700}}
 .pmsub{{font-size:17px;color:var(--mut);font-weight:600}}
 .pml{{font-size:12px;color:var(--mut);margin-top:5px}}
 .pintro{{margin:-6px 0 16px;font-size:13px;color:var(--mut);max-width:72ch}}
+.progress+.progress{{margin-top:18px}}
+.lbrank{{color:var(--mut);font-variant-numeric:tabular-nums}}
 .pm.hero{{border-left:3px solid var(--ac);padding-left:13px;cursor:default}}
 .pm.hero .pmn{{color:var(--ac)}}
 .ptracks{{border-collapse:collapse;width:100%;font-size:13px;background:#fff;
@@ -970,6 +972,53 @@ def progress_panel(entries, tracks, n_exact, best_eff):
             f'<tbody>{"".join(rows)}</tbody></table></section>')
 
 
+def contributors_panel(entries, tracks):
+    """A leaderboard of who has found the codes on the board. Ranks GitHub-handle
+    authors of contributed (non-baseline) codes by how many they have on the
+    board, then by how many sit on a track frontier, then by best kd2/n. The
+    seeded literature authors are not contributors and are excluded."""
+    front_slugs = set()
+    for idxs in tracks.values():
+        te = [entries[i] for i in idxs]
+        for j in pareto(te):
+            front_slugs.add(te[j]["slug"])
+    stats = {}
+    for e in entries:
+        if e["origin"] == "baseline":
+            continue
+        for a in e["authors_list"]:
+            h = a.strip()
+            if not (h.startswith("@") and re.fullmatch(r"@[A-Za-z0-9-]+", h)):
+                continue
+            s = stats.setdefault(h, {"codes": 0, "front": 0, "exact": 0,
+                                     "eff": 0.0})
+            s["codes"] += 1
+            s["front"] += e["slug"] in front_slugs
+            s["exact"] += e["tier"] == "exact"
+            s["eff"] = max(s["eff"], e["eff"])
+    if not stats:
+        return ""
+    order = sorted(stats.items(),
+                   key=lambda kv: (-kv[1]["codes"], -kv[1]["front"],
+                                   -kv[1]["eff"], kv[0]))
+    rows = "".join(
+        f'<tr><td class=lbrank>{r}</td>'
+        f'<td><a href="https://github.com/{h[1:]}">{html.escape(h)}</a></td>'
+        f'<td>{s["codes"]}</td><td>{s["front"]}</td><td>{s["exact"]}</td>'
+        f'<td>{s["eff"]:g}</td></tr>'
+        for r, (h, s) in enumerate(order, 1))
+    return ('<section class=progress id=contributors>'
+            '<h2 class=ph>Contributors</h2>'
+            '<p class=pintro>Who has found the codes on the board. Add yours '
+            f'by <a href="{REPO}/CONTRIBUTING.md">opening a PR</a>.</p>'
+            '<table class=ptracks><thead><tr><th>#</th><th>contributor</th>'
+            '<th title="codes contributed to the board">codes</th>'
+            '<th title="of those, how many sit on a track frontier">'
+            'on frontier</th><th>certified exact</th>'
+            '<th>best kd&sup2;/n</th></tr></thead>'
+            f'<tbody>{rows}</tbody></table></section>')
+
+
 FAQ = [
     ("What is a qLDPC code?",
      "A quantum low-density parity-check code. As in classical LDPC codes, the "
@@ -1061,6 +1110,7 @@ def build():
              '<nav class=topnav>'
              '<a href="faq.html">FAQ</a>'
              f'<a href="{REPO}/CONTRIBUTING.md">How to contribute</a>'
+             '<a href="#contributors">Contributors</a>'
              f'<a href="{REPO}/TRACKS.md">Tracks</a>'
              '<a href="references.html">References</a>'
              f'<a href="{REPO_ROOT}">{GH_ICON}GitHub</a>'
@@ -1068,6 +1118,7 @@ def build():
              '</div></header>')
     P.append('<div class=wrap>')
     P.append(progress_panel(entries, tracks, n_exact, best_eff))
+    P.append(contributors_panel(entries, tracks))
     P.append('<div class=how>'
              '<div class=card><span class=n>1</span><h3>Build a code</h3>'
              '<p>A CSS qLDPC code, written as one JSON file with its parity '
