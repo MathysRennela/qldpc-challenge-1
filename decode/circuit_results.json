@@ -274,6 +274,46 @@
    "block_ler": 0.0072,
    "per_logical_ler_low": 0.0,
    "rounds": 6
+  },
+  "198-12-7": {
+   "n": 198,
+   "k": 12,
+   "per_logical_ler": 0.015963,
+   "block_ler": 0.1756,
+   "per_logical_ler_low": 0.002947,
+   "rounds": 6
+  },
+  "180-18-14": {
+   "n": 180,
+   "k": 18,
+   "per_logical_ler": 0.007834,
+   "block_ler": 0.132,
+   "per_logical_ler_low": 0.000245,
+   "rounds": 6
+  },
+  "288-12-18": {
+   "n": 288,
+   "k": 12,
+   "per_logical_ler": 0.000602,
+   "block_ler": 0.0072,
+   "per_logical_ler_low": 0.0,
+   "rounds": 6
+  },
+  "126-28-8": {
+   "n": 126,
+   "k": 28,
+   "per_logical_ler": 0.033785,
+   "block_ler": 0.618,
+   "per_logical_ler_low": 0.004185,
+   "rounds": 6
+  },
+  "180-20-14": {
+   "n": 180,
+   "k": 20,
+   "per_logical_ler": 0.007467,
+   "block_ler": 0.1392,
+   "per_logical_ler_low": 0.000523,
+   "rounds": 6
   }
  }
 }
