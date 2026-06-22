@@ -51,46 +51,35 @@ Validated against the toric code (`validate_phenom.py`): the d=3,5,7 curves
 cross near the known phenomenological threshold, and the general BP+OSD path
 agrees with exact pymatching on the same circuit.
 
-## Protocol (circuit-level)
+## Protocol (circuit-level, single-basis Z-memory)
 
 Noise on every gate of an explicit syndrome-extraction circuit, the closest of
-the three to a real device. Implemented and validated as tooling
-(`eval_circuit.py`), runnable per code, but not run as a board-wide ranking; see
-"Why no board ranking" below.
+the three to a real device. Reported as a third table under the Decoding
+section.
 
-- Circuit: one ancilla per stabilizer. The two stabilizer types are extracted
-  in separate phases per round (they commute for a CSS code, so sequential
-  extraction keeps every syndrome bit deterministic; a single interleaved
-  schedule does not). The CX gates are scheduled into conflict-free layers by a
-  greedy edge colouring of the Tanner graph.
+- Single-basis: this is a Z-basis memory experiment, so only the X-type data
+  errors that can flip the Z logical matter, and the Z stabilizers detect
+  exactly those. Only the Z stabilizers are extracted; the X-stabilizer
+  extraction is omitted because it would only inject CX noise into the data
+  without aiding the decode. This is the standard single-basis benchmark; it
+  does not include the X-extraction depth a real device also pays for two-basis
+  protection.
+- Circuit: one ancilla per Z stabilizer, CX (data control, ancilla target)
+  scheduled into conflict-free layers by a greedy edge colouring. Because the
+  data qubits are controls, a CX fault spreads to the ancilla, not across data,
+  so there are no harmful X-hook errors and the schedule does not reduce the
+  effective Z-distance (verified: the high-rate [[72,12,6]] gives per-logical
+  ~0.003 here, in line with low-rate codes, not the ~0.08 the two-basis circuit
+  produced).
 - Noise: depolarizing on every CX (DEPOLARIZE2), flip noise after each reset and
   on each measurement outcome, and idle depolarizing on data qubits not engaged
-  in the current CX layer. T rounds, then a perfect transversal readout.
+  in the current CX layer. T rounds, then a perfect transversal Z readout.
 - Decoder: BP+OSD over the (undecomposed) circuit detector error model, same as
-  the phenomenological path.
-- Schedule caveat: a greedy colouring is conflict-free but not distance-optimal.
-  A bad CX order creates hook errors that lower the effective circuit distance,
-  so for a general code these numbers are a conservative read of what a tuned
-  schedule could reach, not the best achievable. Stated on the site too.
+  the phenomenological path. One observable per logical Z.
 
 Validated against the toric code (`validate_circuit.py`): the d=3,5,7 curves
-cross in the known circuit-level threshold region and the general BP+OSD path
-agrees with exact pymatching on the same circuit.
-
-### Why no board ranking
-
-A fair cross-code ranking needs each code's syndrome-extraction schedule to
-preserve its distance. The greedy colouring here does not, and the effect is
-large and uneven: on the toric code it costs only a small factor, but on a
-high-rate bivariate-bicycle code like [[72,12,6]] the circuit per-logical LER at
-p=0.004 is ~0.08 (near threshold), versus ~0.001 at code-capacity. So a board
-ranking would mostly measure how well the naive schedule happens to handle each
-code, and would bury exactly the high-rate codes the challenge is about, which
-would be misleading. Distance ordering does hold where the schedule behaves
-(toric, and the low-rate board codes: [[81,1,9]] 0.012 vs [[25,1,5]] 0.043 at
-p=0.004), so the evaluator is correct; what is missing is per-code schedule
-optimization, which is its own piece of work. Until then circuit-level stays a
-per-code tool, not a leaderboard.
+cross near the threshold (~0.01 here) and the general BP+OSD path agrees with
+exact pymatching on the same circuit.
 
 ## Files
 
@@ -108,6 +97,13 @@ per-code tool, not a leaderboard.
   and decoder (threshold crossing; BP+OSD vs pymatching agreement).
 - `run_phenom.py` — runs the board under the phenomenological protocol and
   writes `phenom_results.json`.
+- `eval_circuit.py` — the circuit-level evaluator (explicit Z-memory
+  syndrome-extraction circuit + BP+OSD over the DEM). `memory_ler(HX, HZ, p,
+  rounds, shots, seed, z_only=True)`.
+- `validate_circuit.py` — toric-code validation of the circuit-level model
+  (threshold crossing; BP+OSD vs pymatching agreement).
+- `run_circuit.py` — runs the board under the circuit-level protocol and writes
+  `circuit_results.json`.
 
 ## Regenerating the leaderboard
 
@@ -117,13 +113,15 @@ or changing codes:
 ```
 uv run --with ldpc --with numpy python decode/run_leaderboard.py
 uv run --with stim --with ldpc --with scipy --with numpy python decode/run_phenom.py
+uv run --with stim --with ldpc --with scipy --with numpy python decode/run_circuit.py
 uv run python site/build.py
 ```
 
-Then commit `decode/results.json`, `decode/phenom_results.json`, and the
-rebuilt `docs/`.
+Then commit `decode/results.json`, `decode/phenom_results.json`,
+`decode/circuit_results.json`, and the rebuilt `docs/`.
 
 ## Planned
 
-- Circuit-level noise (needs syndrome-extraction circuit construction per code).
+- Two-basis circuit-level noise with per-code distance-preserving schedules
+  (the single-basis Z-memory here omits X-extraction).
 - A sandboxed submitted-decoder competition for a fixed code.

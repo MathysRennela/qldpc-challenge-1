@@ -25,7 +25,7 @@ from eval_phenom import find_logical_z
 
 def ler_pymatching(HX, HZ, p, rounds, shots, seed):
     zsup = find_logical_z(HX, HZ)
-    circ = build_z_memory_circuit(HX, HZ, zsup, p, rounds)
+    circ = build_z_memory_circuit(HX, HZ, zsup, p, rounds, z_only=True)
     dem = circ.detector_error_model(decompose_errors=True)
     m = pymatching.Matching.from_detector_error_model(dem)
     det, obs = circ.compile_detector_sampler(seed=seed).sample(
@@ -35,8 +35,9 @@ def ler_pymatching(HX, HZ, p, rounds, shots, seed):
 
 
 def main():
-    ps = [0.002, 0.004, 0.006, 0.009, 0.013]
-    print("toric circuit-level Z-memory, pymatching, rounds=d, 20000 shots")
+    ps = [0.003, 0.005, 0.008, 0.012]
+    print("toric circuit-level Z-memory (single-basis), pymatching, "
+          "rounds=d, 20000 shots")
     for d in (3, 5, 7):
         HX, HZ = toric_code(d)
         row = []
@@ -45,10 +46,10 @@ def main():
             row.append(f"p={p}:{ler:.4f}")
         print(f"  d={d}: " + "  ".join(row))
     HX, HZ = toric_code(5)
-    bp = memory_ler(HX, HZ, 0.006, rounds=5, shots=4000, seed=7,
-                    all_logicals=False)["block_ler"]
-    pm = ler_pymatching(HX, HZ, 0.006, rounds=5, shots=4000, seed=7)
-    print(f"\nd=5 p=0.006: BP+OSD={bp:.4f}  pymatching={pm:.4f} (should be close)")
+    bp = memory_ler(HX, HZ, 0.008, rounds=5, shots=4000, seed=7,
+                    all_logicals=False, z_only=True)["block_ler"]
+    pm = ler_pymatching(HX, HZ, 0.008, rounds=5, shots=4000, seed=7)
+    print(f"\nd=5 p=0.008: BP+OSD={bp:.4f}  pymatching={pm:.4f} (should be close)")
 
 
 if __name__ == "__main__":

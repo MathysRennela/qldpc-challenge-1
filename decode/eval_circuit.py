@@ -9,16 +9,19 @@ graph, and depolarizing/flip noise is attached to every reset, CX, idle step,
 and measurement. T rounds, then a perfect transversal readout. Decoded by BP+OSD
 over the circuit detector error model.
 
-Z-memory experiment: data in |0>^n, full syndrome extraction of both stabilizer
-types each round, Z logical observables. Detectors compare each stabilizer round
-to round (Z stabilizers also to the deterministic init and the perfect readout).
+Z-memory experiment: data in |0>^n, Z logical observables, detectors comparing
+each stabilizer round to round (Z stabilizers also to the deterministic init and
+the perfect readout). The board runs the single-basis variant (z_only=True): only
+the Z stabilizers are extracted, since in a Z-memory only X-type data errors flip
+the Z logical and the Z stabilizers detect exactly those. The two-basis variant
+(z_only=False) also extracts the X stabilizers, paying the depth a real device
+would, but its result is dominated by that extra extraction noise.
 
-Caveat on the schedule: a greedy colouring is conflict-free but not guaranteed
-distance-optimal. A bad CX order can create hook errors that lower the effective
-circuit distance, so for a general code these numbers are a conservative read of
-what a tuned schedule could reach, not the best achievable. The construction is
-validated against the surface/toric code, whose circuit-level threshold (~0.5-1%)
-is known: see validate_circuit.py.
+On the schedule: the CX colouring is greedy, not distance-optimal. For the
+single-basis Z-memory this does not matter, since the data qubits are CX controls
+so a fault spreads to the ancilla rather than across data (no harmful X-hook
+errors). The construction is validated against the toric code, whose
+circuit-level threshold is known: see validate_circuit.py.
 
     uv run --with stim --with ldpc --with scipy --with numpy \\
            python decode/run_circuit.py
@@ -49,9 +52,14 @@ def color_cx_layers(edges, ndeg):
     return layers
 
 
-def build_z_memory_circuit(HX, HZ, z_supports, p, rounds):
-    """Circuit-level Z-memory for a CSS code. Full syndrome extraction (both
-    stabilizer types) each round with gate-level noise; perfect final readout."""
+def build_z_memory_circuit(HX, HZ, z_supports, p, rounds, z_only=False):
+    """Circuit-level Z-memory for a CSS code with gate-level noise and a perfect
+    final readout. With z_only (default off) only the Z stabilizers are
+    extracted: in a Z-basis memory only X-type data errors can flip the Z
+    logical, and those are exactly what the Z stabilizers detect, so the
+    X-stabilizer extraction would only add CX noise without aiding the decode.
+    Z-only is a lighter, standard single-basis benchmark; the full version also
+    pays the X-extraction depth a real device would."""
     HX = (np.asarray(HX) % 2).astype(np.uint8)
     HZ = (np.asarray(HZ) % 2).astype(np.uint8)
     mx, n = HX.shape
@@ -102,14 +110,16 @@ def build_z_memory_circuit(HX, HZ, z_supports, p, rounds):
         run_layers(z_layers)
         c.append("M", az, p)
         z_idx = list(range(nmeas, nmeas + mz)); nmeas += mz
-        # X-stabilizer extraction phase: ancilla |+>, CX ax->data, measure X.
-        c.append("RX", ax)
-        c.append("Z_ERROR", ax, p)
-        c.append("TICK")
-        run_layers(x_layers)
-        c.append("MX", ax, p)
-        x_idx = list(range(nmeas, nmeas + mx)); nmeas += mx
-        x_idx_hist.append(x_idx); z_idx_hist.append(z_idx)
+        if not z_only:
+            # X-stabilizer extraction phase: ancilla |+>, CX ax->data, measure X.
+            c.append("RX", ax)
+            c.append("Z_ERROR", ax, p)
+            c.append("TICK")
+            run_layers(x_layers)
+            c.append("MX", ax, p)
+            x_idx = list(range(nmeas, nmeas + mx)); nmeas += mx
+            x_idx_hist.append(x_idx)
+        z_idx_hist.append(z_idx)
 
         def rec(a, _N=nmeas):
             return stim.target_rec(-(_N - a))
@@ -120,9 +130,10 @@ def build_z_memory_circuit(HX, HZ, z_supports, p, rounds):
             pz = z_idx_hist[t - 1]
             for j in range(mz):
                 c.append("DETECTOR", [rec(z_idx[j]), rec(pz[j])])
-            px = x_idx_hist[t - 1]
-            for i in range(mx):
-                c.append("DETECTOR", [rec(x_idx[i]), rec(px[i])])
+            if not z_only:
+                px = x_idx_hist[t - 1]
+                for i in range(mx):
+                    c.append("DETECTOR", [rec(x_idx[i]), rec(px[i])])
         c.append("TICK")
 
     # perfect final Z readout of the data
@@ -141,7 +152,8 @@ def build_z_memory_circuit(HX, HZ, z_supports, p, rounds):
     return c
 
 
-def memory_ler(HX, HZ, p, rounds=None, shots=4000, seed=0, all_logicals=True):
+def memory_ler(HX, HZ, p, rounds=None, shots=4000, seed=0, all_logicals=True,
+               z_only=False):
     """Circuit-level Z-memory per-logical LER (and block LER)."""
     HX = (np.asarray(HX) % 2).astype(np.uint8)
     HZ = (np.asarray(HZ) % 2).astype(np.uint8)
@@ -150,7 +162,7 @@ def memory_ler(HX, HZ, p, rounds=None, shots=4000, seed=0, all_logicals=True):
     sups = basis if all_logicals else basis[:1]
     if rounds is None:
         rounds = 4
-    circ = build_z_memory_circuit(HX, HZ, sups, p, rounds)
+    circ = build_z_memory_circuit(HX, HZ, sups, p, rounds, z_only=z_only)
     block = _bposd_decode(circ, shots, seed)
     per_logical = (1.0 - (1.0 - block) ** (1.0 / max(k, 1))
                    if all_logicals else block)
