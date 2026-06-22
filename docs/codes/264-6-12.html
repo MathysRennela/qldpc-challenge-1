@@ -255,6 +255,11 @@ position:static}header.hero h1{font-size:34px}}
 <details><summary>witness operator (support, 12 qubits)</summary><div class=wit>[84, 86, 88, 90, 92, 94, 216, 218, 220, 222, 224, 226]</div></details>
 <div class=kv><b>certificate</b> <span class=cert-ok>exact, d = 12</span> &middot; scipy/HiGHS MILP</div><div class=kv style="color:var(--mut)">X: no logical &lt; 12 exists; Z: no logical &lt; 12 exists</div>
 </section>
+<section class=blk><h3>Decoding</h3>
+<div class=kv style="color:var(--mut)">Per-logical-qubit logical error rate, computed by the evaluator (lower is better). See the <a href="../index.html#decoding">Decoding leaderboard</a>.</div>
+<div class=kv><b>code-capacity</b> per-logical LER 0.0019 at p=0.04 &middot; 0.0001 at p=0.02</div>
+<div class=kv><b>phenomenological</b> per-logical LER 0.0027 at p=0.035 &middot; 0.0003 at p=0.025</div>
+</section>
 <section class=blk><h3>Construction &amp; provenance</h3>
 <div class=kv><b>authors</b> <a href="https://github.com/FarLab">@FarLab</a>, <a href="https://github.com/vprusso">@vprusso</a></div>
 <div class=kv><b>construction</b> Generalized weight-6 form f = 1 + xy + x<sup>-1</sup> y<sup>2</sup>, g = 1 + x<sup>-1</sup> y + x<sup>-2</sup> y<sup>-1</sup>; open boundaries via annulus-type boundary engine, (11,12) lattice. New instance of the Liang-Eberhardt-Chen open-boundary family (arXiv:2504.08887), outside the paper&#x27;s enumerated form; the paper&#x27;s k=6 family stops at [[221,6,10]].</div>

@@ -753,7 +753,7 @@ def cell_grid(te):
             'open territory (no code there yet)</span></div>')
 
 
-def detail_page(e):
+def detail_page(e, dec=None, phenom=None):
     doc, cert = e["doc"], e["cert"]
     n, k, d = e["n"], e["k"], e["d"]
     P = [head(f"[[{n},{k},{d}]] · qLDPC Challenge", rel="../")]
@@ -828,6 +828,31 @@ def detail_page(e):
                  '<span class=cert-no>none yet &middot; distance stands as a '
                  'self-certified upper bound (d &le;)</span></div>')
     P.append('</section>')
+
+    # decoding performance (if this code was evaluated)
+    def _dec_line(res, proto, label):
+        r = (res or {}).get("results", {}).get(e["slug"]) if res else None
+        if not r:
+            return ""
+        p = (proto or {}).get("p", "?")
+        out = (f'<div class=kv><b>{label}</b> per-logical LER '
+               f'{r["per_logical_ler"]:.4f} at p={p}')
+        plo = proto.get("p_low") if proto else None
+        if plo and "per_logical_ler_low" in r:
+            out += f' &middot; {r["per_logical_ler_low"]:.4f} at p={plo}'
+        return out + '</div>'
+    cc_line = _dec_line(dec, (dec or {}).get("protocol", {}), "code-capacity")
+    ph_line = _dec_line(phenom, (phenom or {}).get("protocol", {}),
+                        "phenomenological")
+    if cc_line or ph_line:
+        P.append('<section class=blk><h3>Decoding</h3>')
+        P.append('<div class=kv style="color:var(--mut)">Per-logical-qubit '
+                 'logical error rate, computed by the evaluator (lower is '
+                 'better). See the <a href="../index.html#decoding">Decoding '
+                 'leaderboard</a>.</div>')
+        P.append(cc_line)
+        P.append(ph_line)
+        P.append('</section>')
 
     # construction / provenance
     pr = doc["provenance"]
@@ -1105,6 +1130,17 @@ FAQ = [
      "carry a tight upper bound while small and moderate codes are certified "
      "exact. A d&le; record is provisional: if the true distance turns out "
      "lower, the entry is corrected."),
+    ("What is the difference between the decoding tables?",
+     "Both rank codes by per-logical-qubit logical error rate (lower is "
+     "better), computed by the server so the number cannot be claimed by the "
+     "submitter. The first table uses code-capacity noise: errors on the data, "
+     "one perfect round of syndrome extraction. It measures the code in "
+     "isolation. The second uses phenomenological noise: several rounds of "
+     "stabilizer measurement where the measurements themselves can be wrong, "
+     "then a perfect final readout. It adds the time dimension and measurement "
+     "faults, which can reorder codes the code-capacity ranking ties. Neither "
+     "is full circuit-level noise (a gate-by-gate syndrome-extraction "
+     "schedule), which is construction-dependent and not yet on the board."),
     ("What do I get if I find a new code?",
      "Bragging rights, chiefly. Your code lands on the board under your GitHub "
      "handle with a permanent link you can wave around, and if it advances a "
@@ -1133,8 +1169,8 @@ def faq_page():
     return "\n".join(P)
 
 
-def decoding_results():
-    p = os.path.join(ROOT, "decode", "results.json")
+def decoding_results(name="results.json"):
+    p = os.path.join(ROOT, "decode", name)
     if os.path.exists(p):
         try:
             with open(p) as f:
@@ -1144,7 +1180,76 @@ def decoding_results():
     return None
 
 
-def decoding_leaderboard(entries, dec):
+def _dec_rank_items(entries, dec):
+    """Sorted (per_logical_ler, entry, result) list for a decoding result set."""
+    by_slug = {e["slug"]: e for e in entries}
+    items = []
+    for slug, r in dec["results"].items():
+        e = by_slug.get(slug)
+        if e:
+            items.append((r["per_logical_ler"], e, r))
+    items.sort(key=lambda x: x[0])
+    return items
+
+
+def _dec_rows(items, p_lo):
+    def low_cell(r):
+        if not p_lo or "per_logical_ler_low" not in r:
+            return ""
+        return f'<td>{r["per_logical_ler_low"]:.4f}</td>'
+    return "".join(
+        f'<tr><td class=lbrank>{i}</td>'
+        f'<td><a href="codes/{e["slug"]}.html"><span class=mono>'
+        f'[[{e["n"]},{e["k"]},{e["d"]}]]</span></a></td>'
+        f'<td>{e["k"]}</td><td>{pl:.4f}</td>{low_cell(r)}</tr>'
+        for i, (pl, e, r) in enumerate(items, 1))
+
+
+def phenom_table(entries, dec, cc_dec):
+    """A second decoding table under multi-round phenomenological noise. Notes
+    the biggest rank move versus the code-capacity ranking (cc_dec), which is
+    the point of running it: measurement faults and the time dimension reorder
+    codes that code-capacity ties."""
+    if not dec or not dec.get("results"):
+        return ""
+    proto = dec.get("protocol", {})
+    p_hi, p_lo = proto.get("p", "?"), proto.get("p_low")
+    items = _dec_rank_items(entries, dec)
+    if not items:
+        return ""
+    move = ""
+    if cc_dec and cc_dec.get("results"):
+        cc_items = _dec_rank_items(entries, cc_dec)
+        cc_rank = {e["slug"]: i for i, (_, e, _) in enumerate(cc_items, 1)}
+        ph_rank = {e["slug"]: i for i, (_, e, _) in enumerate(items, 1)}
+        both = [e for _, e, _ in items if e["slug"] in cc_rank]
+        if both:
+            e = max(both, key=lambda e: abs(cc_rank[e["slug"]]
+                                            - ph_rank[e["slug"]]))
+            if abs(cc_rank[e["slug"]] - ph_rank[e["slug"]]) >= 2:
+                move = (f' Adding measurement faults reorders the board: '
+                        f'[[{e["n"]},{e["k"]},{e["d"]}]] is '
+                        f'#{cc_rank[e["slug"]]} under code-capacity but '
+                        f'#{ph_rank[e["slug"]]} here.')
+    rows = _dec_rows(items, p_lo)
+    lo_hdr = (f'<th>per-logical LER (p={p_lo})</th>' if p_lo else '')
+    rnd = proto.get("rounds", "?")
+    return ('<h3 class=ph style="font-size:15px;margin:22px 0 4px">'
+            'Phenomenological (multi-round)</h3>'
+            '<p class=decnote>The same per-logical metric under '
+            f'phenomenological noise: {rnd} rounds of stabilizer measurement '
+            'with measurement faults, then a perfect readout, decoded by '
+            'BP+OSD over the circuit detector error model. This adds the time '
+            'dimension and measurement errors that code-capacity ignores.'
+            f'{move} Ranked at p={p_hi}; the p={p_lo} column shows scaling.</p>'
+            '<div class=decwrap><table class=ptracks><thead><tr><th>#</th>'
+            '<th>code</th><th>k</th>'
+            f'<th>per-logical LER (p={p_hi})</th>{lo_hdr}'
+            '</tr></thead>'
+            f'<tbody>{rows}</tbody></table></div>')
+
+
+def decoding_leaderboard(entries, dec, phenom=None):
     """Operational ranking by per-logical-qubit logical error rate, computed
     server-side under the pinned code-capacity protocol (decode/results.json)."""
     if not dec or not dec.get("results"):
@@ -1203,7 +1308,8 @@ def decoding_leaderboard(entries, dec):
             f'<th title="per logical qubit at the ranking rate">per-logical '
             f'LER (p={p_hi})</th>{lo_hdr}'
             '<th>block LER</th></tr></thead>'
-            f'<tbody>{rows}</tbody></table></div></section>')
+            f'<tbody>{rows}</tbody></table></div>'
+            f'{phenom_table(entries, phenom, dec)}</section>')
 
 
 def build():
@@ -1284,7 +1390,8 @@ def build():
         P.append(f'<div class=trackbody><div class=gridcol>{cell_grid(te)}'
                  f'</div>{svg(te, fr)}</div>')
         P.append('</section>')
-    P.append(decoding_leaderboard(entries, decoding_results()))
+    P.append(decoding_leaderboard(entries, decoding_results(),
+                                  decoding_results("phenom_results.json")))
     P.append('</div>')  # close the main content wrap; footer is full-width
     P.append(
         '<footer class=foot><div class=footmain>'
@@ -1320,9 +1427,11 @@ def build():
     with open(os.path.join(DOCS, "faq.html"), "w") as f:
         f.write(faq_page())
     slugs = {e["slug"] for e in entries}
+    dec_cc = decoding_results()
+    dec_ph = decoding_results("phenom_results.json")
     for e in entries:
         with open(os.path.join(DOCS, "codes", e["slug"] + ".html"), "w") as f:
-            f.write(detail_page(e))
+            f.write(detail_page(e, dec_cc, dec_ph))
     # prune orphan detail pages left behind when a code is removed
     for f in glob.glob(os.path.join(DOCS, "codes", "*.html")):
         if os.path.splitext(os.path.basename(f))[0] not in slugs:

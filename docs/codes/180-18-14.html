@@ -253,6 +253,11 @@ position:static}header.hero h1{font-size:34px}}
 <details><summary>witness operator (support, 14 qubits)</summary><div class=wit>[96, 105, 115, 123, 124, 125, 133, 141, 150, 160, 168, 169, 170, 178]</div></details>
 <div class=kv><b>certificate</b> <span class=cert-no>none yet &middot; distance stands as a self-certified upper bound (d &le;)</span></div>
 </section>
+<section class=blk><h3>Decoding</h3>
+<div class=kv style="color:var(--mut)">Per-logical-qubit logical error rate, computed by the evaluator (lower is better). See the <a href="../index.html#decoding">Decoding leaderboard</a>.</div>
+<div class=kv><b>code-capacity</b> per-logical LER 0.0017 at p=0.04 &middot; 0.0001 at p=0.02</div>
+<div class=kv><b>phenomenological</b> per-logical LER 0.0012 at p=0.035 &middot; 0.0007 at p=0.025</div>
+</section>
 <section class=blk><h3>Construction &amp; provenance</h3>
 <div class=kv><b>authors</b> FarLab</div>
 <div class=kv><b>construction</b> Coset-based two-block (2BGA) code. Group G = metacyclic C30 |x C6 (action r=11, order 180); non-normal subgroup H=C2; qubits indexed by cosets G/H. H_X=[L(a)|R(b)], H_Z=[R(b)^T|L(a)^T] with left/right coset actions; a,b element supports [0, 8, 34, 82] / [0, 54, 76, 162] found by simulated annealing. Weight-8 checks. A generalization of bivariate bicycle codes.</div>
