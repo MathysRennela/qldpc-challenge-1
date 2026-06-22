@@ -116,7 +116,7 @@ def _vec(support, n):
     return v
 
 
-def verify(doc):
+def verify(doc, refute=False):
     report = {"name": doc.get("name") if isinstance(doc, dict) else None,
               "checks": [], "ok": True, "computed": {}, "earned_distance": {}}
 
@@ -144,13 +144,13 @@ def verify(doc):
         return report
     try:
         report["signature"] = signature(doc)
-        return _verify_semantic(doc, report, record)
+        return _verify_semantic(doc, report, record, refute)
     except Exception as e:  # never crash on a hostile submission
         record("verifier_ran", False, f"{type(e).__name__}: {e}")
         return report
 
 
-def _verify_semantic(doc, report, record):
+def _verify_semantic(doc, report, record, refute=False):
 
     n = doc["n"]
     # index bounds already gated in verify(); safe to build matrices.
@@ -225,8 +225,10 @@ def _verify_semantic(doc, report, record):
     #    search must not find a logical lighter than the claimed distance. This is
     #    SOUND -- any hit is a checkable lighter logical, so a real over-claim -- but
     #    not complete (a clean pass is "no over-claim found at this budget", not a
-    #    proof). Deterministic; tooling errors skip rather than block.
-    if earned_d:
+    #    proof). Deterministic; tooling errors skip rather than block. Opt-in
+    #    (`refute=True`): the per-submission CLI gate runs it, bulk re-verification
+    #    of the whole board (test_verifier, verify_all, build) does not.
+    if refute and earned_d:
         try:
             import heuristic_distance
             refuted, d_found, wit, ntr = heuristic_distance.refute_check(doc, seed=0)
@@ -264,7 +266,7 @@ def _verify_semantic(doc, report, record):
 def main(path):
     with open(path) as f:
         doc = json.load(f)
-    report = verify(doc)
+    report = verify(doc, refute=True)   # the per-submission CLI runs the gate
     print(json.dumps(report, indent=2))
     return 0 if report["ok"] else 1
 
