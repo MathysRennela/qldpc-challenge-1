@@ -1237,7 +1237,10 @@ def build():
             P.append('<p class=tracknote>For 2D-local codes kd&sup2;/n is '
                      'capped by a constant (Bravyi-Poulin-Terhal), unlike '
                      'general qLDPC codes where it can grow with n. The exact '
-                     'constant is open.</p>')
+                     'constant is open. Best known so far: kd&sup2;/n &asymp; '
+                     '9.75, the [[323,14,15]] tile code '
+                     '(<a href="https://arxiv.org/abs/2606.19482">arXiv:'
+                     '2606.19482</a>), the bar to beat on this track.</p>')
         P.append(table(te, fr))
         P.append(f'<div class=trackbody><div class=gridcol>{cell_grid(te)}'
                  f'</div>{svg(te, fr)}</div>')

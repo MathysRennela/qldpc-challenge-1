@@ -39,7 +39,12 @@ These are where we have data and verification today. More can be proposed by PR.
   [[399,12,18]], and the published 2BGA codes of arXiv:2606.17268.
 - `2d-local-bilayer`: geometrically 2D-local on up to 2 physical layers
   (the flip-chip regime of the bivariate-bicycle planar codes), with a stated
-  `locality` block. Ranked within a maximum interaction radius.
+  `locality` block. Ranked within a maximum interaction radius. Current best
+  known 2D-local efficiency is kd^2/n ~ 9.75, the [[323,14,15]] tile code
+  (arXiv:2606.19482; tile-code construction arXiv:2504.09171), which is the bar
+  to beat. Reaching it on the board needs a tile-code generator (planar
+  open-boundary BB with tile truncation), a possible follow-on to the existing
+  boundary engine.
 - `bivariate bicycle (periodic)`: bivariate bicycle codes on a torus
   (periodic boundary conditions), no 2D-local layout. Seeded with the
   canonical codes of Bravyi et al (arXiv:2308.07915).
