@@ -290,6 +290,8 @@ font-size:14px;font-weight:600;padding:7px 14px;
 border:1px solid rgba(255,255,255,.18);border-radius:8px;
 background:rgba(255,255,255,.06)}}
 .topnav a:hover{{background:rgba(255,255,255,.16);color:#fff}}
+.decnote{{margin:-6px 0 14px;font-size:13px;color:var(--mut);max-width:80ch}}
+.decwrap{{max-height:460px;overflow:auto}}
 .stats{{display:flex;gap:40px;margin-top:30px;flex-wrap:wrap}}
 .stat .v{{font-size:30px;font-weight:700}}.stat .l{{color:#c7d2fe;font-size:13px;
 text-transform:uppercase;letter-spacing:.05em}}
@@ -1120,6 +1122,51 @@ def faq_page():
     return "\n".join(P)
 
 
+def decoding_results():
+    p = os.path.join(ROOT, "decode", "results.json")
+    if os.path.exists(p):
+        try:
+            with open(p) as f:
+                return json.load(f)
+        except Exception:
+            return None
+    return None
+
+
+def decoding_leaderboard(entries, dec):
+    """Operational ranking by per-logical-qubit logical error rate, computed
+    server-side under the pinned code-capacity protocol (decode/results.json)."""
+    if not dec or not dec.get("results"):
+        return ""
+    by_slug = {e["slug"]: e for e in entries}
+    proto = dec.get("protocol", {})
+    items = []
+    for slug, r in dec["results"].items():
+        e = by_slug.get(slug)
+        if e:
+            items.append((r["per_logical_ler"], e, r))
+    items.sort(key=lambda x: x[0])
+    rows = "".join(
+        f'<tr><td class=lbrank>{i}</td>'
+        f'<td><a href="codes/{e["slug"]}.html"><span class=mono>'
+        f'[[{e["n"]},{e["k"]},{e["d"]}]]</span></a></td>'
+        f'<td>{e["k"]}</td><td>{pl:.4f}</td><td>{r["block_ler"]:.4f}</td></tr>'
+        for i, (pl, e, r) in enumerate(items, 1))
+    return ('<section class=progress id=decoding><h2 class=ph>Decoding</h2>'
+            '<p class=decnote>Per-logical-qubit logical error rate under '
+            f'code-capacity noise (p={proto.get("p", "?")}), decoded by '
+            f'{html.escape(proto.get("decoder", "BP+OSD"))}. Lower is better. '
+            'This ranks codes by how well they protect information, a separate '
+            'axis from (n, k, d): great parameters do not imply good decoding. '
+            'The simulation is run here, not claimed by the submitter, so the '
+            'number cannot be gamed. Code-capacity, not circuit-level.</p>'
+            '<div class=decwrap><table class=ptracks><thead><tr><th>#</th>'
+            '<th>code</th><th>k</th>'
+            '<th title="per logical qubit; lower is better">per-logical LER</th>'
+            '<th>block LER</th></tr></thead>'
+            f'<tbody>{rows}</tbody></table></div></section>')
+
+
 def build():
     entries = load_entries()
     tracks = {}
@@ -1142,6 +1189,7 @@ def build():
              '<a href="faq.html">FAQ</a>'
              f'<a href="{REPO}/CONTRIBUTING.md">How to contribute</a>'
              '<a href="#leaderboard">Leaderboard</a>'
+             '<a href="#decoding">Decoding</a>'
              f'<a href="{REPO}/TRACKS.md">Tracks</a>'
              '<a href="references.html">References</a>'
              f'<a href="{REPO_ROOT}">{GH_ICON}GitHub</a>'
@@ -1194,6 +1242,7 @@ def build():
         P.append(f'<div class=trackbody><div class=gridcol>{cell_grid(te)}'
                  f'</div>{svg(te, fr)}</div>')
         P.append('</section>')
+    P.append(decoding_leaderboard(entries, decoding_results()))
     P.append('</div>')  # close the main content wrap; footer is full-width
     P.append(
         '<footer class=foot><div class=footmain>'

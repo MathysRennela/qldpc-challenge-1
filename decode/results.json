@@ -1,0 +1,278 @@
+{
+ "protocol": {
+  "noise": "code-capacity, independent X and Z at p",
+  "p": 0.04,
+  "decoder": "BP+OSD (ldpc, osd_cs, order 10, max_iter 30)",
+  "shots": 6000,
+  "seed": 11,
+  "metric": "per-logical-qubit LER (lower is better)"
+ },
+ "results": {
+  "108-8-10": {
+   "n": 108,
+   "k": 8,
+   "block_ler": 0.024185,
+   "per_logical_ler": 0.003056,
+   "stderr": 0.001983
+  },
+  "112-6-7": {
+   "n": 112,
+   "k": 6,
+   "block_ler": 0.049202,
+   "per_logical_ler": 0.008374,
+   "stderr": 0.002792
+  },
+  "120-5-8": {
+   "n": 120,
+   "k": 5,
+   "block_ler": 0.030598,
+   "per_logical_ler": 0.006196,
+   "stderr": 0.002223
+  },
+  "126-28-8": {
+   "n": 126,
+   "k": 28,
+   "block_ler": 0.146226,
+   "per_logical_ler": 0.00563,
+   "stderr": 0.004562
+  },
+  "128-6-8": {
+   "n": 128,
+   "k": 6,
+   "block_ler": 0.034864,
+   "per_logical_ler": 0.005897,
+   "stderr": 0.002368
+  },
+  "128-8-6": {
+   "n": 128,
+   "k": 8,
+   "block_ler": 0.054731,
+   "per_logical_ler": 0.007011,
+   "stderr": 0.002936
+  },
+  "144-12-12": {
+   "n": 144,
+   "k": 12,
+   "block_ler": 0.026325,
+   "per_logical_ler": 0.002221,
+   "stderr": 0.002067
+  },
+  "153-5-9": {
+   "n": 153,
+   "k": 5,
+   "block_ler": 0.019076,
+   "per_logical_ler": 0.003845,
+   "stderr": 0.001766
+  },
+  "16-2-4": {
+   "n": 16,
+   "k": 2,
+   "block_ler": 0.134015,
+   "per_logical_ler": 0.069417,
+   "stderr": 0.004398
+  },
+  "160-6-9": {
+   "n": 160,
+   "k": 6,
+   "block_ler": 0.031043,
+   "per_logical_ler": 0.005242,
+   "stderr": 0.002239
+  },
+  "180-18-14": {
+   "n": 180,
+   "k": 18,
+   "block_ler": 0.030103,
+   "per_logical_ler": 0.001697,
+   "stderr": 0.002206
+  },
+  "180-20-14": {
+   "n": 180,
+   "k": 20,
+   "block_ler": 0.036004,
+   "per_logical_ler": 0.001832,
+   "stderr": 0.002405
+  },
+  "180-6-10": {
+   "n": 180,
+   "k": 6,
+   "block_ler": 0.02306,
+   "per_logical_ler": 0.003881,
+   "stderr": 0.001938
+  },
+  "198-12-7": {
+   "n": 198,
+   "k": 12,
+   "block_ler": 0.07907,
+   "per_logical_ler": 0.006841,
+   "stderr": 0.003484
+  },
+  "200-8-9": {
+   "n": 200,
+   "k": 8,
+   "block_ler": 0.024023,
+   "per_logical_ler": 0.003035,
+   "stderr": 0.001977
+  },
+  "231-5-11": {
+   "n": 231,
+   "k": 5,
+   "block_ler": 0.008316,
+   "per_logical_ler": 0.001669,
+   "stderr": 0.001172
+  },
+  "240-6-11": {
+   "n": 240,
+   "k": 6,
+   "block_ler": 0.013637,
+   "per_logical_ler": 0.002286,
+   "stderr": 0.001497
+  },
+  "25-1-5": {
+   "n": 25,
+   "k": 1,
+   "block_ler": 0.02682,
+   "per_logical_ler": 0.02682,
+   "stderr": 0.002086
+  },
+  "264-6-12": {
+   "n": 264,
+   "k": 6,
+   "block_ler": 0.011477,
+   "per_logical_ler": 0.001922,
+   "stderr": 0.001375
+  },
+  "288-12-18": {
+   "n": 288,
+   "k": 12,
+   "block_ler": 0.07792,
+   "per_logical_ler": 0.006737,
+   "stderr": 0.00346
+  },
+  "288-8-12": {
+   "n": 288,
+   "k": 8,
+   "block_ler": 0.006656,
+   "per_logical_ler": 0.000834,
+   "stderr": 0.00105
+  },
+  "299-5-13": {
+   "n": 299,
+   "k": 5,
+   "block_ler": 0.007325,
+   "per_logical_ler": 0.001469,
+   "stderr": 0.001101
+  },
+  "336-6-14": {
+   "n": 336,
+   "k": 6,
+   "block_ler": 0.007327,
+   "per_logical_ler": 0.001225,
+   "stderr": 0.001101
+  },
+  "36-2-6": {
+   "n": 36,
+   "k": 2,
+   "block_ler": 0.061687,
+   "per_logical_ler": 0.031334,
+   "stderr": 0.003106
+  },
+  "42-8-3": {
+   "n": 42,
+   "k": 8,
+   "block_ler": 0.239643,
+   "per_logical_ler": 0.033666,
+   "stderr": 0.005511
+  },
+  "45-5-4": {
+   "n": 45,
+   "k": 5,
+   "block_ler": 0.139309,
+   "per_logical_ler": 0.029558,
+   "stderr": 0.00447
+  },
+  "49-1-7": {
+   "n": 49,
+   "k": 1,
+   "block_ler": 0.015606,
+   "per_logical_ler": 0.015606,
+   "stderr": 0.0016
+  },
+  "50-6-4": {
+   "n": 50,
+   "k": 6,
+   "block_ler": 0.194862,
+   "per_logical_ler": 0.035479,
+   "stderr": 0.005114
+  },
+  "56-2-8": {
+   "n": 56,
+   "k": 2,
+   "block_ler": 0.029613,
+   "per_logical_ler": 0.014918,
+   "stderr": 0.002188
+  },
+  "64-2-8": {
+   "n": 64,
+   "k": 2,
+   "block_ler": 0.031909,
+   "per_logical_ler": 0.016084,
+   "stderr": 0.002269
+  },
+  "66-5-5": {
+   "n": 66,
+   "k": 5,
+   "block_ler": 0.082247,
+   "per_logical_ler": 0.017019,
+   "stderr": 0.003547
+  },
+  "7-1-3": {
+   "n": 7,
+   "k": 1,
+   "block_ler": 0.11281,
+   "per_logical_ler": 0.11281,
+   "stderr": 0.004084
+  },
+  "72-12-6": {
+   "n": 72,
+   "k": 12,
+   "block_ler": 0.157127,
+   "per_logical_ler": 0.014144,
+   "stderr": 0.004698
+  },
+  "72-6-6": {
+   "n": 72,
+   "k": 6,
+   "block_ler": 0.112997,
+   "per_logical_ler": 0.019786,
+   "stderr": 0.004087
+  },
+  "81-1-9": {
+   "n": 81,
+   "k": 1,
+   "block_ler": 0.007984,
+   "per_logical_ler": 0.007984,
+   "stderr": 0.001149
+  },
+  "88-6-6": {
+   "n": 88,
+   "k": 6,
+   "block_ler": 0.066603,
+   "per_logical_ler": 0.011422,
+   "stderr": 0.003219
+  },
+  "90-8-10": {
+   "n": 90,
+   "k": 8,
+   "block_ler": 0.038129,
+   "per_logical_ler": 0.004848,
+   "stderr": 0.002472
+  },
+  "91-5-7": {
+   "n": 91,
+   "k": 5,
+   "block_ler": 0.04319,
+   "per_logical_ler": 0.008791,
+   "stderr": 0.002624
+  }
+ }
+}
