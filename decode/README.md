@@ -51,6 +51,31 @@ Validated against the toric code (`validate_phenom.py`): the d=3,5,7 curves
 cross near the known phenomenological threshold, and the general BP+OSD path
 agrees with exact pymatching on the same circuit.
 
+## Protocol (circuit-level)
+
+Noise on every gate of an explicit syndrome-extraction circuit, the closest of
+the three to a real device. Reported as a third table under the Decoding
+section.
+
+- Circuit: one ancilla per stabilizer. The two stabilizer types are extracted
+  in separate phases per round (they commute for a CSS code, so sequential
+  extraction keeps every syndrome bit deterministic; a single interleaved
+  schedule does not). The CX gates are scheduled into conflict-free layers by a
+  greedy edge colouring of the Tanner graph.
+- Noise: depolarizing on every CX (DEPOLARIZE2), flip noise after each reset and
+  on each measurement outcome, and idle depolarizing on data qubits not engaged
+  in the current CX layer. T rounds, then a perfect transversal readout.
+- Decoder: BP+OSD over the (undecomposed) circuit detector error model, same as
+  the phenomenological path.
+- Schedule caveat: a greedy colouring is conflict-free but not distance-optimal.
+  A bad CX order creates hook errors that lower the effective circuit distance,
+  so for a general code these numbers are a conservative read of what a tuned
+  schedule could reach, not the best achievable. Stated on the site too.
+
+Validated against the toric code (`validate_circuit.py`): the d=3,5,7 curves
+cross in the known circuit-level threshold region and the general BP+OSD path
+agrees with exact pymatching on the same circuit.
+
 ## Files
 
 - `eval.py` — the evaluator. `logical_error_rate(HX, HZ, p, shots, seed)`
