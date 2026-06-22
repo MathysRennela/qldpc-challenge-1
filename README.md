@@ -9,6 +9,8 @@
 ![tracks](docs/badges/tracks.svg)
 ![best kd²/n](docs/badges/best-eff.svg)
 
+Live leaderboard: https://unitaryfoundation.github.io/qldpc-challenge/
+
 A public, automatically verified leaderboard for quantum low-density
 parity-check (qLDPC) codes. Submit a code, the verifier checks it, and if it
 holds up it goes on the board.
