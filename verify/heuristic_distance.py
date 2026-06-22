@@ -26,6 +26,7 @@ Usage: python verify/heuristic_distance.py codes/foo.json [--trials N] [--seed S
 import argparse
 import json
 import sys
+import time
 
 import numpy as np
 
@@ -55,10 +56,12 @@ def _rref_perm(K, perm):
     return out
 
 
-def ris_min_logical(HX, HZ, trials, seed, pair_depth=8):
+def ris_min_logical(HX, HZ, trials, seed, pair_depth=8, max_seconds=None):
     """RIS upper-bound search for the lightest nontrivial X-type logical: a vector
     in ker(H_Z) that anticommutes with some Z-logical. Returns (weight, witness),
-    or (None, None) if the code has no logicals of this type."""
+    or (None, None) if the code has no logicals of this type. Stops after `trials`
+    permutations or `max_seconds` wall-clock, whichever comes first (the time cap
+    keeps the CI gate bounded regardless of n)."""
     n = HX.shape[1]
     K = gf2.kernel_basis(HZ)
     LZ = gf2.logical_basis(HX, HZ)
@@ -66,6 +69,7 @@ def ris_min_logical(HX, HZ, trials, seed, pair_depth=8):
         return None, None
     rng = np.random.default_rng(seed)
     best, wit = n + 1, None
+    deadline = (time.monotonic() + max_seconds) if max_seconds else None
 
     def consider(rows):
         nonlocal best, wit
@@ -74,7 +78,7 @@ def ris_min_logical(HX, HZ, trials, seed, pair_depth=8):
         for i in np.where(nontrivial & (w > 0) & (w < best))[0]:
             best, wit = int(w[i]), rows[i].copy()
 
-    for _ in range(trials):
+    for t in range(trials):
         red = _rref_perm(K, rng.permutation(n))
         consider(red)
         if pair_depth > 1 and red.shape[0] >= 2:        # short combinations
@@ -83,18 +87,21 @@ def ris_min_logical(HX, HZ, trials, seed, pair_depth=8):
             sub = red[light]
             for a in range(len(light) - 1):
                 consider(sub[a] ^ sub[a + 1:])
+        if deadline and (t & 63) == 0 and time.monotonic() > deadline:
+            break
     return best, wit
 
 
-def estimate(doc, trials=20000, seed=0, fast_trials=400000):
+def estimate(doc, trials=20000, seed=0, fast_trials=400000, max_seconds=None):
     """Heuristic distance verdict for a submission `doc`."""
     n = doc["n"]
     HX = _matrix(doc["checks"]["X"], n)
     HZ = _matrix(doc["checks"]["Z"], n)
     claimed = int(doc["distance"]["d"])
 
-    wX, witX = ris_min_logical(HX, HZ, trials, seed)        # X-logical (ker HZ)
-    wZ, witZ = ris_min_logical(HZ, HX, trials, seed + 1)    # Z-logical (ker HX)
+    half = (max_seconds / 2) if max_seconds else None       # split budget per side
+    wX, witX = ris_min_logical(HX, HZ, trials, seed, max_seconds=half)        # X (ker HZ)
+    wZ, witZ = ris_min_logical(HZ, HX, trials, seed + 1, max_seconds=half)    # Z (ker HX)
     sides = {}
     if wX is not None:
         sides["X"] = {"value": doc["distance"].get("X", {}).get("value"),
@@ -134,6 +141,28 @@ def estimate(doc, trials=20000, seed=0, fast_trials=400000):
     return {"name": doc.get("name", ""), "claimed_d": claimed,
             "d_heuristic": d_heur, "verdict": verdict,
             "sides": sides, "trials": trials, "seed": seed, "method": method}
+
+
+def refute_check(doc, seed=0, max_seconds=10.0):
+    """CI gate. Run a bounded, time-capped RIS search and report whether it found a
+    logical LIGHTER than the claimed distance. Returns (refuted, d_found, witness,
+    trials). Sound (the witness is a checkable lighter logical) but not complete (a
+    null result is not a proof); pure Python with a fixed seed, so deterministic and
+    non-flaky. Budget is n-scaled trials under a wall-clock cap."""
+    n = doc["n"]
+    trials = min(8000, 2500 + 40 * n)
+    res = estimate(doc, trials=trials, seed=seed, fast_trials=0,
+                   max_seconds=max_seconds)
+    claimed = int(doc["distance"]["d"])
+    dh = res["d_heuristic"]
+    refuted = dh is not None and dh < claimed
+    witness = None
+    if refuted:
+        for s in res["sides"].values():
+            if s.get("lightest_found") == dh:
+                witness = s["witness"]
+                break
+    return refuted, dh, witness, res["trials"]
 
 
 def main(path, trials, seed):

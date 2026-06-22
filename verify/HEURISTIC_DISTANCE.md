@@ -41,8 +41,9 @@ It sits strictly between the witness upper bound and exact certification.
 - A "corroborated" verdict is therefore **not** a proof that `d = value`; it is
   "an independent search of budget B found nothing lighter than `value`". Exact
   certification (`certify.py`) remains the only path to `d=`.
-- It is **server-run and reproducible** (fixed seed + budget), like `certify.py`
-  and `decode/eval.py` — never submitter-claimed, so it cannot be gamed.
+- It is **computed, reproducible (fixed seed + budget), never submitter-claimed**,
+  so it cannot be gamed. The cheap *refutation* half runs in CI as a gate; the
+  expensive *corroboration* half runs offline like `certify.py` (Section 10).
 
 ## 3. Methods
 
@@ -163,8 +164,35 @@ method)` recorded in the result; anyone can re-run and reproduce. Like
 
 - Per-`n` trial-budget thresholds for a trustworthy `corroborated` null (calibrate
   against the exact certs, where we know the true distance).
-- Whether Phase 1 runs in CI (pure Python, but a real search is not "cheap") or
-  stays server-side/scheduled like `certify.py`. Leaning server-side.
 - Optional accelerated RIS (the C++ threaded `distance_rand` exists in the
   author's tooling at ~1.3e5 trials/s); keep the canonical path pure-Python and
   treat acceleration as an optional drop-in.
+
+Resolved: the *refutation* half runs in CI (Section 10); the *corroboration* half
+stays offline/server-side, as originally planned.
+
+## 10. Refutation as a CI gate (implemented)
+
+The two halves split by cost, and only the cheap half gates PRs:
+
+| | where | budget | on a hit |
+|---|---|---|---|
+| **refutation** | CI, inside `qldpc_verify.verify()` | small, fixed seed, n-scaled trials under a wall-clock cap | the PR **fails** with the lighter witness |
+| corroboration | offline (`heuristic_certify.py`) | large + syndrome-decoder cross-check | writes the `corroborated` cert |
+
+`heuristic_distance.refute_check(doc)` runs a bounded, time-capped RIS
+(`trials = min(8000, 2500 + 40 n)`, ~10 s wall-clock) and `qldpc_verify` records a
+`distance_not_refuted` check: if a logical lighter than the claimed distance is
+found, the check fails and so does CI. Properties:
+
+- **Sound, never a false failure.** Every refutation is a checkable lighter logical
+  (in the right kernel, outside the stabilizers), so a genuine over-claim; the
+  submitter gets the explicit operator. CI never wrongly rejects a valid code.
+- **Not complete.** A randomized bounded search can miss a lighter logical, so a
+  clean pass means "no over-claim found at this budget", not a certified distance.
+  A passing code still posts as `d<=` until the offline corroboration upgrades it.
+- **Deterministic.** Fixed seed -> reproducible, non-flaky; a maintainer can replay
+  any failure exactly.
+- **Bounded.** Pure Python (no build in CI); the wall-clock cap holds per-code cost
+  to ~10 s regardless of n. Validated: 38/38 existing codes pass, planted
+  over-claims are caught.

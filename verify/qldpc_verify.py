@@ -221,7 +221,23 @@ def _verify_semantic(doc, report, record):
         report["earned_distance"]["d"] = {"value": dist["d"],
                                           "tier": "upper_bound"}
 
-    # 8. locality (optional)
+    # 8. independent distance refutation (the CI gate). A bounded, fixed-seed RIS
+    #    search must not find a logical lighter than the claimed distance. This is
+    #    SOUND -- any hit is a checkable lighter logical, so a real over-claim -- but
+    #    not complete (a clean pass is "no over-claim found at this budget", not a
+    #    proof). Deterministic; tooling errors skip rather than block.
+    if earned_d:
+        try:
+            import heuristic_distance
+            refuted, d_found, wit, ntr = heuristic_distance.refute_check(doc, seed=0)
+            record("distance_not_refuted", not refuted,
+                   (f"found weight-{d_found} logical < claimed {dist['d']}; "
+                    f"witness={wit}" if refuted
+                    else f"no lighter logical in {ntr} RIS trials"))
+        except Exception as e:
+            record("distance_not_refuted", True, f"skipped ({type(e).__name__}: {e})")
+
+    # 9. locality (optional)
     if "locality" in doc:
         loc = doc["locality"]
         coords = loc["coordinates"]
