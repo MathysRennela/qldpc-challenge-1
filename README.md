@@ -60,6 +60,7 @@ verify/    the verifier (gf2.py is the GF(2) core; qldpc_verify.py is the checke
 examples/  worked examples that pass verification
 codes/     accepted submissions (the leaderboard data)
 certs/     server-side exact-distance certificates, one per certified code
+decode/    decoding-track evaluator (BP+OSD code-capacity LER) + leaderboard data
 site/      build.py, which generates the static site into docs/
 docs/      the generated site (index, per-code pages, references, badges)
 refs.bib   bibliography; references.html is generated from it
