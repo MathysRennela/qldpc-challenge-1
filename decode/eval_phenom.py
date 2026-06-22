@@ -220,11 +220,12 @@ def build_z_memory(HZ, z_supports, p, rounds):
     return c
 
 
-def _bposd_decode(circuit, shots, seed, max_iter=40, osd_order=10):
+def _bposd_decode(circuit, shots, seed, max_iter=40, osd_order=10,
+                  bp_method="product_sum", osd_method="osd_cs"):
     dem = circuit.detector_error_model(decompose_errors=False)
     H, L, priors = dem_to_matrices(dem)
     dec = BpOsdDecoder(H, channel_probs=list(priors), max_iter=max_iter,
-                       bp_method="product_sum", osd_method="osd_cs",
+                       bp_method=bp_method, osd_method=osd_method,
                        osd_order=osd_order)
     sampler = circuit.compile_detector_sampler(seed=seed)
     det, obs = sampler.sample(shots=shots, separate_observables=True)
