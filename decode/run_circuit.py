@@ -53,10 +53,10 @@ def save():
 only = set(a for a in sys.argv[1:])
 
 
-def _nk(path):  # sort smallest first (by n, then k) so coverage builds fast
-    s = os.path.splitext(os.path.basename(path))[0].split("-")
-    try:
-        return (int(s[0]), int(s[1]))
+def _nk(path):  # cheapest first; circuit cost ~ n*k (observables x DEM size),
+    s = os.path.splitext(os.path.basename(path))[0].split("-")  # so high-k/large
+    try:                                                        # codes run last
+        return (int(s[0]) * int(s[1]), int(s[0]))
     except Exception:
         return (1 << 30, 0)
 
