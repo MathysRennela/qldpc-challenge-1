@@ -4,10 +4,10 @@
 
 # qLDPC Challenge
 
-![codes](docs/badges/codes.svg)
-![certified exact](docs/badges/certified.svg)
-![tracks](docs/badges/tracks.svg)
-![best kd²/n](docs/badges/best-eff.svg)
+[![codes](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Funitaryfoundation.github.io%2Fqldpc-challenge%2Fstats.json&query=%24.verified_codes&label=codes&color=blue)](https://unitaryfoundation.github.io/qldpc-challenge/)
+[![certified exact](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Funitaryfoundation.github.io%2Fqldpc-challenge%2Fstats.json&query=%24.certified_exact&label=certified%20exact&color=brightgreen)](https://unitaryfoundation.github.io/qldpc-challenge/)
+[![tracks](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Funitaryfoundation.github.io%2Fqldpc-challenge%2Fstats.json&query=%24.tracks&label=tracks&color=blue)](https://unitaryfoundation.github.io/qldpc-challenge/)
+[![best kd²/n](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Funitaryfoundation.github.io%2Fqldpc-challenge%2Fstats.json&query=%24.best_kd2_over_n&label=best%20kd2%2Fn&color=blueviolet)](https://unitaryfoundation.github.io/qldpc-challenge/)
 
 Live leaderboard: https://unitaryfoundation.github.io/qldpc-challenge/
 
@@ -18,9 +18,10 @@ holds up it goes on the board.
 The leaderboard site is generated into `docs/` by `site/build.py` (run `uv run
 python site/build.py`); open `docs/index.html` to view it.
 
-The badges above are regenerated on every build from the live board data
-(`docs/stats.json`), so they track the current numbers rather than a hand-typed
-count.
+The badges above are rendered by shields.io from the published board data
+(the live `stats.json`), so they always reflect the current numbers. They read
+the deployed file directly rather than a committed image, so nothing has to be
+regenerated and re-committed to keep them in sync.
 
 Unlike a single-number competition, a quantum code trades several quantities
 against each other (physical qubits n, logical qubits k, distance d, check

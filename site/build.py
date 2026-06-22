@@ -165,49 +165,6 @@ HEX_MARK = (
     f'<circle cx="32" cy="14" r="6.5" fill="{GREEN_BRIGHT}"/></svg>')
 
 
-def _txt_w(s):
-    """Rough pixel width of a string at 11px Verdana, for badge sizing."""
-    w = 0.0
-    for c in s:
-        if c in "iIl.:|'!,;":
-            w += 3.2
-        elif c in "ftjr ()":
-            w += 4.2
-        elif c in "mwMW":
-            w += 9.5
-        elif c.isupper():
-            w += 7.5
-        else:
-            w += 6.6
-    return w
-
-
-def shield(label, value, color="#4f46e5"):
-    """A self-contained shields.io-style flat badge as an SVG string. No
-    external service, so it works for a private repo and updates on rebuild."""
-    lw = round(_txt_w(label) + 12)
-    vw = round(_txt_w(str(value)) + 12)
-    W = lw + vw
-    lab, val = html.escape(label), html.escape(str(value))
-    return (
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="20" '
-        f'role="img" aria-label="{lab}: {val}">'
-        f'<linearGradient id="s" x2="0" y2="100%">'
-        f'<stop offset="0" stop-color="#bbb" stop-opacity=".1"/>'
-        f'<stop offset="1" stop-opacity=".1"/></linearGradient>'
-        f'<clipPath id="r"><rect width="{W}" height="20" rx="3" fill="#fff"/>'
-        f'</clipPath><g clip-path="url(#r)">'
-        f'<rect width="{lw}" height="20" fill="#555"/>'
-        f'<rect x="{lw}" width="{vw}" height="20" fill="{color}"/>'
-        f'<rect width="{W}" height="20" fill="url(#s)"/></g>'
-        f'<g fill="#fff" text-anchor="middle" font-size="11" '
-        f'font-family="Verdana,DejaVu Sans,Geneva,sans-serif">'
-        f'<text x="{lw/2:.0f}" y="15" fill="#010101" fill-opacity=".3">{lab}</text>'
-        f'<text x="{lw/2:.0f}" y="14">{lab}</text>'
-        f'<text x="{lw+vw/2:.0f}" y="15" fill="#010101" fill-opacity=".3">{val}</text>'
-        f'<text x="{lw+vw/2:.0f}" y="14">{val}</text></g></svg>')
-
-
 # GitHub mark (official octocat silhouette), inherits the link color.
 GH_ICON = ('<svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" '
            'aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 '
@@ -753,7 +710,7 @@ def cell_grid(te):
             'open territory (no code there yet)</span></div>')
 
 
-def detail_page(e, dec=None, phenom=None):
+def detail_page(e, dec=None, phenom=None, circuit=None):
     doc, cert = e["doc"], e["cert"]
     n, k, d = e["n"], e["k"], e["d"]
     P = [head(f"[[{n},{k},{d}]] · qLDPC Challenge", rel="../")]
@@ -844,7 +801,9 @@ def detail_page(e, dec=None, phenom=None):
     cc_line = _dec_line(dec, (dec or {}).get("protocol", {}), "code-capacity")
     ph_line = _dec_line(phenom, (phenom or {}).get("protocol", {}),
                         "phenomenological")
-    if cc_line or ph_line:
+    ci_line = _dec_line(circuit, (circuit or {}).get("protocol", {}),
+                        "circuit-level")
+    if cc_line or ph_line or ci_line:
         P.append('<section class=blk><h3>Decoding</h3>')
         P.append('<div class=kv style="color:var(--mut)">Per-logical-qubit '
                  'logical error rate, computed by the evaluator (lower is '
@@ -852,6 +811,7 @@ def detail_page(e, dec=None, phenom=None):
                  'leaderboard</a>.</div>')
         P.append(cc_line)
         P.append(ph_line)
+        P.append(ci_line)
         P.append('</section>')
 
     # construction / provenance
@@ -1205,11 +1165,10 @@ def _dec_rows(items, p_lo):
         for i, (pl, e, r) in enumerate(items, 1))
 
 
-def phenom_table(entries, dec, cc_dec):
-    """A second decoding table under multi-round phenomenological noise. Notes
-    the biggest rank move versus the code-capacity ranking (cc_dec), which is
-    the point of running it: measurement faults and the time dimension reorder
-    codes that code-capacity ties."""
+def _dec_subtable(entries, dec, ref_dec, ref_label, title, intro):
+    """A secondary decoding table (phenomenological or circuit-level) ranked by
+    the same per-logical metric, with a note on the biggest rank move versus a
+    reference ranking (ref_dec), which is the point of the heavier model."""
     if not dec or not dec.get("results"):
         return ""
     proto = dec.get("protocol", {})
@@ -1218,30 +1177,23 @@ def phenom_table(entries, dec, cc_dec):
     if not items:
         return ""
     move = ""
-    if cc_dec and cc_dec.get("results"):
-        cc_items = _dec_rank_items(entries, cc_dec)
-        cc_rank = {e["slug"]: i for i, (_, e, _) in enumerate(cc_items, 1)}
-        ph_rank = {e["slug"]: i for i, (_, e, _) in enumerate(items, 1)}
-        both = [e for _, e, _ in items if e["slug"] in cc_rank]
+    if ref_dec and ref_dec.get("results"):
+        ref_rank = {e["slug"]: i for i, (_, e, _)
+                    in enumerate(_dec_rank_items(entries, ref_dec), 1)}
+        cur_rank = {e["slug"]: i for i, (_, e, _) in enumerate(items, 1)}
+        both = [e for _, e, _ in items if e["slug"] in ref_rank]
         if both:
-            e = max(both, key=lambda e: abs(cc_rank[e["slug"]]
-                                            - ph_rank[e["slug"]]))
-            if abs(cc_rank[e["slug"]] - ph_rank[e["slug"]]) >= 2:
-                move = (f' Adding measurement faults reorders the board: '
-                        f'[[{e["n"]},{e["k"]},{e["d"]}]] is '
-                        f'#{cc_rank[e["slug"]]} under code-capacity but '
-                        f'#{ph_rank[e["slug"]]} here.')
+            e = max(both, key=lambda e: abs(ref_rank[e["slug"]]
+                                            - cur_rank[e["slug"]]))
+            if abs(ref_rank[e["slug"]] - cur_rank[e["slug"]]) >= 2:
+                move = (f' Versus {ref_label}, [[{e["n"]},{e["k"]},{e["d"]}]] '
+                        f'moves from #{ref_rank[e["slug"]]} to '
+                        f'#{cur_rank[e["slug"]]}.')
     rows = _dec_rows(items, p_lo)
     lo_hdr = (f'<th>per-logical LER (p={p_lo})</th>' if p_lo else '')
-    rnd = proto.get("rounds", "?")
-    return ('<h3 class=ph style="font-size:15px;margin:22px 0 4px">'
-            'Phenomenological (multi-round)</h3>'
-            '<p class=decnote>The same per-logical metric under '
-            f'phenomenological noise: {rnd} rounds of stabilizer measurement '
-            'with measurement faults, then a perfect readout, decoded by '
-            'BP+OSD over the circuit detector error model. This adds the time '
-            'dimension and measurement errors that code-capacity ignores.'
-            f'{move} Ranked at p={p_hi}; the p={p_lo} column shows scaling.</p>'
+    return (f'<h3 class=ph style="font-size:15px;margin:22px 0 4px">{title}</h3>'
+            f'<p class=decnote>{intro}{move} Ranked at p={p_hi}; the p={p_lo} '
+            'column shows scaling.</p>'
             '<div class=decwrap><table class=ptracks><thead><tr><th>#</th>'
             '<th>code</th><th>k</th>'
             f'<th>per-logical LER (p={p_hi})</th>{lo_hdr}'
@@ -1249,7 +1201,31 @@ def phenom_table(entries, dec, cc_dec):
             f'<tbody>{rows}</tbody></table></div>')
 
 
-def decoding_leaderboard(entries, dec, phenom=None):
+def phenom_table(entries, dec, cc_dec):
+    rnd = (dec or {}).get("protocol", {}).get("rounds", "?")
+    intro = (f'The same per-logical metric under phenomenological noise: {rnd} '
+             'rounds of stabilizer measurement with measurement faults, then a '
+             'perfect readout, decoded by BP+OSD over the circuit detector '
+             'error model. This adds the time dimension and measurement errors '
+             'that code-capacity ignores.')
+    return _dec_subtable(entries, dec, cc_dec, "code-capacity",
+                         "Phenomenological (multi-round)", intro)
+
+
+def circuit_table(entries, dec, ref_dec):
+    rnd = (dec or {}).get("protocol", {}).get("rounds", "?")
+    intro = (f'The same per-logical metric under circuit-level noise: an '
+             f'explicit syndrome-extraction circuit ({rnd} rounds) with '
+             'depolarizing noise on every CX, reset, idle step, and '
+             'measurement, decoded by BP+OSD over the circuit detector error '
+             'model. The CX schedule is a generic greedy colouring, not a '
+             'distance-optimal one, so these are a conservative read of what a '
+             'tuned schedule could reach.')
+    return _dec_subtable(entries, dec, ref_dec, "phenomenological",
+                         "Circuit-level", intro)
+
+
+def decoding_leaderboard(entries, dec, phenom=None, circuit=None):
     """Operational ranking by per-logical-qubit logical error rate, computed
     server-side under the pinned code-capacity protocol (decode/results.json)."""
     if not dec or not dec.get("results"):
@@ -1309,7 +1285,8 @@ def decoding_leaderboard(entries, dec, phenom=None):
             f'LER (p={p_hi})</th>{lo_hdr}'
             '<th>block LER</th></tr></thead>'
             f'<tbody>{rows}</tbody></table></div>'
-            f'{phenom_table(entries, phenom, dec)}</section>')
+            f'{phenom_table(entries, phenom, dec)}'
+            f'{circuit_table(entries, circuit, phenom or dec)}</section>')
 
 
 def build():
@@ -1391,7 +1368,8 @@ def build():
                  f'</div>{svg(te, fr)}</div>')
         P.append('</section>')
     P.append(decoding_leaderboard(entries, decoding_results(),
-                                  decoding_results("phenom_results.json")))
+                                  decoding_results("phenom_results.json"),
+                                  decoding_results("circuit_results.json")))
     P.append('</div>')  # close the main content wrap; footer is full-width
     P.append(
         '<footer class=foot><div class=footmain>'
@@ -1429,32 +1407,24 @@ def build():
     slugs = {e["slug"] for e in entries}
     dec_cc = decoding_results()
     dec_ph = decoding_results("phenom_results.json")
+    dec_ci = decoding_results("circuit_results.json")
     for e in entries:
         with open(os.path.join(DOCS, "codes", e["slug"] + ".html"), "w") as f:
-            f.write(detail_page(e, dec_cc, dec_ph))
+            f.write(detail_page(e, dec_cc, dec_ph, dec_ci))
     # prune orphan detail pages left behind when a code is removed
     for f in glob.glob(os.path.join(DOCS, "codes", "*.html")):
         if os.path.splitext(os.path.basename(f))[0] not in slugs:
             os.remove(f)
 
-    # machine-readable stats + self-contained badges the README links to.
+    # machine-readable stats; the README badges (shields.io dynamic JSON) read
+    # this file from the live site, so there is no committed badge image to fall
+    # out of sync.
     stats = {"verified_codes": len(entries), "certified_exact": n_exact,
              "tracks": len(tracks), "best_kd2_over_n": best_eff}
     with open(os.path.join(DOCS, "stats.json"), "w") as f:
         json.dump(stats, f, indent=2)
-    badges = {
-        "codes": shield("codes", len(entries), ACCENT),
-        "certified": shield("certified exact", n_exact, EXACT),
-        "tracks": shield("tracks", len(tracks), ACCENT),
-        "best-eff": shield("best kd²/n", f"{best_eff:g}", ACCENT),
-    }
-    bdir = os.path.join(DOCS, "badges")
-    os.makedirs(bdir, exist_ok=True)
-    for name, svg_data in badges.items():
-        with open(os.path.join(bdir, name + ".svg"), "w") as f:
-            f.write(svg_data)
     print(f"wrote docs/index.html + {len(entries)} detail pages + "
-          f"references.html ({len(REFS)} refs) + {len(badges)} badges, "
+          f"references.html ({len(REFS)} refs), "
           f"{len(tracks)} tracks, {n_exact} certified exact")
 
 
