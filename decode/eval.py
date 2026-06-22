@@ -62,18 +62,24 @@ def _side_failures(H, H_opp, p, shots, rng):
 
 
 def logical_error_rate(HX, HZ, p, shots=20000, seed=0):
-    """Per-block LER under code-capacity noise (a shot fails if X or Z fails)."""
+    """LER under code-capacity noise (a shot fails if the X or Z side fails).
+
+    Reports both block LER and per-logical-qubit LER. Per-logical is the fair
+    metric for ranking codes of different k (block LER penalizes high-k codes,
+    which have more logical operators that can fail); it is the recommended
+    decoding-track metric.
+    """
     rng = np.random.default_rng(seed)
+    k = HX.shape[1] - gf2.rank(HX) - gf2.rank(HZ)
     # decode X errors via H_Z (residual tested against rowspace(H_X)); Z mirrors
     fx = _side_failures(HZ, HX, p, shots, rng)
     fz = _side_failures(HX, HZ, p, shots, rng)
-    # union bound on a per-shot basis is not exact across separate draws, so
-    # report each side; block LER approximated as fx/shots + fz/shots - product
     lx, lz = fx / shots, fz / shots
-    ler = lx + lz - lx * lz
+    ler = lx + lz - lx * lz                      # block LER
+    per_logical = 1 - (1 - ler) ** (1 / k) if k else ler
     err = (ler * (1 - ler) / shots) ** 0.5
-    return {"p": p, "ler": ler, "ler_X": lx, "ler_Z": lz,
-            "stderr": err, "shots": shots}
+    return {"p": p, "k": k, "ler": ler, "ler_per_logical": per_logical,
+            "ler_X": lx, "ler_Z": lz, "stderr": err, "shots": shots}
 
 
 if __name__ == "__main__":
@@ -81,5 +87,6 @@ if __name__ == "__main__":
     p = float(sys.argv[2]) if len(sys.argv) > 2 else 0.05
     shots = int(sys.argv[3]) if len(sys.argv) > 3 else 20000
     r = logical_error_rate(HX, HZ, p, shots=shots, seed=1)
-    print(f"[[{n},{k}]] p={p}: LER={r['ler']:.4g} +- {r['stderr']:.2g} "
+    print(f"[[{n},{k}]] p={p}: block_LER={r['ler']:.4g} +- {r['stderr']:.2g}, "
+          f"per_logical={r['ler_per_logical']:.4g} "
           f"(X={r['ler_X']:.4g} Z={r['ler_Z']:.4g}, {shots} shots)")
