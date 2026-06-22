@@ -23,4 +23,4 @@ jobs:
       - name: verify all submissions
         run: uv run --frozen python verify/verify_all.py
       - name: distance refutation gate (changed submissions only)
-        run: uv run --frozen python verify/gate_changed.py origin/${{ github.base_ref || 'main' }}
+        run: uv run --frozen --with ldpc python verify/gate_changed.py origin/${{ github.base_ref || 'main' }}

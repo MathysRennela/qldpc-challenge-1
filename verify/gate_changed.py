@@ -1,10 +1,12 @@
 """Distance-refutation gate for the codes changed in a PR (CI).
 
-Runs the bounded, fixed-seed RIS refutation (heuristic_distance.refute_check) only
-on the code/example submissions changed in this PR, and exits non-zero if any of
-them over-claims its distance (an independent search finds a lighter logical). Bulk
+Runs two independent bounded, fixed-seed refutation searches -- RIS
+(heuristic_distance) and the syndrome decoder (decode/distance, needs ldpc) --
+only on the code/example submissions changed in this PR, and exits non-zero if
+EITHER finds a logical lighter than the claimed distance (an over-claim). The
+syndrome-decoder cross-check is skipped if ldpc is unavailable (RIS-only). Bulk
 re-verification of the whole board stays cheap -- only new/changed files pay the
-~10 s search cost.
+search cost (~10 s per method).
 
 Usage:
   python verify/gate_changed.py [BASE] [files...]
@@ -20,6 +22,17 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import heuristic_distance as H
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _load_syndrome():
+    """The syndrome-decoder cross-check (decode/distance.py); needs ldpc. Returns
+    the module or None so the gate degrades to RIS-only without it."""
+    try:
+        sys.path.insert(0, os.path.join(ROOT, "decode"))
+        import distance as sd
+        return sd
+    except Exception:
+        return None
 
 
 def changed_codes(base):
@@ -42,6 +55,11 @@ def main(argv):
         print("no changed code submissions to gate")
         return 0
 
+    SD = _load_syndrome()
+    if SD is None:
+        print("note: syndrome-decoder cross-check unavailable (ldpc missing); "
+              "running RIS only\n")
+
     refuted = 0
     for f in files:
         p = f if os.path.isabs(f) else os.path.join(ROOT, f)
@@ -50,14 +68,19 @@ def main(argv):
         doc = json.load(open(p))
         if "distance" not in doc or "d" not in doc.get("distance", {}):
             continue
-        is_ref, dh, wit, ntr = H.refute_check(doc, seed=0)
-        if is_ref:
+        # two independent mechanisms; a hit from EITHER refutes the claim.
+        results = {"RIS": H.refute_check(doc, seed=0)}
+        if SD is not None:
+            results["syndrome-decoder"] = SD.refute_check(doc, seed=0)
+        hits = {m: (dh, wit) for m, (ref, dh, wit, _) in results.items() if ref}
+        if hits:
             refuted += 1
-            print(f"REFUTED  {f}: found a weight-{dh} logical < claimed distance "
-                  f"{doc['distance']['d']}\n         witness = {wit}")
+            for m, (dh, wit) in hits.items():
+                print(f"REFUTED  {f} [{m}]: weight-{dh} logical < claimed distance "
+                      f"{doc['distance']['d']}\n         witness = {wit}")
         else:
             print(f"ok       {f}: no logical lighter than {doc['distance']['d']} "
-                  f"in {ntr} RIS trials")
+                  f"({' + '.join(results)})")
     if refuted:
         print(f"\n{refuted} submission(s) refuted: claimed distance is not supported "
               f"by an independent search. See witnesses above.")

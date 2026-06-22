@@ -36,17 +36,20 @@ def _matrix(supports, n):
     return H
 
 
-def _side(Hcheck, Lopp, n, weights, trials, seed):
+def _side(Hcheck, Lopp, n, weights, trials, seed, max_seconds=None):
     """Min residual logical weight from decoder failures (one Pauli sector).
     Errors of weight in `weights` are injected; Hcheck detects them; Lopp is the
-    opposite-type logical basis used to test nontriviality. Returns (weight, witness)."""
+    opposite-type logical basis used to test nontriviality. Returns (weight, witness).
+    Stops after `trials` or `max_seconds` wall-clock (keeps the CI gate bounded)."""
+    import time
     rng = np.random.default_rng(seed)
     decs = {w: BpOsdDecoder(Hcheck, error_rate=min(0.4, max(1e-3, w / n)),
                             max_iter=30, bp_method="minimum_sum",
                             ms_scaling_factor=0.625, osd_method="osd_cs",
                             osd_order=OSD_ORDER) for w in weights}
     best, wit = n + 1, None
-    for _ in range(trials):
+    deadline = (time.monotonic() + max_seconds) if max_seconds else None
+    for t in range(trials):
         w = weights[rng.integers(len(weights))]
         e = np.zeros(n, np.uint8)
         e[rng.choice(n, w, replace=False)] = 1
@@ -55,10 +58,12 @@ def _side(Hcheck, Lopp, n, weights, trials, seed):
             wt = int(r.sum())
             if wt < best:
                 best, wit = wt, r.copy()
+        if deadline and (t & 255) == 0 and time.monotonic() > deadline:
+            break
     return (best if wit is not None else None), wit
 
 
-def estimate(doc, trials=200000, seed=0):
+def estimate(doc, trials=200000, seed=0, max_seconds=None):
     n = doc["n"]
     HX = _matrix(doc["checks"]["X"], n)
     HZ = _matrix(doc["checks"]["Z"], n)
@@ -69,8 +74,9 @@ def estimate(doc, trials=200000, seed=0):
     weights = list(range(max(1, w0), w0 + 3))               # ceil(d/2) .. +2
 
     sides = {}
-    wX, witX = _side(HZ, LZ, n, weights, trials, seed)       # X-logical in ker(HZ)
-    wZ, witZ = _side(HX, LX, n, weights, trials, seed + 1)   # Z-logical in ker(HX)
+    half = (max_seconds / 2) if max_seconds else None       # split budget per side
+    wX, witX = _side(HZ, LZ, n, weights, trials, seed, half)       # X (ker HZ)
+    wZ, witZ = _side(HX, LX, n, weights, trials, seed + 1, half)   # Z (ker HX)
     if witX is not None:
         sides["X"] = {"lightest_found": wX,
                       "witness": sorted(int(j) for j in np.nonzero(witX)[0])}
@@ -91,6 +97,25 @@ def estimate(doc, trials=200000, seed=0):
     return {"name": doc.get("name", ""), "claimed_d": claimed,
             "d_heuristic": d_heur, "verdict": verdict, "sides": sides,
             "trials": trials, "seed": seed, "method": "syndrome_decoder"}
+
+
+def refute_check(doc, seed=0, max_seconds=10.0):
+    """CI cross-check gate. Bounded, time-capped syndrome-decoder search; returns
+    (refuted, d_found, witness, trials). refuted iff a logical lighter than the
+    claimed distance was found. An independent mechanism to the RIS gate."""
+    n = doc["n"]
+    trials = min(200000, 40000 + 800 * n)
+    res = estimate(doc, trials=trials, seed=seed, max_seconds=max_seconds)
+    claimed = int(doc["distance"]["d"])
+    dh = res["d_heuristic"]
+    refuted = dh is not None and dh < claimed
+    witness = None
+    if refuted:
+        for s in res["sides"].values():
+            if s.get("lightest_found") == dh:
+                witness = s["witness"]
+                break
+    return refuted, dh, witness, res["trials"]
 
 
 def main(path, trials, seed):
