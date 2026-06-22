@@ -21,7 +21,7 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 P_RANK = 0.006        # ranking noise rate (sub-threshold; Z-only threshold ~0.01)
 P_LOW = 0.004         # second point to show scaling
 ROUNDS = 6
-SHOTS = 5000
+SHOTS = 2500
 SEED = 17
 
 out = os.path.join(os.path.dirname(__file__), "circuit_results.json")
@@ -51,7 +51,17 @@ def save():
 
 
 only = set(a for a in sys.argv[1:])
-for f in sorted(glob.glob(os.path.join(ROOT, "codes", "*.json"))):
+
+
+def _nk(path):  # sort smallest first (by n, then k) so coverage builds fast
+    s = os.path.splitext(os.path.basename(path))[0].split("-")
+    try:
+        return (int(s[0]), int(s[1]))
+    except Exception:
+        return (1 << 30, 0)
+
+
+for f in sorted(glob.glob(os.path.join(ROOT, "codes", "*.json")), key=_nk):
     slug = os.path.splitext(os.path.basename(f))[0]
     if only and slug not in only:
         continue
