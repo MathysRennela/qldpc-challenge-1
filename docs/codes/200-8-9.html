@@ -39,6 +39,9 @@ background:rgba(255,255,255,.06)}
 .topnav a:hover{background:rgba(255,255,255,.16);color:#fff}
 .decnote{margin:-6px 0 14px;font-size:13px;color:var(--mut);max-width:80ch}
 .decwrap{max-height:460px;overflow:auto}
+.decplot{max-width:560px;margin:14px 0}
+.ptracks tbody tr.decrow{cursor:pointer}
+.ptracks tbody tr.decrow:hover,.ptracks tbody tr.xh{background:#eef2ff}
 .decsub{margin:18px 0 4px;border-top:1px solid var(--ln);padding-top:12px}
 .decsub>summary{cursor:pointer;font-weight:600;font-size:15px;
   list-style:none;display:flex;align-items:center;gap:8px}
@@ -84,8 +87,9 @@ flex:0 0 auto}
 @media(max-width:680px){.lbm:nth-child(n+5){display:none}.lbm{width:64px}}
 .pm.hero{border-left:3px solid var(--ac);padding-left:13px;cursor:default}
 .pm.hero .pmn{color:var(--ac)}
-.ptracks{border-collapse:collapse;width:100%;font-size:13px;background:#fff;
-border:1px solid var(--ln);border-radius:8px;overflow:hidden}
+.ptracks{border-collapse:collapse;width:100%;table-layout:fixed;
+font-size:13px;background:#fff;border:1px solid var(--ln);border-radius:8px}
+.ptracks td .mono{font-size:12px}
 .ptracks th,.ptracks td{padding:.45rem .7rem;border-bottom:1px solid var(--ln)}
 .ptracks tr:last-child td{border-bottom:none}
 .ptracks th{background:var(--soft);color:var(--mut);font-weight:600;

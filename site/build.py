@@ -249,6 +249,9 @@ background:rgba(255,255,255,.06)}}
 .topnav a:hover{{background:rgba(255,255,255,.16);color:#fff}}
 .decnote{{margin:-6px 0 14px;font-size:13px;color:var(--mut);max-width:80ch}}
 .decwrap{{max-height:460px;overflow:auto}}
+.decplot{{max-width:560px;margin:14px 0}}
+.ptracks tbody tr.decrow{{cursor:pointer}}
+.ptracks tbody tr.decrow:hover,.ptracks tbody tr.xh{{background:#eef2ff}}
 .decsub{{margin:18px 0 4px;border-top:1px solid var(--ln);padding-top:12px}}
 .decsub>summary{{cursor:pointer;font-weight:600;font-size:15px;
   list-style:none;display:flex;align-items:center;gap:8px}}
@@ -294,8 +297,9 @@ flex:0 0 auto}}
 @media(max-width:680px){{.lbm:nth-child(n+5){{display:none}}.lbm{{width:64px}}}}
 .pm.hero{{border-left:3px solid var(--ac);padding-left:13px;cursor:default}}
 .pm.hero .pmn{{color:var(--ac)}}
-.ptracks{{border-collapse:collapse;width:100%;font-size:13px;background:#fff;
-border:1px solid var(--ln);border-radius:8px;overflow:hidden}}
+.ptracks{{border-collapse:collapse;width:100%;table-layout:fixed;
+font-size:13px;background:#fff;border:1px solid var(--ln);border-radius:8px}}
+.ptracks td .mono{{font-size:12px}}
 .ptracks th,.ptracks td{{padding:.45rem .7rem;border-bottom:1px solid var(--ln)}}
 .ptracks tr:last-child td{{border-bottom:none}}
 .ptracks th{{background:var(--soft);color:var(--mut);font-weight:600;
@@ -1168,9 +1172,9 @@ def _dec_rows(items, p_lo):
             return ""
         return f'<td>{r["per_logical_ler_low"]:.4f}</td>'
     return "".join(
-        f'<tr><td class=lbrank>{i}</td>'
-        f'<td><a href="codes/{e["slug"]}.html"><span class=mono>'
-        f'[[{e["n"]},{e["k"]},{e["d"]}]]</span></a></td>'
+        f'<tr class=decrow data-href="codes/{e["slug"]}.html" '
+        f'data-code="{e["slug"]}"><td class=lbrank>{i}</td>'
+        f'<td><span class=mono>[[{e["n"]},{e["k"]},{e["d"]}]]</span></td>'
         f'<td>{e["k"]}</td><td>{pl:.4f}</td>{low_cell(r)}</tr>'
         for i, (pl, e, r) in enumerate(items, 1))
 
@@ -1236,6 +1240,63 @@ def circuit_table(entries, dec, ref_dec):
                          "Circuit-level (Z-memory)", intro)
 
 
+def decoding_plot(items, p_hi):
+    """Scatter of kd^2/n vs per-logical LER (log y) for the code-capacity
+    ranking. Visualises that strong parameters do not track low LER, and the
+    points cross-highlight with the table rows via the shared data-code (same
+    behaviour as the board plots above)."""
+    import math
+    if not items:
+        return ""
+    W, H, pad = 560, 300, 54
+    xhi = max([e["eff"] for _, e, _ in items] + [1.0])
+    FLOOR = 1e-4
+    lymin, lymax = math.log10(FLOOR), math.log10(0.1)
+
+    def sx(x):
+        return pad + x / xhi * (W - 2 * pad - 10)
+
+    def sy(v):
+        lv = math.log10(max(v, FLOOR))
+        return pad + (lymax - lv) / (lymax - lymin) * (H - 2 * pad)
+
+    g = []
+    xstep = max(1, round(xhi / 4))
+    for gx in range(0, int(xhi) + 1, xstep):
+        x = sx(gx)
+        g.append(f'<line x1="{x:.0f}" y1="{pad}" x2="{x:.0f}" y2="{H-pad}" '
+                 f'stroke="#eef2f7"/><text x="{x:.0f}" y="{H-pad+16}" '
+                 f'font-size="10" fill="#94a3b8" text-anchor="middle">{gx}</text>')
+    for yv, lab in ((0.1, "10⁻¹"), (0.01, "10⁻²"),
+                    (0.001, "10⁻³"), (0.0001, "10⁻⁴")):
+        y = sy(yv)
+        g.append(f'<line x1="{pad}" y1="{y:.0f}" x2="{W-pad}" y2="{y:.0f}" '
+                 f'stroke="#eef2f7"/><text x="{pad-8}" y="{y+3:.0f}" '
+                 f'font-size="10" fill="#94a3b8" text-anchor="end">{lab}</text>')
+    pts = []
+    for _, e, r in items:
+        col = EXACT if e["tier"] == "exact" else ACCENT
+        v = r["per_logical_ler"]
+        cx, cy = sx(e["eff"]), sy(v)
+        zero = " (0, at floor)" if v < FLOOR else ""
+        tip = f'[[{e["n"]},{e["k"]},{e["d"]}]]  kd2/n={e["eff"]}  LER={v:.4f}{zero}'
+        pts.append(f'<circle class=pt data-code="{e["slug"]}" cx="{cx:.1f}" '
+                   f'cy="{cy:.1f}" r="4" fill="#fff" stroke="{col}" '
+                   f'stroke-width="2" pointer-events="none"/>')
+        pts.append(f'<circle class=hit data-code="{e["slug"]}" cx="{cx:.1f}" '
+                   f'cy="{cy:.1f}" r="11" fill="transparent" '
+                   f'data-tip="{html.escape(tip)}"/>')
+    xlab = (f'<text x="{W/2:.0f}" y="{H-4}" font-size="11" fill="#64748b" '
+            f'text-anchor="middle">kd²/n (figure of merit)</text>')
+    ylab = (f'<text x="14" y="{H/2:.0f}" font-size="11" fill="#64748b" '
+            f'text-anchor="middle" transform="rotate(-90 14 {H/2:.0f})">'
+            f'per-logical LER (p={p_hi}, log)</text>')
+    return (f'<div class=decplot><svg viewBox="0 0 {W} {H}" class="plot" '
+            f'role="img" aria-label="figure of merit versus per-logical '
+            f'logical error rate">{"".join(g)}{"".join(pts)}{xlab}{ylab}'
+            f'</svg></div>')
+
+
 def decoding_leaderboard(entries, dec, phenom=None, circuit=None):
     """Operational ranking by per-logical-qubit logical error rate, computed
     server-side under the pinned code-capacity protocol (decode/results.json)."""
@@ -1272,24 +1333,26 @@ def decoding_leaderboard(entries, dec, phenom=None, circuit=None):
             return ""
         return f'<td>{r["per_logical_ler_low"]:.4f}</td>'
     rows = "".join(
-        f'<tr><td class=lbrank>{i}</td>'
-        f'<td><a href="codes/{e["slug"]}.html"><span class=mono>'
-        f'[[{e["n"]},{e["k"]},{e["d"]}]]</span></a></td>'
+        f'<tr class=decrow data-href="codes/{e["slug"]}.html" '
+        f'data-code="{e["slug"]}"><td class=lbrank>{i}</td>'
+        f'<td><span class=mono>[[{e["n"]},{e["k"]},{e["d"]}]]</span></td>'
         f'<td>{e["k"]}</td><td>{pl:.4f}</td>{low_cell(r)}'
         f'<td>{r["block_ler"]:.4f}</td></tr>'
         for i, (pl, e, r) in enumerate(items, 1))
     lo_hdr = (f'<th title="per logical qubit at the lower noise rate">'
               f'per-logical LER (p={p_lo})</th>' if p_lo else '')
-    return ('<section class=progress id=decoding><h2 class=ph>Decoding</h2>'
-            '<p class=decnote>Per-logical-qubit logical error rate under '
-            f'code-capacity noise, decoded by '
-            f'{html.escape(proto.get("decoder", "BP+OSD"))}. Ranked at '
-            f'p={p_hi}; the p={p_lo} column shows how the error rate scales. '
-            'Lower is better. This ranks codes by how well they protect '
-            'information, a separate axis from (n, k, d): great parameters do '
-            f'not imply good decoding.{divnote} The simulation is run here, not claimed '
-            'by the submitter, so the number cannot be gamed. Code-capacity, '
-            'not circuit-level.</p>'
+    return ('<section class="progress tracksec" id=decoding>'
+            '<h2 class=ph>Decoding</h2>'
+            '<p class=decnote>The same codes as the board above, ranked by how '
+            'well they actually protect information under noise, a separate axis '
+            'from (n, k, d). The number is the per-logical-qubit logical error '
+            'rate under code-capacity noise (lower is better), decoded by '
+            f'{html.escape(proto.get("decoder", "BP+OSD"))} and computed here, '
+            'not submitted, so it cannot be gamed. Rows link to each code; '
+            f'ranked at p={p_hi}, the p={p_lo} column shows how the rate scales. '
+            'Great parameters do not imply good decoding: the plot puts kd²/n '
+            f'against the error rate and the points do not line up.{divnote}</p>'
+            f'{decoding_plot(items, p_hi)}'
             '<div class=decwrap><table class=ptracks><thead><tr><th>#</th>'
             '<th>code</th><th>k</th>'
             f'<th title="per logical qubit at the ranking rate">per-logical '
