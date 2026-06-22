@@ -710,7 +710,7 @@ def cell_grid(te):
             'open territory (no code there yet)</span></div>')
 
 
-def detail_page(e, dec=None, phenom=None, circuit=None):
+def detail_page(e, dec=None, phenom=None):
     doc, cert = e["doc"], e["cert"]
     n, k, d = e["n"], e["k"], e["d"]
     P = [head(f"[[{n},{k},{d}]] · qLDPC Challenge", rel="../")]
@@ -801,9 +801,7 @@ def detail_page(e, dec=None, phenom=None, circuit=None):
     cc_line = _dec_line(dec, (dec or {}).get("protocol", {}), "code-capacity")
     ph_line = _dec_line(phenom, (phenom or {}).get("protocol", {}),
                         "phenomenological")
-    ci_line = _dec_line(circuit, (circuit or {}).get("protocol", {}),
-                        "circuit-level")
-    if cc_line or ph_line or ci_line:
+    if cc_line or ph_line:
         P.append('<section class=blk><h3>Decoding</h3>')
         P.append('<div class=kv style="color:var(--mut)">Per-logical-qubit '
                  'logical error rate, computed by the evaluator (lower is '
@@ -811,7 +809,6 @@ def detail_page(e, dec=None, phenom=None, circuit=None):
                  'leaderboard</a>.</div>')
         P.append(cc_line)
         P.append(ph_line)
-        P.append(ci_line)
         P.append('</section>')
 
     # construction / provenance
@@ -1212,20 +1209,7 @@ def phenom_table(entries, dec, cc_dec):
                          "Phenomenological (multi-round)", intro)
 
 
-def circuit_table(entries, dec, ref_dec):
-    rnd = (dec or {}).get("protocol", {}).get("rounds", "?")
-    intro = (f'The same per-logical metric under circuit-level noise: an '
-             f'explicit syndrome-extraction circuit ({rnd} rounds) with '
-             'depolarizing noise on every CX, reset, idle step, and '
-             'measurement, decoded by BP+OSD over the circuit detector error '
-             'model. The CX schedule is a generic greedy colouring, not a '
-             'distance-optimal one, so these are a conservative read of what a '
-             'tuned schedule could reach.')
-    return _dec_subtable(entries, dec, ref_dec, "phenomenological",
-                         "Circuit-level", intro)
-
-
-def decoding_leaderboard(entries, dec, phenom=None, circuit=None):
+def decoding_leaderboard(entries, dec, phenom=None):
     """Operational ranking by per-logical-qubit logical error rate, computed
     server-side under the pinned code-capacity protocol (decode/results.json)."""
     if not dec or not dec.get("results"):
@@ -1285,8 +1269,7 @@ def decoding_leaderboard(entries, dec, phenom=None, circuit=None):
             f'LER (p={p_hi})</th>{lo_hdr}'
             '<th>block LER</th></tr></thead>'
             f'<tbody>{rows}</tbody></table></div>'
-            f'{phenom_table(entries, phenom, dec)}'
-            f'{circuit_table(entries, circuit, phenom or dec)}</section>')
+            f'{phenom_table(entries, phenom, dec)}</section>')
 
 
 def build():
@@ -1368,8 +1351,7 @@ def build():
                  f'</div>{svg(te, fr)}</div>')
         P.append('</section>')
     P.append(decoding_leaderboard(entries, decoding_results(),
-                                  decoding_results("phenom_results.json"),
-                                  decoding_results("circuit_results.json")))
+                                  decoding_results("phenom_results.json")))
     P.append('</div>')  # close the main content wrap; footer is full-width
     P.append(
         '<footer class=foot><div class=footmain>'
@@ -1407,10 +1389,9 @@ def build():
     slugs = {e["slug"] for e in entries}
     dec_cc = decoding_results()
     dec_ph = decoding_results("phenom_results.json")
-    dec_ci = decoding_results("circuit_results.json")
     for e in entries:
         with open(os.path.join(DOCS, "codes", e["slug"] + ".html"), "w") as f:
-            f.write(detail_page(e, dec_cc, dec_ph, dec_ci))
+            f.write(detail_page(e, dec_cc, dec_ph))
     # prune orphan detail pages left behind when a code is removed
     for f in glob.glob(os.path.join(DOCS, "codes", "*.html")):
         if os.path.splitext(os.path.basename(f))[0] not in slugs:

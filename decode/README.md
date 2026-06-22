@@ -54,8 +54,9 @@ agrees with exact pymatching on the same circuit.
 ## Protocol (circuit-level)
 
 Noise on every gate of an explicit syndrome-extraction circuit, the closest of
-the three to a real device. Reported as a third table under the Decoding
-section.
+the three to a real device. Implemented and validated as tooling
+(`eval_circuit.py`), runnable per code, but not run as a board-wide ranking; see
+"Why no board ranking" below.
 
 - Circuit: one ancilla per stabilizer. The two stabilizer types are extracted
   in separate phases per round (they commute for a CSS code, so sequential
@@ -75,6 +76,21 @@ section.
 Validated against the toric code (`validate_circuit.py`): the d=3,5,7 curves
 cross in the known circuit-level threshold region and the general BP+OSD path
 agrees with exact pymatching on the same circuit.
+
+### Why no board ranking
+
+A fair cross-code ranking needs each code's syndrome-extraction schedule to
+preserve its distance. The greedy colouring here does not, and the effect is
+large and uneven: on the toric code it costs only a small factor, but on a
+high-rate bivariate-bicycle code like [[72,12,6]] the circuit per-logical LER at
+p=0.004 is ~0.08 (near threshold), versus ~0.001 at code-capacity. So a board
+ranking would mostly measure how well the naive schedule happens to handle each
+code, and would bury exactly the high-rate codes the challenge is about, which
+would be misleading. Distance ordering does hold where the schedule behaves
+(toric, and the low-rate board codes: [[81,1,9]] 0.012 vs [[25,1,5]] 0.043 at
+p=0.004), so the evaluator is correct; what is missing is per-code schedule
+optimization, which is its own piece of work. Until then circuit-level stays a
+per-code tool, not a leaderboard.
 
 ## Files
 

@@ -69,13 +69,13 @@ These are where we have data and verification today. More can be proposed by PR.
   measurement faults, decoded by BP+OSD over the circuit detector error model.
   That adds the time dimension and measurement errors code-capacity ignores,
   and reorders codes the code-capacity ranking ties; it is validated against the
-  toric code. A third table ranks codes under circuit-level noise
-  (`decode/eval_circuit.py`, `decode/circuit_results.json`): an explicit
-  syndrome-extraction circuit with noise on every CX, reset, idle step, and
-  measurement, decoded by BP+OSD over the circuit detector error model. The CX
-  schedule is a generic greedy colouring (conflict-free but not
-  distance-optimal), so the numbers are a conservative read; it is validated
-  against the toric circuit-level threshold. Planned extension: a sandboxed
+  toric code. Circuit-level noise (`decode/eval_circuit.py`) is implemented and
+  validated against the toric threshold, but is not run as a board ranking: with
+  a generic greedy syndrome-extraction schedule the numbers are dominated by the
+  schedule rather than the code (catastrophic for high-rate codes), so a fair
+  cross-code ranking needs per-code distance-preserving schedules first. It is
+  available as a per-code tool until then. Planned extensions: per-code
+  schedule optimization (to unlock the circuit-level ranking) and a sandboxed
   submitted-decoder competition.
 
 A code may enter multiple tracks (list them all in `tracks`). It only appears
