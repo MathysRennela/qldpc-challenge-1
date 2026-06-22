@@ -31,11 +31,12 @@ These are where we have data and verification today. More can be proposed by PR.
 
 - `weight-6`: CSS codes with all stabilizer checks of weight <= 6, any
   connectivity. The headline frontier. Sub-thresholds `weight-4`, `weight-8`
-  exist as separate tracks. The `weight-8` track is currently unpopulated;
-  the bar to beat is the Liang-Eberhardt-Chen weight-8 k=12 family
-  (arXiv:2504.08887, Sec. IV D): [[240,12,12]], [[292,12,14]], [[399,12,18]],
-  and the grafted [[282,12,14]]. A submission earns a place on the board by
-  improving on those with verified checks and a distance witness.
+  exist as separate tracks. The `weight-8` track is seeded with coset
+  two-block (2BGA) codes (arXiv:2606.17268), currently carried as distance
+  upper bounds (d<=) pending exact certification. Further reference targets
+  that could be added as baselines: the Liang-Eberhardt-Chen weight-8 k=12
+  family (arXiv:2504.08887, Sec. IV D) [[240,12,12]], [[292,12,14]],
+  [[399,12,18]], and the published 2BGA codes of arXiv:2606.17268.
 - `2d-local-bilayer`: geometrically 2D-local on up to 2 physical layers
   (the flip-chip regime of the bivariate-bicycle planar codes), with a stated
   `locality` block. Ranked within a maximum interaction radius.
