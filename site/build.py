@@ -1157,23 +1157,35 @@ def decoding_leaderboard(entries, dec):
         if e:
             items.append((r["per_logical_ler"], e, r))
     items.sort(key=lambda x: x[0])
+    p_hi, p_lo = proto.get("p", "?"), proto.get("p_low")
+
+    def low_cell(r):
+        if not p_lo or "per_logical_ler_low" not in r:
+            return ""
+        return f'<td>{r["per_logical_ler_low"]:.4f}</td>'
     rows = "".join(
         f'<tr><td class=lbrank>{i}</td>'
         f'<td><a href="codes/{e["slug"]}.html"><span class=mono>'
         f'[[{e["n"]},{e["k"]},{e["d"]}]]</span></a></td>'
-        f'<td>{e["k"]}</td><td>{pl:.4f}</td><td>{r["block_ler"]:.4f}</td></tr>'
+        f'<td>{e["k"]}</td><td>{pl:.4f}</td>{low_cell(r)}'
+        f'<td>{r["block_ler"]:.4f}</td></tr>'
         for i, (pl, e, r) in enumerate(items, 1))
+    lo_hdr = (f'<th title="per logical qubit at the lower noise rate">'
+              f'per-logical LER (p={p_lo})</th>' if p_lo else '')
     return ('<section class=progress id=decoding><h2 class=ph>Decoding</h2>'
             '<p class=decnote>Per-logical-qubit logical error rate under '
-            f'code-capacity noise (p={proto.get("p", "?")}), decoded by '
-            f'{html.escape(proto.get("decoder", "BP+OSD"))}. Lower is better. '
-            'This ranks codes by how well they protect information, a separate '
-            'axis from (n, k, d): great parameters do not imply good decoding. '
-            'The simulation is run here, not claimed by the submitter, so the '
-            'number cannot be gamed. Code-capacity, not circuit-level.</p>'
+            f'code-capacity noise, decoded by '
+            f'{html.escape(proto.get("decoder", "BP+OSD"))}. Ranked at '
+            f'p={p_hi}; the p={p_lo} column shows how the error rate scales. '
+            'Lower is better. This ranks codes by how well they protect '
+            'information, a separate axis from (n, k, d): great parameters do '
+            'not imply good decoding. The simulation is run here, not claimed '
+            'by the submitter, so the number cannot be gamed. Code-capacity, '
+            'not circuit-level.</p>'
             '<div class=decwrap><table class=ptracks><thead><tr><th>#</th>'
             '<th>code</th><th>k</th>'
-            '<th title="per logical qubit; lower is better">per-logical LER</th>'
+            f'<th title="per logical qubit at the ranking rate">per-logical '
+            f'LER (p={p_hi})</th>{lo_hdr}'
             '<th>block LER</th></tr></thead>'
             f'<tbody>{rows}</tbody></table></div></section>')
 
