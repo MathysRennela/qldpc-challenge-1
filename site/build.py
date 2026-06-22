@@ -570,7 +570,11 @@ def pareto(te):
 
 
 def svg(te, front):
-    if not te:
+    # The scatter plots n vs d only (k is not an axis), so codes that share
+    # (n, d) overlap into one dot and a tiny track is just a lonely point in
+    # the corner. Below a handful of distinct (n, d) points it conveys nothing
+    # the table and (k, d) grid don't already show, so skip it.
+    if not te or len({(e["n"], e["d"]) for e in te}) < 4:
         return ""
     W, H, pad = 520, 300, 50
     ns, ds = [e["n"] for e in te], [e["d"] for e in te]
@@ -1192,17 +1196,8 @@ def _dec_subtable(entries, dec, ref_dec, ref_label, title, intro):
         return ""
     move = ""
     if ref_dec and ref_dec.get("results"):
-        ref_rank = {e["slug"]: i for i, (_, e, _)
-                    in enumerate(_dec_rank_items(entries, ref_dec), 1)}
-        cur_rank = {e["slug"]: i for i, (_, e, _) in enumerate(items, 1)}
-        both = [e for _, e, _ in items if e["slug"] in ref_rank]
-        if both:
-            e = max(both, key=lambda e: abs(ref_rank[e["slug"]]
-                                            - cur_rank[e["slug"]]))
-            if abs(ref_rank[e["slug"]] - cur_rank[e["slug"]]) >= 2:
-                move = (f' Versus {ref_label}, [[{e["n"]},{e["k"]},{e["d"]}]] '
-                        f'moves from #{ref_rank[e["slug"]]} to '
-                        f'#{cur_rank[e["slug"]]}.')
+        move = (f' Codes can rank differently here than under {ref_label}, as '
+                'the more realistic noise reorders them.')
     rows = _dec_rows(items, p_lo)
     lo_hdr = (f'<th>per-logical LER (p={p_lo})</th>' if p_lo else '')
     # Secondary tables collapse by default so the section stays compact.
@@ -1312,22 +1307,6 @@ def decoding_leaderboard(entries, dec, phenom=None, circuit=None):
     items.sort(key=lambda x: x[0])
     p_hi, p_lo = proto.get("p", "?"), proto.get("p_low")
 
-    # Concrete evidence that decoding is a separate axis: find the code whose
-    # parameter rank (kd^2/n) and decoding rank diverge the most.
-    def _eff(e):
-        return e["k"] * e["d"] ** 2 / e["n"]
-    dec_rank = {e["slug"]: i for i, (_, e, _) in enumerate(items, 1)}
-    par_order = sorted((e for _, e, _ in items), key=_eff, reverse=True)
-    par_rank = {e["slug"]: i for i, e in enumerate(par_order, 1)}
-    divnote = ""
-    if len(items) >= 4:
-        e = max((e for _, e, _ in items),
-                key=lambda e: abs(par_rank[e["slug"]] - dec_rank[e["slug"]]))
-        divnote = (
-            f' For example [[{e["n"]},{e["k"]},{e["d"]}]] is '
-            f'#{par_rank[e["slug"]]} by kd²/n but #{dec_rank[e["slug"]]} '
-            f'of {len(items)} here.')
-
     def low_cell(r):
         if not p_lo or "per_logical_ler_low" not in r:
             return ""
@@ -1351,7 +1330,7 @@ def decoding_leaderboard(entries, dec, phenom=None, circuit=None):
             'not submitted, so it cannot be gamed. Rows link to each code; '
             f'ranked at p={p_hi}, the p={p_lo} column shows how the rate scales. '
             'Great parameters do not imply good decoding: the plot puts kd²/n '
-            f'against the error rate and the points do not line up.{divnote}</p>'
+            'against the error rate and the points do not line up.</p>'
             f'{decoding_plot(items, p_hi)}'
             '<div class=decwrap><table class=ptracks><thead><tr><th>#</th>'
             '<th>code</th><th>k</th>'
