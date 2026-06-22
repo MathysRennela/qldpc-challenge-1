@@ -249,6 +249,13 @@ background:rgba(255,255,255,.06)}}
 .topnav a:hover{{background:rgba(255,255,255,.16);color:#fff}}
 .decnote{{margin:-6px 0 14px;font-size:13px;color:var(--mut);max-width:80ch}}
 .decwrap{{max-height:460px;overflow:auto}}
+.decsub{{margin:18px 0 4px;border-top:1px solid var(--ln);padding-top:12px}}
+.decsub>summary{{cursor:pointer;font-weight:600;font-size:15px;
+  list-style:none;display:flex;align-items:center;gap:8px}}
+.decsub>summary::before{{content:"\\25B8";color:var(--mut);font-size:12px}}
+.decsub[open]>summary::before{{content:"\\25BE"}}
+.decsub>summary::-webkit-details-marker{{display:none}}
+.decn{{font-weight:400;color:var(--mut);font-size:13px}}
 .stats{{display:flex;gap:40px;margin-top:30px;flex-wrap:wrap}}
 .stat .v{{font-size:30px;font-weight:700}}.stat .l{{color:#c7d2fe;font-size:13px;
 text-transform:uppercase;letter-spacing:.05em}}
@@ -710,7 +717,7 @@ def cell_grid(te):
             'open territory (no code there yet)</span></div>')
 
 
-def detail_page(e, dec=None, phenom=None):
+def detail_page(e, dec=None, phenom=None, circuit=None):
     doc, cert = e["doc"], e["cert"]
     n, k, d = e["n"], e["k"], e["d"]
     P = [head(f"[[{n},{k},{d}]] · qLDPC Challenge", rel="../")]
@@ -801,7 +808,9 @@ def detail_page(e, dec=None, phenom=None):
     cc_line = _dec_line(dec, (dec or {}).get("protocol", {}), "code-capacity")
     ph_line = _dec_line(phenom, (phenom or {}).get("protocol", {}),
                         "phenomenological")
-    if cc_line or ph_line:
+    ci_line = _dec_line(circuit, (circuit or {}).get("protocol", {}),
+                        "circuit-level")
+    if cc_line or ph_line or ci_line:
         P.append('<section class=blk><h3>Decoding</h3>')
         P.append('<div class=kv style="color:var(--mut)">Per-logical-qubit '
                  'logical error rate, computed by the evaluator (lower is '
@@ -809,6 +818,7 @@ def detail_page(e, dec=None, phenom=None):
                  'leaderboard</a>.</div>')
         P.append(cc_line)
         P.append(ph_line)
+        P.append(ci_line)
         P.append('</section>')
 
     # construction / provenance
@@ -1088,16 +1098,19 @@ FAQ = [
      "exact. A d&le; record is provisional: if the true distance turns out "
      "lower, the entry is corrected."),
     ("What is the difference between the decoding tables?",
-     "Both rank codes by per-logical-qubit logical error rate (lower is "
+     "All three rank codes by per-logical-qubit logical error rate (lower is "
      "better), computed by the server so the number cannot be claimed by the "
-     "submitter. The first table uses code-capacity noise: errors on the data, "
-     "one perfect round of syndrome extraction. It measures the code in "
-     "isolation. The second uses phenomenological noise: several rounds of "
-     "stabilizer measurement where the measurements themselves can be wrong, "
-     "then a perfect final readout. It adds the time dimension and measurement "
-     "faults, which can reorder codes the code-capacity ranking ties. Neither "
-     "is full circuit-level noise (a gate-by-gate syndrome-extraction "
-     "schedule), which is construction-dependent and not yet on the board."),
+     "submitter, but under increasingly realistic noise. Code-capacity: errors "
+     "on the data, one perfect round of syndrome extraction; it measures the "
+     "code in isolation. Phenomenological: several rounds of stabilizer "
+     "measurement where the measurements themselves can be wrong, then a "
+     "perfect readout; it adds the time dimension and measurement faults. "
+     "Circuit-level: an explicit gate-by-gate syndrome-extraction circuit with "
+     "noise on every CX, reset, idle step, and measurement. The circuit table "
+     "is a single-basis Z-memory (only the Z stabilizers are extracted, the "
+     "ones that catch the errors that flip the Z logical), so it does not "
+     "include the X-extraction depth a device also pays. Each step up can "
+     "reorder codes the lighter model ties."),
     ("What do I get if I find a new code?",
      "Bragging rights, chiefly. Your code lands on the board under your GitHub "
      "handle with a permanent link you can wave around, and if it advances a "
@@ -1188,14 +1201,16 @@ def _dec_subtable(entries, dec, ref_dec, ref_label, title, intro):
                         f'#{cur_rank[e["slug"]]}.')
     rows = _dec_rows(items, p_lo)
     lo_hdr = (f'<th>per-logical LER (p={p_lo})</th>' if p_lo else '')
-    return (f'<h3 class=ph style="font-size:15px;margin:22px 0 4px">{title}</h3>'
+    # Secondary tables collapse by default so the section stays compact.
+    return (f'<details class=decsub><summary>{title} '
+            f'<span class=decn>({len(items)} codes)</span></summary>'
             f'<p class=decnote>{intro}{move} Ranked at p={p_hi}; the p={p_lo} '
             'column shows scaling.</p>'
             '<div class=decwrap><table class=ptracks><thead><tr><th>#</th>'
             '<th>code</th><th>k</th>'
             f'<th>per-logical LER (p={p_hi})</th>{lo_hdr}'
             '</tr></thead>'
-            f'<tbody>{rows}</tbody></table></div>')
+            f'<tbody>{rows}</tbody></table></div></details>')
 
 
 def phenom_table(entries, dec, cc_dec):
@@ -1209,7 +1224,19 @@ def phenom_table(entries, dec, cc_dec):
                          "Phenomenological (multi-round)", intro)
 
 
-def decoding_leaderboard(entries, dec, phenom=None):
+def circuit_table(entries, dec, ref_dec):
+    intro = ('The same per-logical metric under circuit-level noise: an '
+             'explicit Z-memory syndrome-extraction circuit with depolarizing '
+             'noise on every CX, reset, idle step, and measurement, decoded by '
+             'BP+OSD over the circuit detector error model. Single-basis: only '
+             'the Z stabilizers are extracted (the errors that flip the Z '
+             'logical), so it does not include the X-extraction depth a device '
+             'also pays.')
+    return _dec_subtable(entries, dec, ref_dec, "phenomenological",
+                         "Circuit-level (Z-memory)", intro)
+
+
+def decoding_leaderboard(entries, dec, phenom=None, circuit=None):
     """Operational ranking by per-logical-qubit logical error rate, computed
     server-side under the pinned code-capacity protocol (decode/results.json)."""
     if not dec or not dec.get("results"):
@@ -1269,7 +1296,8 @@ def decoding_leaderboard(entries, dec, phenom=None):
             f'LER (p={p_hi})</th>{lo_hdr}'
             '<th>block LER</th></tr></thead>'
             f'<tbody>{rows}</tbody></table></div>'
-            f'{phenom_table(entries, phenom, dec)}</section>')
+            f'{phenom_table(entries, phenom, dec)}'
+            f'{circuit_table(entries, circuit, phenom or dec)}</section>')
 
 
 def build():
@@ -1351,7 +1379,8 @@ def build():
                  f'</div>{svg(te, fr)}</div>')
         P.append('</section>')
     P.append(decoding_leaderboard(entries, decoding_results(),
-                                  decoding_results("phenom_results.json")))
+                                  decoding_results("phenom_results.json"),
+                                  decoding_results("circuit_results.json")))
     P.append('</div>')  # close the main content wrap; footer is full-width
     P.append(
         '<footer class=foot><div class=footmain>'
@@ -1389,9 +1418,10 @@ def build():
     slugs = {e["slug"] for e in entries}
     dec_cc = decoding_results()
     dec_ph = decoding_results("phenom_results.json")
+    dec_ci = decoding_results("circuit_results.json")
     for e in entries:
         with open(os.path.join(DOCS, "codes", e["slug"] + ".html"), "w") as f:
-            f.write(detail_page(e, dec_cc, dec_ph))
+            f.write(detail_page(e, dec_cc, dec_ph, dec_ci))
     # prune orphan detail pages left behind when a code is removed
     for f in glob.glob(os.path.join(DOCS, "codes", "*.html")):
         if os.path.splitext(os.path.basename(f))[0] not in slugs:

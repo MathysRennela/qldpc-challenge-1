@@ -1,0 +1,279 @@
+{
+ "protocol": {
+  "noise": "circuit-level Z-memory (single-basis): depolarizing CX, reset/measurement flips, idle depolarizing on an explicit Z-stabilizer extraction circuit",
+  "p": 0.006,
+  "p_low": 0.004,
+  "rounds": 6,
+  "decoder": "BP+OSD over the circuit DEM (osd_cs, order 10)",
+  "shots": 2500,
+  "seed": 17,
+  "schedule": "greedy edge-colouring of the Z-extraction CXs",
+  "metric": "per-logical-qubit LER (lower is better); ranked at p"
+ },
+ "results": {
+  "7-1-3": {
+   "n": 7,
+   "k": 1,
+   "per_logical_ler": 0.0464,
+   "block_ler": 0.0464,
+   "per_logical_ler_low": 0.0456,
+   "rounds": 6
+  },
+  "16-2-4": {
+   "n": 16,
+   "k": 2,
+   "per_logical_ler": 0.023885,
+   "block_ler": 0.0472,
+   "per_logical_ler_low": 0.009848,
+   "rounds": 6
+  },
+  "25-1-5": {
+   "n": 25,
+   "k": 1,
+   "per_logical_ler": 0.0184,
+   "block_ler": 0.0184,
+   "per_logical_ler_low": 0.0052,
+   "rounds": 6
+  },
+  "36-2-6": {
+   "n": 36,
+   "k": 2,
+   "per_logical_ler": 0.007025,
+   "block_ler": 0.014,
+   "per_logical_ler_low": 0.001001,
+   "rounds": 6
+  },
+  "42-8-3": {
+   "n": 42,
+   "k": 8,
+   "per_logical_ler": 0.054999,
+   "block_ler": 0.364,
+   "per_logical_ler_low": 0.022963,
+   "rounds": 6
+  },
+  "45-5-4": {
+   "n": 45,
+   "k": 5,
+   "per_logical_ler": 0.050733,
+   "block_ler": 0.2292,
+   "per_logical_ler_low": 0.020765,
+   "rounds": 6
+  },
+  "49-1-7": {
+   "n": 49,
+   "k": 1,
+   "per_logical_ler": 0.008,
+   "block_ler": 0.008,
+   "per_logical_ler_low": 0.0004,
+   "rounds": 6
+  },
+  "50-6-4": {
+   "n": 50,
+   "k": 6,
+   "per_logical_ler": 0.048432,
+   "block_ler": 0.2576,
+   "per_logical_ler_low": 0.020192,
+   "rounds": 6
+  },
+  "56-2-8": {
+   "n": 56,
+   "k": 2,
+   "per_logical_ler": 0.036672,
+   "block_ler": 0.072,
+   "per_logical_ler_low": 0.008234,
+   "rounds": 6
+  },
+  "64-2-8": {
+   "n": 64,
+   "k": 2,
+   "per_logical_ler": 0.00441,
+   "block_ler": 0.0088,
+   "per_logical_ler_low": 0.0004,
+   "rounds": 6
+  },
+  "66-5-5": {
+   "n": 66,
+   "k": 5,
+   "per_logical_ler": 0.02007,
+   "block_ler": 0.0964,
+   "per_logical_ler_low": 0.003707,
+   "rounds": 6
+  },
+  "72-6-6": {
+   "n": 72,
+   "k": 6,
+   "per_logical_ler": 0.023168,
+   "block_ler": 0.1312,
+   "per_logical_ler_low": 0.006436,
+   "rounds": 6
+  },
+  "72-12-6": {
+   "n": 72,
+   "k": 12,
+   "per_logical_ler": 0.014112,
+   "block_ler": 0.1568,
+   "per_logical_ler_low": 0.002638,
+   "rounds": 6
+  },
+  "81-1-9": {
+   "n": 81,
+   "k": 1,
+   "per_logical_ler": 0.004,
+   "block_ler": 0.004,
+   "per_logical_ler_low": 0.0004,
+   "rounds": 6
+  },
+  "88-6-6": {
+   "n": 88,
+   "k": 6,
+   "per_logical_ler": 0.017844,
+   "block_ler": 0.1024,
+   "per_logical_ler_low": 0.004245,
+   "rounds": 6
+  },
+  "90-8-10": {
+   "n": 90,
+   "k": 8,
+   "per_logical_ler": 0.007599,
+   "block_ler": 0.0592,
+   "per_logical_ler_low": 0.000802,
+   "rounds": 6
+  },
+  "91-5-7": {
+   "n": 91,
+   "k": 5,
+   "per_logical_ler": 0.009208,
+   "block_ler": 0.0452,
+   "per_logical_ler_low": 0.001605,
+   "rounds": 6
+  },
+  "108-8-10": {
+   "n": 108,
+   "k": 8,
+   "per_logical_ler": 0.005713,
+   "block_ler": 0.0448,
+   "per_logical_ler_low": 0.000451,
+   "rounds": 6
+  },
+  "112-6-7": {
+   "n": 112,
+   "k": 6,
+   "per_logical_ler": 0.016101,
+   "block_ler": 0.0928,
+   "per_logical_ler_low": 0.003497,
+   "rounds": 6
+  },
+  "120-5-8": {
+   "n": 120,
+   "k": 5,
+   "per_logical_ler": 0.007306,
+   "block_ler": 0.036,
+   "per_logical_ler_low": 0.000801,
+   "rounds": 6
+  },
+  "153-5-9": {
+   "n": 153,
+   "k": 5,
+   "per_logical_ler": 0.003383,
+   "block_ler": 0.0168,
+   "per_logical_ler_low": 0.00016,
+   "rounds": 6
+  },
+  "128-6-8": {
+   "n": 128,
+   "k": 6,
+   "per_logical_ler": 0.007057,
+   "block_ler": 0.0416,
+   "per_logical_ler_low": 0.001137,
+   "rounds": 6
+  },
+  "160-6-9": {
+   "n": 160,
+   "k": 6,
+   "per_logical_ler": 0.009699,
+   "block_ler": 0.0568,
+   "per_logical_ler_low": 0.001137,
+   "rounds": 6
+  },
+  "128-8-6": {
+   "n": 128,
+   "k": 8,
+   "per_logical_ler": 0.009778,
+   "block_ler": 0.0756,
+   "per_logical_ler_low": 0.001306,
+   "rounds": 6
+  },
+  "180-6-10": {
+   "n": 180,
+   "k": 6,
+   "per_logical_ler": 0.004586,
+   "block_ler": 0.0272,
+   "per_logical_ler_low": 0.000534,
+   "rounds": 6
+  },
+  "231-5-11": {
+   "n": 231,
+   "k": 5,
+   "per_logical_ler": 0.001203,
+   "block_ler": 0.006,
+   "per_logical_ler_low": 0.00024,
+   "rounds": 6
+  },
+  "240-6-11": {
+   "n": 240,
+   "k": 6,
+   "per_logical_ler": 0.00309,
+   "block_ler": 0.0184,
+   "per_logical_ler_low": 0.000267,
+   "rounds": 6
+  },
+  "299-5-13": {
+   "n": 299,
+   "k": 5,
+   "per_logical_ler": 0.000962,
+   "block_ler": 0.0048,
+   "per_logical_ler_low": 0.00024,
+   "rounds": 6
+  },
+  "264-6-12": {
+   "n": 264,
+   "k": 6,
+   "per_logical_ler": 0.001472,
+   "block_ler": 0.0088,
+   "per_logical_ler_low": 0.000133,
+   "rounds": 6
+  },
+  "200-8-9": {
+   "n": 200,
+   "k": 8,
+   "per_logical_ler": 0.00293,
+   "block_ler": 0.0232,
+   "per_logical_ler_low": 0.000451,
+   "rounds": 6
+  },
+  "144-12-12": {
+   "n": 144,
+   "k": 12,
+   "per_logical_ler": 0.003016,
+   "block_ler": 0.0356,
+   "per_logical_ler_low": 0.000234,
+   "rounds": 6
+  },
+  "336-6-14": {
+   "n": 336,
+   "k": 6,
+   "per_logical_ler": 0.000869,
+   "block_ler": 0.0052,
+   "per_logical_ler_low": 0.0,
+   "rounds": 6
+  },
+  "288-8-12": {
+   "n": 288,
+   "k": 8,
+   "per_logical_ler": 0.000903,
+   "block_ler": 0.0072,
+   "per_logical_ler_low": 0.0,
+   "rounds": 6
+  }
+ }
+}

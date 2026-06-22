@@ -39,6 +39,13 @@ background:rgba(255,255,255,.06)}
 .topnav a:hover{background:rgba(255,255,255,.16);color:#fff}
 .decnote{margin:-6px 0 14px;font-size:13px;color:var(--mut);max-width:80ch}
 .decwrap{max-height:460px;overflow:auto}
+.decsub{margin:18px 0 4px;border-top:1px solid var(--ln);padding-top:12px}
+.decsub>summary{cursor:pointer;font-weight:600;font-size:15px;
+  list-style:none;display:flex;align-items:center;gap:8px}
+.decsub>summary::before{content:"\25B8";color:var(--mut);font-size:12px}
+.decsub[open]>summary::before{content:"\25BE"}
+.decsub>summary::-webkit-details-marker{display:none}
+.decn{font-weight:400;color:var(--mut);font-size:13px}
 .stats{display:flex;gap:40px;margin-top:30px;flex-wrap:wrap}
 .stat .v{font-size:30px;font-weight:700}.stat .l{color:#c7d2fe;font-size:13px;
 text-transform:uppercase;letter-spacing:.05em}
@@ -257,6 +264,7 @@ position:static}header.hero h1{font-size:34px}}
 <div class=kv style="color:var(--mut)">Per-logical-qubit logical error rate, computed by the evaluator (lower is better). See the <a href="../index.html#decoding">Decoding leaderboard</a>.</div>
 <div class=kv><b>code-capacity</b> per-logical LER 0.0018 at p=0.04 &middot; 0.0001 at p=0.02</div>
 <div class=kv><b>phenomenological</b> per-logical LER 0.0005 at p=0.035 &middot; 0.0002 at p=0.025</div>
+
 </section>
 <section class=blk><h3>Construction &amp; provenance</h3>
 <div class=kv><b>authors</b> FarLab</div>
