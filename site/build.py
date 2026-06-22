@@ -1159,6 +1159,22 @@ def decoding_leaderboard(entries, dec):
     items.sort(key=lambda x: x[0])
     p_hi, p_lo = proto.get("p", "?"), proto.get("p_low")
 
+    # Concrete evidence that decoding is a separate axis: find the code whose
+    # parameter rank (kd^2/n) and decoding rank diverge the most.
+    def _eff(e):
+        return e["k"] * e["d"] ** 2 / e["n"]
+    dec_rank = {e["slug"]: i for i, (_, e, _) in enumerate(items, 1)}
+    par_order = sorted((e for _, e, _ in items), key=_eff, reverse=True)
+    par_rank = {e["slug"]: i for i, e in enumerate(par_order, 1)}
+    divnote = ""
+    if len(items) >= 4:
+        e = max((e for _, e, _ in items),
+                key=lambda e: abs(par_rank[e["slug"]] - dec_rank[e["slug"]]))
+        divnote = (
+            f' For example [[{e["n"]},{e["k"]},{e["d"]}]] is '
+            f'#{par_rank[e["slug"]]} by kd²/n but #{dec_rank[e["slug"]]} '
+            f'of {len(items)} here.')
+
     def low_cell(r):
         if not p_lo or "per_logical_ler_low" not in r:
             return ""
@@ -1179,7 +1195,7 @@ def decoding_leaderboard(entries, dec):
             f'p={p_hi}; the p={p_lo} column shows how the error rate scales. '
             'Lower is better. This ranks codes by how well they protect '
             'information, a separate axis from (n, k, d): great parameters do '
-            'not imply good decoding. The simulation is run here, not claimed '
+            f'not imply good decoding.{divnote} The simulation is run here, not claimed '
             'by the submitter, so the number cannot be gamed. Code-capacity, '
             'not circuit-level.</p>'
             '<div class=decwrap><table class=ptracks><thead><tr><th>#</th>'
