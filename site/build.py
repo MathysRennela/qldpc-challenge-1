@@ -127,6 +127,7 @@ SITE_URL = "https://unitaryfoundation.github.io/qldpc-challenge"
 # on light backgrounds, GREEN_BRIGHT for marks on the dark surface.
 ACCENT = "#4f46e5"        # brand indigo (links, accents, hero glow)
 EXACT = "#059669"         # certified-exact green, on light backgrounds
+CORR = "#d97706"          # heuristically-corroborated amber (between exact and ub)
 GREEN_BRIGHT = "#34d399"  # green on the dark surface (logo highlight)
 DARK = "#0b1020"          # deep surface: hero background + logo/UI tiles
 
@@ -253,7 +254,7 @@ LI_ICON = ('<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" 
 
 CSS = f"""
 :root{{--ink:#0f172a;--mut:#64748b;--ln:#e2e8f0;--ac:{ACCENT};--ex:{EXACT};
---exb:{GREEN_BRIGHT};--dark:{DARK};--bg:#fff;--soft:#f8fafc}}
+--corr:{CORR};--exb:{GREEN_BRIGHT};--dark:{DARK};--bg:#fff;--soft:#f8fafc}}
 *{{box-sizing:border-box}}
 /* Use a locally-installed Blippo if present (no font file is shipped, so no
    redistribution of a commercial font); fall back to Inter otherwise. */
@@ -393,7 +394,7 @@ box-shadow:inset 3px 0 0 var(--ac)}}
 .b{{display:inline-block;font-size:11px;font-weight:700;padding:1px 6px;
 border-radius:5px;font-family:ui-monospace,monospace}}
 .b.exact{{background:#d1fae5;color:var(--ex)}}.b.ub{{background:#eef2f7;
-color:var(--mut)}}
+color:var(--mut)}}.b.corr{{background:#fef3c7;color:var(--corr)}}
 .vswin{{color:var(--ex);font-weight:700}}.vslose{{color:#b45309}}
 .vsnone{{color:#cbd5e1}}
 .gridh{{font-size:14px;color:var(--mut);margin:20px 0 2px;clear:both}}
@@ -562,6 +563,19 @@ def cert_info(slug):
     return None
 
 
+def heuristic_cert_info(slug):
+    """Heuristic distance result (certs/heuristic/<slug>.json), if any. Carries a
+    `verdict` of corroborated / refuted / inconclusive (see verify/heuristic_*)."""
+    p = os.path.join(CERTS, "heuristic", slug + ".json")
+    if os.path.exists(p):
+        try:
+            with open(p) as f:
+                return json.load(f)
+        except Exception:
+            return None
+    return None
+
+
 def load_entries():
     entries = []
     for p in sorted(glob.glob(os.path.join(ROOT, "codes", "*.json"))):
@@ -572,7 +586,13 @@ def load_entries():
         if not rep["ok"]:
             continue
         cert = cert_info(slug)
-        tier = "exact" if (cert and cert.get("d_exact")) else "ub"
+        hcert = heuristic_cert_info(slug)
+        if cert and cert.get("d_exact"):
+            tier = "exact"
+        elif hcert and hcert.get("verdict") == "corroborated":
+            tier = "corroborated"
+        else:
+            tier = "ub"
         n, k, d = doc["n"], doc["k"], doc["distance"]["d"]
         entries.append({
             "slug": slug, "name": doc["name"], "n": n, "k": k, "d": d,
@@ -583,7 +603,7 @@ def load_entries():
             "authors": ", ".join(doc["provenance"]["authors"]),
             "authors_list": doc["provenance"]["authors"],
             "construction": doc["provenance"].get("construction", ""),
-            "doc": doc, "cert": cert,
+            "doc": doc, "cert": cert, "hcert": hcert,
         })
     return entries
 
@@ -624,12 +644,13 @@ def svg(te, front):
     pts = []
     for i, e in enumerate(te):
         f = i in front
-        col = EXACT if e["tier"] == "exact" else ACCENT
+        col = {"exact": EXACT, "corroborated": CORR}.get(e["tier"], ACCENT)
         r = 6 if f else 4
         fill = col if f else "#fff"
+        _tlabel = {"exact": "exact", "corroborated": "corroborated"}.get(
+            e["tier"], "upper bound")
         tip = (f'[[{e["n"]},{e["k"]},{e["d"]}]]  kd2/n={e["eff"]}\n'
-               f'{"exact" if e["tier"]=="exact" else "upper bound"}'
-               f'{", frontier" if f else ""}')
+               f'{_tlabel}{", frontier" if f else ""}')
         cx, cy = sx(e["n"]), sy(e["d"])
         pts.append(f'<circle class=pt data-code="{e["slug"]}" cx="{cx:.1f}" '
                    f'cy="{cy:.1f}" r="{r}" fill="{fill}" '
@@ -647,8 +668,12 @@ def svg(te, front):
 
 
 def badge(tier):
-    return ('<span class="b exact">d =</span>' if tier == "exact"
-            else '<span class="b ub">d &le;</span>')
+    if tier == "exact":
+        return '<span class="b exact">d =</span>'
+    if tier == "corroborated":
+        return ('<span class="b corr" title="heuristically corroborated: an '
+                'independent search found nothing lighter">d &le;*</span>')
+    return '<span class="b ub">d &le;</span>'
 
 
 def mathfmt(s):
