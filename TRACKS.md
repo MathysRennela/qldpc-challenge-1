@@ -55,10 +55,17 @@ These are where we have data and verification today. More can be proposed by PR.
   whose distance is exact by construction. The surface-code baseline.
 - `2d-local-single`: 2D-local on a single layer (surface-code-like
   connectivity). Stricter; mostly a baseline track.
-- `decoding` (planned): a fixed code or an open submission ranked by logical
-  error rate / threshold under a server-fixed circuit-level noise model. The
-  server runs the simulation so the result cannot be gamed; this track needs
-  decoder sandboxing and lands after the parameter tracks.
+- `decoding`: codes ranked by how well they actually protect information, a
+  separate axis from (n, k, d). Protocol v1: independent code-capacity noise at
+  a fixed reference rate (p = 0.04), decoded by a pinned BP+OSD decoder (ldpc,
+  osd_cs order 10), with a fixed seed and shot budget. The metric is the
+  per-logical-qubit logical error rate (block LER unfairly penalizes high-k
+  codes; per-logical = 1 - (1 - block)^(1/k)); lower is better. The simulation
+  is run by the evaluator (`decode/eval.py`), not claimed by the submitter, so
+  the ranking cannot be gamed. The leaderboard data is in `decode/results.json`
+  and rendered as the Decoding section. Planned extensions: circuit-level noise
+  (needs syndrome-circuit construction) and a sandboxed submitted-decoder
+  competition.
 
 A code may enter multiple tracks (list them all in `tracks`). It only appears
 on a track's board if it satisfies that track's constraints, which the
