@@ -7,9 +7,11 @@ ranking cannot be gamed.
 
 ## Protocol (v1, code-capacity)
 
-- Noise: independent code-capacity noise at a fixed reference rate, p = 0.04
-  (each data qubit takes an X error with probability p, and independently a Z
-  error; the two sides are decoded separately).
+- Noise: independent code-capacity noise (each data qubit takes an X error
+  with probability p, and independently a Z error; the two sides are decoded
+  separately). The ranking uses p = 0.04; results.json also records a second
+  point at p = 0.02 so the leaderboard can show how each code's LER scales as
+  noise drops.
 - Decoder: pinned BP+OSD (`ldpc.BpOsdDecoder`, `osd_method="osd_cs"`,
   `osd_order=10`, `max_iter=30`). X errors are decoded with H_Z, Z with H_X.
 - Failure: a residual error (input XOR correction) is a logical failure if it
