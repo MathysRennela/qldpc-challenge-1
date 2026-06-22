@@ -26,6 +26,31 @@ This is code-capacity, not circuit-level; it measures the code, not a full
 syndrome-extraction circuit. Treat it as the encoding-side decoding axis, not a
 fault-tolerance threshold.
 
+## Protocol (phenomenological, multi-round)
+
+A step up from code-capacity that adds the time dimension and measurement
+faults. It is reported as a second table under the same Decoding section.
+
+- Experiment: Z-memory. Data initialised in |0>^n; over T rounds each data
+  qubit is depolarized with probability p and every Z stabilizer is measured
+  with its outcome flipped with probability p; then a final perfect transversal
+  Z readout. Detectors compare each stabilizer round to round (and to the
+  deterministic init / perfect final readout).
+- Rounds: a fixed T for every code (see `run_phenom.py`), so the time exposure
+  is comparable across distances.
+- Decoder: BP+OSD over the circuit's detector error model. The
+  detector/observable matrices are built directly from the (undecomposed) DEM,
+  so hyperedge error mechanisms are kept as single columns; an edge-only
+  (matching) converter cannot handle a general qLDPC circuit.
+- Metric: one observable per logical Z, same per-logical-qubit LER as above.
+- Still not circuit-level: there is no gate-by-gate syndrome-extraction
+  schedule, which for a general code is construction-dependent and easy to get
+  misleadingly wrong. This sits between code-capacity and circuit-level.
+
+Validated against the toric code (`validate_phenom.py`): the d=3,5,7 curves
+cross near the known phenomenological threshold, and the general BP+OSD path
+agrees with exact pymatching on the same circuit.
+
 ## Files
 
 - `eval.py` — the evaluator. `logical_error_rate(HX, HZ, p, shots, seed)`
@@ -36,6 +61,12 @@ fault-tolerance threshold.
 - `run_leaderboard.py` — evaluates every board code under the pinned protocol
   and writes `results.json`, which the site reads to render the Decoding
   leaderboard.
+- `eval_phenom.py` — the phenomenological evaluator (multi-round Z-memory
+  circuit + BP+OSD over the DEM). `memory_ler(HX, HZ, p, rounds, shots, seed)`.
+- `validate_phenom.py` — toric-code validation of the phenomenological circuit
+  and decoder (threshold crossing; BP+OSD vs pymatching agreement).
+- `run_phenom.py` — runs the board under the phenomenological protocol and
+  writes `phenom_results.json`.
 
 ## Regenerating the leaderboard
 
@@ -44,10 +75,12 @@ or changing codes:
 
 ```
 uv run --with ldpc --with numpy python decode/run_leaderboard.py
+uv run --with stim --with ldpc --with scipy --with numpy python decode/run_phenom.py
 uv run python site/build.py
 ```
 
-Then commit `decode/results.json` and the rebuilt `docs/`.
+Then commit `decode/results.json`, `decode/phenom_results.json`, and the
+rebuilt `docs/`.
 
 ## Planned
 

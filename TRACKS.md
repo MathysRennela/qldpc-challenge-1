@@ -63,8 +63,14 @@ These are where we have data and verification today. More can be proposed by PR.
   codes; per-logical = 1 - (1 - block)^(1/k)); lower is better. The simulation
   is run by the evaluator (`decode/eval.py`), not claimed by the submitter, so
   the ranking cannot be gamed. The leaderboard data is in `decode/results.json`
-  and rendered as the Decoding section. Planned extensions: circuit-level noise
-  (needs syndrome-circuit construction) and a sandboxed submitted-decoder
+  and rendered as the Decoding section. A second table under the same section
+  ranks codes under phenomenological noise (`decode/eval_phenom.py`,
+  `decode/phenom_results.json`): T noisy rounds of stabilizer measurement with
+  measurement faults, decoded by BP+OSD over the circuit detector error model.
+  That adds the time dimension and measurement errors code-capacity ignores,
+  and reorders codes the code-capacity ranking ties; it is validated against the
+  toric code. Planned extension: full circuit-level noise (needs a
+  syndrome-extraction schedule per code) and a sandboxed submitted-decoder
   competition.
 
 A code may enter multiple tracks (list them all in `tracks`). It only appears
