@@ -1094,6 +1094,17 @@ FAQ = [
      "weight. That certifies the distance as an upper bound (d &le;) with no "
      "trust required. A code shows d= (certified exact) only when an "
      "independent certificate proves no shorter logical operator exists."),
+    ("What do d= and d&le; mean, and how is the distance found?",
+     "Distance d is the weight of the lightest nontrivial logical operator. "
+     "d&le; (upper bound) means a submission exhibits an explicit logical "
+     "operator of that weight, found by a decoder-based search (BP+OSD random "
+     "coset, or heuristics like QDistEvol); the verifier confirms it is a "
+     "genuine logical, so the distance is at most that weight. d= (certified "
+     "exact) means a server-side integer program has proven no lighter logical "
+     "exists. Exact certification is NP-hard and does not scale, so large codes "
+     "carry a tight upper bound while small and moderate codes are certified "
+     "exact. A d&le; record is provisional: if the true distance turns out "
+     "lower, the entry is corrected."),
     ("What do I get if I find a new code?",
      "Bragging rights, chiefly. Your code lands on the board under your GitHub "
      "handle with a permanent link you can wave around, and if it advances a "
