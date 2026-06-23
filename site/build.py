@@ -356,6 +356,25 @@ box-shadow:inset 3px 0 0 var(--ac)}}
 .board tr.fr:hover{{background:#ecebff}}
 .board tbody tr.xh,.board tbody tr.fr.xh{{background:#fef3c7}}
 .board tbody tr.xh td:first-child{{box-shadow:inset 3px 0 0 #f59e0b}}
+.typecell{{white-space:normal!important}}
+.tchip{{display:inline-block;font-size:11px;line-height:1;padding:3px 7px;
+margin:2px 4px 2px 0;border-radius:999px;background:var(--soft);color:var(--mut);
+border:1px solid var(--ln);white-space:nowrap}}
+.searchbar{{display:flex;align-items:center;gap:12px;margin:14px 0 8px}}
+#boardsearch{{flex:1 1 0;min-width:0;font-size:14px;padding:10px 13px;
+border:1px solid var(--ln);border-radius:10px;background:#fff;color:var(--ink);
+font-family:inherit}}
+#boardsearch:focus{{outline:none;border-color:var(--ac);
+box-shadow:0 0 0 3px rgba(79,70,229,.12)}}
+.searchcount{{font-size:13px;color:var(--mut);white-space:nowrap}}
+.typepills{{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}}
+.typepill{{font-size:12px;padding:5px 11px;border-radius:999px;cursor:pointer;
+border:1px solid var(--ln);background:#fff;color:var(--mut);font-family:inherit}}
+.typepill:hover{{border-color:var(--ac);color:var(--ac)}}
+.clearpill{{color:var(--mut)}}
+.searchhelp{{font-size:12px;color:var(--mut);margin:0 0 14px;max-width:80ch}}
+.searchhelp code{{background:var(--soft);padding:1px 5px;border-radius:4px;
+font-size:11px}}
 .cells td.xh{{background:#fde68a;outline:2px solid #f59e0b;outline-offset:-2px}}
 .plot circle.pt.xh{{stroke:#f59e0b;stroke-width:4;r:7}}
 .plot circle.hit{{cursor:pointer}}
@@ -506,6 +525,42 @@ if(tip)document.querySelectorAll('circle.hit').forEach(c=>{
 document.querySelectorAll('circle.hit[data-code]').forEach(c=>{
  c.addEventListener('click',()=>{location.href='codes/'+c.dataset.code+'.html';});
 });
+// Smart search over the unified board: space-separated terms, all must match.
+// A term is either a comparison (n/k/d/w/eff with >= <= > < =) or free text
+// matched against the code name, type, and authors. 'record' keeps frontier
+// records. The landscape scatter hides points that the table filters out.
+(function(){
+ const board=document.getElementById('mainboard');
+ const q=document.getElementById('boardsearch');
+ if(!board||!q)return;
+ const count=document.getElementById('boardcount');
+ const rows=[...board.querySelectorAll('tbody tr')];
+ const cmp=/^(n|k|d|w|eff)(>=|<=|>|<|=)(-?\\d+(?:\\.\\d+)?)$/;
+ function term(r,t){
+  const m=t.match(cmp);
+  if(m){const x=parseFloat(r.dataset[m[1]]),v=parseFloat(m[3]);
+   switch(m[2]){case'>=':return x>=v;case'<=':return x<=v;
+    case'>':return x>v;case'<':return x<v;default:return x===v;}}
+  if(t==='record'||t==='frontier')return r.dataset.record==='1';
+  const hay=(r.dataset.name+' '+r.dataset.tracks+' '+r.dataset.auth).toLowerCase();
+  return hay.indexOf(t)>=0;
+ }
+ function apply(){
+  const toks=q.value.toLowerCase().trim().split(/\\s+/).filter(Boolean);
+  const vis=new Set();let shown=0;
+  rows.forEach(r=>{const ok=toks.every(t=>term(r,t));
+   r.style.display=ok?'':'none';if(ok){shown++;vis.add(r.dataset.code);}});
+  if(count)count.textContent=shown+(shown===rows.length?'':' of '+rows.length)+' codes';
+  document.querySelectorAll('#board svg.plot circle[data-code]').forEach(c=>{
+   c.style.display=vis.has(c.dataset.code)?'':'none';});
+ }
+ q.addEventListener('input',apply);
+ document.querySelectorAll('.typepill').forEach(p=>{
+  p.addEventListener('click',()=>{q.value=p.dataset.q;apply();q.focus();});});
+ document.querySelectorAll('.tracklink').forEach(a=>{
+  a.addEventListener('click',()=>{q.value=a.dataset.q;apply();});});
+ apply();
+})();
 """
 
 
@@ -670,84 +725,6 @@ def authors_html(lst):
         else:
             out.append(html.escape(h))
     return ", ".join(out)
-
-
-def table(te, front):
-    cols = ('<colgroup><col style="width:4%"><col style="width:18%">'
-            '<col style="width:10%"><col style="width:9%">'
-            '<col style="width:13%"><col style="width:13%">'
-            '<col style="width:9%"><col style="width:24%"></colgroup>')
-    head_row = (
-        "<thead><tr><th></th>"
-        '<th data-c=name title="the code, written [[n,k,d]]">code</th>'
-        '<th data-c=n class=num title="physical qubits">n</th>'
-        '<th data-c=k class=num title="logical qubits encoded">k</th>'
-        '<th data-c=d class=num title="code distance: weight of the smallest '
-        'undetectable error">d</th>'
-        '<th data-c=eff class=num title="k&middot;d&sup2;/n, a figure of merit; '
-        'higher is better">kd&sup2;/n</th>'
-        '<th data-c=w class=num title="maximum stabilizer check weight">w</th>'
-        '<th data-c=auth title="who submitted it">authors</th></tr></thead>')
-    order = sorted(range(len(te)), key=lambda i: (-te[i]["k"], -te[i]["d"],
-                                                  te[i]["n"]))
-    rows = []
-    for i in order:
-        e = te[i]
-        fr = i in front
-        rows.append(
-            f'<tr class="{"fr" if fr else ""}" data-href="codes/{e["slug"]}.html" '
-            f'data-code="{e["slug"]}" '
-            f'data-name="[[{e["n"]},{e["k"]},{e["d"]}]]" data-n="{e["n"]}" '
-            f'data-k="{e["k"]}" data-d="{e["d"]}" data-eff="{e["eff"]}" '
-            f'data-w="{e["w"]}" '
-            f'data-auth="{html.escape(e["authors"])}">'
-            f'<td class="star">{"&#9733;" if fr else ""}</td>'
-            f'<td><span class=mono>[[{e["n"]},{e["k"]},{e["d"]}]]</span>'
-            + ('<span class=hexwrap title="found and submitted through the '
-               f'challenge">{HEX_MARK}</span>'
-               if e["origin"] != "baseline" else "")
-            + '</td>'
-            f'<td class=num>{e["n"]}</td><td class=num>{e["k"]}</td>'
-            f'<td class=num>{badge(e["tier"])} {e["d"]}</td>'
-            f'<td class=num>{e["eff"]}</td><td class=num>{e["w"]}</td>'
-            f'<td class=auth>{authors_html(e["authors_list"])}</td></tr>')
-    return (f'<table class=board>{cols}{head_row}'
-            f'<tbody>{"".join(rows)}</tbody></table>')
-
-
-def cell_grid(te):
-    """Code-tables view: the minimal n at each (k, d) cell for this track.
-    Empty cells are flagged as open territory."""
-    by = {}
-    for e in te:
-        key = (e["k"], e["d"])
-        if key not in by or e["n"] < by[key]["n"]:
-            by[key] = e
-    if not by:
-        return ""
-    ks = sorted({k for k, _ in by}, reverse=True)
-    ds = sorted({d for _, d in by})
-    head_row = ("<tr><th>k \\ d</th>"
-                + "".join(f"<th>{d}</th>" for d in ds) + "</tr>")
-    rows = []
-    for k in ks:
-        cells = [f"<th>{k}</th>"]
-        for d in ds:
-            e = by.get((k, d))
-            if not e:
-                cells.append('<td class=cellopen title="no code on the board at '
-                             'this (k, d) yet">&middot;</td>')
-                continue
-            cells.append(
-                f'<td data-code="{e["slug"]}"><a href="codes/{e["slug"]}.html" '
-                f'title="[[{e["n"]},{k},{d}]] &middot; '
-                f'{html.escape(e["authors"])}">{e["n"]}</a></td>')
-        rows.append("<tr>" + "".join(cells) + "</tr>")
-    return ('<h3 class=gridh>Minimal n by (k, d)</h3>'
-            f'<table class=cells>{head_row}{"".join(rows)}</table>'
-            '<div class=gridkey><span>each filled cell is the smallest n on the '
-            'board for that (k, d)</span><span><span class=opendot>&middot;</span> '
-            'open territory (no code there yet)</span></div>')
 
 
 def detail_page(e, dec=None, phenom=None, circuit=None):
@@ -974,11 +951,6 @@ def references_page(entries):
     return "\n".join(P)
 
 
-def track_anchor(t):
-    """Stable HTML id for a track's section, used to link the progress panel
-    rows to the track tables below."""
-    return "track-" + re.sub(r"[^a-z0-9]+", "-", t.lower()).strip("-")
-
 
 def progress_panel(entries, tracks, n_exact, best_eff):
     """A distinct status-of-progress panel: headline diagnostics plus a
@@ -1006,7 +978,8 @@ def progress_panel(entries, tracks, n_exact, best_eff):
         te = [entries[i] for i in tracks[t]]
         fr = len(pareto(te))
         ex = sum(1 for e in te if e["tier"] == "exact")
-        rows.append(f'<tr><td><a href="#{track_anchor(t)}">{html.escape(t)}</a>'
+        rows.append('<tr><td><a class=tracklink href="#board" '
+                    f'data-q="{html.escape(type_term(t))}">{html.escape(t)}</a>'
                     f'</td><td>{len(te)}</td>'
                     f'<td>{fr}</td><td>{ex}</td></tr>')
     return ('<section class=progress><h2 class=ph>Progress</h2>'
@@ -1367,6 +1340,114 @@ def decoding_leaderboard(entries, dec, phenom=None, circuit=None):
             f'{circuit_table(entries, circuit, phenom or dec)}</section>')
 
 
+# Compact chip label and a short search token for each track type.
+TYPE_LABEL = {
+    "bivariate bicycle (periodic)": "BB (periodic)",
+    "generalized bicycle": "GB",
+    "2d-local-bilayer": "2D-local",
+}
+TYPE_TERM = {
+    "bivariate bicycle (periodic)": "bivariate",
+    "generalized bicycle": "generalized",
+    "2d-local-bilayer": "2d-local",
+}
+
+
+def type_label(t):
+    return TYPE_LABEL.get(t, t)
+
+
+def type_term(t):
+    return TYPE_TERM.get(t, t)
+
+
+def unified_board(entries, tracks):
+    """One searchable, sortable table of every code, with the track type as a
+    column (chips) instead of a section heading. A code is a record (starred,
+    shaded) if it is on the Pareto frontier of at least one of its tracks."""
+    record_in = {}
+    for t, idxs in tracks.items():
+        te = [entries[i] for i in idxs]
+        for j in pareto(te):
+            record_in.setdefault(te[j]["slug"], set()).add(t)
+    records = {i for i, e in enumerate(entries) if e["slug"] in record_in}
+
+    pills = "".join(
+        f'<button type=button class=typepill data-q="{html.escape(type_term(t))}" '
+        f'title="filter to {html.escape(t)}">{html.escape(type_label(t))}</button>'
+        for t in sorted(tracks))
+
+    def chips(e):
+        return "".join(
+            f'<span class=tchip title="{html.escape(t)}">'
+            f'{html.escape(type_label(t))}</span>'
+            for t in sorted(e["tracks"]))
+
+    cols = ('<colgroup><col style="width:3%"><col style="width:16%">'
+            '<col style="width:16%"><col style="width:7%"><col style="width:7%">'
+            '<col style="width:9%"><col style="width:10%"><col style="width:6%">'
+            '<col style="width:26%"></colgroup>')
+    head = ('<thead><tr><th></th>'
+            '<th data-c=name title="the code, written [[n,k,d]]">code</th>'
+            '<th data-c=type title="construction family / track">type</th>'
+            '<th data-c=n class=num title="physical qubits">n</th>'
+            '<th data-c=k class=num title="logical qubits">k</th>'
+            '<th data-c=d class=num title="distance">d</th>'
+            '<th data-c=eff class=num title="k&middot;d&sup2;/n, higher is better">'
+            'kd&sup2;/n</th>'
+            '<th data-c=w class=num title="max check weight">w</th>'
+            '<th data-c=auth title="who submitted it">authors</th></tr></thead>')
+    order = sorted(range(len(entries)),
+                   key=lambda i: (-entries[i]["k"], -entries[i]["d"],
+                                  entries[i]["n"]))
+    rows = []
+    for i in order:
+        e = entries[i]
+        fr = i in records
+        ts = sorted(e["tracks"])
+        rows.append(
+            f'<tr class="{"fr" if fr else ""}" data-href="codes/{e["slug"]}.html" '
+            f'data-code="{e["slug"]}" data-name="[[{e["n"]},{e["k"]},{e["d"]}]]" '
+            f'data-n="{e["n"]}" data-k="{e["k"]}" data-d="{e["d"]}" '
+            f'data-eff="{e["eff"]}" data-w="{e["w"]}" '
+            f'data-type="{html.escape(", ".join(type_label(t) for t in ts))}" '
+            f'data-tracks="{html.escape(" ".join(t.lower() for t in ts))}" '
+            f'data-record="{1 if fr else 0}" '
+            f'data-auth="{html.escape(e["authors"])}">'
+            f'<td class=star title="{"record on its type frontier" if fr else ""}">'
+            f'{"&#9733;" if fr else ""}</td>'
+            f'<td><span class=mono>[[{e["n"]},{e["k"]},{e["d"]}]]</span>'
+            + ('<span class=hexwrap title="found and submitted through the '
+               f'challenge">{HEX_MARK}</span>'
+               if e["origin"] != "baseline" else "")
+            + f'</td><td class=typecell>{chips(e)}</td>'
+            f'<td class=num>{e["n"]}</td><td class=num>{e["k"]}</td>'
+            f'<td class=num>{badge(e["tier"])} {e["d"]}</td>'
+            f'<td class=num>{e["eff"]}</td><td class=num>{e["w"]}</td>'
+            f'<td class=auth>{authors_html(e["authors_list"])}</td></tr>')
+
+    return ('<section class=tracksec id=board>'
+            '<h2 class=track>Codes '
+            f'<span class=tcount>&middot; {len(entries)} total, '
+            f'{len(records)} records</span></h2>'
+            '<div class=searchbar>'
+            '<input id=boardsearch type=text autocomplete=off '
+            'placeholder="search, e.g.  weight-6 k&gt;=10 d&gt;=8  or  '
+            'eff&gt;5  or  farlab" aria-label="search codes">'
+            '<span id=boardcount class=searchcount></span></div>'
+            f'<div class=typepills>{pills}'
+            '<button type=button class="typepill clearpill" data-q="">'
+            'clear</button></div>'
+            '<p class=searchhelp>Filter by typing terms (all must match): a '
+            'type or author name, or a comparison on <b>n</b>, <b>k</b>, '
+            '<b>d</b>, <b>w</b>, or <b>eff</b> (kd&sup2;/n), e.g. '
+            '<code>k&gt;=10</code> <code>d&gt;8</code> <code>eff&gt;=5</code>. '
+            'The word <code>record</code> keeps only frontier records.</p>'
+            f'{svg(entries, records)}'
+            f'<table class=board id=mainboard>{cols}{head}'
+            f'<tbody>{"".join(rows)}</tbody></table></section>')
+
+
 def build():
     entries = load_entries()
     tracks = {}
@@ -1411,8 +1492,9 @@ def build():
     P.append(contributors_panel(entries, tracks))
     P.append('<div class=legend>'
              '<span class=legbreak><span class=swatch></span>&#9733; '
-             '<b>frontier</b> (shaded rows): no other code beats it on all '
-             'of (n, k, d). Plain (unshaded) rows are dominated.</span>'
+             '<b>record</b> (shaded rows): on the Pareto frontier of at least '
+             'one of its types, i.e. no other code of that type beats it on all '
+             'of (n, k, d). Plain (unshaded) rows are dominated everywhere.</span>'
              '<span><span class="dot ex"></span> certified exact '
              '(<span class="b exact">d =</span>)</span>'
              '<span><span class="dot ac"></span> upper bound '
@@ -1426,25 +1508,7 @@ def build():
              '&middot; <b>kd&sup2;/n</b> figure of merit, higher is better '
              '&middot; <b>w</b> max check weight</span>'
              '</div>')
-    for t in sorted(tracks):
-        te = [entries[i] for i in tracks[t]]
-        fr = pareto(te)
-        P.append('<section class=tracksec>')
-        P.append(f'<h2 class=track id="{track_anchor(t)}">{html.escape(t)} '
-                 f'<span class=tcount>&middot; {len(te)} codes, '
-                 f'{len(fr)} on the frontier</span></h2>')
-        if t.startswith("2d-local"):
-            P.append('<p class=tracknote>For 2D-local codes kd&sup2;/n is '
-                     'capped by a constant (Bravyi-Poulin-Terhal), unlike '
-                     'general qLDPC codes where it can grow with n. The exact '
-                     'constant is open. Best known so far: kd&sup2;/n &asymp; '
-                     '9.75, the [[323,14,15]] tile code '
-                     '(<a href="https://arxiv.org/abs/2606.19482">arXiv:'
-                     '2606.19482</a>), the bar to beat on this track.</p>')
-        P.append(table(te, fr))
-        P.append(f'<div class=trackbody><div class=gridcol>{cell_grid(te)}'
-                 f'</div>{svg(te, fr)}</div>')
-        P.append('</section>')
+    P.append(unified_board(entries, tracks))
     P.append(decoding_leaderboard(entries, decoding_results(),
                                   decoding_results("phenom_results.json"),
                                   decoding_results("circuit_results.json")))
