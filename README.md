@@ -59,6 +59,8 @@ construct codes and export the parity checks a submission needs.
 
 ```
 schema/    the submission format (JSON Schema + human spec)
+research/  starter kit for BUILDING codes (constructors, distance surrogate,
+           submission packager) + GETTING_STARTED.md
 verify/    the verifier (gf2.py is the GF(2) core; qldpc_verify.py is the checker)
 examples/  worked examples that pass verification
 codes/     accepted submissions (the leaderboard data)

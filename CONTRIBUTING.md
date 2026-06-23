@@ -4,6 +4,11 @@
    (see `schema/SCHEMA.md` for each field). Name it descriptively and put it in
    `codes/`, e.g. `codes/my-128-6-8.json`.
 
+   New to this? The `research/` starter kit builds the code, estimates its
+   distance (producing the witness you need), and writes the JSON for you — see
+   `research/GETTING_STARTED.md` and run
+   `uv run python research/recipes/01_build_and_submit_bb.py`.
+
 2. Include a distance witness: an explicit logical operator of the claimed
    weight for each side you report. This is what lets the verifier certify your
    distance upper bound without trusting you. A code claiming a distance with

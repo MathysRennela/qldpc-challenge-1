@@ -13,6 +13,10 @@ dependencies = [
 [project.optional-dependencies]
 # server-side exact distance certification (verify/certify*.py)
 certify = ["scipy>=1.11"]
+# research/ distance confirmation: exact_distance needs scipy (MILP), and
+# decoder_distance needs ldpc (BP+OSD). The constructors/surrogate/search and
+# submission packaging in research/ are numpy-only and need none of this.
+research = ["scipy>=1.11", "ldpc>=2.0"]
 
 [tool.uv]
 # scripts-only repo: manage the environment, do not try to build/install it
