@@ -185,19 +185,15 @@ adding your file under `codes/` (see `../CONTRIBUTING.md`).
 Each module is runnable on its own (`uv run python research/<module>.py`) and
 prints a small self-test / demo.
 
-## What's here, and what's coming
+## What's here
 
-Here now:
+- Constructors (`bb`, `group_algebra`, `coset`), the distance/k surrogate
+  (`surrogate`), the search funnel (`search`), and submission packaging
+  (`submit`) — all numpy-only.
+- Distance confirmation (`distance`: exact MILP `d=` and decoder corroboration),
+  which reuses the repo's existing certifiers and lives behind the optional
+  `research` extra so the core stays numpy-only.
 
-- **Phase 1** (numpy-only): constructors (`bb`, `group_algebra`, `coset`), the
-  distance/k surrogate (`surrogate`), and submission packaging (`submit`).
-- **Phase 2**: the search funnel (`search`) — also numpy-only — and distance
-  confirmation (`distance`: exact MILP `d=` and decoder corroboration), which
-  reuse the repo's existing certifiers and live behind the optional `research`
-  extra so the core stays numpy-only.
-
-Not here yet (a possible follow-on):
-
-- The **planar / open-boundary** engine for the `2d-local-bilayer` track
-  (open-boundary BB with a boundary-completion gauge engine). It is the
-  heaviest piece to port; ask if you want it.
+This covers the periodic / group-algebra / coset families and the weight- and
+bivariate-bicycle tracks. The specialized open-boundary planar engine for the
+`2d-local-bilayer` track is intentionally out of scope here.
