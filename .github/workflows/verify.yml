@@ -7,6 +7,7 @@ on:
       - "examples/**"
       - "verify/**"
       - "schema/**"
+      - "research/**"
   push:
     branches: [main]
 
@@ -20,6 +21,8 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - name: verifier self-tests (must reject bad submissions)
         run: uv run --frozen python verify/test_verifier.py
+      - name: research starter-kit smoke test (kit stays in sync with the verifier)
+        run: uv run --frozen python research/test_smoke.py
       - name: verify all submissions
         run: uv run --frozen python verify/verify_all.py
       - name: distance refutation gate (changed submissions only)

@@ -159,5 +159,6 @@ if __name__ == "__main__":
     for r in recs[:5]:
         print(f"  [[{r['n']},{r['k']},{r['d']}]]  eff={r['efficiency']:.3f}")
     front = pareto_frontier(recs)
-    print(f"Pareto frontier ({len(front)} codes): "
-          + ", ".join(f"[[{r['n']},{r['k']},{r['d']}]]" for r in front[:8]))
+    params = sorted({(r["n"], r["k"], r["d"]) for r in front})   # dedup for display
+    print(f"Pareto frontier ({len(front)} codes, {len(params)} distinct params): "
+          + ", ".join(f"[[{n},{k},{d}]]" for n, k, d in params[:8]))

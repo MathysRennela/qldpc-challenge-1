@@ -37,8 +37,10 @@ print("2. top 5 by efficiency k*d^2/n:")
 for r in records[:5]:
     print(f"     [[{r['n']},{r['k']},{r['d']}]]  eff={r['efficiency']:.3f}")
 front = pareto_frontier(records)
-print("   Pareto frontier: "
-      + ", ".join(f"[[{r['n']},{r['k']},{r['d']}]]" for r in front[:8]))
+# Distinct codes can share (n,k,d) and all stay on the frontier (co-leaders);
+# dedup by parameters for a readable one-line summary.
+params = sorted({(r["n"], r["k"], r["d"]) for r in front})
+print("   Pareto frontier: " + ", ".join(f"[[{n},{k},{d}]]" for n, k, d in params[:8]))
 
 # 3. Take the best candidate and rebuild it from its (structured) spec -- no
 #    string parsing needed, because the sampler recorded the build parameters.
