@@ -14,17 +14,20 @@ core, so what you read here is exactly what the board will record.
 ## The loop
 
 ```
-  pick a family ──▶ build (HX, HZ) ──▶ estimate distance ──▶ package ──▶ verify ──▶ PR
-     bb.py            construct()        surrogate.py        submit.py    verify/    codes/
-   group_algebra.py                   (witness comes free)
+  pick a family ─▶ build (HX,HZ) ─▶ estimate distance ─▶ package ─▶ verify ─▶ PR
+     bb.py           construct()      surrogate.py       submit.py   verify/   codes/
+   group_algebra.py                 (witness comes free)
    coset.py
+                       │                                    ▲
+            sweep a family with        confirm the distance (exact MILP or
+            search.py (screen→rank)    decoder) with distance.py before claiming
 ```
 
-Run the worked example first — it does the whole loop and runs the real
-verifier in-process at the end:
+Two worked examples, each runs the real verifier in-process at the end:
 
 ```
-uv run python research/recipes/01_build_and_submit_bb.py
+uv run python research/recipes/01_build_and_submit_bb.py   # one code, end to end
+uv run python research/recipes/02_search_a_family.py       # sweep a family, take the best
 ```
 
 ## 1. Pick a family and build `(HX, HZ)`
@@ -88,6 +91,27 @@ wz, z_witness = lightest_logical(HZ, HX)     # lightest Z-logical
   bivariate constructions — use it to screen candidate exponent sets before you
   ever build a matrix.
 
+## 2b. Search a family (autoresearch)
+
+Building one code is step one; *discovering* a good one means sweeping a family.
+`search.py` is a generic funnel: generate candidates → screen each cheaply →
+rank by efficiency and Pareto frontier.
+
+```python
+from search import screen, pareto_frontier, sample_bb, update_leaderboard
+records = screen(sample_bb(400, seed=7), min_k=4, min_d=4, trials=250)
+records[:5]                       # best by k*d^2/n (the board's headline metric)
+pareto_frontier(records)          # the non-dominated codes over (n, k, d)
+update_leaderboard("board.json", records)   # merge + persist, so a sweep can resume
+```
+
+`screen` consumes any iterable of `(spec, HX, HZ)` triples, where `spec` is a
+JSON-serializable description of how the code was built — so you can point it at
+**your own generator** for any family. `sample_bb` is a ready-made one; a 2BGA or
+coset sampler over `group_algebra` / `coset` has the same shape. Because the
+screening distance is the surrogate *upper bound*, `screen` ranks **candidates** —
+confirm the winners before claiming anything (next).
+
 ## 3. Package a submission
 
 `submit.py` turns `(HX, HZ)` plus a little provenance into a schema-valid
@@ -113,6 +137,28 @@ For the `2d-local-*` tracks, also pass `coordinates=[[x,y], ...]` (one per qubit
 and `layers=`; `submit.py` fills the `locality` block and computes the true
 interaction radius for you.
 
+## 3b. Confirm the distance (optional but recommended)
+
+The surrogate gives an *upper bound*. To go further, `distance.py` confirms a
+raw `(HX, HZ)` two ways by reusing the repo's own server-side certifiers — no
+need to hand-write a submission first:
+
+```python
+from distance import exact_distance, decoder_distance
+exact_distance(HX, HZ, tlim=600)       # scipy MILP: proves d= exact, per side
+decoder_distance(HX, HZ, trials=200000)  # BP+OSD: independent upper-bound evidence
+```
+
+- `exact_distance` wraps `verify/certify.py` (the `d=` tier): it proves no
+  lighter logical exists. A `d_exact: True` result means you can legitimately
+  pursue an `"exact"` submission (a maintainer re-runs the same certifier).
+- `decoder_distance` wraps `decode/distance.py`: a *different* mechanism (a
+  decoder's mistakes), so agreement with the surrogate is real corroboration.
+
+These need extra dependencies (`scipy`, `ldpc`) — install the `research` extra,
+or run on demand: `uv run --with scipy --with ldpc python your_script.py`. The
+constructors, surrogate, search, and packaging stay numpy-only.
+
 ## 4. Verify, then open a PR
 
 ```
@@ -131,23 +177,27 @@ adding your file under `codes/` (see `../CONTRIBUTING.md`).
 | `group_algebra.py` | `build_2bga` + group builders: `perm_group`, `cyclic_product`, `dihedral`, `metacyclic`, `sym`, `alt` |
 | `coset.py` | `build_coset` + `subgroup_closure`, `left_cosets`, `normalizer` |
 | `surrogate.py` | `distance_rand`, `lightest_logical` (witnesses), `mixed_volume` (k upper bound) |
+| `search.py` | `screen`, `pareto_frontier`, `sample_bb`, `update_leaderboard` (the search funnel) |
+| `distance.py` | `exact_distance` (MILP, `d=`), `decoder_distance` (BP+OSD) — needs the `research` extra |
 | `submit.py` | `make_submission`, `save_submission`, `validate` |
-| `recipes/` | runnable end-to-end examples |
+| `recipes/` | runnable end-to-end examples (01: one code; 02: search a family) |
 
 Each module is runnable on its own (`uv run python research/<module>.py`) and
 prints a small self-test / demo.
 
 ## What's here, and what's coming
 
-This is **Phase 1**: constructors, a fast distance/k surrogate, and submission
-packaging — enough to build a code and submit it today, with no dependencies
-beyond numpy. Deliberately **not** here yet (planned follow-ons):
+Here now:
 
-- **Exact distance** backends (SAT / ILP) to certify `d =` rather than `d <=`.
-- **Decoder-based** distance evidence (BP+OSD residual witnesses) — needs `ldpc`.
-- A generic **search loop** (the screen → rank → confirm funnel) for sweeping a
-  family for record-beaters, and the **planar / open-boundary** engine for the
-  `2d-local-bilayer` track.
+- **Phase 1** (numpy-only): constructors (`bb`, `group_algebra`, `coset`), the
+  distance/k surrogate (`surrogate`), and submission packaging (`submit`).
+- **Phase 2**: the search funnel (`search`) — also numpy-only — and distance
+  confirmation (`distance`: exact MILP `d=` and decoder corroboration), which
+  reuse the repo's existing certifiers and live behind the optional `research`
+  extra so the core stays numpy-only.
 
-These add heavier dependencies and will live behind an optional extra so this
-core stays numpy-only.
+Not here yet (a possible follow-on):
+
+- The **planar / open-boundary** engine for the `2d-local-bilayer` track
+  (open-boundary BB with a boundary-completion gauge engine). It is the
+  heaviest piece to port; ask if you want it.
