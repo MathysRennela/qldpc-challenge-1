@@ -331,6 +331,7 @@ margin-right:3px;background:#f5f3ff;border-left:3px solid var(--ac)}}
 h2.track{{font-size:24px;margin:48px 0 4px;padding-top:24px;
 border-top:1px solid var(--ln);scroll-margin-top:16px}}
 .tcount{{color:var(--mut);font-size:14px;font-weight:400}}
+.plots{{display:flex;gap:16px;flex-wrap:wrap;margin:14px 0 4px}}
 .plot{{flex:1 1 0;min-width:0;max-width:520px;align-self:flex-start;
 border:1px solid var(--ln);border-radius:12px;background:#fff;padding:8px}}
 /* full width (matching the panels above) with fixed, evenly distributed
@@ -621,32 +622,46 @@ def pareto(te):
     return front
 
 
-def svg(te, front):
-    # The scatter plots n vs d only (k is not an axis), so codes that share
-    # (n, d) overlap into one dot and a tiny track is just a lonely point in
-    # the corner. Below a handful of distinct (n, d) points it conveys nothing
-    # the table and (k, d) grid don't already show, so skip it.
-    if not te or len({(e["n"], e["d"]) for e in te}) < 4:
+def _axis_step(hi):
+    """A round tick step giving at most ~6 gridlines up to hi."""
+    for s in (1, 2, 5, 10, 20, 50, 100, 200, 500):
+        if hi / s <= 6:
+            return s
+    return 1000
+
+
+def scatter(te, front, yacc, ylabel):
+    """A landscape scatter of every code: x = n, y = yacc(e) (e.g. distance or
+    kd^2/n). Two complementary views are shown side by side, so codes that
+    coincide in one (e.g. same n and d but different k) separate in the other.
+    Suppressed below a handful of distinct (n, y) points (nothing to show)."""
+    if not te or len({(e["n"], round(yacc(e), 3)) for e in te}) < 4:
         return ""
     W, H, pad = 520, 300, 50
-    ns, ds = [e["n"] for e in te], [e["d"] for e in te]
-    nhi, dhi = max(ns), max(ds)
+    nhi = max(e["n"] for e in te) or 1
+    yhi = max(yacc(e) for e in te) or 1
+
     def sx(n):
-        return pad + n / max(nhi, 1) * (W - 2 * pad - 10)
-    def sy(d):
-        return H - pad - d / max(dhi, 1) * (H - 2 * pad)
+        return pad + n / nhi * (W - 2 * pad - 10)
+
+    def sy(v):
+        return H - pad - v / yhi * (H - 2 * pad)
+
     grid = []
-    step = max(1, round(nhi / 4 / 50) * 50 or 50)
-    for gx in range(0, nhi + 1, step):
+    xstep = max(1, round(nhi / 4 / 50) * 50 or 50)
+    for gx in range(0, int(nhi) + 1, xstep):
         x = sx(gx)
         grid.append(f'<line x1="{x:.0f}" y1="{pad}" x2="{x:.0f}" y2="{H-pad}" '
                     f'stroke="#eef2f7"/><text x="{x:.0f}" y="{H-pad+16}" '
                     f'font-size="10" fill="#94a3b8" text-anchor="middle">{gx}</text>')
-    for gy in range(0, dhi + 1, max(1, round(dhi / 4) or 1)):
+    ystep = _axis_step(yhi)
+    gy = 0
+    while gy <= yhi + 1e-9:
         y = sy(gy)
         grid.append(f'<line x1="{pad}" y1="{y:.0f}" x2="{W-pad}" y2="{y:.0f}" '
                     f'stroke="#eef2f7"/><text x="{pad-8}" y="{y+3:.0f}" '
-                    f'font-size="10" fill="#94a3b8" text-anchor="end">{gy}</text>')
+                    f'font-size="10" fill="#94a3b8" text-anchor="end">{gy:g}</text>')
+        gy += ystep
     pts = []
     for i, e in enumerate(te):
         f = i in front
@@ -656,8 +671,8 @@ def svg(te, front):
         _tlabel = {"exact": "exact", "corroborated": "corroborated"}.get(
             e["tier"], "upper bound")
         tip = (f'[[{e["n"]},{e["k"]},{e["d"]}]]  kd2/n={e["eff"]}\n'
-               f'{_tlabel}{", frontier" if f else ""}')
-        cx, cy = sx(e["n"]), sy(e["d"])
+               f'{_tlabel}{", record" if f else ""}')
+        cx, cy = sx(e["n"]), sy(yacc(e))
         pts.append(f'<circle class=pt data-code="{e["slug"]}" cx="{cx:.1f}" '
                    f'cy="{cy:.1f}" r="{r}" fill="{fill}" '
                    f'stroke="{col}" stroke-width="2" pointer-events="none"/>')
@@ -669,7 +684,7 @@ def svg(te, front):
             + f'<text x="{W/2}" y="{H-4}" font-size="11" fill="#475569" '
             f'text-anchor="middle">n (physical qubits)</text>'
             f'<text x="14" y="{H/2}" font-size="11" fill="#475569" '
-            f'text-anchor="middle" transform="rotate(-90 14 {H/2})">d</text>'
+            f'text-anchor="middle" transform="rotate(-90 14 {H/2})">{ylabel}</text>'
             + "".join(pts) + "</svg>")
 
 
@@ -1362,7 +1377,10 @@ def unified_board(entries, tracks):
             '<b>d</b>, <b>w</b>, or <b>eff</b> (kd&sup2;/n), e.g. '
             '<code>k&gt;=10</code> <code>d&gt;8</code> <code>eff&gt;=5</code>. '
             'The word <code>record</code> keeps only frontier records.</p>'
-            f'{svg(entries, records)}'
+            '<div class=plots>'
+            f'{scatter(entries, records, lambda e: e["d"], "d")}'
+            f'{scatter(entries, records, lambda e: e["eff"], "kd&sup2;/n")}'
+            '</div>'
             f'<table class=board id=mainboard>{cols}{head}'
             f'<tbody>{"".join(rows)}</tbody></table></section>')
 
