@@ -10,7 +10,7 @@ trials is d_ub >= d.
 Same nature as RIS (an upper-bound search, reproducible), but a genuinely
 different mechanism, so agreement strengthens a corroboration. Offline tooling
 (needs ldpc): run with `uv run --with ldpc python decode/distance.py codes/foo.json`.
-Pinned decoder matches decode/eval.py: BpOsdDecoder, osd_cs, order 10, max_iter 30.
+Pinned decoder: BpOsdDecoder, osd_cs, order 10, max_iter 30.
 
 Usage: python decode/distance.py codes/foo.json [--trials N] [--seed S]
 """
