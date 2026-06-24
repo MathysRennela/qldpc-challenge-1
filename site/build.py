@@ -320,7 +320,9 @@ margin-right:3px;background:#f5f3ff;border-left:3px solid var(--ac)}}
 h2.track{{font-size:24px;margin:48px 0 4px;padding-top:24px;
 border-top:1px solid var(--ln);scroll-margin-top:16px}}
 .tcount{{color:var(--mut);font-size:14px;font-weight:400}}
-.plots{{display:flex;gap:16px;flex-wrap:wrap;margin:14px 0 4px}}
+.plots{{display:flex;gap:16px;flex-wrap:wrap;margin:14px 0 4px;
+position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0 6px;
+box-shadow:0 8px 8px -8px rgba(15,23,42,.18)}}
 .plot{{flex:1 1 0;min-width:0;max-width:520px;align-self:flex-start;
 border:1px solid var(--ln);border-radius:12px;background:#fff;padding:8px}}
 /* full width (matching the panels above) with fixed, evenly distributed
@@ -792,7 +794,10 @@ def detail_page(e):
     P.append(f'<div class=kv><b>construction</b> {mathfmt(pr.get("construction",""))}</div>')
     if pr.get("references"):
         refs = [cite(r, rel="../") for r in pr["references"]]
-        P.append(f'<div class=kv><b>references</b> {", ".join(refs)}</div>')
+        # A baseline IS the cited paper's code; a submission only builds on the
+        # family it cites, so don't label its reference as if it were the source.
+        lbl = "reference" if pr.get("origin") == "baseline" else "builds on"
+        P.append(f'<div class=kv><b>{lbl}</b> {", ".join(refs)}</div>')
     if pr.get("date"):
         P.append(f'<div class=kv><b>date</b> {html.escape(pr["date"])}</div>')
     if pr.get("notes"):

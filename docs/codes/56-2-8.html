@@ -109,7 +109,9 @@ margin-right:3px;background:#f5f3ff;border-left:3px solid var(--ac)}
 h2.track{font-size:24px;margin:48px 0 4px;padding-top:24px;
 border-top:1px solid var(--ln);scroll-margin-top:16px}
 .tcount{color:var(--mut);font-size:14px;font-weight:400}
-.plots{display:flex;gap:16px;flex-wrap:wrap;margin:14px 0 4px}
+.plots{display:flex;gap:16px;flex-wrap:wrap;margin:14px 0 4px;
+position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0 6px;
+box-shadow:0 8px 8px -8px rgba(15,23,42,.18)}
 .plot{flex:1 1 0;min-width:0;max-width:520px;align-self:flex-start;
 border:1px solid var(--ln);border-radius:12px;background:#fff;padding:8px}
 /* full width (matching the panels above) with fixed, evenly distributed
@@ -253,7 +255,7 @@ position:static}header.hero h1{font-size:34px}}
 <section class=blk><h3>Construction &amp; provenance</h3>
 <div class=kv><b>authors</b> Wang, Pryadko</div>
 <div class=kv><b>construction</b> Generalized bicycle code, circulant size 28, a(x) = 1 + x<sup>1</sup> + x<sup>2</sup> + x<sup>4</sup>, b(x) = 1 + x<sup>19</sup>.</div>
-<div class=kv><b>references</b> <a href="https://arxiv.org/abs/2203.17216">arXiv:2203.17216</a></div>
+<div class=kv><b>reference</b> <a href="https://arxiv.org/abs/2203.17216">arXiv:2203.17216</a></div>
 <div class=kv><b>notes</b> Distance d=8 from arXiv:2203.17216; witness here is a decoder-found logical operator of that weight (upper bound).</div>
 <div class=kv><b>tracks</b> generalized bicycle</div>
 </section>
