@@ -332,9 +332,6 @@ margin-right:3px;background:#f5f3ff;border-left:3px solid var(--ac)}}
 h2.track{{font-size:24px;margin:48px 0 4px;padding-top:24px;
 border-top:1px solid var(--ln);scroll-margin-top:16px}}
 .tcount{{color:var(--mut);font-size:14px;font-weight:400}}
-.tracknote{{max-width:70ch;margin:6px 0 0;font-size:13px;color:var(--mut)}}
-.trackbody{{display:flex;gap:22px;align-items:flex-start;margin:14px 0 4px}}
-.gridcol{{flex:0 0 auto}}
 .plot{{flex:1 1 0;min-width:0;max-width:520px;align-self:flex-start;
 border:1px solid var(--ln);border-radius:12px;background:#fff;padding:8px}}
 /* full width (matching the panels above) with fixed, evenly distributed
@@ -375,33 +372,14 @@ border:1px solid var(--ln);background:#fff;color:var(--mut);font-family:inherit}
 .searchhelp{{font-size:12px;color:var(--mut);margin:0 0 14px;max-width:80ch}}
 .searchhelp code{{background:var(--soft);padding:1px 5px;border-radius:4px;
 font-size:11px}}
-.cells td.xh{{background:#fde68a;outline:2px solid #f59e0b;outline-offset:-2px}}
 .plot circle.pt.xh{{stroke:#f59e0b;stroke-width:4;r:7}}
 .plot circle.hit{{cursor:pointer}}
-.star{{color:var(--ac);width:18px}}.cname{{color:var(--mut);font-size:13px}}
+.star{{color:var(--ac);width:18px}}
 .auth{{color:var(--mut);font-size:13px}}
 .b{{display:inline-block;font-size:11px;font-weight:700;padding:1px 6px;
 border-radius:5px;font-family:ui-monospace,monospace}}
 .b.exact{{background:#d1fae5;color:var(--ex)}}.b.ub{{background:#eef2f7;
 color:var(--mut)}}.b.corr{{background:#fef3c7;color:var(--corr)}}
-.vswin{{color:var(--ex);font-weight:700}}.vslose{{color:#b45309}}
-.vsnone{{color:#cbd5e1}}
-.gridh{{font-size:14px;color:var(--mut);margin:20px 0 2px;clear:both}}
-table.cells{{border-collapse:collapse;margin:6px 0 4px;font-size:13px;
-clear:both}}
-.cells th,.cells td{{border:1px solid var(--ln);padding:.3rem .45rem;
-text-align:center;min-width:30px}}
-.cells th{{background:var(--soft);color:var(--mut);font-weight:600}}
-.cells td.cellwin{{background:#ecfdf5}}.cells td.celllose{{background:#fff7ed}}
-.cells td.cellopen{{color:#cbd5e1;background:repeating-linear-gradient(45deg,
-transparent,transparent 4px,#f1f5f9 4px,#f1f5f9 5px)}}
-.opendot{{color:#94a3b8;font-weight:700}}
-.cells td a{{font-variant-numeric:tabular-nums}}
-.gridkey{{display:flex;flex-direction:column;gap:3px;margin:6px 0 2px;
-font-size:12px;color:var(--mut)}}
-.gridkey .sw{{display:inline-block;width:11px;height:11px;border-radius:3px;
-border:1px solid var(--ln);margin-right:6px;vertical-align:-1px}}
-.gridkey .sw.win{{background:#ecfdf5}}.gridkey .sw.lose{{background:#fff7ed}}
 footer.foot{{margin-top:72px;border-top:1px solid var(--ln);
 background:linear-gradient(180deg,var(--soft),var(--bg));color:var(--mut);
 font-size:14px}}
@@ -473,7 +451,7 @@ border-radius:5px;padding:1px 6px;white-space:nowrap;text-decoration:none}}
 @media(max-width:680px){{.ref{{flex-direction:column;gap:4px}}
 .refkey{{width:auto}}}}
 @media(max-width:880px){{.how{{grid-template-columns:1fr}}
-.trackbody{{flex-direction:column}}.plot{{flex-basis:auto;width:100%;
+.plot{{flex-basis:auto;width:100%;
 position:static}}header.hero h1{{font-size:34px}}}}
 """
 
