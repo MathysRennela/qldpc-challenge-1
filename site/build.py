@@ -459,7 +459,8 @@ document.querySelectorAll('table.board').forEach(t=>{
  t.querySelectorAll('th[data-c]').forEach((th)=>{
   let asc=true;
   th.addEventListener('click',()=>{
-   const c=th.dataset.c, num=th.classList.contains('num');
+   const c=th.dataset.c;
+   const num=th.classList.contains('num')||th.hasAttribute('data-num');
    const rows=[...t.querySelectorAll('tbody tr')];
    rows.sort((a,b)=>{let x=a.dataset[c],y=b.dataset[c];
     if(num){x=parseFloat(x);y=parseFloat(y);return asc?x-y:y-x;}
@@ -1132,7 +1133,8 @@ def unified_board(entries, tracks):
             '<col style="width:9%"><col style="width:10%"><col style="width:6%">'
             '<col style="width:26%"></colgroup>')
     head = ('<thead><tr><th></th>'
-            '<th data-c=name title="the code, written [[n,k,d]]">code</th>'
+            '<th data-c=codekey data-num title="the code, written [[n,k,d]]; '
+            'sorts by n, then k, then d">code</th>'
             '<th data-c=type title="construction family / track">type</th>'
             '<th data-c=n class=num title="physical qubits">n</th>'
             '<th data-c=k class=num title="logical qubits">k</th>'
@@ -1153,6 +1155,7 @@ def unified_board(entries, tracks):
             f'<tr class="{"fr" if fr else ""}" data-href="codes/{e["slug"]}.html" '
             f'data-code="{e["slug"]}" data-name="[[{e["n"]},{e["k"]},{e["d"]}]]" '
             f'data-n="{e["n"]}" data-k="{e["k"]}" data-d="{e["d"]}" '
+            f'data-codekey="{e["n"]*1000000 + e["k"]*1000 + e["d"]}" '
             f'data-eff="{e["eff"]}" data-w="{e["w"]}" '
             f'data-type="{html.escape(", ".join(type_label(t) for t in ts))}" '
             f'data-tracks="{html.escape(" ".join(t.lower() for t in ts))}" '
