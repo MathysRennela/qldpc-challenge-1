@@ -40,17 +40,6 @@ A code only matters if it advances a track's Pareto frontier over (n, k, d)
 under that track's constraints (check weight, locality). Dominated codes are
 accepted and recorded but will not sit on the frontier. See `TRACKS.md`.
 
-## Decoding (automatic, nothing to submit)
-
-Decoding performance is a separate axis from (n, k, d): great parameters do not
-imply a low logical error rate. Every accepted code is evaluated by the server
-under three noise models of increasing realism (code-capacity, phenomenological,
-and single-basis circuit-level), all decoded with a pinned BP+OSD decoder and
-ranked by per-logical-qubit logical error rate. You do not submit a number; it
-is computed here so it cannot be gamed. See `decode/README.md` and the Decoding
-section of the site. (Regenerating these tables needs `ldpc`/`stim` and is done
-out of band, not in the cheap CI verifier.)
-
 ## Tips
 
 - Store `interaction_radius` as the exact measured max check diameter, not a

@@ -55,31 +55,6 @@ These are where we have data and verification today. More can be proposed by PR.
   whose distance is exact by construction. The surface-code baseline.
 - `2d-local-single`: 2D-local on a single layer (surface-code-like
   connectivity). Stricter; mostly a baseline track.
-- `decoding`: codes ranked by how well they actually protect information, a
-  separate axis from (n, k, d). Protocol v1: independent code-capacity noise at
-  a fixed reference rate (p = 0.04), decoded by a pinned BP+OSD decoder (ldpc,
-  osd_cs order 10), with a fixed seed and shot budget. The metric is the
-  per-logical-qubit logical error rate (block LER unfairly penalizes high-k
-  codes; per-logical = 1 - (1 - block)^(1/k)); lower is better. The simulation
-  is run by the evaluator (`decode/eval.py`), not claimed by the submitter, so
-  the ranking cannot be gamed. The leaderboard data is in `decode/results.json`
-  and rendered as the Decoding section. A second table under the same section
-  ranks codes under phenomenological noise (`decode/eval_phenom.py`,
-  `decode/phenom_results.json`): T noisy rounds of stabilizer measurement with
-  measurement faults, decoded by BP+OSD over the circuit detector error model.
-  That adds the time dimension and measurement errors code-capacity ignores,
-  and reorders codes the code-capacity ranking ties; it is validated against the
-  toric code. A third table ranks codes under circuit-level noise
-  (`decode/eval_circuit.py`, `decode/circuit_results.json`): an explicit
-  single-basis Z-memory syndrome-extraction circuit with noise on every CX,
-  reset, idle step, and measurement, decoded by BP+OSD over the circuit detector
-  error model. Single-basis means only the Z stabilizers are extracted (the
-  errors that flip the Z logical); a CX fault spreads to the ancilla rather than
-  across data, so the greedy schedule does not reduce the effective Z-distance.
-  It is validated against the toric circuit-level threshold. Planned extensions:
-  two-basis circuit noise with per-code distance-preserving schedules, and a
-  sandboxed submitted-decoder competition.
-
 A code may enter multiple tracks (list them all in `tracks`). It only appears
 on a track's board if it satisfies that track's constraints, which the
 verifier checks (for example, `weight-6` requires measured max check weight
