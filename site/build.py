@@ -397,6 +397,7 @@ font-size:11px}}
 .plot circle.hit{{cursor:pointer}}
 .star{{color:var(--ac);width:18px}}
 .auth{{color:var(--mut);font-size:13px}}
+.board td.date{{color:var(--mut);font-size:13px;white-space:nowrap}}
 .board td.model{{color:var(--mut);font-size:13px;white-space:nowrap}}
 .claimed{{color:var(--mut);font-size:12px;font-style:italic}}
 .submithint{{margin:0;padding:12px 20px;border-bottom:1px solid var(--ln);
@@ -551,7 +552,7 @@ document.querySelectorAll('circle.hit[data-code]').forEach(c=>{
    switch(m[2]){case'>=':return x>=v;case'<=':return x<=v;
     case'>':return x>v;case'<':return x<v;default:return x===v;}}
   if(t==='record'||t==='frontier')return r.dataset.record==='1';
-  const hay=(r.dataset.name+' '+r.dataset.tracks+' '+r.dataset.auth+' '+(r.dataset.model||'')).toLowerCase();
+  const hay=(r.dataset.name+' '+r.dataset.tracks+' '+r.dataset.auth+' '+(r.dataset.model||'')+' '+(r.dataset.date||'')).toLowerCase();
   return hay.indexOf(t)>=0;
  }
  function apply(){
@@ -636,6 +637,7 @@ def load_entries():
             "authors": ", ".join(doc["provenance"]["authors"]),
             "authors_list": doc["provenance"]["authors"],
             "model": doc["provenance"].get("model", ""),
+            "date": doc["provenance"].get("date", ""),
             "construction": doc["provenance"].get("construction", ""),
             "doc": doc, "cert": cert, "hcert": hcert,
         })
@@ -1239,7 +1241,9 @@ def board_table(entries, records):
             '<th data-c=w class=num title="max check weight">w</th>'
             '<th data-c=auth title="who submitted it">authors</th>'
             '<th data-c=model title="claimed model that produced the code; '
-            'self-reported, not verified">model</th></tr></thead>')
+            'self-reported, not verified">model</th>'
+            '<th data-c=date title="publication date for literature, submission '
+            'date for contributions">date</th></tr></thead>')
     order = sorted(range(len(entries)),
                    key=lambda i: (-entries[i]["k"], -entries[i]["d"],
                                   entries[i]["n"]))
@@ -1258,6 +1262,7 @@ def board_table(entries, records):
             f'data-tracks="{html.escape(" ".join(t.lower() for t in ts))}" '
             f'data-record="{1 if fr else 0}" '
             f'data-model="{html.escape(e["model"].lower())}" '
+            f'data-date="{html.escape(e["date"])}" '
             f'data-auth="{html.escape(e["authors"])}">'
             f'<td class=star title="{"record on its type frontier" if fr else ""}">'
             f'{"&#9733;" if fr else ""}</td>'
@@ -1270,7 +1275,8 @@ def board_table(entries, records):
             f'<td class=num>{badge(e["tier"])} {e["d"]}</td>'
             f'<td class=num>{e["eff"]}</td><td class=num>{e["w"]}</td>'
             f'<td class=auth>{authors_html(e["authors_list"])}</td>'
-            f'<td class=model>{html.escape(e["model"]) if e["model"] else "&middot;"}</td></tr>')
+            f'<td class=model>{html.escape(e["model"]) if e["model"] else "&middot;"}</td>'
+            f'<td class=date>{html.escape(e["date"]) if e["date"] else "&middot;"}</td></tr>')
 
     return (f'<table class=board id=mainboard>{cols}{head}'
             f'<tbody>{"".join(rows)}</tbody></table>')
