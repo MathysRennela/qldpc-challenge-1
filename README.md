@@ -31,15 +31,7 @@ frontier rather than one winner. See `TRACKS.md`.
 
 ## Installation
 
-This repo uses [uv](https://docs.astral.sh/uv/) to manage the Python environment. No explicit install step is needed — `uv run` sets up the environment on first use.
-
-**Install uv** (one-time):
-
-```bash
-pip install uv
-```
-
-(or any method from the [uv install docs](https://docs.astral.sh/uv/getting-started/installation/))
+This repo uses [uv](https://docs.astral.sh/uv/) to manage the Python environment. Install it from the [uv docs](https://docs.astral.sh/uv/getting-started/installation/); after that `uv run` sets up the environment on first use, so there is no separate install step here.
 
 **Verify a code locally:**
 
