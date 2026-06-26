@@ -141,6 +141,7 @@ box-shadow:inset 3px 0 0 var(--ac)}
 .tchip{display:inline-block;font-size:11px;line-height:1;padding:3px 7px;
 margin:2px 4px 2px 0;border-radius:999px;background:var(--soft);color:var(--mut);
 border:1px solid var(--ln);white-space:nowrap}
+.tnone{color:var(--mut)}
 .searchbar{display:flex;align-items:center;gap:12px;margin:14px 0 8px}
 #boardsearch{flex:1 1 0;min-width:0;font-size:14px;padding:10px 13px;
 border:1px solid var(--ln);border-radius:10px;background:#fff;color:var(--ink);
@@ -148,7 +149,7 @@ font-family:inherit}
 #boardsearch:focus{outline:none;border-color:var(--ac);
 box-shadow:0 0 0 3px rgba(54,0,108,.15)}
 .searchcount{font-size:13px;color:var(--mut);white-space:nowrap}
-.typepills{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
+.typepills{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px;align-items:center}
 .typepill{font-size:12px;padding:5px 11px;border-radius:999px;cursor:pointer;
 border:1px solid var(--ln);background:#fff;color:var(--mut);font-family:inherit}
 .typepill:hover{border-color:var(--ac);color:var(--ac)}
@@ -156,6 +157,33 @@ border:1px solid var(--ln);background:#fff;color:var(--mut);font-family:inherit}
 .searchhelp{font-size:12px;color:var(--mut);margin:0 0 14px;max-width:80ch}
 .searchhelp code{background:var(--soft);padding:1px 5px;border-radius:4px;
 font-size:11px}
+/* Weight range slider, styled as a filter pill that sits inline with the type
+   pills. Two overlapping range inputs share one visual track; the native track
+   is full height and transparent so each 16px thumb stays centred on the line
+   (rather than riding above it as a top-aligned thumb would). */
+.wfilter{display:inline-flex;align-items:center;gap:9px;
+border:1px solid var(--ln);border-radius:999px;padding:4px 12px;background:#fff;
+font-size:12px;color:var(--mut)}
+.wflabel{font-weight:600;color:var(--ink);white-space:nowrap}
+.wfslider{position:relative;width:118px;height:16px;flex:0 0 auto}
+.wftrack,.wffill{position:absolute;top:50%;height:4px;
+transform:translateY(-50%);border-radius:3px}
+.wftrack{left:0;right:0;background:var(--ln)}
+.wffill{background:var(--ac)}
+.wfrange{position:absolute;top:0;left:0;width:100%;height:16px;margin:0;
+background:none;pointer-events:none;-webkit-appearance:none;appearance:none}
+#whi{z-index:2}
+.wfrange::-webkit-slider-runnable-track{-webkit-appearance:none;background:none;
+height:16px}
+.wfrange::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;
+width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid var(--ac);
+cursor:pointer;box-shadow:0 1px 2px rgba(17,17,17,.25)}
+.wfrange::-moz-range-track{background:none;height:16px}
+.wfrange::-moz-range-thumb{pointer-events:auto;width:16px;height:16px;
+border-radius:50%;background:#fff;border:2px solid var(--ac);cursor:pointer;
+box-shadow:0 1px 2px rgba(17,17,17,.25)}
+.wfval{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:700;
+color:var(--ink);min-width:2.4em;text-align:right}
 .plot circle.pt.xh{stroke:#f59e0b;stroke-width:4;r:7}
 .plot circle.hit{cursor:pointer}
 .star{color:var(--ac);width:18px}
@@ -278,7 +306,7 @@ border-radius:5px;padding:1px 6px;white-space:nowrap;text-decoration:none}
 <div class=kv><b>construction</b> f = 1 + xy + x<sup>-1</sup> y<sup>2</sup>, g = 1 + x<sup>-1</sup> y + x<sup>-2</sup> y<sup>-1</sup>; annulus-type boundary engine, (6,6) lattice.</div>
 <div class=kv><b>builds on</b> <a href="https://arxiv.org/abs/2504.08887">arXiv:2504.08887</a></div>
 <div class=kv><b>date</b> 2026-06-16</div>
-<div class=kv><b>tracks</b> weight-6, 2d-local-bilayer</div>
+<div class=kv><b>tracks</b> 2d-local-bilayer</div>
 </section>
 <section class=blk><h3>Parity checks</h3>
 <div class=kv><b>X-checks</b> 36 &middot; <b style="min-width:auto">Z-checks</b> 37</div>
