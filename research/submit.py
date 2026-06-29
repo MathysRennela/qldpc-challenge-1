@@ -66,8 +66,8 @@ def validate(doc):
             for e in sorted(v.iter_errors(doc), key=lambda e: list(e.path))]
 
 
-def make_submission(HX, HZ, *, name, construction, authors, tracks,
-                    references=None, notes=None, date=None,
+def make_submission(HX, HZ, *, name, construction, authors, family=None,
+                    references=None, notes=None, date=None, tracks=(),
                     confidence="upper_bound", coordinates=None, layers=None,
                     trials=8000, seed=0):
     """Build a submission dict for the CSS code (HX, HZ).
@@ -78,15 +78,24 @@ def make_submission(HX, HZ, *, name, construction, authors, tracks,
         The CSS parity checks. CSS commutation is asserted.
     name, construction : str
         Human-readable name and how the code was built (provenance).
-    authors, tracks : list of str
-        Your author handle(s) and the tracks to enter (see TRACKS.md).
+    authors : list of str
+        Your author handle(s).
+    family : optional str
+        The Layer-2 construction-family tag (e.g. "bivariate-bicycle"; see the
+        schema enum / TRACKS.md). A filterable tag only -- it is never ranked,
+        and the primary track membership (locality + weight class) is computed by
+        the verifier from H and the layout, not declared here.
     confidence : {"upper_bound", "exact"}
         Distance confidence. ``distance_rand``-derived witnesses are honest
         upper bounds; mark ``"exact"`` only if you intend server certification.
     coordinates : optional list of [x, y], length n
-        Per-qubit layout for the 2d-local-* tracks; enables the locality block.
+        Per-qubit layout; enables the locality block, from which the verifier
+        derives the 2d-local track membership.
     layers : optional int
         Physical layers for the locality block (e.g. 2 for a flip-chip bilayer).
+    tracks : optional list of str
+        DEPRECATED and ignored for ranking; retained only for backward
+        compatibility. Track membership is computed by the verifier. Leave unset.
     trials, seed : int
         Budget/seed for the witness search.
 
@@ -131,8 +140,11 @@ def make_submission(HX, HZ, *, name, construction, authors, tracks,
             "date": date or datetime.date.today().isoformat(),
             "notes": notes or "",
         },
-        "tracks": list(tracks),
     }
+    if family is not None:
+        doc["family"] = family            # Layer-2 tag (filterable, never ranked)
+    if tracks:
+        doc["tracks"] = list(tracks)      # deprecated; only if explicitly passed
     if coordinates is not None:
         coords = [[float(x), float(y)] for x, y in coordinates]
         assert len(coords) == n, f"need {n} coordinates, got {len(coords)}"
