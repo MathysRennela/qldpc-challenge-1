@@ -36,14 +36,17 @@ Every constructor returns two parity-check matrices `HX, HZ` (numpy int arrays,
 shape `(num_checks, n)`) for a CSS code. Pick by the track you're aiming at
 (see `../TRACKS.md`):
 
-Check weight is not a track — it is the `w` property (filtered by the board's
-weight slider), shown below as the typical check weight each family produces.
+Track membership is **computed by the verifier**, not declared: the check-weight
+class (`weight-4`/`weight-6`/`weight-8`) is derived from the max row weight of
+`H_X`, `H_Z`, and the locality class from the layout (none here → `unrestricted`).
+The `family` tag below is the only self-declared label, and it is filterable,
+never ranked. The weight column is the class each family typically lands in.
 
-| Module | Family | Track / weight | CSS holds because |
+| Module | `family` tag | Typical weight class | CSS holds because |
 |---|---|---|---|
-| `bb.py` | bivariate bicycle on a torus Z_l × Z_m (the "gross code" family) | `bivariate bicycle (periodic)`, w 6 | abelian circulants commute |
-| `group_algebra.py` | two-block group-algebra (2BGA) on **any** finite group | `generalized bicycle`, w 6 | left/right multiplication commute |
-| `coset.py` | coset 2BGA on G/H (record efficiencies; non-normal H) | no track, w 8 | left action commutes with right action by the normalizer |
+| `bb.py` | `bivariate-bicycle` (torus Z_l × Z_m, the "gross code" family) | `weight-6` | abelian circulants commute |
+| `group_algebra.py` | `generalized-bicycle` (2BGA on **any** finite group) | `weight-6` | left/right multiplication commute |
+| `coset.py` | `2bga-coset` (G/H cosets, record efficiencies; non-normal H) | `weight-8` | left action commutes with right action by the normalizer |
 
 `bb.py` is the place to start — it's the simplest and any choice of monomials is
 a valid code. `group_algebra.py` generalizes it to non-abelian groups (which can
@@ -129,16 +132,19 @@ doc = make_submission(
     name="[[72,12,6]] my BB code",
     construction="Bivariate bicycle on Z_6 x Z_6, A = x^3+y+y^2, B = y^3+x+x^2.",
     authors=["your-handle"],
-    tracks=["bivariate bicycle (periodic)"],
+    family="bivariate-bicycle",
     references=["arXiv:2308.07915"],
     confidence="upper_bound",
 )
 save_submission(doc, "codes/my-72-12-6.json")
 ```
 
-For the `2d-local-*` tracks, also pass `coordinates=[[x,y], ...]` (one per qubit)
-and `layers=`; `submit.py` fills the `locality` block and computes the true
-interaction radius for you.
+`family` is a filterable Layer-2 tag, never ranked. You do **not** declare which
+tracks you enter: the verifier computes primary-track membership (the weight and
+locality classes) from `H` and the layout. To enter the `2d-local-*` tracks, give
+the code a layout — pass `coordinates=[[x,y], ...]` (one per qubit) and `layers=`;
+`submit.py` fills the `locality` block and computes the interaction radius, and the
+verifier derives the locality class from it.
 
 ## 3b. Confirm the distance (optional but recommended)
 

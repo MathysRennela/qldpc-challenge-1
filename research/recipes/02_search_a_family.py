@@ -53,13 +53,16 @@ assert compute_k(HX, HZ) == best["k"]
 # 4. Package + verify the winner. (make_submission re-evaluates the witnesses at
 #    higher trials, tightening the upper bound before we claim it. In a real
 #    search you would also confirm exactly -- research/distance.py.)
+#    `family` is the only self-declared tag (a filterable label, never ranked);
+#    the primary track membership (weight + locality class) is COMPUTED by the
+#    verifier from H and the layout, so we do not declare it.
 doc = make_submission(
     HX, HZ,
     name=f"[[{best['n']},{best['k']},{best['d']}]] searched BB code",
     construction=f"Bivariate bicycle on Z_{s['l']} x Z_{s['m']}, "
                  f"A={s['A']}, B={s['B']} (found by random search over the BB family).",
     authors=["your-handle"],
-    tracks=["bivariate bicycle (periodic)"],
+    family="bivariate-bicycle",
     confidence="upper_bound",
     trials=4000,
 )

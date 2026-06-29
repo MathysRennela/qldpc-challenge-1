@@ -52,7 +52,7 @@ def main():
 
     # 3. Package and run through the REAL verifier (the drift gate).
     doc = make_submission(HX, HZ, name="[[72,12,6]] smoke", construction="bb torus",
-                          authors=["ci"], tracks=["bivariate bicycle (periodic)"],
+                          authors=["ci"], family="bivariate-bicycle",
                           confidence="upper_bound", trials=1000)
     check("packaged submission is schema-valid", not validate(doc))
     rep = qldpc_verify.verify(doc, refute=False)
