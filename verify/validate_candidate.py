@@ -29,6 +29,7 @@ The gate, per candidate (a schema-shaped submission ``doc``):
 ``passed`` is True iff verify holds AND the claim is not over-claimed AND not refuted
 AND not an exact board duplicate. Novelty is a label, not a pass condition.
 """
+import functools
 import glob
 import hashlib
 import json
@@ -73,9 +74,15 @@ def _fingerprint(HX, HZ):
     return hashlib.sha256(fp).hexdigest()[:16]
 
 
-def _board_entries():
-    """Trusted read of the current board: (path, n, k, d, fingerprint, sig_hash,
-    weight_class, locality_class) for each codes/*.json, all via verify/."""
+def _board_stamp():
+    """A cheap key that changes iff the board files change (name/mtime/size), so the
+    scan below can be cached within a session but never goes stale."""
+    return tuple((os.path.basename(p), os.path.getmtime(p), os.path.getsize(p))
+                 for p in sorted(glob.glob(os.path.join(_CODES, "*.json"))))
+
+
+@functools.lru_cache(maxsize=4)
+def _board_entries_cached(_stamp):
     out = []
     for p in sorted(glob.glob(os.path.join(_CODES, "*.json"))):
         try:
@@ -93,6 +100,13 @@ def _board_entries():
         except Exception:
             continue                            # a broken board file never blocks a candidate
     return out
+
+
+def _board_entries():
+    """Trusted read of the current board: (name, n, k, d, fingerprint, sig_hash,
+    weight_class, locality_class) for each codes/*.json, all via verify/. Cached
+    per board state so validating many candidates does not rescan every time."""
+    return _board_entries_cached(_board_stamp())
 
 
 def _converge_distance(doc, seed, ladder=(5000, 20000)):
