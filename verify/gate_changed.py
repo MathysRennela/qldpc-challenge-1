@@ -9,7 +9,8 @@ re-verification of the whole board stays cheap -- only new/changed files pay the
 search cost (~10 s per method).
 
 Usage:
-  python verify/gate_changed.py [BASE] [files...]
+  python verify/gate_changed.py [--code-root PATH] [BASE] [files...]
+    --code-root PATH  repository tree containing the submitted codes
     BASE     git ref to diff against (default origin/main); ignored if files given
     files    explicit code JSONs to gate (otherwise computed from the diff)
 """
@@ -38,23 +39,23 @@ def _load_syndrome():
         return None
 
 
-def changed_codes(base):
+def changed_codes(base, code_root=ROOT):
     try:
         out = subprocess.check_output(
             ["git", "diff", "--name-only", f"{base}...HEAD", "--", "codes", "verify/fixtures"],
-            cwd=ROOT, text=True)
+            cwd=code_root, text=True)
     except Exception as e:
-        print(f"(could not compute diff vs {base}: {e}); gating nothing")
-        return []
+        print(f"could not compute diff vs {base}: {e}; failing closed")
+        return None
     return [f for f in out.split() if f.endswith(".json")]
 
 
-def board_record_slugs():
+def board_record_slugs(code_root=ROOT):
     """Slugs on the board's global (n, k, d, w) Pareto frontier. A code that
     claims to advance the frontier gets deeper refutation than a dominated one,
     so over-claims pay extra scrutiny exactly where gaming would matter."""
     rows = []
-    for p in sorted(glob.glob(os.path.join(ROOT, "codes", "*.json"))):
+    for p in sorted(glob.glob(os.path.join(code_root, "codes", "*.json"))):
         try:
             d = json.load(open(p))
             ck = d.get("checks", {})
@@ -77,6 +78,11 @@ def board_record_slugs():
 def main(argv):
     rest = [a for a in argv if not a.endswith(".json")]
     seed = None
+    code_root = ROOT
+    if "--code-root" in rest:
+        i = rest.index("--code-root")
+        code_root = os.path.abspath(rest[i + 1])
+        rest = rest[:i] + rest[i + 2:]
     if "--seed" in rest:
         i = rest.index("--seed")
         seed = int(rest[i + 1])
@@ -84,7 +90,9 @@ def main(argv):
     files = [a for a in argv if a.endswith(".json")]
     base = next((a for a in rest), "origin/main")
     if not files:
-        files = changed_codes(base)
+        files = changed_codes(base, code_root)
+    if files is None:
+        return 1
     if not files:
         print("no changed code submissions to gate")
         return 0
@@ -104,9 +112,9 @@ def main(argv):
 
     refuted = 0
     failed = 0
-    records = board_record_slugs()
+    records = board_record_slugs(code_root)
     for f in files:
-        p = f if os.path.isabs(f) else os.path.join(ROOT, f)
+        p = f if os.path.isabs(f) else os.path.join(code_root, f)
         if not os.path.exists(p):                 # deleted/renamed away
             continue
         ferr = file_size_error(p)

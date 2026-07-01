@@ -42,6 +42,12 @@ verifier; a green check is required to merge. Open the PR from your own account:
 CI checks that the PR author is one of the code's `@handle` authors, so list
 yourself (literature baselines with no `@handle` are exempt).
 
+Submission PRs are treated as untrusted data. CI validates `codes/*.json` with
+verifier, schema, and gate code from the base branch, not from the PR itself. If
+you need to change validation code (`verify/`, `schema/`, workflow files, or the
+site builder), do that in a separate PR from any code submission so a submission
+cannot redefine the checks that judge it.
+
 The distance gate is probabilistic: it runs a random-information-set search with
 a fresh random seed each run, so a green check is not a permanent guarantee. A
 correct distance has no lighter logical to find and passes every time; an

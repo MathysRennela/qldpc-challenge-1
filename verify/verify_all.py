@@ -7,6 +7,7 @@ duplicates) on every entry. Distance refutation is NOT run here -- it is the
 per-submission job of gate_changed.py (changed files) and the weekly job of
 refute_board.py (whole board, random seed)."""
 
+import argparse
 import glob
 import json
 import os
@@ -18,8 +19,15 @@ from qldpc_verify import file_size_error, verify
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 if __name__ == "__main__":
-    code_paths = sorted(glob.glob(os.path.join(ROOT, "codes", "*.json")))
-    paths = code_paths + sorted(glob.glob(os.path.join(ROOT, "verify", "fixtures", "*.json")))
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--root", default=ROOT,
+                    help="repository tree containing codes/ to verify; verifier "
+                         "code and fixtures still come from this checkout")
+    args = ap.parse_args()
+    code_root = os.path.abspath(args.root)
+    code_paths = sorted(glob.glob(os.path.join(code_root, "codes", "*.json")))
+    fixture_paths = sorted(glob.glob(os.path.join(ROOT, "verify", "fixtures", "*.json")))
+    paths = code_paths + fixture_paths
     if not paths:
         print("no submissions found")
         sys.exit(0)
@@ -27,7 +35,9 @@ if __name__ == "__main__":
     sigs = {}
     fps = {}
     for p in paths:
-        rel = os.path.relpath(p, ROOT)
+        is_code = os.path.abspath(p).startswith(
+            os.path.join(code_root, "codes") + os.sep)
+        rel = os.path.relpath(p, code_root if is_code else ROOT)
         ferr = file_size_error(p)
         if ferr:
             failed.append(rel)
@@ -40,7 +50,7 @@ if __name__ == "__main__":
             ed = rep["earned_distance"].get("d", {})
             print(f"PASS  {rel}  -> d{ed.get('value','?')} "
                   f"({ed.get('tier','-')})")
-            if rel.startswith("codes/"):
+            if is_code:
                 if "signature" in rep:
                     sigs.setdefault(rep["signature"]["hash"], []).append(rel)
                 if "fingerprint" in rep:
