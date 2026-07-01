@@ -499,17 +499,17 @@ document.querySelectorAll('tr[data-href]').forEach(r=>{
 (function(){
  const mark=(code,on)=>document.querySelectorAll('[data-code="'+code+'"]')
   .forEach(el=>el.classList.toggle('xh',on));
- const plots=document.querySelector('.explorer .plots');
- // Hovering a chart point brings its table row into view (only when the row is
- // hidden behind the pinned plots or below the fold, so a small sweep over
- // visible points does not yank the page around).
+ // Hovering a chart point brings its table row into view by scrolling ONLY the
+ // bounded table box, never the page, and only when the row is outside the box's
+ // visible area, so a sweep over points never jumps the page.
  const reveal=code=>{
   const r=document.querySelector('tr[data-code="'+code+'"]');
   if(!r||r.offsetParent===null)return;
-  const rect=r.getBoundingClientRect();
-  const top=plots?plots.getBoundingClientRect().bottom:0;
-  if(rect.top<top+8||rect.bottom>innerHeight-8)
-   r.scrollIntoView({block:'center'});
+  const box=r.closest('.boardscroll');
+  if(!box)return;
+  const br=box.getBoundingClientRect(),rr=r.getBoundingClientRect();
+  if(rr.top<br.top||rr.bottom>br.bottom)
+   box.scrollTop+=(rr.top-br.top)-(box.clientHeight-rr.height)/2;
  };
  document.querySelectorAll('[data-code]').forEach(el=>{
   const code=el.dataset.code;
