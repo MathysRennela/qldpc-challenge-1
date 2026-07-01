@@ -13,7 +13,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
-from qldpc_verify import verify
+from qldpc_verify import file_size_error, verify
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -27,10 +27,15 @@ if __name__ == "__main__":
     sigs = {}
     fps = {}
     for p in paths:
+        rel = os.path.relpath(p, ROOT)
+        ferr = file_size_error(p)
+        if ferr:
+            failed.append(rel)
+            print(f"FAIL  {rel}  -> file_size_within_limit: {ferr}")
+            continue
         with open(p) as f:
             doc = json.load(f)
         rep = verify(doc)   # structural checks; refutation lives in gate_changed / refute_board
-        rel = os.path.relpath(p, ROOT)
         if rep["ok"]:
             ed = rep["earned_distance"].get("d", {})
             print(f"PASS  {rel}  -> d{ed.get('value','?')} "

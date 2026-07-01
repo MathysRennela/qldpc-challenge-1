@@ -22,6 +22,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import heuristic_distance as H
+from qldpc_verify import file_size_error
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -102,10 +103,16 @@ def main(argv):
               "running RIS only\n")
 
     refuted = 0
+    failed = 0
     records = board_record_slugs()
     for f in files:
         p = f if os.path.isabs(f) else os.path.join(ROOT, f)
         if not os.path.exists(p):                 # deleted/renamed away
+            continue
+        ferr = file_size_error(p)
+        if ferr:
+            failed += 1
+            print(f"FAIL     {f}: file_size_within_limit: {ferr}")
             continue
         doc = json.load(open(p))
         if "distance" not in doc or "d" not in doc.get("distance", {}):
@@ -135,7 +142,9 @@ def main(argv):
     if refuted:
         print(f"\n{refuted} submission(s) refuted: claimed distance is not supported "
               f"by an independent search. See witnesses above.")
-    return 1 if refuted else 0
+    if failed:
+        print(f"\n{failed} submission(s) failed preflight checks.")
+    return 1 if (refuted or failed) else 0
 
 
 if __name__ == "__main__":

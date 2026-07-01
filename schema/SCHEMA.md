@@ -76,6 +76,23 @@ interaction_radius`, and an `earned_distance` block giving the tier each side
 actually earned (an `exact` claim shows as `upper_bound` here and is flagged
 for server certification). Exit code 0 iff every required check passes.
 
+## Public CI limits
+
+The public submission path has generous resource limits so malformed or hostile
+JSON cannot force unbounded dense-matrix allocation in CI. Current automatic
+limits are:
+
+- JSON file size: 5 MB.
+- `n <= 5000`.
+- At most 10000 X-checks and 10000 Z-checks.
+- Max check weight 40.
+- At most 200000 total support entries across all checks.
+- At most 5000 locality coordinate entries.
+- Dense verifier intermediates capped at 50000000 cells.
+
+These are far above the current board entries. A larger code should be handled
+through a maintainer-run path until the verifier is sparse end-to-end.
+
 ## Conventions and gotchas
 
 - A repeated qubit index within a single check is rejected (it would XOR
