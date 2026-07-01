@@ -1931,7 +1931,6 @@ def build():
     P.append('<div class=wrap>')
     P.append(progress_panel(entries, n_exact, best_eff))
     P.append(primary_tracks_grid(entries, records))
-    P.append(contributors_panel(entries))
     P.append('<div class=how>'
              '<div class=card><span class=n>1</span><h3>Build a code</h3>'
              '<p>A CSS qLDPC code, written as one JSON file with its parity '
@@ -1972,6 +1971,7 @@ def build():
              '</div>')
     P.append(board_table(entries, records))
     P.append('</div>')  # close explorer (bounds the sticky plots)
+    P.append(contributors_panel(entries))  # leaderboard sits below the table
     P.append('</div>')  # close the main content wrap; footer is full-width
     P.append(
         '<footer class=foot><div class=footmain>'
