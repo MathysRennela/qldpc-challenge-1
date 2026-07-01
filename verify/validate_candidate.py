@@ -4,30 +4,35 @@ This is the *conscience* of the autoresearch loop. An agent may explore freely a
 write its own code, but every distance/quality CLAIM has to survive this gate, which
 it must not be able to weaken.
 
+It is deliberately THIN: the actual verification and refutation are the existing
+verifier (``qldpc_verify.verify(doc, refute=True)`` already does schema + n/k/CSS +
+witnesses AND the random-seed distance refutation in one call). This module adds only
+what the agent needs on top: board deduplication, a novelty label, and a single
+structured verdict with honest labels the skill can act on.
+
 TRUST MODEL
 -----------
-1. This file depends ONLY on the trusted verifier stack in ``verify/`` (the verifier,
-   the RIS search, the refuter, the WL signature). It imports NOTHING from
-   ``research/`` -- the agent's playground -- so an agent cannot soften the gate by
-   editing, say, ``research/surrogate.py``; it would have to edit this file.
+1. This file depends ONLY on the trusted verifier stack in ``verify/``. It imports
+   NOTHING from ``research/`` -- the agent's playground -- so an agent cannot soften
+   the gate by editing its own kit; it would have to edit the trusted stack, whose
+   hashes CI pins (see ``check_validator_integrity.py``).
 2. Editing THIS file cannot be prevented on a machine the agent controls, so it is
    not the root of trust. The authoritative run is CI, executing this file from the
-   protected ``main`` branch against the submitted candidate. A local run is a fast
-   preview. Every verdict is stamped with this file's source hash
-   (``validator.source_sha256``) so a verdict produced by a tampered local copy is
-   detectable downstream.
+   protected ``main`` branch. A local run is a fast preview. Every verdict is stamped
+   with this file's source hash (``validator.source_sha256``) so a verdict produced
+   by a tampered local copy is detectable downstream.
 
 The gate, per candidate (a schema-shaped submission ``doc``):
   verify   -- the real verifier passes (schema + n/k/CSS/weight + witnesses)
-  converge -- the surrogate distance, raised over a trial ladder, does not drop
-              below the claim (a claim above the converged value is an over-claim)
-  refute   -- the independent random-seed RIS refuter finds nothing lighter
+  refute   -- the verifier's own random-seed refutation finds nothing lighter than
+              the claimed distance (an over-claim is caught here)
   dedup    -- not an exact duplicate of a board entry (WL-equivalent is flagged)
   novelty  -- LABEL only: does it advance its own primary-track cell? (literature
               novelty is out of scope here)
 
-``passed`` is True iff verify holds AND the claim is not over-claimed AND not refuted
-AND not an exact board duplicate. Novelty is a label, not a pass condition.
+``passed`` is True iff the verifier accepts it (structure + witnesses), it is not
+refuted, and it is not an exact board duplicate. Novelty is a label, not a pass
+condition.
 """
 import functools
 import glob
@@ -37,13 +42,9 @@ import os
 import secrets
 import sys
 
-import numpy as np
-
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)                       # trusted verify/ only
-import gf2
 import qldpc_verify
-import heuristic_distance
 
 _REPO = os.path.dirname(_HERE)
 _CODES = os.path.join(_REPO, "codes")
@@ -59,21 +60,6 @@ def source_sha256():
         return hashlib.sha256(f.read()).hexdigest()
 
 
-def _matrix(supports, n):
-    H = np.zeros((len(supports), n), dtype=np.int8)
-    for r, sup in enumerate(supports):
-        for q in sup:
-            H[r, q] ^= 1
-    return H
-
-
-def _fingerprint(HX, HZ):
-    """Exact-duplicate key: RREF pins the stabilizer group (same convention the
-    verifier uses). Equal fingerprint => identical code, not merely equivalent."""
-    fp = gf2.rref(HX)[0].tobytes() + b"|" + gf2.rref(HZ)[0].tobytes()
-    return hashlib.sha256(fp).hexdigest()[:16]
-
-
 def _board_stamp():
     """A cheap key that changes iff the board files change (name/mtime/size), so the
     scan below can be cached within a session but never goes stale."""
@@ -87,7 +73,7 @@ def _board_entries_cached(_stamp):
     for p in sorted(glob.glob(os.path.join(_CODES, "*.json"))):
         try:
             doc = json.load(open(p))
-            rep = qldpc_verify.verify(doc, refute=False)
+            rep = qldpc_verify.verify(doc, refute=False)   # structural only; fast
             comp = rep.get("computed", {})
             out.append({
                 "name": os.path.basename(p),
@@ -103,30 +89,17 @@ def _board_entries_cached(_stamp):
 
 
 def _board_entries():
-    """Trusted read of the current board: (name, n, k, d, fingerprint, sig_hash,
-    weight_class, locality_class) for each codes/*.json, all via verify/. Cached
-    per board state so validating many candidates does not rescan every time."""
+    """Trusted read of the current board via verify/, cached per board state so
+    validating many candidates in a session does not rescan every time."""
     return _board_entries_cached(_board_stamp())
 
 
-def _converge_distance(doc, seed, ladder=(5000, 20000)):
-    """Raise the RIS search over a trial ladder; return (converged_d, per-step list).
-    A converged value that is < the claim means the claim is over-stated."""
-    steps = []
-    for t in ladder:
-        res = heuristic_distance.estimate(doc, trials=t, seed=seed, fast_trials=0)
-        steps.append(res["d_heuristic"])
-    converged = steps[-1]
-    stable = len(steps) >= 2 and steps[-1] == steps[-2]
-    return converged, stable, steps
-
-
-def validate_candidate(doc, *, seed=None, converge_ladder=(5000, 20000)):
+def validate_candidate(doc, *, seed=None):
     """Run the full trusted gate on a candidate submission ``doc``.
 
-    Returns a structured verdict (JSON-serializable). ``passed`` is the honest
-    bottom line; the ``gates`` block is the evidence for each check, and ``labels``
-    are the human-facing tags an agent should surface with the candidate.
+    Returns a structured verdict (JSON-serializable). ``passed`` is the honest bottom
+    line; ``gates`` is the evidence for each check; ``labels`` are the human-facing
+    tags an agent should surface with the candidate.
     """
     if seed is None:
         seed = secrets.randbelow(2**31)         # refutation is non-deterministic by design
@@ -142,41 +115,34 @@ def validate_candidate(doc, *, seed=None, converge_ladder=(5000, 20000)):
     }
     g = verdict["gates"]
 
-    # 1. VERIFY -- the real verifier (schema + n/k/CSS/weight + witnesses).
-    rep = qldpc_verify.verify(doc, refute=False)
-    failed = [c["check"] for c in rep["checks"] if not c["ok"]]
+    # 1+2. VERIFY + REFUTE -- one trusted call does schema/n/k/CSS/weight/witnesses
+    #      AND the random-seed distance refutation (the "distance_not_refuted" check).
+    rep = qldpc_verify.verify(doc, refute=True, seed=seed)
+    checks = rep["checks"]
+    nd = next((c for c in checks if c["check"] == "distance_not_refuted"), None)
+    refuted = nd is not None and not nd["ok"]
+    structural_fail = [c["check"] for c in checks
+                       if not c["ok"] and c["check"] != "distance_not_refuted"]
+    verify_ok = not structural_fail
     comp = rep.get("computed", {})
-    g["verify"] = {"ok": rep["ok"], "failed_checks": failed,
-                   "weight_class": comp.get("weight_class"),
-                   "locality_class": comp.get("locality_class")}
-    verdict["candidate"]["weight_class"] = comp.get("weight_class")
-    verdict["candidate"]["locality_class"] = comp.get("locality_class")
-    if not rep["ok"]:
+    wc, lc = comp.get("weight_class"), comp.get("locality_class")
+    verdict["candidate"]["weight_class"] = wc
+    verdict["candidate"]["locality_class"] = lc
+
+    g["verify"] = {"ok": verify_ok, "failed_checks": structural_fail,
+                   "weight_class": wc, "locality_class": lc}
+    if not verify_ok:
         verdict["labels"].append("invalid: verifier rejected")
         return verdict                          # nothing else is meaningful if it doesn't verify
 
-    # 2. CONVERGE -- surrogate distance raised over a ladder must not drop below the claim.
-    converged, stable, steps = _converge_distance(doc, seed, converge_ladder)
-    over_claimed = converged is not None and converged < claimed_d
-    g["converge"] = {"claimed_d": claimed_d, "converged_d": converged,
-                     "stable": stable, "ladder": list(converge_ladder),
-                     "steps": steps, "over_claimed": over_claimed}
-    if over_claimed:
-        verdict["labels"].append(
-            f"over-claimed: distance converges to <= {converged}, below claim {claimed_d}")
-
-    # 3. REFUTE -- independent random-seed RIS refuter must find nothing lighter.
-    refuted, d_found, wit, trials = heuristic_distance.refute_check(doc, seed=seed)
-    g["refute"] = {"refuted": bool(refuted), "d_found": d_found, "seed": seed,
-                   "trials": trials, "witness": wit}
+    g["refute"] = {"refuted": refuted, "seed": seed,
+                   "detail": nd["detail"] if nd else "no distance witnesses to refute"}
     if refuted:
-        verdict["labels"].append(
-            f"refuted: found weight-{d_found} logical < claim {claimed_d} (seed {seed})")
+        verdict["labels"].append(f"refuted (over-claimed distance): {nd['detail']}")
 
-    # 4. DEDUP -- compare against the board by exact fingerprint and WL signature.
-    HX = _matrix(doc["checks"]["X"], doc["n"])
-    HZ = _matrix(doc["checks"]["Z"], doc["n"])
-    cand_fp = _fingerprint(HX, HZ)
+    # 3. DEDUP -- compare against the board by exact fingerprint and WL signature,
+    #    both already computed by the verifier above.
+    cand_fp = rep.get("fingerprint")
     cand_sig = rep.get("signature", {}).get("hash")
     board = _board_entries()
     exact_dup = next((b["name"] for b in board if b["fingerprint"] == cand_fp), None)
@@ -188,8 +154,7 @@ def validate_candidate(doc, *, seed=None, converge_ladder=(5000, 20000)):
     elif wl_equiv:
         verdict["labels"].append(f"possibly equivalent (same WL signature) to {wl_equiv}")
 
-    # 5. NOVELTY (label only) -- non-dominated within the candidate's own track cell?
-    wc, lc = comp.get("weight_class"), comp.get("locality_class")
+    # 4. NOVELTY (label only) -- non-dominated within the candidate's own track cell?
     n, k, d = doc["n"], doc["k"], claimed_d
     dominators = []
     for b in board:
@@ -207,9 +172,7 @@ def validate_candidate(doc, *, seed=None, converge_ladder=(5000, 20000)):
         else "does not advance its board cell")
     verdict["labels"].append("literature novelty UNVERIFIED")
 
-    # bottom line
-    verdict["passed"] = bool(
-        rep["ok"] and not over_claimed and not refuted and not exact_dup)
+    verdict["passed"] = bool(verify_ok and not refuted and not exact_dup)
     return verdict
 
 
