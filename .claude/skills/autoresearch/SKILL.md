@@ -19,8 +19,8 @@ you like — but you do **not** get to decide whether a code is good. A trusted 
 - **Never edit anything under `verify/`** — that is the trusted stack (verifier, refuter,
   the gate). CI pins its hashes; tampering fails the build and is pointless. If you believe
   the gate is wrong, **stop and tell the human**; do not route around it.
-- Believe the gate. If it reports `over_claimed` or `refuted`, your code's real distance is
-  lower than you thought — that is the surrogate fooling you, not a gate bug.
+- Believe the gate. If it reports `refuted`, your code's real distance is lower than you
+  thought — that is the surrogate fooling you, not a gate bug.
 
 Run it on a packaged submission doc:
 
@@ -54,8 +54,9 @@ The verdict's `gates` block is your evidence; `labels` are what you show the hum
 ## Pitfalls (these are why the gate exists)
 
 - **The surrogate distance is an UPPER BOUND.** A high `d` at low trials usually means the
-  search hasn't found the light logical yet — *not* that the code is good. The gate's converge
-  step raises trials until it stops dropping; trust that, not your screening number.
+  search hasn't found the light logical yet — *not* that the code is good. The gate's
+  refutation searches harder (at a random seed) for a lighter logical; trust its verdict, not
+  your screening number.
 - **"Advances the board" ≠ "novel".** The gate labels literature novelty `unverified` — it only
   dedups against *this board*. Never call a candidate a discovery. Say: "advances the
   `<cell>` board; novelty vs the literature unverified."
@@ -65,8 +66,7 @@ The verdict's `gates` block is your evidence; `labels` are what you show the hum
 
 ## Definition of done (a candidate you may surface)
 
-- `validate_candidate` → `passed: true` (verifies, distance converged, not refuted, not a board
-  duplicate).
+- `validate_candidate` → `passed: true` (verifies, not refuted, not a board duplicate).
 - Labeled honestly: `confidence: upper_bound`; novelty vs literature flagged unverified;
   "advances this board cell," not "discovery."
 - **Staged for review — never committed to `codes/`, never a PR.** The human decides what lands.
