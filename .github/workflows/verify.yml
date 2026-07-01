@@ -53,9 +53,15 @@ jobs:
         if: github.event_name == 'pull_request' && steps.changes.outputs.codes_changed == 'true'
         working-directory: trusted
         run: uv run --frozen python verify/check_submission_scope.py --root ../submitted --base origin/${{ github.base_ref }}
+      - name: trusted validation stack integrity (the autoresearch gate can't be silently weakened)
+        working-directory: submitted
+        run: uv run --frozen python verify/check_validator_integrity.py
       - name: verifier self-tests (must reject bad submissions)
         working-directory: submitted
         run: uv run --frozen python verify/test_verifier.py
+      - name: autoresearch gate self-tests (validate_candidate rejects over-claims/dups)
+        working-directory: submitted
+        run: uv run --frozen python verify/test_validate_candidate.py
       - name: research starter-kit smoke test (kit stays in sync with the verifier)
         working-directory: submitted
         run: uv run --frozen python research/test_smoke.py
