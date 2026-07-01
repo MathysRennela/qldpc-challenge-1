@@ -100,10 +100,11 @@ radius, qubits per site, minimum spacing, density, bounding box).
   [[282,12,14]] (arXiv:2504.08887, v3+) reaches ~8.34. Best on the board so far:
   [[294,12,14]] at kd^2/n 8.0 (an upper bound, not yet certified exact), which
   the published [[282,12,14]] strictly dominates -- seeding it is follow-up work.
-- Weight-8, any connectivity: the coset 2BGA [[168,20,14]] (arXiv:2606.17268,
-  Table 4, distance stated exact) reaches kd^2/n ~ 23.3, beating the board's
-  [[180,20,14]] at 21.8 (itself an uncertified upper bound); it strictly
-  dominates both n=180 coset submissions and is likewise a seeding candidate.
+- Weight-8, any connectivity: the double-cover 2BGA [[168,20,14]]
+  (arXiv:2606.17268, Table 4, distance stated exact there) reaches kd^2/n ~ 23.3,
+  beating the board's previous best [[180,20,14]] at 21.8 (an uncertified upper
+  bound); it strictly dominates both n=180 coset submissions. Now seeded as a
+  baseline (codes/168-20-14.json), so the board reflects it directly.
 - High-rate / large-block: Kasai's codes [[9216,4612,<=48]]
   (arXiv:2601.08824) and [[16384,4142,<=40]] (arXiv:2604.20838), cited as bars
   rather than seeded (their distance witnesses are not published and the verifier
