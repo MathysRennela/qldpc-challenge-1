@@ -98,7 +98,7 @@ radius, qubits per site, minimum spacing, density, bounding box).
   nearest-neighbour directional-tile [[323,14,15]] (arXiv:2606.19482) reaches
   ~9.75 at the higher check weight 11. Best on the board so far: [[294,12,14]] at
   kd^2/n 8.0 (an upper bound, not yet certified exact).
-- High-rate / large-block: the Kasai-group codes [[9216,4612,<=48]]
+- High-rate / large-block: Kasai's codes [[9216,4612,<=48]]
   (arXiv:2601.08824) and [[16384,4142,<=40]] (arXiv:2604.20838), cited as bars
   rather than seeded (their distance witnesses are not published and the verifier
   does not certify distance at these sizes). The challenge is to land a code in

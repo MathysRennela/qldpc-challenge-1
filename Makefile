@@ -7,4 +7,4 @@ verify:
 	uv run python verify/qldpc_verify.py $(CODE)
 
 example:
-	uv run python verify/qldpc_verify.py examples/72-6-6.json
+	uv run python verify/qldpc_verify.py codes/72-12-6.json

@@ -66,7 +66,11 @@ def load_checks(path):
     """Return (HX, HZ, coords_or_None). Accepts .npz (matrices) or .json
     (a draft with a checks block)."""
     if path.endswith(".json"):
-        doc = json.load(open(path))
+        try:
+            with open(path) as f:
+                doc = json.load(f)
+        except json.JSONDecodeError as e:
+            raise SystemExit(f"{path}: not valid JSON ({e})")
         n = doc["n"]
         HX = _matrix_from_supports(doc["checks"]["X"], n)
         HZ = _matrix_from_supports(doc["checks"]["Z"], n)

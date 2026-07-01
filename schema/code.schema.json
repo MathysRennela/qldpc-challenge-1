@@ -25,6 +25,11 @@
       "type": "object",
       "required": ["d"],
       "additionalProperties": false,
+      "description": "at least one of X or Z must be present: a claimed d needs a witness for the minimizing side to certify the upper bound.",
+      "anyOf": [
+        {"required": ["X"]},
+        {"required": ["Z"]}
+      ],
       "properties": {
         "d": {"type": "integer", "minimum": 1, "description": "claimed code distance = min(dX, dZ)"},
         "X": {"$ref": "#/$defs/sideDistance"},

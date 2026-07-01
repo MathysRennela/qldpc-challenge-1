@@ -275,6 +275,14 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
                        "certification")
 
     # 7. code distance consistency
+    #    A claimed d is only trustless if at least one side carries a valid
+    #    witness. Without one, earned_d is empty and both the min-side check and
+    #    the refutation gate below would be skipped, letting a witness-less d
+    #    reach the board unchecked -- so require a witness and fail closed.
+    record("distance_has_witness", bool(earned_d),
+           f"{len(earned_d)} side(s) carry a valid witness" if earned_d
+           else "distance.d is claimed with no valid X or Z witness; supply a "
+                "witness for the minimizing side")
     if earned_d:
         d_earned = min(earned_d)
         record("d_matches_min_side", d_earned == dist["d"],
@@ -397,8 +405,15 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
 
 
 def main(path):
-    with open(path) as f:
-        doc = json.load(f)
+    try:
+        with open(path) as f:
+            doc = json.load(f)
+    except FileNotFoundError:
+        print(f"could not open {path}: file not found", file=sys.stderr)
+        return 2
+    except json.JSONDecodeError as e:
+        print(f"could not parse {path}: not valid JSON ({e})", file=sys.stderr)
+        return 2
     report = verify(doc, refute=True)   # the per-submission CLI runs the gate
     print(json.dumps(report, indent=2))
     return 0 if report["ok"] else 1

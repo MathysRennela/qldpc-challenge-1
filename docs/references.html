@@ -173,9 +173,9 @@ box-shadow:inset 3px 0 0 var(--ac)}
 .board tbody tr.xh,.board tbody tr.fr.xh{background:#fef3c7}
 .board tbody tr.xh td:first-child{box-shadow:inset 3px 0 0 #f59e0b}
 .typecell{white-space:normal!important}
-.tchip{display:inline-block;font-size:11px;line-height:1;padding:3px 7px;
+.tchip{display:inline-block;font-size:11px;line-height:1.25;padding:3px 7px;
 margin:2px 4px 2px 0;border-radius:999px;background:var(--soft);color:var(--mut);
-border:1px solid var(--ln);white-space:nowrap}
+border:1px solid var(--ln);white-space:normal}
 .tchip.loc{background:#eef2ff;color:#3730a3;border-color:#c7d2fe}
 /* Primary-tracks grid (locality x weight). */
 .ptgrid{margin:8px 0 4px}
@@ -188,11 +188,20 @@ table.grid thead th,table.grid tr:first-child th{background:var(--soft);
 font-weight:600;color:var(--ink);white-space:nowrap}
 .grow{background:var(--soft);font-weight:600;color:var(--ink);white-space:nowrap}
 .gcorner{background:var(--soft)}
-.gcell .gcount{font-size:11px;color:var(--mut)}
-.gcell .gbest{font-family:'Space Mono',ui-monospace,monospace;font-size:12px;
-color:var(--ac);text-decoration:none;font-weight:700}
-.gcell .gbest:hover{text-decoration:underline}
-.gcell .geff{font-size:11px;color:var(--mut);margin-top:1px}
+.gcell{min-width:158px}
+.gcount{font-size:11px;color:var(--mut);background:none;border:0;padding:0;
+margin:0 0 5px;cursor:pointer;font-family:inherit;text-align:left;display:block}
+.gcount:hover{color:var(--ac);text-decoration:underline}
+.gitem{display:flex;align-items:center;gap:6px;text-decoration:none;
+padding:3px 0;color:var(--ink)}
+.gitem+.gitem{border-top:1px dashed var(--ln)}
+.gitem:hover .gcode{text-decoration:underline}
+.gcode{font-family:'Space Mono',ui-monospace,monospace;font-size:12px;
+color:var(--ac);font-weight:700;flex:1 1 auto}
+.gitem .geff{font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}
+.gmore{font-size:11px;color:var(--ac);background:none;border:0;
+padding:5px 0 0;cursor:pointer;font-family:inherit;display:block}
+.gmore:hover{text-decoration:underline}
 .gempty{background:repeating-linear-gradient(45deg,#fafafa 0 6px,#fff 6px 12px)}
 .searchbar{display:flex;align-items:center;gap:12px;margin:14px 0 8px}
 #boardsearch{flex:1 1 0;min-width:0;font-size:14px;padding:10px 13px;
@@ -372,4 +381,10 @@ border-radius:5px;padding:1px 6px;white-space:nowrap;text-decoration:none}
 <div class=ref id="steffan2025tile"><span class=refkey>steffan2025tile</span><div class=refbody><span class=refauth>Steffan, Vincent and Choe, Shin Ho and Breuckmann, Nikolas P. and Pereira, Francisco Revson Fernandes and Eberhardt, Jens Niklas.</span> <span class=reftitle>Tile Codes: High-Efficiency Quantum Codes on a Lattice with Boundary.</span> <span class=refmeta>2025.</span> <a href="https://arxiv.org/abs/2504.09171">arXiv:2504.09171</a><div class=refcited><span>cited by 1</span><a href="codes/294-12-14.html">[[294,12,14]]</a></div></div></div>
 <div class=ref id="gu2026nearest"><span class=refkey>gu2026nearest</span><div class=refbody><span class=refauth>Gu, Boren and Noszko, Tamas and Steffan, Vincent and Eberhardt, Jens Niklas and Roffe, Joschka and Eisert, Jens and Koutsioumpas, Stergios.</span> <span class=reftitle>Nearest-neighbour gates are all you need: High-rate quantum low-density parity-check codes on a planar grid.</span> <span class=refmeta>2026.</span> <a href="https://arxiv.org/abs/2606.19482">arXiv:2606.19482</a><div class=refcited><span>cited by 1</span><a href="codes/294-12-14.html">[[294,12,14]]</a></div></div></div>
 <div class=ref id="nixon2026vine"><span class=refkey>nixon2026vine</span><div class=refbody><span class=refauth>Nixon, Georgia M. and McLauchlan, Campbell K. and van Rest, Charles C. L.</span> <span class=reftitle>Vine Codes: Low-Overhead Quantum LDPC Codes on a Planar Square Grid.</span> <span class=refmeta>2026.</span> <a href="https://arxiv.org/abs/2606.20263">arXiv:2606.20263</a></div></div>
+<div class=ref id="lin2023twoblock"><span class=refkey>lin2023twoblock</span><div class=refbody><span class=refauth>Lin, Hsiang-Ku and Pryadko, Leonid P.</span> <span class=reftitle>Quantum two-block group algebra codes.</span> <span class=refmeta>2023.</span> <a href="https://arxiv.org/abs/2306.16400">arXiv:2306.16400</a></div></div>
+<div class=ref id="liang2025twisted"><span class=refkey>liang2025twisted</span><div class=refbody><span class=refauth>Liang, Zijian and Liu, Ke and Song, Hao and Chen, Yu-An.</span> <span class=reftitle>Generalized toric codes on twisted tori for quantum error correction.</span> <span class=refmeta>2025.</span> <a href="https://arxiv.org/abs/2503.03827">arXiv:2503.03827</a></div></div>
+<div class=ref id="liang2025selfdual"><span class=refkey>liang2025selfdual</span><div class=refbody><span class=refauth>Liang, Zijian and Chen, Yu-An.</span> <span class=reftitle>Self-dual bivariate bicycle codes with transversal Clifford gates.</span> <span class=refmeta>2025.</span> <a href="https://arxiv.org/abs/2510.05211">arXiv:2510.05211</a></div></div>
+<div class=ref id="cruzbenito2026evolutionary"><span class=refkey>cruzbenito2026evolutionary</span><div class=refbody><span class=refauth>Cruz-Benito, Juan and Cross, Andrew W. and Kremer, David and Faro, Ismael.</span> <span class=reftitle>Evolutionary Discovery of Bivariate Bicycle Codes with LLM-Guided Search.</span> <span class=refmeta>2026.</span> <a href="https://arxiv.org/abs/2606.02418">arXiv:2606.02418</a></div></div>
+<div class=ref id="kasai2026orthogonality"><span class=refkey>kasai2026orthogonality</span><div class=refbody><span class=refauth>Kasai, Kenta.</span> <span class=reftitle>Breaking the Orthogonality Barrier in Quantum LDPC Codes.</span> <span class=refmeta>2026.</span> <a href="https://arxiv.org/abs/2601.08824">arXiv:2601.08824</a></div></div>
+<div class=ref id="okada2026highgirth"><span class=refkey>okada2026highgirth</span><div class=refbody><span class=refauth>Okada, Koki and Kasai, Kenta.</span> <span class=reftitle>High-Girth Regular Quantum LDPC Codes from Affine-Coset Structures.</span> <span class=refmeta>2026.</span> <a href="https://arxiv.org/abs/2604.20838">arXiv:2604.20838</a></div></div>
 </div></body></html>

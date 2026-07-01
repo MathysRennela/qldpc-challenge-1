@@ -13,7 +13,7 @@
 \newcommand{\wt}{\operatorname{wt}}
 \newcommand{\eff}{kd^2/n}
 
-\title{\textbf{The qLDPC Challenge}\\[4pt]
+\title{\textbf{The QEC Challenge}\\[4pt]
   \large A public, automatically verified leaderboard for quantum LDPC codes}
 \author{Unitary Foundation\\
   \texttt{github.com/unitaryfoundation/qldpc-challenge}}
@@ -29,7 +29,7 @@ low-overhead fault tolerance, but the field has no shared, machine-checked recor
 of which codes are best under which constraints. Parameters are scattered across
 papers and tables, and distance claims in particular are hard to reproduce and
 easy to overstate, since computing distance is NP-hard and is often estimated
-with heuristic decoders that can be wrong. The qLDPC Challenge is a public
+with heuristic decoders that can be wrong. The QEC Challenge is a public
 leaderboard that treats this as a software-infrastructure problem. A participant
 submits one JSON file describing a CSS code; continuous integration recomputes
 the code's properties from its parity-check matrices, checks a self-certifying
@@ -62,7 +62,7 @@ recent work documents belief-propagation decoders overestimating qLDPC distances
 by large factors. A leaderboard that simply trusts submitted numbers would
 accumulate quiet errors.
 
-The qLDPC Challenge addresses both problems with quantum-software tooling rather
+The QEC Challenge addresses both problems with quantum-software tooling rather
 than a static document. Every entry is a small machine-readable file that is
 automatically re-verified, distance claims must carry a checkable witness, and a
 distance refutation step actively searches for counterexamples. The result is a
@@ -161,7 +161,7 @@ Code & $[[n,k,d]]$ & topology & $w$ & $\eff$\\
 \midrule
 Rotated surface (Kitaev)      & $[[d^2,1,d]]$   & planar   & 4 & $1$\\
 Gross code (Bravyi et al.)    & $[[144,12,12]]$ & periodic & 6 & $12$\\
-Tile code (Eberhardt et al.)  & $[[512,18,19]]$ & planar   & 8 & $12.7$\\
+Tile code (Steffan et al.)  & $[[512,18,19]]$ & planar   & 8 & $12.7$\\
 Panteleev--Kalachev (GB)      & $[[126,28,8]]$  & periodic & 10 & $14.2$\\
 \bottomrule
 \end{tabular}
@@ -207,7 +207,7 @@ headroom.
   \item Bravyi, Cross, Gambetta, Maslov, Rall, Yoder, Nature \textbf{627}, 778
   (2024), arXiv:2308.07915 (bivariate-bicycle / gross code).
   \item Liang, Eberhardt, Chen, arXiv:2504.08887 (planar open-boundary qLDPC).
-  \item Eberhardt et al., tile codes, arXiv:2504.09171.
+  \item Steffan et al., tile codes, arXiv:2504.09171.
   \item Panteleev, Kalachev, Quantum \textbf{5}, 585 (2021), arXiv:1904.02703;
   Wang, Pryadko, arXiv:2203.17216 (generalized bicycle).
   \item Bravyi, Poulin, Terhal, Phys.\ Rev.\ Lett.\ \textbf{104}, 050503 (2010),

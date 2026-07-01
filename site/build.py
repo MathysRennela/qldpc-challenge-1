@@ -475,9 +475,9 @@ box-shadow:inset 3px 0 0 var(--ac)}}
 .board tbody tr.xh,.board tbody tr.fr.xh{{background:#fef3c7}}
 .board tbody tr.xh td:first-child{{box-shadow:inset 3px 0 0 #f59e0b}}
 .typecell{{white-space:normal!important}}
-.tchip{{display:inline-block;font-size:11px;line-height:1;padding:3px 7px;
+.tchip{{display:inline-block;font-size:11px;line-height:1.25;padding:3px 7px;
 margin:2px 4px 2px 0;border-radius:999px;background:var(--soft);color:var(--mut);
-border:1px solid var(--ln);white-space:nowrap}}
+border:1px solid var(--ln);white-space:normal}}
 .tchip.loc{{background:#eef2ff;color:#3730a3;border-color:#c7d2fe}}
 /* Primary-tracks grid (locality x weight). */
 .ptgrid{{margin:8px 0 4px}}
@@ -490,11 +490,20 @@ table.grid thead th,table.grid tr:first-child th{{background:var(--soft);
 font-weight:600;color:var(--ink);white-space:nowrap}}
 .grow{{background:var(--soft);font-weight:600;color:var(--ink);white-space:nowrap}}
 .gcorner{{background:var(--soft)}}
-.gcell .gcount{{font-size:11px;color:var(--mut)}}
-.gcell .gbest{{font-family:'Space Mono',ui-monospace,monospace;font-size:12px;
-color:var(--ac);text-decoration:none;font-weight:700}}
-.gcell .gbest:hover{{text-decoration:underline}}
-.gcell .geff{{font-size:11px;color:var(--mut);margin-top:1px}}
+.gcell{{min-width:158px}}
+.gcount{{font-size:11px;color:var(--mut);background:none;border:0;padding:0;
+margin:0 0 5px;cursor:pointer;font-family:inherit;text-align:left;display:block}}
+.gcount:hover{{color:var(--ac);text-decoration:underline}}
+.gitem{{display:flex;align-items:center;gap:6px;text-decoration:none;
+padding:3px 0;color:var(--ink)}}
+.gitem+.gitem{{border-top:1px dashed var(--ln)}}
+.gitem:hover .gcode{{text-decoration:underline}}
+.gcode{{font-family:'Space Mono',ui-monospace,monospace;font-size:12px;
+color:var(--ac);font-weight:700;flex:1 1 auto}}
+.gitem .geff{{font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}}
+.gmore{{font-size:11px;color:var(--ac);background:none;border:0;
+padding:5px 0 0;cursor:pointer;font-family:inherit;display:block}}
+.gmore:hover{{text-decoration:underline}}
 .gempty{{background:repeating-linear-gradient(45deg,#fafafa 0 6px,#fff 6px 12px)}}
 .searchbar{{display:flex;align-items:center;gap:12px;margin:14px 0 8px}}
 #boardsearch{{flex:1 1 0;min-width:0;font-size:14px;padding:10px 13px;
@@ -750,6 +759,9 @@ document.querySelectorAll('circle.hit[data-code]').forEach(c=>{
    switch(m[2]){case'>=':return x>=v;case'<=':return x<=v;
     case'>':return x>v;case'<':return x<v;default:return x===v;}}
   if(t==='record'||t==='frontier')return r.dataset.record==='1';
+  // cell:<locality>~<weight> keeps only the members of one primary-track cell,
+  // honoring nesting via the row's precomputed data-cells list.
+  if(t.slice(0,5)==='cell:')return (' '+(r.dataset.cells||'')+' ').indexOf(' '+t.slice(5)+' ')>=0;
   const hay=(r.dataset.name+' '+r.dataset.tracks+' '+r.dataset.auth+' '+(r.dataset.model||'')+' '+(r.dataset.date||'')).toLowerCase();
   return hay.indexOf(t)>=0;
  }
@@ -802,11 +814,21 @@ document.querySelectorAll('circle.hit[data-code]').forEach(c=>{
    p.classList.add('active');
    q.value=p.dataset.q;
    // the All tab (empty filter) also resets every range slider.
-   if(p.dataset.q===''){if(wlo&&whi){wlo.value=WMIN;whi.value=WMAX;wpaint();}
-    if(dlo&&dhi){dlo.value=DMIN;dhi.value=DMAX;dpaint();}
-    if(nlo&&nhi){nlo.value=NMIN;nhi.value=NMAX;npaint();}
-    if(klo&&khi){klo.value=KMIN;khi.value=KMAX;kpaint();}}
+   if(p.dataset.q===''){resetsliders();}
    apply();});});
+ function resetsliders(){
+  if(wlo&&whi){wlo.value=WMIN;whi.value=WMAX;wpaint();}
+  if(dlo&&dhi){dlo.value=DMIN;dhi.value=DMAX;dpaint();}
+  if(nlo&&nhi){nlo.value=NMIN;nhi.value=NMAX;npaint();}
+  if(klo&&khi){klo.value=KMIN;khi.value=KMAX;kpaint();}}
+ // Primary-tracks grid: a cell's count / 'see all' filters the table to that
+ // (locality x weight) cell and scrolls it into view.
+ document.querySelectorAll('[data-cell]').forEach(b=>{
+  b.addEventListener('click',()=>{
+   document.querySelectorAll('.ttab').forEach(t=>t.classList.remove('active'));
+   resetsliders();q.value='cell:'+b.dataset.cell;apply();
+   const bd=document.getElementById('board');
+   if(bd)bd.scrollIntoView({behavior:'smooth'});});});
  if(wlo&&whi){wlo.addEventListener('input',()=>{wpaint();apply();});
   whi.addEventListener('input',()=>{wpaint();apply();});wpaint();}
  if(dlo&&dhi){dlo.addEventListener('input',()=>{dpaint();apply();});
@@ -1416,11 +1438,13 @@ FAQ = [
      "extraction stays manageable. They are a leading route to lowering the "
      "qubit overhead of error correction."),
     ("Why does this page exist?",
-     "To collect the best known qLDPC codes in one place, with every entry's "
+     "To collect qLDPC codes in one place, with every entry's "
      "parameters checked automatically instead of taken on trust. The "
      "literature is scattered; this gathers codes, verifies them, and ranks "
-     "them per track on a Pareto frontier, so it is easy to see the current "
-     "state of the art and where there is room to do better."),
+     "them per track on a Pareto frontier, so it is easy to see this board's "
+     "frontier and where there is room to do better. The frontier is "
+     "board-relative: it reflects the codes seeded and submitted here, not an "
+     "exhaustive snapshot of the literature."),
     ("What counts as a better code?",
      "The primary tracks are a computed grid of locality class by check-weight "
      "class. Within each cell, codes rank on a Pareto frontier over (n, k, d, w): "
@@ -1598,12 +1622,26 @@ def compute_records(entries):
     return records
 
 
+def cell_frontier_ranked(entries, idxs):
+    """Indices of a cell's Pareto frontier, ranked leader-first by kd^2/n, then
+    d, then k (higher better), then n (lower better). Ties on kd^2/n no longer
+    pick an arbitrary single leader; the whole frontier is returned in order so
+    co-leaders and the runner-up are visible."""
+    te = [entries[i] for i in idxs]
+    front = pareto(te)
+    return sorted((idxs[j] for j in front),
+                  key=lambda i: (-entries[i]["eff"], -entries[i]["d"],
+                                 -entries[i]["k"], entries[i]["n"]))
+
+
 def primary_tracks_grid(entries, records):
     """The Layer-1 primary tracks: the computed locality x check-weight grid. Each
     populated cell is a board; membership is derived from H and the layout (never
     self-declared) and nests, so a tighter cell's codes also compete in the looser
-    ones. Shows each cell's size and its kd^2/n leader; the table below filters to
-    any class via the pills."""
+    ones. Each cell lists its Pareto frontier (best kd^2/n first) with a distance-
+    confidence badge; the count and the 'see all' link filter the table below to
+    that exact cell, so the runner-up and the rest of the ranking are one click
+    away."""
     by_cell = cells_by_key(entries)
     if not by_cell:
         return ""
@@ -1611,6 +1649,7 @@ def primary_tracks_grid(entries, records):
             + "".join(f'<th>{html.escape(WEIGHT_LABEL[w])}</th>'
                       for w in WEIGHT_ORDER) + '</tr>')
     body = []
+    topn = 3
     for L in LOCALITY_ORDER:
         cellshtml = []
         for W in WEIGHT_ORDER:
@@ -1618,18 +1657,32 @@ def primary_tracks_grid(entries, records):
             if not idxs:
                 cellshtml.append('<td class=gempty></td>')
                 continue
-            be = entries[max(idxs, key=lambda i: entries[i]["eff"])]
-            cellshtml.append(
-                f'<td class=gcell><div class=gcount>{len(idxs)} '
-                f'code{"s" if len(idxs) != 1 else ""}</div>'
-                f'<a class=gbest href="codes/{be["slug"]}.html">'
-                f'[[{be["n"]},{be["k"]},{be["d"]}]]</a>'
-                f'<div class=geff>kd&sup2;/n {be["eff"]:g}</div></td>')
+            key = f"{L}~{W}"
+            ranked = cell_frontier_ranked(entries, idxs)
+            items = "".join(
+                f'<a class=gitem href="codes/{entries[i]["slug"]}.html" '
+                f'title="{html.escape(entries[i]["name"])}">'
+                f'{badge(entries[i]["tier"])}'
+                f'<span class=gcode>[[{entries[i]["n"]},{entries[i]["k"]},'
+                f'{entries[i]["d"]}]]</span>'
+                f'<span class=geff>{entries[i]["eff"]:g}</span></a>'
+                for i in ranked[:topn])
+            n = len(idxs)
+            more = (f'<button type=button class=gmore data-cell="{key}">'
+                    f'see all {n} &rarr;</button>'
+                    if n > len(ranked[:topn]) else '')
+            count = (f'<button type=button class=gcount data-cell="{key}" '
+                     f'title="filter the table to this cell">'
+                     f'{n} code{"s" if n != 1 else ""}</button>')
+            cellshtml.append(f'<td class=gcell>{count}{items}{more}</td>')
         body.append(f'<tr><th class=grow>{html.escape(LOCALITY_LABEL[L])}</th>'
                     + "".join(cellshtml) + '</tr>')
     return ('<section class=ptgrid><h2 class=track>Primary tracks</h2>'
             '<p class=ptsub>Computed grid of locality &times; check weight, '
             'derived from <code>H</code> and the layout, not self-declared. '
+            'Each cell lists its Pareto frontier, best kd&sup2;/n first; the '
+            'count and <em>see all</em> filter the table below to that cell, so '
+            'the runner-up and the rest of the ranking are one click away. '
             'Membership nests: a tighter cell&rsquo;s codes also compete in the '
             'looser ones.</p>'
             f'<div class=ptscroll><table class=grid>{head}'
@@ -1768,9 +1821,9 @@ def board_table(entries, records):
         return "".join(out)
 
     cols = ('<colgroup><col style="width:3%"><col style="width:14%">'
-            '<col style="width:9%"><col style="width:6%"><col style="width:6%">'
+            '<col style="width:12%"><col style="width:6%"><col style="width:6%">'
             '<col style="width:7%"><col style="width:8%"><col style="width:5%">'
-            '<col style="width:17%"><col style="width:16%">'
+            '<col style="width:16%"><col style="width:14%">'
             '<col style="width:9%"></colgroup>')
     head = ('<thead><tr><th></th>'
             '<th data-c=codekey data-num title="the code, written [[n,k,d]]; '
@@ -1805,6 +1858,10 @@ def board_table(entries, records):
             e["locality_class"], e["weight_class"], e["novelty"],
             "2d-local" if e["locality_class"] != "unrestricted" else "",
         ]).lower()
+        # every (locality x weight) cell this code competes in, so the grid's
+        # cell links can filter with nesting (a weight-4 code shows in weight-6/8
+        # cells too), which the raw w slider cannot express.
+        cell_keys = " ".join(f"{L}~{W}" for (L, W) in cells(e))
         novelty = (
             '<span class=novelty title="known parameter set in the literature; '
             'this entry may still improve weight or construction details">'
@@ -1817,6 +1874,7 @@ def board_table(entries, records):
             f'data-codekey="{e["n"]*1000000 + e["k"]*1000 + e["d"]}" '
             f'data-eff="{e["eff"]}" data-w="{e["w"]}" '
             f'data-tracks="{html.escape(search_terms)}" '
+            f'data-cells="{html.escape(cell_keys)}" '
             f'data-record="{1 if fr else 0}" '
             f'data-model="{html.escape(e["model"].lower())}" '
             f'data-date="{html.escape(e["date"])}" '
