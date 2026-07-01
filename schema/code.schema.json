@@ -23,7 +23,7 @@
     },
     "distance": {
       "type": "object",
-      "required": ["d"],
+      "required": ["d", "X", "Z"],
       "additionalProperties": false,
       "properties": {
         "d": {"type": "integer", "minimum": 1, "description": "claimed code distance = min(dX, dZ)"},

@@ -902,6 +902,10 @@ def load_entries():
         rep = verify(doc)   # site render: structural checks only, refutation is a CI/cron job
         if not rep["ok"]:
             continue
+        earned = rep["earned_distance"].get("d")
+        if not earned:
+            print(f"  warning: {slug}: no earned distance; skipping board entry")
+            continue
         cert = cert_info(slug)
         hcert = heuristic_cert_info(slug)
         corroborated = hcert and hcert.get("verdict") == "corroborated"
@@ -917,7 +921,7 @@ def load_entries():
             tier = "corroborated"
         else:
             tier = "ub"
-        n, k, d = doc["n"], doc["k"], doc["distance"]["d"]
+        n, k, d = doc["n"], doc["k"], earned["value"]
         entries.append({
             "slug": slug, "name": doc["name"], "n": n, "k": k, "d": d,
             "eff": round(k * d * d / n, 3), "tier": tier,

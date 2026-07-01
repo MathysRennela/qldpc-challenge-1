@@ -12,6 +12,7 @@ cannot slip a false claim onto the board.
 
 import copy
 import glob
+import importlib.util
 import json
 import os
 import sys
@@ -40,6 +41,14 @@ def rep(doc):
 
 def failed_checks(r):
     return {c["check"] for c in r["checks"] if not c["ok"]}
+
+
+def load_site_build():
+    spec = importlib.util.spec_from_file_location(
+        "site_build", os.path.join(ROOT, "site", "build.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
 def main():
@@ -105,6 +114,24 @@ def main():
     r = rep(d)
     check("inflated distance value rejected",
           not r["ok"] and "distance_X_witness" in failed_checks(r))
+    check("invalid side prevents global distance",
+          "d" not in r["earned_distance"])
+
+    # 6b. a bare distance number with no witnesses must not verify or render.
+    d = copy.deepcopy(GOOD)
+    d["distance"] = {"d": 99}
+    r = rep(d)
+    check("distance without witnesses rejected",
+          not r["ok"] and "d" not in r["earned_distance"])
+    build = load_site_build()
+    with tempfile.TemporaryDirectory() as td:
+        os.makedirs(os.path.join(td, "codes"))
+        with open(os.path.join(td, "codes", "bad.json"), "w") as f:
+            json.dump(d, f)
+        build.ROOT = td
+        build.CERTS = os.path.join(td, "certs")
+        check("site skips entries without an earned distance",
+              build.load_entries() == [])
 
     # 6b. resource limits must reject hostile shapes before dense matrices are built.
     d = copy.deepcopy(GOOD)

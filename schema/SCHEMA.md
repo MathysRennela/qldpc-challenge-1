@@ -34,9 +34,8 @@ Two principles drive the format:
   of checks; each check is the sorted list of distinct qubit indices (0-based,
   `< n`) it acts on. So `H_X` has `len(checks.X)` rows.
 - `distance.d`: claimed code distance, must equal the minimum over the
-  provided sides.
-- `distance.X`, `distance.Z` (each optional, but at least the minimizing side
-  is needed to certify `d`):
+  earned X and Z side distances.
+- `distance.X`, `distance.Z` (both required):
   - `value`: claimed minimum weight of a nontrivial logical of that type.
   - `confidence`: `"upper_bound"` or `"exact"`.
   - `witness`: support of a logical operator of that Pauli type and weight
@@ -99,6 +98,5 @@ through a maintainer-run path until the verifier is sparse end-to-end.
   away and silently change the code).
 - Store `interaction_radius` as the exact measured value, not a rounded one;
   a value rounded down below the true diameter will fail the `<=` check.
-- The minimizing distance side is what sets `d`. Provide both sides when you
-  know them; it is more informative and matches how distance is computed
-  (per Pauli type, `d = min(dX, dZ)`).
+- Both distance sides are required. The verifier earns the global `d` only when
+  both witnesses validate and `distance.d = min(dX, dZ)`.
