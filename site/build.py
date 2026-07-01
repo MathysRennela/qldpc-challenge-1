@@ -452,11 +452,10 @@ font-size:14px;margin:12px 0}}
 border-bottom:1px solid var(--ln)}}
 .board th{{font-size:12px;text-transform:uppercase;letter-spacing:.04em;
 color:var(--mut);cursor:pointer;user-select:none;border-bottom:2px solid var(--ln)}}
-/* Header stays visible while the table scrolls. It pins below the pinned plots,
-   whose rendered height a script keeps in --ploth (0 when nothing is pinned).
-   box-shadow stands in for the bottom border, which a collapsed table drops
-   from a sticky cell. */
-.board thead th{{position:sticky;top:var(--ploth,0px);z-index:3;
+/* Header stays visible while the rows scroll inside the bounded board box; it
+   pins to the top of that scroll container. box-shadow stands in for the bottom
+   border, which a collapsed table drops from a sticky cell. */
+.board thead th{{position:sticky;top:0;z-index:3;
 background:var(--bg);box-shadow:0 2px 0 var(--ln)}}
 .board th:hover{{color:var(--ink)}}.board td.num,.board th.num{{text-align:center;
 font-variant-numeric:tabular-nums}}
@@ -567,18 +566,14 @@ vertical-align:middle}}
    drop the secondary metadata columns (model, then date) on smaller screens.
    Under the breakpoints the table sizes to content so freed space redistributes
    cleanly. */
-.boardscroll{{overflow-x:auto;-webkit-overflow-scrolling:touch}}
-/* The table sits directly below the plots; pin the plots while the table
-   scrolls so the row-hover -> point highlight stays usable for every row. The
-   explorer wrapper bounds the sticky so the plots release at the leaderboard
-   instead of pinning over it. Wide screens only (narrow stacks the plots tall). */
-@media(min-width:760px){{.explorer .plots{{position:sticky;top:0;z-index:5;
-background:var(--bg);padding-top:8px;
-box-shadow:0 10px 10px -10px rgba(17,17,17,.18)}}
-/* Drop the horizontal-scroll context on wide screens (the table fits the page
-   here), so the sticky header pins to the viewport below the plots rather than
-   to this wrapper, which would trap it. */
-.boardscroll{{overflow:visible}}}}
+/* The table is a bounded, internally scrolling box so the board stays compact
+   instead of running the full length of the page. Its header pins to the top of
+   this box (thead is position:sticky) while the rows scroll under it, and the
+   plots sit just above it, both on screen at once, so the row-hover -> point
+   highlight stays usable. overflow:auto also carries the horizontal scroll on
+   narrow screens (where the table sets its own min-width). */
+.boardscroll{{max-height:64vh;overflow:auto;-webkit-overflow-scrolling:touch;
+border:1px solid var(--ln);border-radius:12px}}
 @media(max-width:880px){{table.board{{table-layout:auto;min-width:600px}}
 .board .model{{display:none}}}}
 @media(max-width:680px){{.board .date{{display:none}}}}
@@ -840,20 +835,6 @@ document.querySelectorAll('circle.hit[data-code]').forEach(c=>{
  apply();
 })();
 
-// Keep the table header visible while scrolling. On wide screens the plots are
-// pinned at the top, so offset the sticky header by their rendered height; when
-// the plots are not pinned (narrow screens) the offset is 0. Re-sync on resize.
-(function(){
- const plots=document.querySelector('.explorer .plots');
- const board=document.querySelector('table.board');
- if(!plots||!board) return;
- function sync(){
-  const pinned=getComputedStyle(plots).position==='sticky';
-  const h=pinned?Math.round(plots.getBoundingClientRect().height):0;
-  board.style.setProperty('--ploth',h+'px');
- }
- sync();window.addEventListener('resize',sync);window.addEventListener('load',sync);
-})();
 """
 
 
