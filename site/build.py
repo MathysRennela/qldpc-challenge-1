@@ -19,7 +19,7 @@ import urllib.parse
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "verify"))
-from qldpc_verify import verify
+from qldpc_verify import file_size_error, verify
 
 DOCS = os.path.join(ROOT, "docs")
 CERTS = os.path.join(ROOT, "certs")
@@ -893,6 +893,10 @@ def load_entries():
     entries = []
     for p in sorted(glob.glob(os.path.join(ROOT, "codes", "*.json"))):
         slug = os.path.splitext(os.path.basename(p))[0]
+        ferr = file_size_error(p)
+        if ferr:
+            print(f"  warning: {slug}: {ferr}; skipping")
+            continue
         with open(p) as f:
             doc = json.load(f)
         rep = verify(doc)   # site render: structural checks only, refutation is a CI/cron job

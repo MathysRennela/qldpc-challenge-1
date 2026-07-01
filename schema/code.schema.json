@@ -10,7 +10,7 @@
     "schema_version": {"const": "0.1"},
     "name": {"type": "string", "minLength": 1, "maxLength": 200},
     "code_type": {"enum": ["CSS"]},
-    "n": {"type": "integer", "minimum": 1, "description": "number of physical (data) qubits"},
+    "n": {"type": "integer", "minimum": 1, "maximum": 5000, "description": "number of physical (data) qubits"},
     "k": {"type": "integer", "minimum": 1, "description": "claimed number of logical qubits; verifier recomputes exactly"},
     "checks": {
       "type": "object",
@@ -40,6 +40,7 @@
         "coordinates": {
           "type": "array",
           "description": "one [x, y] per qubit, indexed 0..n-1",
+          "maxItems": 5000,
           "items": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}
         },
         "layers": {"type": "integer", "minimum": 1, "description": "physical layers (e.g. 2 for flip-chip bilayer)"},
@@ -83,10 +84,12 @@
     "supportList": {
       "type": "array",
       "description": "one entry per parity check; each entry is the sorted list of distinct qubit indices in that check's support",
+      "maxItems": 10000,
       "items": {
         "type": "array",
         "items": {"type": "integer", "minimum": 0},
-        "minItems": 1
+        "minItems": 1,
+        "maxItems": 40
       }
     },
     "sideDistance": {
