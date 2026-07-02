@@ -1,0 +1,45 @@
+{
+ "passed": true,
+ "candidate": {
+  "n": 248,
+  "k": 6,
+  "d": 20,
+  "family": "generalized-bicycle",
+  "weight_class": "weight-8",
+  "locality_class": "unrestricted"
+ },
+ "gates": {
+  "verify": {
+   "ok": true,
+   "failed_checks": [],
+   "weight_class": "weight-8",
+   "locality_class": "unrestricted"
+  },
+  "refute": {
+   "refuted": false,
+   "seed": 99,
+   "detail": "no lighter logical in 8000 RIS trials (seed 99)"
+  },
+  "dedup": {
+   "exact_duplicate_of": null,
+   "wl_equivalent_of": null
+  },
+  "novelty": {
+   "cell": [
+    "weight-8",
+    "unrestricted"
+   ],
+   "board_advancing": true,
+   "dominated_by": [],
+   "literature_novelty": "unverified"
+  }
+ },
+ "labels": [
+  "advances the weight-8 x unrestricted board",
+  "literature novelty UNVERIFIED"
+ ],
+ "validator": {
+  "source_sha256": "ea4430bacb9c5e68b5bac66f56d9a82e83f0ba8823b1357288b26972ce8842b8",
+  "seed": 99
+ }
+}
