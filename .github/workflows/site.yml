@@ -1,0 +1,43 @@
+name: site
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/site.yml"
+      - "codes/**"
+      - "certs/**"
+      - "site/**"
+      - "verify/**"
+      - "refs.bib"
+      - "pyproject.toml"
+      - "uv.lock"
+
+# Serialize rebuilds so two quick merges don't race each other's push.
+concurrency:
+  group: site-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: rebuild the leaderboard site
+        run: make build
+      - name: commit regenerated pages (if anything changed)
+        run: |
+          git add docs/index.html docs/codes docs/stats.json docs/references.html
+          if git diff --cached --quiet; then
+            echo "site already up to date"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Rebuild leaderboard site [skip ci]"
+          git pull --rebase origin main
+          git push origin main
