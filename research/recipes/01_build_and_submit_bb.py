@@ -17,7 +17,7 @@ import tempfile
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _RESEARCH = os.path.join(_HERE, "..")
 _REPO = os.path.join(_RESEARCH, "..")
-sys.path.insert(0, _RESEARCH)              # research/ modules
+sys.path.insert(0, os.path.join(_RESEARCH, "kit"))  # research/kit modules
 sys.path.insert(0, os.path.join(_REPO, "verify"))  # the verifier
 
 from bb import build_bb, KNOWN

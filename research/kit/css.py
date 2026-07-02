@@ -1,6 +1,6 @@
 """Shared CSS / GF(2) helpers for the research starter kit.
 
-A thin layer over the verifier's own audited GF(2) core (``../verify/gf2.py``),
+A thin layer over the verifier's own audited GF(2) core (``verify/gf2.py``),
 so the construction tools and the verifier share a single source of truth for
 linear algebra. Everything here operates on CSS parity-check matrices given as
 ``int`` arrays of shape ``(num_checks, n)``; ``-1`` and ``1`` are identified
@@ -14,7 +14,7 @@ import numpy as np
 # Reuse the verifier's GF(2) routines rather than re-implementing them: the
 # construction side and the checking side then agree by construction.
 sys.path.insert(
-    0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "verify")
+    0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "verify")
 )
 import gf2  # noqa: E402
 

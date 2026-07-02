@@ -10,7 +10,7 @@ standard three stages:
 
 All pure numpy. The screening distance is ``surrogate.distance_rand`` -- an
 UPPER bound -- so ``screen`` gives you ranked *candidates*, not certified codes.
-Confirm the finalists' distance (``research/distance.py``: exact MILP or decoder
+Confirm the finalists' distance (``research/kit/distance.py``: exact MILP or decoder
 corroboration) before claiming anything, then package the winner with
 ``submit.make_submission``.
 

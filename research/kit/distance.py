@@ -25,8 +25,8 @@ import numpy as np
 from submit import make_submission
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_VERIFY = os.path.join(_HERE, "..", "verify")
-_DECODE = os.path.join(_HERE, "..", "decode")
+_VERIFY = os.path.join(_HERE, "..", "..", "verify")
+_DECODE = os.path.join(_HERE, "..", "..", "decode")
 
 
 def _load_module(path, name):

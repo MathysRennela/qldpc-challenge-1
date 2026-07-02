@@ -17,7 +17,7 @@ import tempfile
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _RESEARCH = os.path.join(_HERE, "..")
 _REPO = os.path.join(_RESEARCH, "..")
-sys.path.insert(0, _RESEARCH)
+sys.path.insert(0, os.path.join(_RESEARCH, "kit"))
 sys.path.insert(0, os.path.join(_REPO, "verify"))
 
 from bb import build_bb
@@ -52,7 +52,7 @@ assert compute_k(HX, HZ) == best["k"]
 
 # 4. Package + verify the winner. (make_submission re-evaluates the witnesses at
 #    higher trials, tightening the upper bound before we claim it. In a real
-#    search you would also confirm exactly -- research/distance.py.)
+#    search you would also confirm exactly -- research/kit/distance.py.)
 #    `family` is the only self-declared tag (a filterable label, never ranked);
 #    the primary track membership (weight + locality class) is COMPUTED by the
 #    verifier from H and the layout, so we do not declare it.
@@ -75,5 +75,5 @@ with open(out, "w") as f:
     import json
     json.dump(doc, f, indent=2)
 print(f"   wrote demo submission to {out}")
-print("   Next: confirm the distance (research/distance.py) before claiming it, "
+print("   Next: confirm the distance (research/kit/distance.py) before claiming it, "
       "then drop a real winner into codes/.")

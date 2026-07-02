@@ -21,8 +21,8 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))          # verify/
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(       # research/ (fixtures only)
-    os.path.abspath(__file__))), "research"))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(       # research/kit (fixtures only)
+    os.path.abspath(__file__))), "research", "kit"))
 
 import numpy as np
 import gf2
