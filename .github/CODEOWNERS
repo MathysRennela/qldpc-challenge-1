@@ -1,0 +1,26 @@
+# Code owners for the trust boundary. With "Require review from Code Owners"
+# enabled on the main branch protection rule, a PR touching any path below
+# cannot merge until one of its owners approves. Keep at least two owners per
+# line: an author's own approval never counts, so a single-owner path would
+# deadlock on that owner's own PRs.
+#
+# The paths mirror verify/check_submission_scope.py's critical set: everything
+# that defines what the board accepts. Last matching line wins.
+
+# CI definitions: on pull_request events GitHub runs the PR's own copy of the
+# workflow, so the only real defense on workflow edits is merge-time review.
+/.github/                       @FarLab @willzeng
+
+# The verifier stack, the schema, and the site builder that renders verdicts.
+/verify/                        @FarLab @willzeng
+/schema/                        @FarLab @willzeng
+/site/build.py                  @FarLab @willzeng
+
+# Dependency set the verifier runs under.
+/pyproject.toml                 @FarLab @willzeng
+/uv.lock                        @FarLab @willzeng
+
+# The pinned hashes of the trusted validation stack. A re-pin is the loud,
+# reviewable signal that verifier semantics changed; owner review is what
+# gives that canary teeth.
+/verify/validator_manifest.json @FarLab @willzeng
