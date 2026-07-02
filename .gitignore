@@ -6,3 +6,5 @@ _finalize.*
 _foldcerts.*
 # `_`-prefixed scratch scripts (e.g. research/_find_dominators.py, verify/_sweep_ub.py)
 _*.py
+research/candidates/
+research/board*.json

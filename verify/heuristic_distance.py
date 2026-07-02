@@ -143,14 +143,16 @@ def estimate(doc, trials=20000, seed=0, fast_trials=400000, max_seconds=None):
             "sides": sides, "trials": trials, "seed": seed, "method": method}
 
 
-def refute_check(doc, seed=0, max_seconds=10.0):
+def refute_check(doc, seed=0, max_seconds=10.0, trials=None):
     """CI gate. Run a bounded, time-capped RIS search and report whether it found a
     logical LIGHTER than the claimed distance. Returns (refuted, d_found, witness,
     trials). Sound (the witness is a checkable lighter logical) but not complete (a
     null result is not a proof); pure Python with a fixed seed, so deterministic and
-    non-flaky. Budget is n-scaled trials under a wall-clock cap."""
+    non-flaky. Budget is n-scaled trials under a wall-clock cap; pass ``trials`` to
+    override the default target (the CI gate scales both with code size)."""
     n = doc["n"]
-    trials = min(8000, 2500 + 40 * n)
+    if trials is None:
+        trials = min(8000, 2500 + 40 * n)
     res = estimate(doc, trials=trials, seed=seed, fast_trials=0,
                    max_seconds=max_seconds)
     claimed = int(doc["distance"]["d"])
