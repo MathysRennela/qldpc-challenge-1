@@ -1,0 +1,10 @@
+{
+  "_comment": "Pinned SHA-256 of the trusted autoresearch validation stack. CI (check_validator_integrity.py) fails if any of these files drifts from this pin. Re-pin deliberately with `python verify/check_validator_integrity.py --update` and get the diff reviewed.",
+  "files": {
+    "validate_candidate.py": "ea4430bacb9c5e68b5bac66f56d9a82e83f0ba8823b1357288b26972ce8842b8",
+    "qldpc_verify.py": "c6ecba5c1bd1a17344715fd1bc0b188f1fed57e8b0ae3ba40e103c3becdab3a8",
+    "heuristic_distance.py": "3ad525748c723db3d513baed60652b02f33b80d576ae6956ae692c13e5e61cf6",
+    "gf2.py": "47e8999a4e22a12a852d81ce0f5a9e0248cd04a9d8940b9cb3edba7e85ad5508",
+    "check_validator_integrity.py": "36c248ca70d0a64fdad5548a36b15e326ee4b24e60a20e08d37499428882a195"
+  }
+}
