@@ -59,6 +59,65 @@ _FAMILIES = {"bivariate-bicycle", "generalized-bicycle", "2bga-coset",
              "quantum-tanner", "tile", "topological", "other"}
 _NOVELTY = {"unknown", "known_parameters", "new_parameters"}
 
+# Public CI resource limits. These are intentionally generous relative to the
+# current board (n<=336, row weight<=10) but finite: larger submissions need a
+# maintainer-run path until the verifier is sparse end-to-end.
+MAX_SUBMISSION_BYTES = 5_000_000
+MAX_N = 5_000
+MAX_CHECKS_PER_SIDE = 10_000
+MAX_CHECK_WEIGHT = 40
+MAX_TOTAL_SUPPORT = 200_000
+MAX_COORDINATES = MAX_N
+MAX_DENSE_MATRIX_CELLS = 50_000_000
+MAX_COMMUTATION_CELLS = 50_000_000
+
+
+def file_size_error(path):
+    """Return a validation error string if a JSON submission file is too large."""
+    try:
+        size = os.path.getsize(path)
+    except OSError as e:
+        return f"could not stat file: {e}"
+    if size > MAX_SUBMISSION_BYTES:
+        return f"file has {size} bytes, limit is {MAX_SUBMISSION_BYTES}"
+    return ""
+
+
+def resource_errors(doc):
+    """Resource caps checked before dense matrices are allocated."""
+    n = doc["n"]
+    X, Z = doc["checks"]["X"], doc["checks"]["Z"]
+    supports = X + Z
+    errs = []
+    if n > MAX_N:
+        errs.append(f"n={n} exceeds public CI limit {MAX_N}")
+    if len(X) > MAX_CHECKS_PER_SIDE:
+        errs.append(f"checks.X has {len(X)} rows, limit is {MAX_CHECKS_PER_SIDE}")
+    if len(Z) > MAX_CHECKS_PER_SIDE:
+        errs.append(f"checks.Z has {len(Z)} rows, limit is {MAX_CHECKS_PER_SIDE}")
+    total_support = sum(len(s) for s in supports)
+    if total_support > MAX_TOTAL_SUPPORT:
+        errs.append(f"total support entries {total_support} exceeds limit "
+                    f"{MAX_TOTAL_SUPPORT}")
+    max_weight = max((len(s) for s in supports), default=0)
+    if max_weight > MAX_CHECK_WEIGHT:
+        errs.append(f"max check weight {max_weight} exceeds limit {MAX_CHECK_WEIGHT}")
+    for label, rows in (("H_X", len(X)), ("H_Z", len(Z))):
+        cells = rows * n
+        if cells > MAX_DENSE_MATRIX_CELLS:
+            errs.append(f"{label} dense allocation would have {cells} cells, "
+                        f"limit is {MAX_DENSE_MATRIX_CELLS}")
+    comm_cells = len(X) * len(Z)
+    if comm_cells > MAX_COMMUTATION_CELLS:
+        errs.append(f"H_X H_Z^T commutation check would have {comm_cells} cells, "
+                    f"limit is {MAX_COMMUTATION_CELLS}")
+    loc = doc.get("locality") or {}
+    coords = loc.get("coordinates") or []
+    if len(coords) > MAX_COORDINATES:
+        errs.append(f"locality.coordinates has {len(coords)} points, limit is "
+                    f"{MAX_COORDINATES}")
+    return errs
+
 
 def structure_errors(doc):
     """Return a list of human-readable structural problems, or [] if the doc
@@ -67,13 +126,19 @@ def structure_errors(doc):
         return ["top-level value is not a JSON object"]
     if jsonschema is not None and _SCHEMA is not None:
         v = jsonschema.Draft202012Validator(_SCHEMA)
-        return [f"{'/'.join(str(p) for p in e.path) or '<root>'}: {e.message}"
+        errs = [f"{'/'.join(str(p) for p in e.path) or '<root>'}: {e.message}"
                 for e in sorted(v.iter_errors(doc), key=lambda e: list(e.path))]
-    errs = [f"missing field: {k}" for k in _REQUIRED if k not in doc]
-    if "checks" in doc and not (isinstance(doc["checks"], dict)
-                                and "X" in doc["checks"] and "Z" in doc["checks"]):
-        errs.append("checks must have X and Z support lists")
-    return errs
+    else:
+        errs = [f"missing field: {k}" for k in _REQUIRED if k not in doc]
+        if "checks" in doc and not (isinstance(doc["checks"], dict)
+                                    and "X" in doc["checks"] and "Z" in doc["checks"]):
+            errs.append("checks must have X and Z support lists")
+        if "distance" in doc and not (isinstance(doc["distance"], dict)
+                                      and all(k in doc["distance"] for k in ("d", "X", "Z"))):
+            errs.append("distance must have d, X, and Z witness blocks")
+    if errs:
+        return errs
+    return resource_errors(doc)
 
 
 def signature(doc):
@@ -218,9 +283,10 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
     # Sparsity backstop: LDPC means a bounded, small check weight. The cap is far
     # above any plausible qLDPC code on this board (weights run to ~10), so it
     # only rejects a dense matrix submitted as a "code", not a real entry.
-    record("check_weight_is_ldpc", wmax <= 40,
-           f"max check weight {wmax} far exceeds LDPC sparsity (cap 40)"
-           if wmax > 40 else f"max check weight {wmax}")
+    record("check_weight_is_ldpc", wmax <= MAX_CHECK_WEIGHT,
+           f"max check weight {wmax} far exceeds LDPC sparsity "
+           f"(cap {MAX_CHECK_WEIGHT})"
+           if wmax > MAX_CHECK_WEIGHT else f"max check weight {wmax}")
 
     # The model field is self-reported and unverifiable, but if one is claimed it
     # must name a specific version, not a bare vendor name: "Claude" tells a reader
@@ -252,8 +318,11 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
     # 6. distance witnesses (self-certifying upper bounds)
     dist = doc["distance"]
     earned_d = []
+    earned_sides = set()
     for side, opp_H, own_H in (("X", HZ, HX), ("Z", HX, HZ)):
         if side not in dist:
+            record(f"distance_{side}_present", False,
+                   "both X and Z distance witnesses are required")
             continue
         sd = dist[side]
         v = _vec(sd["witness"], n)
@@ -269,26 +338,24 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
             report["earned_distance"][side] = {"value": sd["value"],
                                                "tier": tier}
             earned_d.append(sd["value"])
+            earned_sides.add(side)
             if sd["confidence"] == "exact":
                 record(f"distance_{side}_exact_flagged", True,
                        "exact claim accepted as upper_bound pending server "
                        "certification")
 
     # 7. code distance consistency
-    #    A claimed d is only trustless if at least one side carries a valid
-    #    witness. Without one, earned_d is empty and both the min-side check and
-    #    the refutation gate below would be skipped, letting a witness-less d
-    #    reach the board unchecked -- so require a witness and fail closed.
-    record("distance_has_witness", bool(earned_d),
-           f"{len(earned_d)} side(s) carry a valid witness" if earned_d
-           else "distance.d is claimed with no valid X or Z witness; supply a "
-                "witness for the minimizing side")
-    if earned_d:
+    if earned_sides == {"X", "Z"}:
         d_earned = min(earned_d)
-        record("d_matches_min_side", d_earned == dist["d"],
+        matches = d_earned == dist["d"]
+        record("d_matches_min_side", matches,
                f"min earned side = {d_earned}, claimed d = {dist['d']}")
-        report["earned_distance"]["d"] = {"value": dist["d"],
-                                          "tier": "upper_bound"}
+        if matches:
+            report["earned_distance"]["d"] = {"value": dist["d"],
+                                              "tier": "upper_bound"}
+    else:
+        record("distance_global_earned", False,
+               "valid X and Z witnesses are required to earn a global distance")
 
     # 8. independent distance refutation. A bounded RIS search must not find a
     #    logical lighter than the claimed distance. This is SOUND -- any hit is a
@@ -305,7 +372,7 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
     #
     #    FAILS CLOSED: if the refuter cannot run, that is recorded as a FAILURE, not
     #    a silent pass -- a gate that fails open is no gate.
-    if refute and earned_d:
+    if refute and "d" in report["earned_distance"]:
         run_seed = seed if seed is not None else secrets.randbelow(2**31)
         try:
             import heuristic_distance
@@ -405,6 +472,14 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
 
 
 def main(path):
+    ferr = file_size_error(path)
+    if ferr:
+        print(json.dumps({"name": None,
+                          "checks": [{"check": "file_size_within_limit",
+                                      "ok": False, "detail": ferr}],
+                          "ok": False, "computed": {}, "earned_distance": {}},
+                         indent=2))
+        return 1
     try:
         with open(path) as f:
             doc = json.load(f)

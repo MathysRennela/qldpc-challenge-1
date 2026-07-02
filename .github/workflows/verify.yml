@@ -1,12 +1,18 @@
 name: verify
 
+permissions:
+  contents: read
+
 on:
   pull_request:
     paths:
+      - ".github/workflows/**"
       - "codes/**"
       - "verify/**"
       - "schema/**"
       - "research/**"
+      - "pyproject.toml"
+      - "uv.lock"
   push:
     branches: [main]
 
@@ -14,18 +20,68 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: check out submitted tree
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0          # full history so the gate can diff vs the base
+          path: submitted
+      - name: check out trusted verifier tree (base branch)
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          fetch-depth: 0
+          path: trusted
+      - name: check out trusted verifier tree (current ref)
+        if: github.event_name != 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: trusted
       - uses: astral-sh/setup-uv@v5
+      - name: detect changed code submissions
+        if: github.event_name == 'pull_request'
+        id: changes
+        working-directory: submitted
+        run: |
+          if git diff --quiet --diff-filter=AM origin/${{ github.base_ref }}...HEAD -- codes; then
+            echo "codes_changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "codes_changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: submission scope check (code data cannot change its own verifier)
+        if: github.event_name == 'pull_request' && steps.changes.outputs.codes_changed == 'true'
+        working-directory: trusted
+        run: uv run --frozen python verify/check_submission_scope.py --root ../submitted --base origin/${{ github.base_ref }}
+      - name: trusted validation stack integrity (the autoresearch gate can't be silently weakened)
+        working-directory: submitted
+        run: uv run --frozen python verify/check_validator_integrity.py
       - name: verifier self-tests (must reject bad submissions)
+        working-directory: submitted
         run: uv run --frozen python verify/test_verifier.py
+      - name: autoresearch gate self-tests (validate_candidate rejects over-claims/dups)
+        working-directory: submitted
+        run: uv run --frozen python verify/test_validate_candidate.py
       - name: research starter-kit smoke test (kit stays in sync with the verifier)
+        working-directory: submitted
         run: uv run --frozen python research/test_smoke.py
+      - name: verify all submissions (trusted verifier for code changes)
+        if: github.event_name == 'pull_request' && steps.changes.outputs.codes_changed == 'true'
+        working-directory: trusted
+        run: uv run --frozen python verify/verify_all.py --root ../submitted
       - name: verify all submissions
+        if: github.event_name != 'pull_request' || steps.changes.outputs.codes_changed != 'true'
+        working-directory: submitted
         run: uv run --frozen python verify/verify_all.py
+      - name: distance refutation gate (trusted verifier for code changes)
+        if: github.event_name == 'pull_request' && steps.changes.outputs.codes_changed == 'true'
+        working-directory: trusted
+        run: uv run --frozen --with ldpc python verify/gate_changed.py --code-root ../submitted origin/${{ github.base_ref || 'main' }}
       - name: distance refutation gate (changed submissions only)
+        if: github.event_name != 'pull_request'
+        working-directory: submitted
         run: uv run --frozen --with ldpc python verify/gate_changed.py origin/${{ github.base_ref || 'main' }}
       - name: authorship check (PR author must be a listed @handle author)
-        if: github.event_name == 'pull_request'
-        run: uv run --frozen python verify/check_authorship.py --author "${{ github.event.pull_request.user.login }}" --base origin/${{ github.base_ref }}
+        if: github.event_name == 'pull_request' && steps.changes.outputs.codes_changed == 'true'
+        working-directory: trusted
+        run: uv run --frozen python verify/check_authorship.py --root ../submitted --author "${{ github.event.pull_request.user.login }}" --base origin/${{ github.base_ref }}

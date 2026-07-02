@@ -34,9 +34,8 @@ Two principles drive the format:
   of checks; each check is the sorted list of distinct qubit indices (0-based,
   `< n`) it acts on. So `H_X` has `len(checks.X)` rows.
 - `distance.d`: claimed code distance, must equal the minimum over the
-  provided sides.
-- `distance.X`, `distance.Z` (each optional, but at least the minimizing side
-  is needed to certify `d`):
+  earned X and Z side distances.
+- `distance.X`, `distance.Z` (both required):
   - `value`: claimed minimum weight of a nontrivial logical of that type.
   - `confidence`: `"upper_bound"` or `"exact"`.
   - `witness`: support of a logical operator of that Pauli type and weight
@@ -76,12 +75,28 @@ interaction_radius`, and an `earned_distance` block giving the tier each side
 actually earned (an `exact` claim shows as `upper_bound` here and is flagged
 for server certification). Exit code 0 iff every required check passes.
 
+## Public CI limits
+
+The public submission path has generous resource limits so malformed or hostile
+JSON cannot force unbounded dense-matrix allocation in CI. Current automatic
+limits are:
+
+- JSON file size: 5 MB.
+- `n <= 5000`.
+- At most 10000 X-checks and 10000 Z-checks.
+- Max check weight 40.
+- At most 200000 total support entries across all checks.
+- At most 5000 locality coordinate entries.
+- Dense verifier intermediates capped at 50000000 cells.
+
+These are far above the current board entries. A larger code should be handled
+through a maintainer-run path until the verifier is sparse end-to-end.
+
 ## Conventions and gotchas
 
 - A repeated qubit index within a single check is rejected (it would XOR
   away and silently change the code).
 - Store `interaction_radius` as the exact measured value, not a rounded one;
   a value rounded down below the true diameter will fail the `<=` check.
-- The minimizing distance side is what sets `d`. Provide both sides when you
-  know them; it is more informative and matches how distance is computed
-  (per Pauli type, `d = min(dX, dZ)`).
+- Both distance sides are required. The verifier earns the global `d` only when
+  both witnesses validate and `distance.d = min(dX, dZ)`.

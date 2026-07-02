@@ -80,6 +80,10 @@ def certify(doc, tlim=600):
     result = {"name": doc.get("name"), "d": d, "solver": "scipy/HiGHS MILP",
               "sides": {}}
     overall = True
+    missing = [side for side in ("X", "Z") if side not in doc["distance"]]
+    if missing:
+        result["missing_sides"] = missing
+        overall = False
     for side, H, LZ in (("X", HZ, gf2.logical_basis(HX, HZ)),
                         ("Z", HX, gf2.logical_basis(HZ, HX))):
         if side not in doc["distance"]:

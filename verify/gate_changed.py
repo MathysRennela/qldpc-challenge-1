@@ -6,10 +6,12 @@ only on the code/example submissions changed in this PR, and exits non-zero if
 EITHER finds a logical lighter than the claimed distance (an over-claim). The
 syndrome-decoder cross-check is skipped if ldpc is unavailable (RIS-only). Bulk
 re-verification of the whole board stays cheap -- only new/changed files pay the
-search cost (~10 s per method).
+search cost (~10 s per method; frontier-advancing codes get 4 RIS seeds at 60 s
+each, ~4-5 min per code).
 
 Usage:
-  python verify/gate_changed.py [BASE] [files...]
+  python verify/gate_changed.py [--code-root PATH] [BASE] [files...]
+    --code-root PATH  repository tree containing the submitted codes
     BASE     git ref to diff against (default origin/main); ignored if files given
     files    explicit code JSONs to gate (otherwise computed from the diff)
 """
@@ -22,6 +24,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import heuristic_distance as H
+from qldpc_verify import file_size_error
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -37,23 +40,23 @@ def _load_syndrome():
         return None
 
 
-def changed_codes(base):
+def changed_codes(base, code_root=ROOT):
     try:
         out = subprocess.check_output(
             ["git", "diff", "--name-only", f"{base}...HEAD", "--", "codes", "verify/fixtures"],
-            cwd=ROOT, text=True)
+            cwd=code_root, text=True)
     except Exception as e:
-        print(f"(could not compute diff vs {base}: {e}); gating nothing")
-        return []
+        print(f"could not compute diff vs {base}: {e}; failing closed")
+        return None
     return [f for f in out.split() if f.endswith(".json")]
 
 
-def board_record_slugs():
+def board_record_slugs(code_root=ROOT):
     """Slugs on the board's global (n, k, d, w) Pareto frontier. A code that
     claims to advance the frontier gets deeper refutation than a dominated one,
     so over-claims pay extra scrutiny exactly where gaming would matter."""
     rows = []
-    for p in sorted(glob.glob(os.path.join(ROOT, "codes", "*.json"))):
+    for p in sorted(glob.glob(os.path.join(code_root, "codes", "*.json"))):
         try:
             d = json.load(open(p))
             ck = d.get("checks", {})
@@ -76,6 +79,11 @@ def board_record_slugs():
 def main(argv):
     rest = [a for a in argv if not a.endswith(".json")]
     seed = None
+    code_root = ROOT
+    if "--code-root" in rest:
+        i = rest.index("--code-root")
+        code_root = os.path.abspath(rest[i + 1])
+        rest = rest[:i] + rest[i + 2:]
     if "--seed" in rest:
         i = rest.index("--seed")
         seed = int(rest[i + 1])
@@ -83,7 +91,9 @@ def main(argv):
     files = [a for a in argv if a.endswith(".json")]
     base = next((a for a in rest), "origin/main")
     if not files:
-        files = changed_codes(base)
+        files = changed_codes(base, code_root)
+    if files is None:
+        return 1
     if not files:
         print("no changed code submissions to gate")
         return 0
@@ -102,28 +112,40 @@ def main(argv):
               "running RIS only\n")
 
     refuted = 0
-    records = board_record_slugs()
+    failed = 0
+    records = board_record_slugs(code_root)
     for f in files:
-        p = f if os.path.isabs(f) else os.path.join(ROOT, f)
+        p = f if os.path.isabs(f) else os.path.join(code_root, f)
         if not os.path.exists(p):                 # deleted/renamed away
+            continue
+        ferr = file_size_error(p)
+        if ferr:
+            failed += 1
+            print(f"FAIL     {f}: file_size_within_limit: {ferr}")
             continue
         doc = json.load(open(p))
         if "distance" not in doc or "d" not in doc.get("distance", {}):
             continue
         # A code that advances the frontier is checked harder: several independent
-        # RIS seeds, not one, so an over-claim cannot lean on a single search
-        # missing the lighter logical. Dominated codes pay only the standard pass.
+        # RIS seeds with a long budget each, not one short pass, so an over-claim
+        # cannot lean on a single search missing the lighter logical. At n ~ 300 a
+        # modest over-claim needs on the order of minutes of RIS to expose, so the
+        # deep budget is sized for ~8-9 min per frontier code (CI allows ~10 min
+        # per code; submissions are one new code per PR). Dominated codes pay only
+        # the standard pass.
         slug = os.path.splitext(os.path.basename(f))[0]
         deep = slug in records
         seeds = [seed, seed + 2, seed + 3, seed + 5] if deep else [seed]
+        budget = 120.0 if deep else 10.0
         # two independent mechanisms; a hit from EITHER (any seed) refutes.
         results = {}
         for si, s in enumerate(seeds):
-            results[f"RIS#{si}"] = H.refute_check(doc, seed=s)
+            results[f"RIS#{si}"] = H.refute_check(doc, seed=s, max_seconds=budget)
         if SD is not None:
             results["syndrome-decoder"] = SD.refute_check(doc, seed=seed + 1)
         hits = {m: (dh, wit) for m, (ref, dh, wit, _) in results.items() if ref}
-        tag = f"deep, {len(seeds)} RIS seeds" if deep else "standard"
+        tag = (f"deep, {len(seeds)} RIS seeds x {budget:.0f}s" if deep
+               else "standard")
         if hits:
             refuted += 1
             for m, (dh, wit) in hits.items():
@@ -135,7 +157,9 @@ def main(argv):
     if refuted:
         print(f"\n{refuted} submission(s) refuted: claimed distance is not supported "
               f"by an independent search. See witnesses above.")
-    return 1 if refuted else 0
+    if failed:
+        print(f"\n{failed} submission(s) failed preflight checks.")
+    return 1 if (refuted or failed) else 0
 
 
 if __name__ == "__main__":

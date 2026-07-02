@@ -12,12 +12,16 @@ cannot slip a false claim onto the board.
 
 import copy
 import glob
+import importlib.util
 import json
 import os
 import sys
+import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from qldpc_verify import verify
+import qldpc_verify
+
+verify = qldpc_verify.verify
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GOOD = json.load(open(os.path.join(ROOT, "verify", "fixtures", "72-6-6.json")))
@@ -37,6 +41,14 @@ def rep(doc):
 
 def failed_checks(r):
     return {c["check"] for c in r["checks"] if not c["ok"]}
+
+
+def load_site_build():
+    spec = importlib.util.spec_from_file_location(
+        "site_build", os.path.join(ROOT, "site", "build.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
 def main():
@@ -102,6 +114,48 @@ def main():
     r = rep(d)
     check("inflated distance value rejected",
           not r["ok"] and "distance_X_witness" in failed_checks(r))
+    check("invalid side prevents global distance",
+          "d" not in r["earned_distance"])
+
+    # 6b. a bare distance number with no witnesses must not verify or render.
+    d = copy.deepcopy(GOOD)
+    d["distance"] = {"d": 99}
+    r = rep(d)
+    check("distance without witnesses rejected",
+          not r["ok"] and "d" not in r["earned_distance"])
+    build = load_site_build()
+    with tempfile.TemporaryDirectory() as td:
+        os.makedirs(os.path.join(td, "codes"))
+        with open(os.path.join(td, "codes", "bad.json"), "w") as f:
+            json.dump(d, f)
+        build.ROOT = td
+        build.CERTS = os.path.join(td, "certs")
+        check("site skips entries without an earned distance",
+              build.load_entries() == [])
+
+    # 6b. resource limits must reject hostile shapes before dense matrices are built.
+    d = copy.deepcopy(GOOD)
+    d["n"] = qldpc_verify.MAX_N + 1
+    r = rep(d)
+    check("oversized n rejected", not r["ok"])
+
+    d = copy.deepcopy(GOOD)
+    d["checks"]["X"] = [d["checks"]["X"][0]] * (qldpc_verify.MAX_CHECKS_PER_SIDE + 1)
+    r = rep(d)
+    check("oversized row count rejected", not r["ok"])
+
+    d = copy.deepcopy(GOOD)
+    heavy_row = list(range(qldpc_verify.MAX_CHECK_WEIGHT))
+    rows = (qldpc_verify.MAX_TOTAL_SUPPORT // qldpc_verify.MAX_CHECK_WEIGHT) + 1
+    d["checks"]["X"] = [heavy_row] * rows
+    r = rep(d)
+    check("oversized total support rejected", not r["ok"])
+
+    if GOOD.get("locality"):
+        d = copy.deepcopy(GOOD)
+        d["locality"]["coordinates"] = [[0.0, 0.0]] * (qldpc_verify.MAX_COORDINATES + 1)
+        r = rep(d)
+        check("oversized coordinate payload rejected", not r["ok"])
 
     # 7. locality claim too tight (interaction radius understated)
     if "locality" in GOOD:
@@ -190,6 +244,15 @@ def main():
             check(f"{os.path.basename(p)} verifies", False)
     if not _fail:
         print("  ok    all shipped submissions verify")
+
+    check("normal file size accepted",
+          qldpc_verify.file_size_error(__file__) == "")
+    with tempfile.NamedTemporaryFile() as f:
+        f.seek(qldpc_verify.MAX_SUBMISSION_BYTES)
+        f.write(b"x")
+        f.flush()
+        check("oversized file size rejected",
+              qldpc_verify.file_size_error(f.name) != "")
 
     print(f"\n{'ALL PASS' if not _fail else 'FAILURES: ' + ', '.join(_fail)}")
     return 1 if _fail else 0

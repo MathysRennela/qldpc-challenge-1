@@ -28,6 +28,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import heuristic_distance as H
+from qldpc_verify import file_size_error
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -45,6 +46,12 @@ def main(argv):
     refuted, errored, checked = [], [], 0
     for p in paths:
         rel = os.path.relpath(p, ROOT)
+        ferr = file_size_error(p)
+        if ferr:
+            errored.append((rel, f"file_size_within_limit: {ferr}"))
+            print(f"ERROR    {rel}: file_size_within_limit: {ferr} "
+                  f"-- fails closed, manual review")
+            continue
         doc = json.load(open(p))
         if "distance" not in doc or "d" not in doc.get("distance", {}):
             continue

@@ -19,7 +19,7 @@ import urllib.parse
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "verify"))
-from qldpc_verify import verify
+from qldpc_verify import file_size_error, verify
 
 DOCS = os.path.join(ROOT, "docs")
 CERTS = os.path.join(ROOT, "certs")
@@ -896,10 +896,18 @@ def load_entries():
     entries = []
     for p in sorted(glob.glob(os.path.join(ROOT, "codes", "*.json"))):
         slug = os.path.splitext(os.path.basename(p))[0]
+        ferr = file_size_error(p)
+        if ferr:
+            print(f"  warning: {slug}: {ferr}; skipping")
+            continue
         with open(p) as f:
             doc = json.load(f)
         rep = verify(doc)   # site render: structural checks only, refutation is a CI/cron job
         if not rep["ok"]:
+            continue
+        earned = rep["earned_distance"].get("d")
+        if not earned:
+            print(f"  warning: {slug}: no earned distance; skipping board entry")
             continue
         cert = cert_info(slug)
         hcert = heuristic_cert_info(slug)
@@ -916,7 +924,7 @@ def load_entries():
             tier = "corroborated"
         else:
             tier = "ub"
-        n, k, d = doc["n"], doc["k"], doc["distance"]["d"]
+        n, k, d = doc["n"], doc["k"], earned["value"]
         entries.append({
             "slug": slug, "name": doc["name"], "n": n, "k": k, "d": d,
             "eff": round(k * d * d / n, 3), "tier": tier,

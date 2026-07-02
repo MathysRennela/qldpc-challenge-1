@@ -13,7 +13,7 @@ IP cannot reach. Two outcomes:
 This is purely an upper-bound search: every method here only exhibits a logical of
 some weight, i.e. tightens d <= w. It never proves a lower bound. The run is
 reproducible (fixed seed + trial budget) and computed server-side, never trusted
-from the submission. See verify/HEURISTIC_DISTANCE.md.
+from the submission.
 
 Engine: random information set (QDistRnd-style). Canonical path is pure Python on
 verify/gf2.py (no build). If the gf2_fast C++ extension is importable it is used

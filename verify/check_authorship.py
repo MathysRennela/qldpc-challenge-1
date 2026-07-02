@@ -12,7 +12,7 @@ not block legitimate contributions, since impersonation is lower-stakes than the
 distance checks and is also caught in human review.
 
 Usage:
-  python verify/check_authorship.py --author <github-login> [--base origin/main]
+  python verify/check_authorship.py --author <github-login> [--root PATH] [--base origin/main]
   python verify/check_authorship.py --author <login> codes/a.json codes/b.json
 """
 import json
@@ -25,12 +25,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HANDLE = re.compile(r"^@([A-Za-z0-9-]+)$")
 
 
-def changed_codes(base):
+def changed_codes(base, root=ROOT):
     try:
         out = subprocess.check_output(
             ["git", "diff", "--name-only", "--diff-filter=AM",
              f"{base}...HEAD", "--", "codes"],
-            cwd=ROOT, text=True)
+            cwd=root, text=True)
     except Exception as e:
         print(f"(could not diff vs {base}: {e}); skipping authorship check")
         return None
@@ -54,6 +54,11 @@ def main(argv):
         author = argv[i + 1].lower().lstrip("@")
         argv = argv[:i] + argv[i + 2:]
     base = "origin/main"
+    root = ROOT
+    if "--root" in argv:
+        i = argv.index("--root")
+        root = os.path.abspath(argv[i + 1])
+        argv = argv[:i] + argv[i + 2:]
     if "--base" in argv:
         i = argv.index("--base")
         base = argv[i + 1]
@@ -64,14 +69,14 @@ def main(argv):
 
     files = [a for a in argv if a.endswith(".json")]
     if not files:
-        files = changed_codes(base)
+        files = changed_codes(base, root)
     if files is None or not files:
         print("no added/changed code submissions to check")
         return 0
 
     violations = []
     for f in files:
-        p = f if os.path.isabs(f) else os.path.join(ROOT, f)
+        p = f if os.path.isabs(f) else os.path.join(root, f)
         if not os.path.exists(p):
             continue
         try:

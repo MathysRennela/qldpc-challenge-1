@@ -37,10 +37,18 @@ Useful flags:
 - `--open-pr` create the branch, commit, push, and open the PR for you;
 - `--dry-run` build and verify without writing.
 
-Then open a pull request adding only your file under `codes/`. CI re-runs the
+Then open a pull request adding only your file under `codes/` — **one new code
+per PR** (CI enforces this): each frontier submission gets a deep, ~10-minute
+refutation search, and that budget is per code. CI re-runs the
 verifier; a green check is required to merge. Open the PR from your own account:
 CI checks that the PR author is one of the code's `@handle` authors, so list
 yourself (literature baselines with no `@handle` are exempt).
+
+Submission PRs are treated as untrusted data. CI validates `codes/*.json` with
+verifier, schema, and gate code from the base branch, not from the PR itself. If
+you need to change validation code (`verify/`, `schema/`, workflow files, or the
+site builder), do that in a separate PR from any code submission so a submission
+cannot redefine the checks that judge it.
 
 The distance gate is probabilistic: it runs a random-information-set search with
 a fresh random seed each run, so a green check is not a permanent guarantee. A
@@ -48,6 +56,12 @@ correct distance has no lighter logical to find and passes every time; an
 over-claimed one may slip past one seed and get caught on a re-run, at merge, or
 by the weekly board sweep, in which case the code is removed. The seed is printed
 so any failure reproduces.
+
+Public CI also enforces resource limits before dense verifier matrices are
+allocated: 5 MB JSON files, `n <= 5000`, at most 10000 checks per side, max check
+weight 40, at most 200000 total support entries, and at most 5000 locality
+coordinates. Larger codes need maintainer handling until the verifier is sparse
+end-to-end.
 
 ## Contribute with an LLM
 
