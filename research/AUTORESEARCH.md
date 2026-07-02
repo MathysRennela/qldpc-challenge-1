@@ -12,6 +12,18 @@ records. Your job: given a research direction, construct and search qLDPC codes 
 **verified, genuinely-new candidates** for human review. You may write and run any code you
 like — but you do **not** get to decide whether a code is good. A trusted gate does.
 
+Layout:
+
+```
+research/
+  kit/         the core toolkit: constructors, surrogate, search + samplers, packaging
+  local2d/     open-boundary planar (2D-local) codes: builders + distance-scaling theory
+  candidates/  staging area for validated finds (gitignored working output)
+```
+
+For in-process imports, put `research/kit` (and `verify/`) on `sys.path`; every kit module
+imports its siblings by bare name (`from bb import build_bb`).
+
 ## The one rule that makes this trustworthy
 
 **No code is a "find" until `verify/validate_candidate.py` returns `passed: true` for it.**
@@ -53,11 +65,10 @@ The verdict's `gates` block is your evidence; `labels` are what you show the hum
    `passed: true`.
 6. **Stage** survivors for review; loop until the budget is spent, then report.
 
-Two worked examples, each runs the real verifier in-process at the end:
+To watch the whole loop run once (build → package → the real verifier in-process):
 
 ```
-uv run python research/recipes/01_build_and_submit_bb.py   # one code, end to end
-uv run python research/recipes/02_search_a_family.py       # sweep a family, take the best
+uv run python research/test_smoke.py
 ```
 
 ## 1. Pick a direction and a family, build `(HX, HZ)`
@@ -81,8 +92,10 @@ family typically lands in.
 
 `bb.py` is the place to start — the simplest, and any choice of monomials is a valid code.
 `group_algebra.py` generalizes it to non-abelian groups (which can reach odd `k`); `coset.py`
-generalizes further to the highest known efficiencies. Write a new `research/sample_<family>.py`
-**only** for a family the kit can't build.
+generalizes further to the highest known efficiencies. For the `2d-local-*` tracks, build with
+the open-boundary planar engine in `local2d/` (see its README for the full loop). For a family
+the kit can't sweep, write a new `sample_<family>` generator (same `(spec, HX, HZ)` shape as
+the ones in `kit/search.py`) — good ones graduate into `kit/search.py`.
 
 ```python
 from bb import build_bb, KNOWN
@@ -230,18 +243,22 @@ The constructors, surrogate, search, and packaging stay numpy-only.
 
 | File | What it gives you |
 |---|---|
-| `css.py` | `compute_k`, `verify_css`, and the re-exported GF(2) core (`rref`, `rank`, `kernel_basis`, `logical_basis`, ...) shared with the verifier |
-| `bb.py` | `build_bb`, `poly_matrix`, `KNOWN` (known BB codes to start from) |
-| `group_algebra.py` | `build_2bga` + group builders: `perm_group`, `cyclic_product`, `dihedral`, `metacyclic`, `sym`, `alt` |
-| `coset.py` | `build_coset` + `subgroup_closure`, `left_cosets`, `normalizer` |
-| `surrogate.py` | `distance_rand`, `lightest_logical` (witnesses), `mixed_volume` (k upper bound) |
-| `search.py` | `screen`, `pareto_frontier`, `sample_bb`, `update_leaderboard` (the search funnel) |
-| `submit.py` | `make_submission`, `save_submission`, `validate` |
-| `distance.py` | `exact_distance` (MILP, `d=`), `decoder_distance` (BP+OSD) — needs the `research` extra |
+| `kit/css.py` | `compute_k`, `verify_css`, and the re-exported GF(2) core (`rref`, `rank`, `kernel_basis`, `logical_basis`, ...) shared with the verifier |
+| `kit/bb.py` | `build_bb`, `poly_matrix`, `KNOWN` (known BB codes to start from) |
+| `kit/group_algebra.py` | `build_2bga` + group builders: `perm_group`, `cyclic_product`, `dihedral`, `metacyclic`, `sym`, `alt` |
+| `kit/coset.py` | `build_coset` + `subgroup_closure`, `left_cosets`, `normalizer` |
+| `kit/surrogate.py` | `distance_rand`, `lightest_logical` (witnesses), `mixed_volume` (k upper bound) |
+| `kit/search.py` | `screen`, `pareto_frontier`, `update_leaderboard` (the funnel) + samplers: `sample_bb`, `sample_dihedral`, `sample_metacyclic`, `sample_kasai_affine` |
+| `kit/submit.py` | `make_submission`, `save_submission`, `validate` |
+| `kit/distance.py` | `exact_distance` (MILP, `d=`), `decoder_distance` (BP+OSD) — needs the `research` extra |
+| `local2d/planar.py` | fast greedy open-boundary builder, exact planar distance (scipy MILP), `grid_coordinates` for the bilayer layout |
+| `local2d/boundary_engine.py` | the general open-boundary construction (`build_planar`), `reduce_weights`, `graft_r1`/`graft_r1_safe` (qubit removal) |
+| `local2d/transfer.py` | `distance_slope`: predict d(L) scaling from (f, g) before building large lattices |
+| `local2d/corner_detector.py` | `detect`: L-independent bounded-vs-growing distance classification |
 | `../verify/validate_candidate.py` | the trusted gate: verify + refute + dedup + novelty, one verdict |
-| `recipes/` | runnable end-to-end examples (01: one code; 02: search a family) |
+| `test_smoke.py` | the runnable end-to-end example (build → package → real verifier), also CI's drift gate |
 
-Each `research/` module is runnable on its own (`uv run python research/<module>.py`) and prints
-a small self-test / demo. This kit covers the periodic / group-algebra / coset families and the
-weight-bounded tracks; the specialized open-boundary planar engine for the `2d-local-bilayer`
-track is out of scope here.
+Each module is runnable on its own (`uv run python research/kit/<module>.py`, likewise
+`research/local2d/<module>.py`) and prints a small self-test / demo. The kit covers the
+periodic / group-algebra / coset families and the weight-bounded tracks; `local2d/` covers the
+open-boundary planar engine for the `2d-local` tracks (see `local2d/README.md`).

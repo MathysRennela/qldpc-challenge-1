@@ -14,7 +14,7 @@ import os
 import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, _HERE)                                   # research/ modules
+sys.path.insert(0, os.path.join(_HERE, "kit"))              # research/kit modules
 sys.path.insert(0, os.path.join(_HERE, "..", "verify"))    # the verifier
 
 from bb import build_bb, KNOWN
