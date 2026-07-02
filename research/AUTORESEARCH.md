@@ -16,9 +16,8 @@ Layout:
 
 ```
 research/
-  kit/         the core toolkit: constructors, surrogate, search, packaging, confirmation
+  kit/         the core toolkit: constructors, surrogate, search + samplers, packaging
   local2d/     open-boundary planar (2D-local) codes: builders + distance-scaling theory
-  samplers/    family samplers built on the kit (write new sample_<family>.py here)
   candidates/  staging area for validated finds (gitignored working output)
 ```
 
@@ -94,8 +93,9 @@ family typically lands in.
 `bb.py` is the place to start — the simplest, and any choice of monomials is a valid code.
 `group_algebra.py` generalizes it to non-abelian groups (which can reach odd `k`); `coset.py`
 generalizes further to the highest known efficiencies. For the `2d-local-*` tracks, build with
-the open-boundary planar engine in `local2d/` (see its README for the full loop). Write a new
-`research/samplers/sample_<family>.py` **only** for a family the kit can't build.
+the open-boundary planar engine in `local2d/` (see its README for the full loop). For a family
+the kit can't sweep, write a new `sample_<family>` generator (same `(spec, HX, HZ)` shape as
+the ones in `kit/search.py`) — good ones graduate into `kit/search.py`.
 
 ```python
 from bb import build_bb, KNOWN
@@ -248,14 +248,13 @@ The constructors, surrogate, search, and packaging stay numpy-only.
 | `kit/group_algebra.py` | `build_2bga` + group builders: `perm_group`, `cyclic_product`, `dihedral`, `metacyclic`, `sym`, `alt` |
 | `kit/coset.py` | `build_coset` + `subgroup_closure`, `left_cosets`, `normalizer` |
 | `kit/surrogate.py` | `distance_rand`, `lightest_logical` (witnesses), `mixed_volume` (k upper bound) |
-| `kit/search.py` | `screen`, `pareto_frontier`, `sample_bb`, `update_leaderboard` (the search funnel) |
+| `kit/search.py` | `screen`, `pareto_frontier`, `update_leaderboard` (the funnel) + samplers: `sample_bb`, `sample_dihedral`, `sample_metacyclic`, `sample_kasai_affine` |
 | `kit/submit.py` | `make_submission`, `save_submission`, `validate` |
 | `kit/distance.py` | `exact_distance` (MILP, `d=`), `decoder_distance` (BP+OSD) — needs the `research` extra |
 | `local2d/planar.py` | fast greedy open-boundary builder, exact planar distance (scipy MILP), `grid_coordinates` for the bilayer layout |
 | `local2d/boundary_engine.py` | the general open-boundary construction (`build_planar`), `reduce_weights`, `graft_r1`/`graft_r1_safe` (qubit removal) |
 | `local2d/transfer.py` | `distance_slope`: predict d(L) scaling from (f, g) before building large lattices |
 | `local2d/corner_detector.py` | `detect`: L-independent bounded-vs-growing distance classification |
-| `samplers/` | family samplers over the kit (`sample_advanced.py`, `sample_kasai.py`, yours) |
 | `../verify/validate_candidate.py` | the trusted gate: verify + refute + dedup + novelty, one verdict |
 | `test_smoke.py` | the runnable end-to-end example (build → package → real verifier), also CI's drift gate |
 

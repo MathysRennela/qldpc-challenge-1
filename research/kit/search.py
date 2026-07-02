@@ -15,9 +15,10 @@ corroboration) before claiming anything, then package the winner with
 ``submit.make_submission``.
 
 ``screen`` consumes any iterable of ``(label, HX, HZ)`` triples, so you can point
-it at your own generator. ``sample_bb`` is a ready-made one for the BB family;
-writing a 2BGA / coset sampler on top of ``group_algebra`` / ``coset`` is the
-same shape.
+it at your own generator. Ready-made samplers ship for the BB family
+(``sample_bb``) and the 2BGA families on dihedral, metacyclic, and affine
+groups (``sample_dihedral``, ``sample_metacyclic``, ``sample_kasai_affine``);
+a new one for any other family is the same shape.
 """
 import hashlib
 import json
@@ -28,6 +29,7 @@ import numpy as np
 from css import compute_k, verify_css, rref
 from surrogate import distance_rand
 from bb import build_bb
+from group_algebra import build_2bga, dihedral, metacyclic
 
 
 def efficiency(n, k, d):
@@ -123,7 +125,7 @@ def update_leaderboard(path, records):
 
 
 # ---------------------------------------------------------------------------
-#  A ready-made sampler for the BB family
+#  Ready-made samplers (all yield (spec, HX, HZ); point ``screen`` at any)
 # ---------------------------------------------------------------------------
 def sample_bb(num, *, l_range=(4, 12), m_range=(3, 10), weight=3, seed=0):
     """Yield ``num`` random bivariate-bicycle candidates ``(spec, HX, HZ)``.
@@ -149,6 +151,76 @@ def sample_bb(num, *, l_range=(4, 12), m_range=(3, 10), weight=3, seed=0):
         B = distinct_monomials(l, m)
         HX, HZ = build_bb(l, m, A, B)
         yield ({"family": "bb", "l": l, "m": m, "A": A, "B": B}, HX, HZ)
+
+
+def sample_dihedral(num, *, m_range=(30, 80), weight=4, seed=0):
+    """Yield ``num`` random 2BGA candidates on dihedral groups D_m
+    (order 2m, so n = 4m). Random supports of ``weight`` distinct elements."""
+    rng = np.random.default_rng(seed)
+    for _ in range(num):
+        m = int(rng.integers(m_range[0], m_range[1] + 1))
+        order = 2 * m
+        mul, _elems = dihedral(m)
+        a = [int(x) for x in rng.choice(order, size=weight, replace=False)]
+        b = [int(x) for x in rng.choice(order, size=weight, replace=False)]
+        HX, HZ = build_2bga(mul, a, b)
+        yield ({"family": "2bga-dihedral", "m": m, "a": a, "b": b}, HX, HZ)
+
+
+def sample_metacyclic(num, *, order_range=(60, 160), weight=4, seed=0):
+    """Yield ``num`` random 2BGA candidates on metacyclic groups
+    Z_n x| Z_k with r^k = 1 mod n (order n*k). This is the family line that
+    produced the board's [[294,8,19]]."""
+    rng = np.random.default_rng(seed)
+    valid_params = [(n, k, r)
+                    for n in range(5, 60)
+                    for k in range(2, 20)
+                    if order_range[0] <= n * k <= order_range[1]
+                    for r in range(2, n)
+                    if pow(r, k, n) == 1]
+    for _ in range(num):
+        if not valid_params:
+            break
+        n, k, r = valid_params[rng.choice(len(valid_params))]
+        order = n * k
+        mul, _elems = metacyclic(n, k, r)
+        a = [int(x) for x in rng.choice(order, size=weight, replace=False)]
+        b = [int(x) for x in rng.choice(order, size=weight, replace=False)]
+        HX, HZ = build_2bga(mul, a, b)
+        yield ({"family": "2bga-metacyclic", "n": int(n), "k_m": int(k),
+                "r": int(r), "a": a, "b": b}, HX, HZ)
+
+
+def _primitive_root(q):
+    """A generator of (Z/qZ)* for prime q, or None."""
+    for r in range(2, q):
+        if all(pow(r, k, q) != 1 for k in range(1, q - 1)):
+            return r
+    return None
+
+
+def sample_kasai_affine(num, *, q_range=(7, 19), weight=4, seed=0):
+    """Yield ``num`` random generalized-bicycle candidates on affine groups
+    Aff(F_q) for prime q (the structure of Kasai's affine-coset construction).
+    Group order N = q(q-1), realized as the metacyclic group Z_q x| Z_{q-1}
+    with a primitive root acting; block size n = 2N."""
+    rng = np.random.default_rng(seed)
+    affine_groups = []
+    for q in range(q_range[0], q_range[1] + 1):
+        if all(q % i for i in range(2, int(q ** 0.5) + 1)) and q > 1:
+            r = _primitive_root(q)
+            if r is not None:
+                affine_groups.append((q, q - 1, r))
+    for _ in range(num):
+        if not affine_groups:
+            break
+        q, k, r = affine_groups[rng.choice(len(affine_groups))]
+        order = q * k
+        mul, _elems = metacyclic(q, k, r)
+        a = [int(x) for x in rng.choice(order, size=weight, replace=False)]
+        b = [int(x) for x in rng.choice(order, size=weight, replace=False)]
+        HX, HZ = build_2bga(mul, a, b)
+        yield ({"family": "2bga-affine", "q": int(q), "a": a, "b": b}, HX, HZ)
 
 
 if __name__ == "__main__":
