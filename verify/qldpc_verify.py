@@ -133,6 +133,9 @@ def structure_errors(doc):
         if "checks" in doc and not (isinstance(doc["checks"], dict)
                                     and "X" in doc["checks"] and "Z" in doc["checks"]):
             errs.append("checks must have X and Z support lists")
+        if "distance" in doc and not (isinstance(doc["distance"], dict)
+                                      and all(k in doc["distance"] for k in ("d", "X", "Z"))):
+            errs.append("distance must have d, X, and Z witness blocks")
     if errs:
         return errs
     return resource_errors(doc)
@@ -315,8 +318,11 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
     # 6. distance witnesses (self-certifying upper bounds)
     dist = doc["distance"]
     earned_d = []
+    earned_sides = set()
     for side, opp_H, own_H in (("X", HZ, HX), ("Z", HX, HZ)):
         if side not in dist:
+            record(f"distance_{side}_present", False,
+                   "both X and Z distance witnesses are required")
             continue
         sd = dist[side]
         v = _vec(sd["witness"], n)
@@ -332,18 +338,24 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
             report["earned_distance"][side] = {"value": sd["value"],
                                                "tier": tier}
             earned_d.append(sd["value"])
+            earned_sides.add(side)
             if sd["confidence"] == "exact":
                 record(f"distance_{side}_exact_flagged", True,
                        "exact claim accepted as upper_bound pending server "
                        "certification")
 
     # 7. code distance consistency
-    if earned_d:
+    if earned_sides == {"X", "Z"}:
         d_earned = min(earned_d)
-        record("d_matches_min_side", d_earned == dist["d"],
+        matches = d_earned == dist["d"]
+        record("d_matches_min_side", matches,
                f"min earned side = {d_earned}, claimed d = {dist['d']}")
-        report["earned_distance"]["d"] = {"value": dist["d"],
-                                          "tier": "upper_bound"}
+        if matches:
+            report["earned_distance"]["d"] = {"value": dist["d"],
+                                              "tier": "upper_bound"}
+    else:
+        record("distance_global_earned", False,
+               "valid X and Z witnesses are required to earn a global distance")
 
     # 8. independent distance refutation. A bounded RIS search must not find a
     #    logical lighter than the claimed distance. This is SOUND -- any hit is a
@@ -360,7 +372,7 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
     #
     #    FAILS CLOSED: if the refuter cannot run, that is recorded as a FAILURE, not
     #    a silent pass -- a gate that fails open is no gate.
-    if refute and earned_d:
+    if refute and "d" in report["earned_distance"]:
         run_seed = seed if seed is not None else secrets.randbelow(2**31)
         try:
             import heuristic_distance
