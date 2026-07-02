@@ -99,7 +99,12 @@ radius, qubits per site, minimum spacing, density, bounding box).
   ~9.75 at the higher check weight 11; at moderate size the planar weight-8
   [[282,12,14]] (arXiv:2504.08887, v3+) reaches ~8.34. Best on the board so far:
   [[294,12,14]] at kd^2/n 8.0 (an upper bound, not yet certified exact), which
-  the published [[282,12,14]] strictly dominates -- seeding it is follow-up work.
+  the published [[282,12,14]] strictly dominates. Like the Kasai codes below,
+  [[282,12,14]] is cited as a bar rather than seeded: its bulk polynomials are
+  in the paper's text, but its boundary stabilizers (including secondary gauge
+  operators that are not truncations of bulk terms) and the 10 grafted-away
+  qubits are specified only in figures (Figs. 7 and 28), with no machine-readable
+  data published, so a faithful reproduction is not currently possible.
 - Weight-8, any connectivity: the double-cover 2BGA [[168,20,14]]
   (arXiv:2606.17268, Table 4, distance stated exact there) reaches kd^2/n ~ 23.3,
   beating the board's previous best [[180,20,14]] at 21.8 (an uncertified upper
