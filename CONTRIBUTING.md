@@ -37,7 +37,9 @@ Useful flags:
 - `--open-pr` create the branch, commit, push, and open the PR for you;
 - `--dry-run` build and verify without writing.
 
-Then open a pull request adding only your file under `codes/`. CI re-runs the
+Then open a pull request adding only your file under `codes/` — **one new code
+per PR** (CI enforces this): each frontier submission gets a deep, ~10-minute
+refutation search, and that budget is per code. CI re-runs the
 verifier; a green check is required to merge. Open the PR from your own account:
 CI checks that the PR author is one of the code's `@handle` authors, so list
 yourself (literature baselines with no `@handle` are exempt).

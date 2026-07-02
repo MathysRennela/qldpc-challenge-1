@@ -6,7 +6,8 @@ only on the code/example submissions changed in this PR, and exits non-zero if
 EITHER finds a logical lighter than the claimed distance (an over-claim). The
 syndrome-decoder cross-check is skipped if ldpc is unavailable (RIS-only). Bulk
 re-verification of the whole board stays cheap -- only new/changed files pay the
-search cost (~10 s per method).
+search cost (~10 s per method; frontier-advancing codes get 4 RIS seeds at 60 s
+each, ~4-5 min per code).
 
 Usage:
   python verify/gate_changed.py [--code-root PATH] [BASE] [files...]
@@ -126,19 +127,25 @@ def main(argv):
         if "distance" not in doc or "d" not in doc.get("distance", {}):
             continue
         # A code that advances the frontier is checked harder: several independent
-        # RIS seeds, not one, so an over-claim cannot lean on a single search
-        # missing the lighter logical. Dominated codes pay only the standard pass.
+        # RIS seeds with a long budget each, not one short pass, so an over-claim
+        # cannot lean on a single search missing the lighter logical. At n ~ 300 a
+        # modest over-claim needs on the order of minutes of RIS to expose, so the
+        # deep budget is sized for ~8-9 min per frontier code (CI allows ~10 min
+        # per code; submissions are one new code per PR). Dominated codes pay only
+        # the standard pass.
         slug = os.path.splitext(os.path.basename(f))[0]
         deep = slug in records
         seeds = [seed, seed + 2, seed + 3, seed + 5] if deep else [seed]
+        budget = 120.0 if deep else 10.0
         # two independent mechanisms; a hit from EITHER (any seed) refutes.
         results = {}
         for si, s in enumerate(seeds):
-            results[f"RIS#{si}"] = H.refute_check(doc, seed=s)
+            results[f"RIS#{si}"] = H.refute_check(doc, seed=s, max_seconds=budget)
         if SD is not None:
             results["syndrome-decoder"] = SD.refute_check(doc, seed=seed + 1)
         hits = {m: (dh, wit) for m, (ref, dh, wit, _) in results.items() if ref}
-        tag = f"deep, {len(seeds)} RIS seeds" if deep else "standard"
+        tag = (f"deep, {len(seeds)} RIS seeds x {budget:.0f}s" if deep
+               else "standard")
         if hits:
             refuted += 1
             for m, (dh, wit) in hits.items():
