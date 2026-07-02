@@ -166,5 +166,5 @@ def save_submission(doc, path):
 
 
 if __name__ == "__main__":
-    print("submit.py is a library; see research/recipes/ for end-to-end usage.",
+    print("submit.py is a library; see research/test_smoke.py for end-to-end usage.",
           file=sys.stderr)

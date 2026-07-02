@@ -19,7 +19,6 @@ research/
   kit/         the core toolkit: constructors, surrogate, search, packaging, confirmation
   local2d/     open-boundary planar (2D-local) codes: builders + distance-scaling theory
   samplers/    family samplers built on the kit (write new sample_<family>.py here)
-  recipes/     runnable end-to-end examples
   candidates/  staging area for validated finds (gitignored working output)
 ```
 
@@ -67,11 +66,10 @@ The verdict's `gates` block is your evidence; `labels` are what you show the hum
    `passed: true`.
 6. **Stage** survivors for review; loop until the budget is spent, then report.
 
-Two worked examples, each runs the real verifier in-process at the end:
+To watch the whole loop run once (build → package → the real verifier in-process):
 
 ```
-uv run python research/recipes/01_build_and_submit_bb.py   # one code, end to end
-uv run python research/recipes/02_search_a_family.py       # sweep a family, take the best
+uv run python research/test_smoke.py
 ```
 
 ## 1. Pick a direction and a family, build `(HX, HZ)`
@@ -259,7 +257,7 @@ The constructors, surrogate, search, and packaging stay numpy-only.
 | `local2d/corner_detector.py` | `detect`: L-independent bounded-vs-growing distance classification |
 | `samplers/` | family samplers over the kit (`sample_advanced.py`, `sample_kasai.py`, yours) |
 | `../verify/validate_candidate.py` | the trusted gate: verify + refute + dedup + novelty, one verdict |
-| `recipes/` | runnable end-to-end examples (01: one code; 02: search a family) |
+| `test_smoke.py` | the runnable end-to-end example (build → package → real verifier), also CI's drift gate |
 
 Each module is runnable on its own (`uv run python research/kit/<module>.py`, likewise
 `research/local2d/<module>.py`) and prints a small self-test / demo. The kit covers the

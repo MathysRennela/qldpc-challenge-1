@@ -50,7 +50,7 @@ uv run python site/build.py
 **Run research tools:**
 
 ```bash
-uv run --extra research python research/recipes/01_build_and_submit_bb.py
+uv run python research/test_smoke.py   # the starter-kit loop, end to end
 ```
 
 ## Submitting
