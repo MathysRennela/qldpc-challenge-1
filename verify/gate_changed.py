@@ -6,8 +6,10 @@ only on the code/example submissions changed in this PR, and exits non-zero if
 EITHER finds a logical lighter than the claimed distance (an over-claim). The
 syndrome-decoder cross-check is skipped if ldpc is unavailable (RIS-only). Bulk
 re-verification of the whole board stays cheap -- only new/changed files pay the
-search cost (~10 s per method; frontier-advancing codes get 4 RIS seeds at 60 s
-each, ~4-5 min per code).
+search cost. The RIS budget is ADAPTIVE (see _budget): trials scale with code
+size, so a small code gets near-exhaustive coverage and a large one a
+proportionate search; frontier-advancing codes get several independent deep
+seeds (tens of thousands of trials each) before they earn the record.
 
 Usage:
   python verify/gate_changed.py [--code-root PATH] [BASE] [files...]
@@ -76,6 +78,35 @@ def board_record_slugs(code_root=ROOT):
     return rec
 
 
+def _budget(n, deep):
+    """Adaptive refutation depth for a code with n qubits: (trials, seconds, seeds).
+
+    Trials scale with n (the RIS target formula, without the flat 8000 cap the
+    quick in-verifier pass uses), so small codes get near-exhaustive coverage and
+    large codes a proportionate search instead of whatever fits a flat time box.
+    The wall-clock cap scales alongside (per-trial cost measured at ~0.5-1.3+
+    ms/trial for n = 72..336, with headroom); whichever binds first ends the
+    search. Small codes finish their target early (measured: the deep pass on
+    n=72 completes 33.6k trials in ~20 s/seed and stops); large codes fill the
+    cap, which is therefore the CI cost ceiling. Either way this strictly
+    deepens the old behavior, where the trial target was flat-capped at 8000 --
+    reached in ~10 s -- so the deep pass's extra 120 s bought nothing.
+
+    Deep (frontier-advancing) claims get 3 independent seeds at ~60k-scale trial
+    targets: the depth that exposed real over-claims which 8k-trial passes let
+    through. Worst case is 3 x 240 s = 12 min of RIS per code (measured: ~11 min
+    at n=294), paid only by a code claiming a record; dominated rows stay
+    cheap."""
+    per_trial = 0.0005 + 2.5e-6 * n              # seconds/trial, measured (both sides)
+    if deep:
+        trials = 25000 + 120 * n
+        seconds = min(240.0, max(120.0, trials * per_trial * 3))
+        return trials, seconds, 3
+    trials = 2500 + 40 * n
+    seconds = min(90.0, max(10.0, trials * per_trial * 4))
+    return trials, seconds, 1
+
+
 def main(argv):
     rest = [a for a in argv if not a.endswith(".json")]
     seed = None
@@ -127,25 +158,24 @@ def main(argv):
         if "distance" not in doc or "d" not in doc.get("distance", {}):
             continue
         # A code that advances the frontier is checked harder: several independent
-        # RIS seeds with a long budget each, not one short pass, so an over-claim
-        # cannot lean on a single search missing the lighter logical. At n ~ 300 a
-        # modest over-claim needs on the order of minutes of RIS to expose, so the
-        # deep budget is sized for ~8-9 min per frontier code (CI allows ~10 min
-        # per code; submissions are one new code per PR). Dominated codes pay only
-        # the standard pass.
+        # deep RIS seeds, not one short pass, so an over-claim cannot lean on a
+        # single search missing the lighter logical. Trials and wall-clock both
+        # scale with code size (see _budget). Dominated codes pay only the
+        # standard, size-scaled pass.
         slug = os.path.splitext(os.path.basename(f))[0]
         deep = slug in records
-        seeds = [seed, seed + 2, seed + 3, seed + 5] if deep else [seed]
-        budget = 120.0 if deep else 10.0
+        trials, budget, nseeds = _budget(int(doc["n"]), deep)
+        seeds = [seed, seed + 2, seed + 3][:nseeds]
         # two independent mechanisms; a hit from EITHER (any seed) refutes.
         results = {}
         for si, s in enumerate(seeds):
-            results[f"RIS#{si}"] = H.refute_check(doc, seed=s, max_seconds=budget)
+            results[f"RIS#{si}"] = H.refute_check(doc, seed=s, max_seconds=budget,
+                                                  trials=trials)
         if SD is not None:
             results["syndrome-decoder"] = SD.refute_check(doc, seed=seed + 1)
         hits = {m: (dh, wit) for m, (ref, dh, wit, _) in results.items() if ref}
-        tag = (f"deep, {len(seeds)} RIS seeds x {budget:.0f}s" if deep
-               else "standard")
+        tag = (f"deep, {len(seeds)} RIS seeds x {trials} trials (<={budget:.0f}s each)"
+               if deep else f"standard, {trials} trials (<={budget:.0f}s)")
         if hits:
             refuted += 1
             for m, (dh, wit) in hits.items():
