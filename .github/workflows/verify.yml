@@ -11,6 +11,7 @@ on:
       - "verify/**"
       - "schema/**"
       - "research/**"
+      - "run_tests.py"
       - "pyproject.toml"
       - "uv.lock"
   push:
@@ -44,11 +45,23 @@ jobs:
         id: changes
         working-directory: submitted
         run: |
-          if git diff --quiet --diff-filter=AM origin/${{ github.base_ref }}...HEAD -- codes; then
-            echo "codes_changed=false" >> "$GITHUB_OUTPUT"
+          base=origin/${{ github.base_ref }}
+          if git diff --quiet --diff-filter=AM "$base"...HEAD -- codes; then
+            codes_changed=false
           else
-            echo "codes_changed=true" >> "$GITHUB_OUTPUT"
+            codes_changed=true
           fi
+          # A PR whose every changed file lives under codes/ cannot have touched
+          # the stack the self-tests exercise (the scope check forbids combining
+          # code data with verify/, workflows, schema, or run_tests.py), so the
+          # self-tests are skipped for it. Anything else changed -> they run.
+          if [ "$codes_changed" = true ] && git diff --quiet "$base"...HEAD -- ':(exclude)codes'; then
+            only_codes=true
+          else
+            only_codes=false
+          fi
+          echo "codes_changed=$codes_changed" >> "$GITHUB_OUTPUT"
+          echo "only_codes=$only_codes" >> "$GITHUB_OUTPUT"
       - name: submission scope check (code data cannot change its own verifier)
         if: github.event_name == 'pull_request' && steps.changes.outputs.codes_changed == 'true'
         working-directory: trusted
@@ -56,15 +69,10 @@ jobs:
       - name: trusted validation stack integrity (the autoresearch gate can't be silently weakened)
         working-directory: submitted
         run: uv run --frozen python verify/check_validator_integrity.py
-      - name: verifier self-tests (must reject bad submissions)
+      - name: self-tests (every verify/ and research/ test_*.py; skipped for codes-only PRs)
+        if: github.event_name != 'pull_request' || steps.changes.outputs.only_codes != 'true'
         working-directory: submitted
-        run: uv run --frozen python verify/test_verifier.py
-      - name: autoresearch gate self-tests (validate_candidate rejects over-claims/dups)
-        working-directory: submitted
-        run: uv run --frozen python verify/test_validate_candidate.py
-      - name: research starter-kit smoke test (kit stays in sync with the verifier)
-        working-directory: submitted
-        run: uv run --frozen python research/test_smoke.py
+        run: uv run --frozen python run_tests.py
       - name: verify all submissions (trusted verifier for code changes)
         if: github.event_name == 'pull_request' && steps.changes.outputs.codes_changed == 'true'
         working-directory: trusted
