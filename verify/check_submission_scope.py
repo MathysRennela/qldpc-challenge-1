@@ -27,6 +27,7 @@ CRITICAL_FILES = {
     "site/build.py",
     "pyproject.toml",
     "uv.lock",
+    "run_tests.py",     # executes the self-tests CI relies on
 }
 
 
