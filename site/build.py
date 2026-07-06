@@ -341,7 +341,8 @@ gap:16px;margin:0 0 18px}}
 .uflogo{{height:38px;width:auto;display:block;
 filter:drop-shadow(0 4px 14px rgba(0,0,0,.35))}}
 .ghlink{{display:inline-flex;align-items:center;gap:8px;color:#fff;
-text-decoration:none;font-size:14px;font-weight:600;
+font-family:'Space Mono',ui-monospace,monospace;
+text-decoration:none;font-size:14px;font-weight:700;
 border:1px solid rgba(255,255,255,.28);border-radius:9px;padding:8px 14px;
 background:rgba(255,255,255,.08)}}
 .ghlink:hover{{background:rgba(255,255,255,.18)}}
@@ -351,7 +352,8 @@ header.hero p{{font-size:18px;max-width:640px;margin:0;color:#e4e4e7}}
 header.hero p a{{color:{HILITE};text-decoration:underline}}
 .topnav{{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}}
 .topnav a{{display:inline-flex;align-items:center;gap:7px;color:#e4e4e7;
-font-size:14px;font-weight:600;padding:7px 14px;
+font-family:'Space Mono',ui-monospace,monospace;
+font-size:14px;font-weight:700;padding:7px 14px;
 border:1px solid rgba(255,255,255,.18);border-radius:8px;
 background:rgba(255,255,255,.06)}}
 .topnav a:hover{{background:{HILITE};color:#111;border-color:{HILITE}}}
@@ -372,7 +374,8 @@ background:#fff;overflow:hidden}}
 padding:16px 20px;background:var(--soft);border-bottom:1px solid var(--ln)}}
 .lbh{{font-size:18px;margin:0}}
 .lbsub{{margin:4px 0 0;font-size:13px;color:var(--mut)}}
-.lbcta{{flex:0 0 auto;font-size:13px;font-weight:600;color:#fff;
+.lbcta{{flex:0 0 auto;font-size:13px;font-weight:700;color:#fff;
+font-family:'Space Mono',ui-monospace,monospace;
 background:var(--ac);border:none;border-radius:8px;padding:8px 14px;
 text-decoration:none;cursor:pointer}}
 .lbcta:hover{{filter:brightness(1.08)}}
