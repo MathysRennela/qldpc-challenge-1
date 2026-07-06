@@ -358,14 +358,17 @@ border:1px solid rgba(255,255,255,.18);border-radius:8px;
 background:rgba(255,255,255,.06)}}
 .topnav a:hover{{background:{HILITE};color:#111;border-color:{HILITE}}}
 .stats{{display:flex;gap:40px;margin-top:30px;flex-wrap:wrap}}
-.stat .v{{font-size:30px;font-weight:700}}.stat .l{{color:#c7d2fe;font-size:13px;
+.stat .v{{font-size:30px;font-weight:700;
+font-family:'Space Mono',ui-monospace,monospace}}
+.stat .l{{color:#c7d2fe;font-size:13px;
 text-transform:uppercase;letter-spacing:.05em}}
 .statsbar{{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
 gap:14px;margin:28px 0 8px}}
 .stat-card{{border:1px solid var(--ln);border-radius:14px;padding:18px 20px;
 background:var(--soft)}}
 .stat-card.hero{{border-color:var(--ac);background:#fffbe0}}
-.stat-card .v{{font-size:34px;font-weight:700;line-height:1.05}}
+.stat-card .v{{font-size:34px;font-weight:700;line-height:1.05;
+font-family:'Space Mono',ui-monospace,monospace}}
 .stat-card.hero .v{{color:var(--ac)}}
 .stat-card .l{{font-size:13px;color:var(--mut);margin-top:6px}}
 .lb{{margin:18px 0 8px;border:1px solid var(--ln);border-radius:14px;
@@ -419,7 +422,8 @@ flex:0 0 auto}}
 background:var(--soft)}}
 .how .n{{display:inline-flex;width:26px;height:26px;border-radius:50%;
 background:var(--ac);color:#fff;align-items:center;justify-content:center;
-font-size:14px;font-weight:700;margin-bottom:10px}}
+font-size:14px;font-weight:700;margin-bottom:10px;
+font-family:'Space Mono',ui-monospace,monospace}}
 .how h3{{margin:.2rem 0;font-size:16px}}.how p{{margin:0;color:var(--mut);
 font-size:14px}}
 .legend{{display:flex;flex-wrap:wrap;gap:18px;margin:28px 0 4px;padding:14px 16px;
