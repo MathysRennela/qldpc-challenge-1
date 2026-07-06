@@ -73,7 +73,8 @@ font-family:'Space Mono',ui-monospace,monospace}
 background:#fff;overflow:hidden}
 .lbhead{display:flex;justify-content:space-between;align-items:center;gap:16px;
 padding:16px 20px;background:var(--soft);border-bottom:1px solid var(--ln)}
-.lbh{font-size:18px;margin:0}
+.lbh{font-size:16px;margin:0;font-family:'Space Mono',ui-monospace,monospace;
+text-transform:uppercase;letter-spacing:.03em}
 .lbsub{margin:4px 0 0;font-size:13px;color:var(--mut)}
 .lbcta{flex:0 0 auto;font-size:13px;font-weight:700;color:#fff;
 font-family:'Space Mono',ui-monospace,monospace;
@@ -120,9 +121,17 @@ flex:0 0 auto}
 background:var(--soft)}
 .how .n{display:inline-flex;width:26px;height:26px;border-radius:50%;
 background:var(--ac);color:#fff;align-items:center;justify-content:center;
+<<<<<<< HEAD
 font-size:14px;font-weight:700;margin-bottom:10px;
 font-family:'Space Mono',ui-monospace,monospace}
 .how h3{margin:.2rem 0;font-size:16px}.how p{margin:0;color:var(--mut);
+=======
+font-size:14px;font-weight:700;margin-bottom:10px}
+.how h3{margin:.2rem 0;font-size:14px;
+font-family:'Space Mono',ui-monospace,monospace;
+text-transform:uppercase;letter-spacing:.03em}
+.how p{margin:0;color:var(--mut);
+>>>>>>> df2c121 (Use Space Mono uppercase for table and container headers)
 font-size:14px}
 .legend{display:flex;flex-wrap:wrap;gap:18px;margin:28px 0 4px;padding:14px 16px;
 background:var(--soft);border:1px solid var(--ln);border-radius:10px;
@@ -158,6 +167,7 @@ font-size:14px;margin:12px 0}
 .board th,.board td{padding:.55rem .9rem;text-align:left;white-space:nowrap;
 border-bottom:1px solid var(--ln)}
 .board th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;
+font-family:'Space Mono',ui-monospace,monospace;
 color:var(--mut);cursor:pointer;user-select:none;border-bottom:2px solid var(--ln)}
 /* Header stays visible while the table scrolls. It pins below the pinned plots,
    whose rendered height a script keeps in --ploth (0 when nothing is pinned).
@@ -194,8 +204,11 @@ table.grid{border-collapse:collapse;font-size:13px;margin:0 auto}
 table.grid th,table.grid td{border:1px solid var(--ln);padding:8px 12px;
 text-align:left;vertical-align:top}
 table.grid thead th,table.grid tr:first-child th{background:var(--soft);
-font-weight:600;color:var(--ink);white-space:nowrap}
-.grow{background:var(--soft);font-weight:600;color:var(--ink);white-space:nowrap}
+font-weight:700;color:var(--ink);white-space:nowrap;font-size:12px;
+font-family:'Space Mono',ui-monospace,monospace;text-transform:uppercase}
+.grow{background:var(--soft);font-weight:700;color:var(--ink);
+white-space:nowrap;font-size:12px;
+font-family:'Space Mono',ui-monospace,monospace;text-transform:uppercase}
 .gcorner{background:var(--soft)}
 .gcell .gcount{font-size:11px;color:var(--mut)}
 .gcell .gbest{font-family:'Space Mono',ui-monospace,monospace;font-size:12px;
