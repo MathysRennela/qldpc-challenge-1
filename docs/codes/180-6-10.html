@@ -2,11 +2,13 @@
 :root{--ink:#0f172a;--mut:#64748b;--ln:#e2e8f0;--ac:#36006c;--ex:#059669;
 --corr:#d97706;--exb:#ffff00;--dark:#111111;--bg:#fff;--soft:#f8fafc}
 *{box-sizing:border-box}
-/* Unitary Foundation type stack: Space Grotesk for display/headings, Manrope
-   for body, Space Mono for code. Loaded from Google Fonts in head(). */
+/* Unitary Foundation type stack: Manrope for body and page-level headings
+   (H1/H2, per UF homepage), Space Grotesk for in-container display text,
+   Space Mono for code. Loaded from Google Fonts in head(). */
 body{font-family:'Manrope',system-ui,-apple-system,sans-serif;
 color:var(--ink);margin:0;background:var(--bg);line-height:1.55}
-h1,h2,h3,.brand h1,.codehead .big,.lbh,.ph{font-family:'Space Grotesk',
+h1,h2{font-family:'Manrope',system-ui,sans-serif;letter-spacing:-.01em}
+h3,.codehead .big,.lbh,.ph{font-family:'Space Grotesk',
 'Manrope',system-ui,sans-serif;letter-spacing:-.01em}
 .mono{font-family:'Space Mono',ui-monospace,'SF Mono',Menlo,monospace;
 font-weight:700}
