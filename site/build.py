@@ -350,6 +350,7 @@ header.hero h1{{font-size:clamp(30px,6vw,44px);margin:0;letter-spacing:-1px}}
 header.hero h1 a{{color:#fff}}
 header.hero p{{font-size:18px;max-width:640px;margin:0;color:#e4e4e7}}
 header.hero p a{{color:{HILITE};text-decoration:underline}}
+header.hero p a:hover{{background:{HILITE};color:#111;text-decoration:none}}
 .topnav{{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}}
 .topnav a{{display:inline-flex;align-items:center;gap:7px;color:#e4e4e7;
 font-family:'Space Mono',ui-monospace,monospace;
@@ -381,8 +382,8 @@ text-transform:uppercase;letter-spacing:.03em}}
 .lbcta{{flex:0 0 auto;font-size:13px;font-weight:700;color:#fff;
 font-family:'Space Mono',ui-monospace,monospace;
 background:var(--ac);border:none;border-radius:8px;padding:8px 14px;
-text-decoration:none;cursor:pointer}}
-.lbcta:hover{{filter:brightness(1.08)}}
+text-decoration:none;cursor:pointer;transition:background .15s}}
+.lbcta:hover{{background:#5b21b6}}
 .modal{{position:relative;border:none;border-radius:14px;padding:22px 24px;
 max-width:520px;width:92%;box-shadow:0 20px 60px rgba(17,17,17,.25)}}
 .modal::backdrop{{background:rgba(17,17,17,.45)}}
