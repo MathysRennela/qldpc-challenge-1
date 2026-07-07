@@ -480,8 +480,15 @@ def main(path):
                           "ok": False, "computed": {}, "earned_distance": {}},
                          indent=2))
         return 1
-    with open(path) as f:
-        doc = json.load(f)
+    try:
+        with open(path) as f:
+            doc = json.load(f)
+    except FileNotFoundError:
+        print(f"could not open {path}: file not found", file=sys.stderr)
+        return 2
+    except json.JSONDecodeError as e:
+        print(f"could not parse {path}: not valid JSON ({e})", file=sys.stderr)
+        return 2
     report = verify(doc, refute=True)   # the per-submission CLI runs the gate
     print(json.dumps(report, indent=2))
     return 0 if report["ok"] else 1

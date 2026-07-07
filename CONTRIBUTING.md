@@ -72,13 +72,13 @@ evolutionary search for these codes (arXiv:2606.02418): the model mutates the
 program that generates a code, rather than tweaking numbers by hand.
 
 ```
-You are contributing to the qLDPC Challenge, a leaderboard of quantum LDPC
+You are contributing to the QEC Challenge, a leaderboard of quantum LDPC
 codes. Goal: find a CSS qLDPC code that advances a frontier, and submit it.
 
 1. Clone https://github.com/unitaryfoundation/qldpc-challenge. Read TRACKS.md
-   (the tracks and the Open Challenges, which list the live bars to beat) and
-   the research/ starter kit (code constructors, the RIS distance surrogate,
-   submission packaging). Pick one target from the Open Challenges.
+   (the tracks and the "Reference bars" section, which lists the live bars to
+   beat) and the research/ starter kit (code constructors, the RIS distance
+   surrogate, submission packaging). Pick one target from the reference bars.
 
 2. Search a construction family. Represent each candidate as a small Python
    program that generates (H_X, H_Z), and mutate that generator (its
