@@ -304,11 +304,13 @@ CSS = f"""
 :root{{--ink:#0f172a;--mut:#64748b;--ln:#e2e8f0;--ac:{ACCENT};--ex:{EXACT};
 --corr:{CORR};--exb:{GREEN_BRIGHT};--dark:{DARK};--bg:#fff;--soft:#f8fafc}}
 *{{box-sizing:border-box}}
-/* Unitary Foundation type stack: Space Grotesk for display/headings, Manrope
-   for body, Space Mono for code. Loaded from Google Fonts in head(). */
+/* Unitary Foundation type stack: Manrope for body and page-level headings
+   (H1/H2, per UF homepage), Space Grotesk for in-container display text,
+   Space Mono for code. Loaded from Google Fonts in head(). */
 body{{font-family:'Manrope',system-ui,-apple-system,sans-serif;
 color:var(--ink);margin:0;background:var(--bg);line-height:1.55}}
-h1,h2,h3,.brand h1,.codehead .big,.lbh,.ph{{font-family:'Space Grotesk',
+h1,h2{{font-family:'Manrope',system-ui,sans-serif;letter-spacing:-.01em}}
+h3,.codehead .big,.lbh,.ph{{font-family:'Space Grotesk',
 'Manrope',system-ui,sans-serif;letter-spacing:-.01em}}
 .mono{{font-family:'Space Mono',ui-monospace,'SF Mono',Menlo,monospace;
 font-weight:700}}
@@ -339,7 +341,8 @@ gap:16px;margin:0 0 18px}}
 .uflogo{{height:38px;width:auto;display:block;
 filter:drop-shadow(0 4px 14px rgba(0,0,0,.35))}}
 .ghlink{{display:inline-flex;align-items:center;gap:8px;color:#fff;
-text-decoration:none;font-size:14px;font-weight:600;
+font-family:'Space Mono',ui-monospace,monospace;
+text-decoration:none;font-size:14px;font-weight:700;
 border:1px solid rgba(255,255,255,.28);border-radius:9px;padding:8px 14px;
 background:rgba(255,255,255,.08)}}
 .ghlink:hover{{background:rgba(255,255,255,.18)}}
@@ -347,33 +350,40 @@ header.hero h1{{font-size:clamp(30px,6vw,44px);margin:0;letter-spacing:-1px}}
 header.hero h1 a{{color:#fff}}
 header.hero p{{font-size:18px;max-width:640px;margin:0;color:#e4e4e7}}
 header.hero p a{{color:{HILITE};text-decoration:underline}}
+header.hero p a:hover{{background:{HILITE};color:#111;text-decoration:none}}
 .topnav{{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}}
 .topnav a{{display:inline-flex;align-items:center;gap:7px;color:#e4e4e7;
-font-size:14px;font-weight:600;padding:7px 14px;
+font-family:'Space Mono',ui-monospace,monospace;
+font-size:14px;font-weight:700;padding:7px 14px;
 border:1px solid rgba(255,255,255,.18);border-radius:8px;
 background:rgba(255,255,255,.06)}}
 .topnav a:hover{{background:{HILITE};color:#111;border-color:{HILITE}}}
 .stats{{display:flex;gap:40px;margin-top:30px;flex-wrap:wrap}}
-.stat .v{{font-size:30px;font-weight:700}}.stat .l{{color:#c7d2fe;font-size:13px;
+.stat .v{{font-size:30px;font-weight:700;
+font-family:'Space Mono',ui-monospace,monospace}}
+.stat .l{{color:#c7d2fe;font-size:13px;
 text-transform:uppercase;letter-spacing:.05em}}
 .statsbar{{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
 gap:14px;margin:28px 0 8px}}
 .stat-card{{border:1px solid var(--ln);border-radius:14px;padding:18px 20px;
 background:var(--soft)}}
 .stat-card.hero{{border-color:var(--ac);background:#fffbe0}}
-.stat-card .v{{font-size:34px;font-weight:700;line-height:1.05}}
+.stat-card .v{{font-size:34px;font-weight:700;line-height:1.05;
+font-family:'Space Mono',ui-monospace,monospace}}
 .stat-card.hero .v{{color:var(--ac)}}
 .stat-card .l{{font-size:13px;color:var(--mut);margin-top:6px}}
 .lb{{margin:18px 0 8px;border:1px solid var(--ln);border-radius:14px;
 background:#fff;overflow:hidden}}
 .lbhead{{display:flex;justify-content:space-between;align-items:center;gap:16px;
 padding:16px 20px;background:var(--soft);border-bottom:1px solid var(--ln)}}
-.lbh{{font-size:18px;margin:0}}
+.lbh{{font-size:16px;margin:0;font-family:'Space Mono',ui-monospace,monospace;
+text-transform:uppercase;letter-spacing:.03em}}
 .lbsub{{margin:4px 0 0;font-size:13px;color:var(--mut)}}
-.lbcta{{flex:0 0 auto;font-size:13px;font-weight:600;color:#fff;
+.lbcta{{flex:0 0 auto;font-size:13px;font-weight:700;color:#fff;
+font-family:'Space Mono',ui-monospace,monospace;
 background:var(--ac);border:none;border-radius:8px;padding:8px 14px;
-text-decoration:none;cursor:pointer}}
-.lbcta:hover{{filter:brightness(1.08)}}
+text-decoration:none;cursor:pointer;transition:background .15s}}
+.lbcta:hover{{background:#5b21b6}}
 .modal{{position:relative;border:none;border-radius:14px;padding:22px 24px;
 max-width:520px;width:92%;box-shadow:0 20px 60px rgba(17,17,17,.25)}}
 .modal::backdrop{{background:rgba(17,17,17,.45)}}
@@ -414,8 +424,17 @@ flex:0 0 auto}}
 background:var(--soft)}}
 .how .n{{display:inline-flex;width:26px;height:26px;border-radius:50%;
 background:var(--ac);color:#fff;align-items:center;justify-content:center;
-font-size:14px;font-weight:700;margin-bottom:10px}}
+<<<<<<< HEAD
+font-size:14px;font-weight:700;margin-bottom:10px;
+font-family:'Space Mono',ui-monospace,monospace}}
 .how h3{{margin:.2rem 0;font-size:16px}}.how p{{margin:0;color:var(--mut);
+=======
+font-size:14px;font-weight:700;margin-bottom:10px}}
+.how h3{{margin:.2rem 0;font-size:14px;
+font-family:'Space Mono',ui-monospace,monospace;
+text-transform:uppercase;letter-spacing:.03em}}
+.how p{{margin:0;color:var(--mut);
+>>>>>>> df2c121 (Use Space Mono uppercase for table and container headers)
 font-size:14px}}
 .legend{{display:flex;flex-wrap:wrap;gap:18px;margin:28px 0 4px;padding:14px 16px;
 background:var(--soft);border:1px solid var(--ln);border-radius:10px;
@@ -451,6 +470,7 @@ font-size:14px;margin:12px 0}}
 .board th,.board td{{padding:.55rem .9rem;text-align:left;white-space:nowrap;
 border-bottom:1px solid var(--ln)}}
 .board th{{font-size:12px;text-transform:uppercase;letter-spacing:.04em;
+font-family:'Space Mono',ui-monospace,monospace;
 color:var(--mut);cursor:pointer;user-select:none;border-bottom:2px solid var(--ln)}}
 /* Header stays visible while the table scrolls. It pins below the pinned plots,
    whose rendered height a script keeps in --ploth (0 when nothing is pinned).
@@ -487,8 +507,11 @@ table.grid{{border-collapse:collapse;font-size:13px;margin:0 auto}}
 table.grid th,table.grid td{{border:1px solid var(--ln);padding:8px 12px;
 text-align:left;vertical-align:top}}
 table.grid thead th,table.grid tr:first-child th{{background:var(--soft);
-font-weight:600;color:var(--ink);white-space:nowrap}}
-.grow{{background:var(--soft);font-weight:600;color:var(--ink);white-space:nowrap}}
+font-weight:700;color:var(--ink);white-space:nowrap;font-size:12px;
+font-family:'Space Mono',ui-monospace,monospace;text-transform:uppercase}}
+.grow{{background:var(--soft);font-weight:700;color:var(--ink);
+white-space:nowrap;font-size:12px;
+font-family:'Space Mono',ui-monospace,monospace;text-transform:uppercase}}
 .gcorner{{background:var(--soft)}}
 .gcell .gcount{{font-size:11px;color:var(--mut)}}
 .gcell .gbest{{font-family:'Space Mono',ui-monospace,monospace;font-size:12px;
@@ -573,6 +596,17 @@ box-shadow:0 10px 10px -10px rgba(17,17,17,.18)}}
 @media(max-width:880px){{table.board{{table-layout:auto;min-width:600px}}
 .board .model{{display:none}}}}
 @media(max-width:680px){{.board .date{{display:none}}}}
+/* phones: the board was cut off in a horizontal scroll with the scored columns
+   (kd2/n, w) off-screen. n, k and d are already printed inside the [[n,k,d]]
+   code name, and type/authors live on each row's detail page, so drop those
+   columns here and let the four that matter (code, kd2/n, w, plus the record
+   star) fit the viewport with no sideways scroll. */
+@media(max-width:620px){{
+.board .col-type,.board .col-n,.board .col-k,.board .col-d,
+.board .col-auth{{display:none}}
+table.board{{min-width:0;font-size:13px}}
+.board th,.board td{{padding:.5rem .45rem;white-space:normal}}
+.board td.auth{{max-width:none}}}}
 /* phones: reclaim horizontal space and shrink oversized headers */
 @media(max-width:560px){{.wrap{{padding:0 14px}}
 header.hero{{padding:34px 0 30px}}
@@ -1783,14 +1817,15 @@ def board_table(entries, records):
     head = ('<thead><tr><th></th>'
             '<th data-c=codekey data-num title="the code, written [[n,k,d]]; '
             'sorts by n, then k, then d">code</th>'
-            '<th data-c=type title="construction family / track">type</th>'
-            '<th data-c=n class=num title="physical qubits">n</th>'
-            '<th data-c=k class=num title="logical qubits">k</th>'
-            '<th data-c=d class=num title="distance">d</th>'
+            '<th data-c=type class=col-type title="construction family / track">'
+            'type</th>'
+            '<th data-c=n class="num col-n" title="physical qubits">n</th>'
+            '<th data-c=k class="num col-k" title="logical qubits">k</th>'
+            '<th data-c=d class="num col-d" title="distance">d</th>'
             '<th data-c=eff class=num title="k&middot;d&sup2;/n, higher is better">'
             'kd&sup2;/n</th>'
             '<th data-c=w class=num title="max check weight">w</th>'
-            '<th data-c=auth title="who submitted it">authors</th>'
+            '<th data-c=auth class=col-auth title="who submitted it">authors</th>'
             '<th class=model data-c=model title="claimed model that produced '
             'the code (self-reported, not verified); person icon = classical '
             'construction, no AI model">model</th>'
@@ -1836,11 +1871,12 @@ def board_table(entries, records):
                f'not a novelty claim">{HEX_MARK}</span>'
                if e["origin"] != "baseline" else "")
             + novelty
-            + f'</td><td class=typecell>{chips(e)}</td>'
-            f'<td class=num>{e["n"]}</td><td class=num>{e["k"]}</td>'
-            f'<td class=num>{badge(e["tier"])} {e["d"]}</td>'
+            + f'</td><td class="typecell col-type">{chips(e)}</td>'
+            f'<td class="num col-n">{e["n"]}</td>'
+            f'<td class="num col-k">{e["k"]}</td>'
+            f'<td class="num col-d">{badge(e["tier"])} {e["d"]}</td>'
             f'<td class=num>{e["eff"]}</td><td class=num>{e["w"]}</td>'
-            f'<td class=auth title="{html.escape(e["authors"])}">'
+            f'<td class="auth col-auth" title="{html.escape(e["authors"])}">'
             f'{authors_compact(e["authors_list"])}</td>'
             '<td class=model>'
             + (f'<span class=modelmark title="{html.escape(e["model"])}">'
