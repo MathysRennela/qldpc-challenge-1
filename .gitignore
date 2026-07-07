@@ -6,3 +6,5 @@ _finalize.*
 _foldcerts.*
 research/candidates/
 research/board*.json
+*.so
+build/
