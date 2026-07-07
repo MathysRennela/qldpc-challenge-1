@@ -13,3 +13,6 @@ research/board*.json
 *.bbl
 *.blg
 *.out
+# compiled gf2 accelerator
+*.so
+build/
