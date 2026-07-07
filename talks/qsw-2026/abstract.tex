@@ -48,10 +48,13 @@ correction.
 
 \section{Motivation}
 
-Recent qLDPC constructions, from the bivariate-bicycle ``gross'' code
-$[[144,12,12]]$~\cite{bravyi2024high} to planar open-boundary
-families~\cite{liang2025planar}, have made
-order-of-magnitude reductions in the qubit overhead of fault tolerance plausible.
+Quantum error correction descends from the first codes~\cite{shor1995scheme} and
+the CSS~\cite{calderbank1996good,steane1996error} and
+stabilizer~\cite{gottesman1997stabilizer} frameworks. Recent qLDPC
+constructions~\cite{breuckmann2021quantum,tillich2014quantum}, from the
+bivariate-bicycle ``gross'' code $[[144,12,12]]$~\cite{bravyi2024high} to planar
+open-boundary families~\cite{liang2025planar}, have made order-of-magnitude
+reductions in the qubit overhead of fault tolerance plausible.
 Progress is now fast and distributed across many groups, which makes a shared
 question pressing: for a given hardware constraint (check weight, geometric
 locality, code size), what is the best known code, and can we trust the claim?
@@ -61,8 +64,9 @@ in heterogeneous tables across papers, with no common format or single place to
 compare like with like. Second, and more seriously, the headline parameter,
 distance $d$, is the one that is hard to verify. Finding a low-weight logical
 operator gives only an upper bound on $d$; proving $d \ge D$ is the NP-hard
-direction. Reported distances are frequently decoder-based upper bounds, and a
-heuristic search that fails to find the lightest logical overstates the distance,
+direction~\cite{vardy1997intractability,kapshikar2023hardness}. Reported
+distances are frequently decoder-based upper bounds, and a heuristic search
+that fails to find the lightest logical overstates the distance,
 sometimes by large factors, until a deeper search turns up a lighter operator. A
 leaderboard that simply trusts submitted numbers would accumulate quiet errors.
 
@@ -71,6 +75,16 @@ than a static document. Every entry is a small machine-readable file that is
 automatically re-verified, distance claims must carry a checkable witness, and a
 distance refutation step actively searches for counterexamples. The result is a
 reproducible, community-extensible, self-certifying record.
+
+Related resources catalog codes and bounds but do not automatically verify
+contributions. Grassl's tables of best-known code
+parameters~\cite{grassl2007codetables} and the Error Correction
+Zoo~\cite{albert2026zoo} are invaluable curated references, and collaborative
+public searches such as the Extremal72 project~\cite{extremal72} show the
+appetite for open, reproducible code discovery. The QEC Challenge is
+complementary: it fixes a machine-checkable submission format and puts an
+adversarial verifier in the loop, so entries are re-derived and distance claims
+are actively refuted rather than curated by hand.
 
 \section{Design}
 
@@ -153,8 +167,9 @@ Bravyi--Poulin--Terhal saturation ratio~\cite{bravyi2010tradeoffs}. For a
 2D-local or bounded-weight code it
 is bounded by a constant that depends only on the interaction range, check
 weight, and on-site dimension, not on $n$, so maximizing it within a fixed
-locality model is well posed. For asymptotically good codes, where $k$ and $d$
-both grow with $n$, it grows like $n^2$ without bound. The board therefore treats
+locality model is well posed. For asymptotically good
+codes~\cite{panteleev2022asymptotically}, where $k$ and $d$ both grow with $n$,
+it grows like $n^2$ without bound. The board therefore treats
 $\eff$ as a per-cell, sortable column and compares like with like, never as a
 global record. Table~\ref{tab:ref} lists reference points.
 
@@ -184,8 +199,9 @@ planar open-boundary codes~\cite{liang2025planar}, the bivariate-bicycle gross
 code~\cite{bravyi2024high}, the generalized-bicycle
 codes~\cite{panteleev2021degenerate,wang2022distance,lin2024quantum}, and the
 surface, toric, and Steane codes~\cite{kitaev2003fault,steane1996error}), so a
-submission is always measured against known codes. The seed set is selected, not an exhaustive snapshot, and
-the board states this: an on-board leader may still be matched by a published
+submission is always measured against known codes. The seed set is selected, not
+an exhaustive snapshot, and the board states this: an on-board leader may still
+be matched by a published
 code that has not been seeded. The badges and figures are regenerated from the
 live board on every build, so they track the current numbers rather than a
 hand-typed count.
