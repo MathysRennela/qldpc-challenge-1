@@ -19,8 +19,9 @@
   Vincent Russo, and William J. Zeng\\[4pt]
   Unitary Foundation\\
   \texttt{github.com/unitaryfoundation/qldpc-challenge}}
-\date{Extended abstract, lightning talk, Quantum Software Workshop 2026
-  (IEEE Quantum Week, Toronto)}
+\date{Extended abstract, lightning talk, Quantum Software 2.6 Workshop,
+  IEEE Quantum Week (IEEE QCE 2026), Metro Toronto Convention Centre,
+  17 September 2026}
 
 \begin{document}
 \maketitle
@@ -88,7 +89,7 @@ distance does not scale, the board separates three confidence tiers. An
 \emph{upper bound} ($d \le$) is backed by an explicit logical-operator witness
 that the verifier confirms is a genuine nontrivial logical of the claimed weight,
 so the bound is checkable with no trust required. A \emph{corroborated} bound
-($d \le^{\!*}$) is an upper bound that an independent search has tried and failed
+($d \le^{*}$) is an upper bound that an independent search has tried and failed
 to beat. An \emph{exact} value ($d =$) is one a server-side integer program has
 proven minimal. Nothing is ever silently upgraded.
 
@@ -167,25 +168,23 @@ Rotated surface~\cite{kitaev2003fault}          & $[[d^2,1,d]]$   & planar      
 Gross code~\cite{bravyi2024high}                & $[[144,12,12]]$ & periodic     & 6  & $12$\\
 Tile code~\cite{steffan2025tile}                & $[[512,18,19]]$ & planar       & 8  & $12.7$\\
 Generalized bicycle~\cite{panteleev2021degenerate} & $[[126,28,8]]$  & periodic  & 10 & $14.2$\\
-Coset 2BGA~\cite{aydin2026breaking}             & $[[168,20,14]]$ & unrestricted & 8  & $23.3$\\
+Coset 2BGA~\cite{aydin2026breaking}             & $[[168,16,15]]$ & unrestricted & 8  & $21.4$\\
 \bottomrule
 \end{tabular}
-\caption{Reference points spanning the efficiency range. The tile code, the sole
-2D-local weight-8 entry, has an integer-programming-certified exact distance; the
-others are the published parameters.}
+\caption{Reference points spanning the efficiency range; all values are the
+published parameters. The tile code is the sole 2D-local weight-8 entry.}
 \label{tab:ref}
 \end{table}
 
-At the time of writing the board holds 42 verified codes, 22 submitted through
-the challenge and 20 literature baselines, with 27 certified exact, across the
+At the time of writing the board holds 44 verified codes, 23 submitted through
+the challenge and 21 literature baselines, with 29 certified exact, across the
 bivariate-bicycle, generalized-bicycle, two-block group-algebra, tile, and
 topological families. It is seeded against a selection of published codes (the
 planar open-boundary codes~\cite{liang2025planar}, the bivariate-bicycle gross
 code~\cite{bravyi2024high}, the generalized-bicycle
-codes~\cite{panteleev2021degenerate,wang2022distance}, the coset two-block
-codes~\cite{aydin2026breaking}, and the surface, toric, and Steane
-codes~\cite{kitaev2003fault,steane1996error}), so a submission is always measured
-against known codes. The seed set is selected, not an exhaustive snapshot, and
+codes~\cite{panteleev2021degenerate,wang2022distance,lin2024quantum}, and the
+surface, toric, and Steane codes~\cite{kitaev2003fault,steane1996error}), so a
+submission is always measured against known codes. The seed set is selected, not an exhaustive snapshot, and
 the board states this: an on-board leader may still be matched by a published
 code that has not been seeded. The badges and figures are regenerated from the
 live board on every build, so they track the current numbers rather than a
