@@ -48,7 +48,7 @@ correction.
 \section{Motivation}
 
 Recent qLDPC constructions, from the bivariate-bicycle ``gross'' code
-$[[144,12,12]]$ of Bravyi et al.~\cite{bravyi2024high} to planar open-boundary
+$[[144,12,12]]$~\cite{bravyi2024high} to planar open-boundary
 families~\cite{liang2025planar}, have made
 order-of-magnitude reductions in the qubit overhead of fault tolerance plausible.
 Progress is now fast and distributed across many groups, which makes a shared
@@ -163,11 +163,11 @@ global record. Table~\ref{tab:ref} lists reference points.
 \toprule
 Code & $[[n,k,d]]$ & topology & $w$ & $\eff$\\
 \midrule
-Rotated surface (Kitaev)~\cite{kitaev2003fault}      & $[[d^2,1,d]]$   & planar       & 4  & $1$\\
-Gross code (Bravyi et al.)~\cite{bravyi2024high}     & $[[144,12,12]]$ & periodic     & 6  & $12$\\
-Tile code (Steffan et al.)~\cite{steffan2025tile}    & $[[512,18,19]]$ & planar       & 8  & $12.7$\\
-Panteleev--Kalachev (GB)~\cite{panteleev2021degenerate} & $[[126,28,8]]$  & periodic  & 10 & $14.2$\\
-Coset 2BGA (Aydin et al.)~\cite{aydin2026breaking}   & $[[168,20,14]]$ & unrestricted & 8  & $23.3$\\
+Rotated surface~\cite{kitaev2003fault}          & $[[d^2,1,d]]$   & planar       & 4  & $1$\\
+Gross code~\cite{bravyi2024high}                & $[[144,12,12]]$ & periodic     & 6  & $12$\\
+Tile code~\cite{steffan2025tile}                & $[[512,18,19]]$ & planar       & 8  & $12.7$\\
+Generalized bicycle~\cite{panteleev2021degenerate} & $[[126,28,8]]$  & periodic  & 10 & $14.2$\\
+Coset 2BGA~\cite{aydin2026breaking}             & $[[168,20,14]]$ & unrestricted & 8  & $23.3$\\
 \bottomrule
 \end{tabular}
 \caption{Reference points spanning the efficiency range. The tile code, the sole
@@ -179,13 +179,12 @@ others are the published parameters.}
 At the time of writing the board holds 42 verified codes, 22 submitted through
 the challenge and 20 literature baselines, with 27 certified exact, across the
 bivariate-bicycle, generalized-bicycle, two-block group-algebra, tile, and
-topological families. It is seeded against the published state of the art (the
-planar codes of Liang, Eberhardt, and Chen~\cite{liang2025planar}; the
-bivariate-bicycle codes of Bravyi et al.~\cite{bravyi2024high}; the
-generalized-bicycle codes of Panteleev--Kalachev~\cite{panteleev2021degenerate}
-and Wang--Pryadko~\cite{wang2022distance}; the coset two-block codes of Aydin,
-Tamo, and Barg~\cite{aydin2026breaking}; and the Kitaev~\cite{kitaev2003fault}
-and Steane~\cite{steane1996error} baselines), so a submission is always measured
+topological families. It is seeded against a selection of published codes (the
+planar open-boundary codes~\cite{liang2025planar}, the bivariate-bicycle gross
+code~\cite{bravyi2024high}, the generalized-bicycle
+codes~\cite{panteleev2021degenerate,wang2022distance}, the coset two-block
+codes~\cite{aydin2026breaking}, and the surface, toric, and Steane
+codes~\cite{kitaev2003fault,steane1996error}), so a submission is always measured
 against known codes. The seed set is selected, not an exhaustive snapshot, and
 the board states this: an on-board leader may still be matched by a published
 code that has not been seeded. The badges and figures are regenerated from the
