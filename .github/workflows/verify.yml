@@ -40,6 +40,20 @@ jobs:
           fetch-depth: 0
           path: trusted
       - uses: astral-sh/setup-uv@v5
+      # Build the optional RIS accelerator in each tree that runs searches. Best
+      # effort (continue-on-error): the python passes are the gate's baseline and
+      # run unchanged without it, so a failed build only costs the extra depth.
+      # For code PRs the gate runs from the trusted tree, so the extension is
+      # compiled from BASE-BRANCH source -- a PR cannot alter the C++ it is gated by.
+      - name: build optional refutation accelerator (trusted tree)
+        if: github.event_name == 'pull_request'
+        working-directory: trusted
+        continue-on-error: true
+        run: make fast
+      - name: build optional refutation accelerator (submitted tree)
+        working-directory: submitted
+        continue-on-error: true
+        run: make fast
       - name: detect changed code submissions
         if: github.event_name == 'pull_request'
         id: changes
