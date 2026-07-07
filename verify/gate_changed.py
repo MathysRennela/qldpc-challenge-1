@@ -1,10 +1,14 @@
 """Distance-refutation gate for the codes changed in a PR (CI).
 
-Runs two independent bounded, fixed-seed refutation searches -- RIS
-(heuristic_distance) and the syndrome decoder (decode/distance, needs ldpc) --
-only on the code/example submissions changed in this PR, and exits non-zero if
-EITHER finds a logical lighter than the claimed distance (an over-claim). The
-syndrome-decoder cross-check is skipped if ldpc is unavailable (RIS-only). Bulk
+Runs independent bounded, fixed-seed refutation searches -- RIS
+(heuristic_distance), the syndrome decoder (decode/distance, needs ldpc), and,
+for frontier-advancing claims, a ~60x-deeper accelerated RIS pass (gf2_fast,
+built via `make fast`) whose finds only count after the pinned python stack
+validates the witness -- only on the code/example submissions changed in this
+PR, and exits non-zero if ANY finds a logical lighter than the claimed distance
+(an over-claim). The syndrome-decoder and accelerated passes are each skipped
+if their dependency is unavailable; the python RIS passes always run, so a
+missing extension can only reduce extra depth, never weaken the baseline gate. Bulk
 re-verification of the whole board stays cheap -- only new/changed files pay the
 search cost. The RIS budget is ADAPTIVE (see _budget): trials scale with code
 size, so a small code gets near-exhaustive coverage and a large one a
@@ -24,11 +28,23 @@ import secrets
 import subprocess
 import sys
 
+import numpy as np
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import gf2
 import heuristic_distance as H
 from qldpc_verify import file_size_error
 
+try:
+    import gf2_fast as GF          # optional C++ accelerator (make fast); the
+except ImportError:                # gate degrades to the python passes without it
+    GF = None
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Fixed thread count for the fast pass so its verdict is reproducible from the
+# printed seed alone (the per-thread RNG streams depend on the split).
+FAST_THREADS = 4
 
 
 def _load_syndrome():
@@ -107,6 +123,33 @@ def _budget(n, deep):
     return trials, seconds, 1
 
 
+def _fast_refute(doc, seed, trials):
+    """Deep RIS via the optional C++ accelerator, kept SOUND the same way the
+    python passes are: the accelerator only proposes (weight, side, support);
+    the find counts as a refutation only after the pinned python stack confirms
+    the support is a genuine nontrivial logical of that weight, lighter than
+    the claim. An invalid or non-improving find is reported as a miss, never
+    trusted. Returns the refute_check tuple shape: (refuted, d, witness, trials)."""
+    n = doc["n"]
+    HX = H._matrix(doc["checks"]["X"], n)
+    HZ = H._matrix(doc["checks"]["Z"], n)
+    w, side, support = GF.distance_rand_witness(
+        HX, HZ, trials=trials, seed=seed, pair_depth=8, threads=FAST_THREADS)
+    claimed = int(doc["distance"]["d"])
+    if not side or w >= claimed:
+        return False, (w if side else None), None, trials
+    v = np.zeros(n, dtype=np.int8)
+    v[list(support)] = 1
+    Hcheck = HZ if side == "X" else HX
+    L = gf2.logical_basis(HX, HZ) if side == "X" else gf2.logical_basis(HZ, HX)
+    valid = (int(v.sum()) == w
+             and not ((Hcheck @ v) % 2).any()
+             and bool(((L @ v) % 2).any()))
+    if not valid:
+        return False, None, None, trials
+    return True, w, sorted(int(q) for q in support), trials
+
+
 def main(argv):
     rest = [a for a in argv if not a.endswith(".json")]
     seed = None
@@ -173,9 +216,20 @@ def main(argv):
                                                   trials=trials)
         if SD is not None:
             results["syndrome-decoder"] = SD.refute_check(doc, seed=seed + 1)
+        # Frontier claims additionally face the accelerated deep search when the
+        # extension is built (CI builds it; see Makefile `fast`): ~60x the python
+        # trial target in comparable wall-clock. Additive only -- the python
+        # passes above are unchanged, so an absent/broken extension can never
+        # weaken the gate, and a fast hit counts only with a python-validated
+        # witness (see _fast_refute).
+        ftrials = 0
+        if GF is not None and deep:
+            ftrials = min(4_000_000, 60 * trials)
+            results["RIS-fast"] = _fast_refute(doc, seed + 7, ftrials)
         hits = {m: (dh, wit) for m, (ref, dh, wit, _) in results.items() if ref}
+        fast_tag = (f" + fast x {ftrials}" if ftrials else "")
         tag = (f"deep, {len(seeds)} RIS seeds x {trials} trials (<={budget:.0f}s each)"
-               if deep else f"standard, {trials} trials (<={budget:.0f}s)")
+               f"{fast_tag}" if deep else f"standard, {trials} trials (<={budget:.0f}s)")
         if hits:
             refuted += 1
             for m, (dh, wit) in hits.items():
