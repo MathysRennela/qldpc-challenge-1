@@ -2014,7 +2014,7 @@
   "d": 12,
   "X": {
    "value": 12,
-   "confidence": "exact",
+   "confidence": "upper_bound",
    "witness": [
     36,
     61,
@@ -2032,7 +2032,7 @@
   },
   "Z": {
    "value": 12,
-   "confidence": "exact",
+   "confidence": "upper_bound",
    "witness": [
     22,
     30,

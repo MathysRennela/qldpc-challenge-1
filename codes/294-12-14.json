@@ -4241,13 +4241,16 @@
    "@vprusso"
   ],
   "origin": "submission",
+  "novelty": "new_parameters",
   "construction": "Weight-8 planar open-boundary bivariate-bicycle code (tile-code family) from the boundary engine; f=[(0, 0), (1, 0), (2, 3), (2, -2)], g=[(0, 0), (0, 1), (-1, -1), (-1, 3)] on a 9x20 lattice.",
   "model": "Claude Opus 4.8",
   "references": [
    "arXiv:2504.09171",
-   "arXiv:2606.19482"
+   "arXiv:2606.19482",
+   "arXiv:2504.08887"
   ],
-  "date": "2026-06-25"
+  "date": "2026-06-25",
+  "notes": "Novelty audit (2026-07-01): the exact [[294,12,14]] triple appears in none of the checked sources (tile codes arXiv:2504.09171; planar BB arXiv:2504.08887; twisted-tori arXiv:2503.03827; nearest-neighbour planar arXiv:2606.19482; bracket-string web search), so the parameter set is new. It is, however, strictly dominated by the weight-8 planar open-boundary [[282,12,14]] published in arXiv:2504.08887 (v3+, stated in the abstract): same k, d, and weight at smaller n, in the same 2D-local planar class. Any frontier position here is board-local; a faithful seed of [[282,12,14]] would displace this code, but is not currently possible: the paper specifies its boundary stabilizers (including non-truncation secondary gauge operators) and the 10 grafted-away qubits only in figures (Figs. 7 and 28), with no machine-readable data published. It is cited as a reference bar in TRACKS.md instead."
  },
  "family": "tile"
 }
