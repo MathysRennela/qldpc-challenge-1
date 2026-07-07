@@ -8,17 +8,25 @@
 \usepackage{booktabs}
 \usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
 
+% Tighten spacing between bibliography entries (article class hook).
+\makeatletter
+\renewcommand\@openbib@code{\setlength\itemsep{0pt}\setlength\parsep{0pt}}
+\makeatother
+
 \newcommand{\GF}{\mathbb{F}_2}
 \newcommand{\rank}{\operatorname{rank}}
 \newcommand{\wt}{\operatorname{wt}}
 \newcommand{\eff}{kd^2/n}
 
-\title{\textbf{The qLDPC Challenge}\\[4pt]
+\title{\textbf{The QEC Challenge}\\[4pt]
   \large A public, automatically verified leaderboard for quantum LDPC codes}
-\author{Unitary Foundation\\
+\author{Ben Castanon, Bradley A. Chase, Farrokh Labib, Mathys Rennela,\\
+  Vincent Russo, and William J. Zeng\\[4pt]
+  Unitary Foundation\\
   \texttt{github.com/unitaryfoundation/qldpc-challenge}}
-\date{Extended abstract, lightning talk, Quantum Software Workshop 2026
-  (IEEE Quantum Week, Toronto)}
+\date{Extended abstract, lightning talk, Quantum Software 2.6 Workshop,
+  IEEE Quantum Week (IEEE QCE 2026), Metro Toronto Convention Centre,
+  17 September 2026}
 
 \begin{document}
 \maketitle
@@ -29,7 +37,7 @@ low-overhead fault tolerance, but the field has no shared, machine-checked recor
 of which codes are best under which constraints. Parameters are scattered across
 papers and tables, and distance claims in particular are hard to reproduce and
 easy to overstate, since computing distance is NP-hard and is often estimated
-with heuristic decoders that can be wrong. The qLDPC Challenge is a public
+with heuristic decoders that can be wrong. The QEC Challenge is a public
 leaderboard that treats this as a software-infrastructure problem. A participant
 submits one JSON file describing a CSS code; continuous integration recomputes
 the code's properties from its parity-check matrices, checks a self-certifying
@@ -38,35 +46,47 @@ per-track Pareto frontier rather than a single gameable number, track membership
 is computed rather than self-declared, and the whole pipeline (validator,
 distance refutation gate, exact certifier, scorer, static-site generator) lives
 in the repository and runs on every pull request. We describe the trust model,
-the verification pipeline, and the current board, and argue the design is a
-reusable pattern for reproducible, self-certifying benchmarks in quantum error
-correction.
+the pipeline, and the current board, and argue it is a reusable pattern for
+reproducible, self-certifying benchmarks in quantum error correction.
 \end{abstract}
 
 \section{Motivation}
 
-Recent qLDPC constructions, from the bivariate-bicycle ``gross'' code
-$[[144,12,12]]$ of Bravyi et al.\ to planar open-boundary families, have made
-order-of-magnitude reductions in the qubit overhead of fault tolerance plausible.
-Progress is now fast and distributed across many groups, which makes a shared
-question pressing: for a given hardware constraint (check weight, geometric
-locality, code size), what is the best known code, and can we trust the claim?
+Quantum error correction descends from the first codes~\cite{shor1995scheme} and
+the CSS~\cite{calderbank1996good,steane1996error} and
+stabilizer~\cite{gottesman1997stabilizer} frameworks. Recent qLDPC
+constructions~\cite{breuckmann2021quantum,tillich2014quantum}, from the
+bivariate-bicycle ``gross'' code $[[144,12,12]]$~\cite{bravyi2024high} to planar
+open-boundary families~\cite{liang2025planar}, have made order-of-magnitude
+reductions in the qubit overhead of fault tolerance plausible. Progress is fast
+and spread across many groups, raising a shared question: for a given hardware
+constraint (check weight, locality, size), what is the best known code, and can
+we trust the claim?
 
 Two facts make this hard to answer in the literature alone. First, results live
 in heterogeneous tables across papers, with no common format or single place to
 compare like with like. Second, and more seriously, the headline parameter,
 distance $d$, is the one that is hard to verify. Finding a low-weight logical
 operator gives only an upper bound on $d$; proving $d \ge D$ is the NP-hard
-direction. Reported distances are frequently decoder-based upper bounds, and
-recent work documents belief-propagation decoders overestimating qLDPC distances
-by large factors. A leaderboard that simply trusts submitted numbers would
-accumulate quiet errors.
+direction~\cite{kapshikar2023hardness}. Reported
+distances are frequently decoder-based upper bounds, and a heuristic search
+that fails to find the lightest logical overstates the distance,
+sometimes by large factors, until a deeper search turns up a lighter operator. A
+leaderboard that simply trusts submitted numbers would accumulate quiet errors.
 
-The qLDPC Challenge addresses both problems with quantum-software tooling rather
+The QEC Challenge addresses both problems with quantum-software tooling rather
 than a static document. Every entry is a small machine-readable file that is
 automatically re-verified, distance claims must carry a checkable witness, and a
 distance refutation step actively searches for counterexamples. The result is a
 reproducible, community-extensible, self-certifying record.
+
+Related resources catalog codes and bounds but do not automatically verify
+contributions. Grassl's tables of best-known code
+parameters~\cite{grassl2007codetables} and the Error Correction
+Zoo~\cite{albert2026zoo} are invaluable curated references. The QEC Challenge is
+complementary: it fixes a machine-checkable submission format and puts an
+adversarial verifier in the loop, so entries are re-derived and distance claims
+are actively refuted rather than curated by hand.
 
 \section{Design}
 
@@ -85,7 +105,7 @@ distance does not scale, the board separates three confidence tiers. An
 \emph{upper bound} ($d \le$) is backed by an explicit logical-operator witness
 that the verifier confirms is a genuine nontrivial logical of the claimed weight,
 so the bound is checkable with no trust required. A \emph{corroborated} bound
-($d \le^{\!*}$) is an upper bound that an independent search has tried and failed
+($d \le^{*}$) is an upper bound that an independent search has tried and failed
 to beat. An \emph{exact} value ($d =$) is one a server-side integer program has
 proven minimal. Nothing is ever silently upgraded.
 
@@ -145,11 +165,13 @@ promotes the board label.
 \section{Metric and the state of the board}
 
 The figure of merit the 2D-locality literature uses, $\eff$, is the
-Bravyi--Poulin--Terhal saturation ratio. For a 2D-local or bounded-weight code it
+Bravyi--Poulin--Terhal saturation ratio~\cite{bravyi2010tradeoffs}. For a
+2D-local or bounded-weight code it
 is bounded by a constant that depends only on the interaction range, check
 weight, and on-site dimension, not on $n$, so maximizing it within a fixed
-locality model is well posed. For asymptotically good codes, where $k$ and $d$
-both grow with $n$, it grows like $n^2$ without bound. The board therefore treats
+locality model is well posed. For asymptotically good
+codes~\cite{panteleev2022asymptotically}, where $k$ and $d$ both grow with $n$,
+it grows like $n^2$ without bound. The board therefore treats
 $\eff$ as a per-cell, sortable column and compares like with like, never as a
 global record. Table~\ref{tab:ref} lists reference points.
 
@@ -159,59 +181,54 @@ global record. Table~\ref{tab:ref} lists reference points.
 \toprule
 Code & $[[n,k,d]]$ & topology & $w$ & $\eff$\\
 \midrule
-Rotated surface (Kitaev)      & $[[d^2,1,d]]$   & planar   & 4 & $1$\\
-Gross code (Bravyi et al.)    & $[[144,12,12]]$ & periodic & 6 & $12$\\
-Tile code (Eberhardt et al.)  & $[[512,18,19]]$ & planar   & 8 & $12.7$\\
-Panteleev--Kalachev (GB)      & $[[126,28,8]]$  & periodic & 10 & $14.2$\\
+Rotated surface~\cite{kitaev2003fault}          & $[[d^2,1,d]]$   & planar       & 4  & $1$\\
+Gross code~\cite{bravyi2024high}                & $[[144,12,12]]$ & periodic     & 6  & $12$\\
+Tile code~\cite{steffan2025tile}                & $[[512,18,19]]$ & planar       & 8  & $12.7$\\
+Generalized bicycle~\cite{panteleev2021degenerate} & $[[126,28,8]]$  & periodic  & 10 & $14.2$\\
+Coset 2BGA~\cite{aydin2026breaking}             & $[[168,16,15]]$ & unrestricted & 8  & $21.4$\\
 \bottomrule
 \end{tabular}
-\caption{Reference points; $\eff$ values for 2D-local weight-8 codes are
-exact, integer-programming-certified.}
+\caption{Reference points spanning the efficiency range; all values are the
+published parameters. The tile code is the sole 2D-local weight-8 entry.}
 \label{tab:ref}
 \end{table}
 
-At the time of writing the board holds 40 verified codes, 21 submitted through
-the challenge and 19 literature baselines, with 27 certified exact, across the
+At the time of writing the board holds 44 verified codes, 23 submitted through
+the challenge and 21 literature baselines, with 29 certified exact, across the
 bivariate-bicycle, generalized-bicycle, two-block group-algebra, tile, and
-topological families. It is seeded against the published state of the art (the
-planar codes of Liang, Eberhardt, and Chen; the bivariate-bicycle codes of Bravyi
-et al.; the generalized-bicycle codes of Panteleev--Kalachev and Wang--Pryadko;
-and the Kitaev and Steane baselines), so a submission is always measured against
-known codes. The seed set is selected, not an exhaustive snapshot, and the board
-states this: an on-board leader may still be matched by a published code that has
-not been seeded. The badges and figures are regenerated from the live board on
-every build, so they track the current numbers rather than a hand-typed count.
+topological families. It is seeded against a selection of published codes (the
+planar open-boundary codes~\cite{liang2025planar}, the bivariate-bicycle gross
+code~\cite{bravyi2024high}, the generalized-bicycle
+codes~\cite{panteleev2021degenerate,wang2022distance,lin2024quantum}, and the
+surface, toric, and Steane codes~\cite{kitaev2003fault,steane1996error}), so a
+submission is always measured against known codes. The seed set is selected, not
+an exhaustive snapshot, and the board states this: an on-board leader may still
+be matched by a published
+code that has not been seeded. The badges and figures are regenerated from the
+live board on every build, so they track the current numbers rather than a
+hand-typed count.
 
 \section{Relevance to quantum software, and the talk}
 
-The challenge is a small case study in software infrastructure for quantum error
-correction. It encodes a trust model directly in CI: cheap properties are
-recomputed and mandatory, distance is self-certifying at the cheap tier and
-separately earned at the exact tier, and an adversarial refutation step guards
-the one quantity that is expensive to prove. The submission unit is a verifiable
-file, the referee is a script anyone can run locally, and the contribution
-workflow is a pull request, which lowers the barrier to comparing codes while
-keeping over-claims out of the record. The verifier and the refutation gate are
+The challenge is a case study in software infrastructure for quantum error
+correction: it encodes a trust model directly in CI, with a verifiable file as
+the submission unit, a locally runnable script as the referee, and a pull
+request as the contribution workflow. The verifier and refutation gate are
 reusable beyond this board.
 
 The lightning talk will demonstrate the end-to-end flow (submit, CI verifies,
-board updates), the computed layered scheme and its trust model, and how to
-contribute, including via LLM-guided search over code-generating programs. We
-will also raise the questions the board is built to surface: whether planar
-weight-6 codes can close the gap to periodic records, how far the refutation gate
-and exact certification scale, and which families have unmined finite-size
-headroom.
+board updates), the layered scheme and its trust model, and how to contribute,
+including via LLM-guided search over code-generating
+programs~\cite{cruzbenito2026evolutionary}. It will also raise the questions the
+board surfaces: whether planar weight-6 codes can close the gap to periodic
+records, how far the refutation gate and exact certification scale, and which
+families have unmined finite-size headroom.
 
-\subsection*{Key references}
-\begin{itemize}[nosep]
-  \item Bravyi, Cross, Gambetta, Maslov, Rall, Yoder, Nature \textbf{627}, 778
-  (2024), arXiv:2308.07915 (bivariate-bicycle / gross code).
-  \item Liang, Eberhardt, Chen, arXiv:2504.08887 (planar open-boundary qLDPC).
-  \item Eberhardt et al., tile codes, arXiv:2504.09171.
-  \item Panteleev, Kalachev, Quantum \textbf{5}, 585 (2021), arXiv:1904.02703;
-  Wang, Pryadko, arXiv:2203.17216 (generalized bicycle).
-  \item Bravyi, Poulin, Terhal, Phys.\ Rev.\ Lett.\ \textbf{104}, 050503 (2010),
-  arXiv:0909.5200 (the $\eff$ bound).
-\end{itemize}
+% Compact reference list (smaller font, tighter item spacing) to keep the
+% extended abstract within the four-page workshop limit.
+{\footnotesize
+\bibliographystyle{unsrt}
+\bibliography{refs}
+}
 
 \end{document}

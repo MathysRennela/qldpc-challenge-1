@@ -307,6 +307,17 @@ box-shadow:0 10px 10px -10px rgba(17,17,17,.18)}
 @media(max-width:880px){table.board{table-layout:auto;min-width:600px}
 .board .model{display:none}}
 @media(max-width:680px){.board .date{display:none}}
+/* phones: the board was cut off in a horizontal scroll with the scored columns
+   (kd2/n, w) off-screen. n, k and d are already printed inside the [[n,k,d]]
+   code name, and type/authors live on each row's detail page, so drop those
+   columns here and let the four that matter (code, kd2/n, w, plus the record
+   star) fit the viewport with no sideways scroll. */
+@media(max-width:620px){
+.board .col-type,.board .col-n,.board .col-k,.board .col-d,
+.board .col-auth{display:none}
+table.board{min-width:0;font-size:13px}
+.board th,.board td{padding:.5rem .45rem;white-space:normal}
+.board td.auth{max-width:none}}
 /* phones: reclaim horizontal space and shrink oversized headers */
 @media(max-width:560px){.wrap{padding:0 14px}
 header.hero{padding:34px 0 30px}
