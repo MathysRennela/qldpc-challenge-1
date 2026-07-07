@@ -15,7 +15,9 @@
 
 \title{\textbf{The QEC Challenge}\\[4pt]
   \large A public, automatically verified leaderboard for quantum LDPC codes}
-\author{Unitary Foundation\\
+\author{William J. Zeng, Farrokh Labib, Bradley A. Chase, Mathys Rennela,\\
+  Ben Castanon, and Vincent Russo\\[4pt]
+  Unitary Foundation\\
   \texttt{github.com/unitaryfoundation/qldpc-challenge}}
 \date{Extended abstract, lightning talk, Quantum Software Workshop 2026
   (IEEE Quantum Week, Toronto)}
@@ -46,7 +48,8 @@ correction.
 \section{Motivation}
 
 Recent qLDPC constructions, from the bivariate-bicycle ``gross'' code
-$[[144,12,12]]$ of Bravyi et al.\ to planar open-boundary families, have made
+$[[144,12,12]]$ of Bravyi et al.~\cite{bravyi2024high} to planar open-boundary
+families~\cite{liang2025planar}, have made
 order-of-magnitude reductions in the qubit overhead of fault tolerance plausible.
 Progress is now fast and distributed across many groups, which makes a shared
 question pressing: for a given hardware constraint (check weight, geometric
@@ -57,10 +60,10 @@ in heterogeneous tables across papers, with no common format or single place to
 compare like with like. Second, and more seriously, the headline parameter,
 distance $d$, is the one that is hard to verify. Finding a low-weight logical
 operator gives only an upper bound on $d$; proving $d \ge D$ is the NP-hard
-direction. Reported distances are frequently decoder-based upper bounds, and
-recent work documents belief-propagation decoders overestimating qLDPC distances
-by large factors. A leaderboard that simply trusts submitted numbers would
-accumulate quiet errors.
+direction. Reported distances are frequently decoder-based upper bounds, and a
+heuristic search that fails to find the lightest logical overstates the distance,
+sometimes by large factors, until a deeper search turns up a lighter operator. A
+leaderboard that simply trusts submitted numbers would accumulate quiet errors.
 
 The QEC Challenge addresses both problems with quantum-software tooling rather
 than a static document. Every entry is a small machine-readable file that is
@@ -145,7 +148,8 @@ promotes the board label.
 \section{Metric and the state of the board}
 
 The figure of merit the 2D-locality literature uses, $\eff$, is the
-Bravyi--Poulin--Terhal saturation ratio. For a 2D-local or bounded-weight code it
+Bravyi--Poulin--Terhal saturation ratio~\cite{bravyi2010tradeoffs}. For a
+2D-local or bounded-weight code it
 is bounded by a constant that depends only on the interaction range, check
 weight, and on-site dimension, not on $n$, so maximizing it within a fixed
 locality model is well posed. For asymptotically good codes, where $k$ and $d$
@@ -159,28 +163,34 @@ global record. Table~\ref{tab:ref} lists reference points.
 \toprule
 Code & $[[n,k,d]]$ & topology & $w$ & $\eff$\\
 \midrule
-Rotated surface (Kitaev)      & $[[d^2,1,d]]$   & planar   & 4 & $1$\\
-Gross code (Bravyi et al.)    & $[[144,12,12]]$ & periodic & 6 & $12$\\
-Tile code (Steffan et al.)  & $[[512,18,19]]$ & planar   & 8 & $12.7$\\
-Panteleev--Kalachev (GB)      & $[[126,28,8]]$  & periodic & 10 & $14.2$\\
+Rotated surface (Kitaev)~\cite{kitaev2003fault}      & $[[d^2,1,d]]$   & planar       & 4  & $1$\\
+Gross code (Bravyi et al.)~\cite{bravyi2024high}     & $[[144,12,12]]$ & periodic     & 6  & $12$\\
+Tile code (Steffan et al.)~\cite{steffan2025tile}    & $[[512,18,19]]$ & planar       & 8  & $12.7$\\
+Panteleev--Kalachev (GB)~\cite{panteleev2021degenerate} & $[[126,28,8]]$  & periodic  & 10 & $14.2$\\
+Coset 2BGA (Aydin et al.)~\cite{aydin2026breaking}   & $[[168,20,14]]$ & unrestricted & 8  & $23.3$\\
 \bottomrule
 \end{tabular}
-\caption{Reference points; $\eff$ values for 2D-local weight-8 codes are
-exact, integer-programming-certified.}
+\caption{Reference points spanning the efficiency range. The tile code, the sole
+2D-local weight-8 entry, has an integer-programming-certified exact distance; the
+others are the published parameters.}
 \label{tab:ref}
 \end{table}
 
-At the time of writing the board holds 40 verified codes, 21 submitted through
-the challenge and 19 literature baselines, with 27 certified exact, across the
+At the time of writing the board holds 42 verified codes, 22 submitted through
+the challenge and 20 literature baselines, with 27 certified exact, across the
 bivariate-bicycle, generalized-bicycle, two-block group-algebra, tile, and
 topological families. It is seeded against the published state of the art (the
-planar codes of Liang, Eberhardt, and Chen; the bivariate-bicycle codes of Bravyi
-et al.; the generalized-bicycle codes of Panteleev--Kalachev and Wang--Pryadko;
-and the Kitaev and Steane baselines), so a submission is always measured against
-known codes. The seed set is selected, not an exhaustive snapshot, and the board
-states this: an on-board leader may still be matched by a published code that has
-not been seeded. The badges and figures are regenerated from the live board on
-every build, so they track the current numbers rather than a hand-typed count.
+planar codes of Liang, Eberhardt, and Chen~\cite{liang2025planar}; the
+bivariate-bicycle codes of Bravyi et al.~\cite{bravyi2024high}; the
+generalized-bicycle codes of Panteleev--Kalachev~\cite{panteleev2021degenerate}
+and Wang--Pryadko~\cite{wang2022distance}; the coset two-block codes of Aydin,
+Tamo, and Barg~\cite{aydin2026breaking}; and the Kitaev~\cite{kitaev2003fault}
+and Steane~\cite{steane1996error} baselines), so a submission is always measured
+against known codes. The seed set is selected, not an exhaustive snapshot, and
+the board states this: an on-board leader may still be matched by a published
+code that has not been seeded. The badges and figures are regenerated from the
+live board on every build, so they track the current numbers rather than a
+hand-typed count.
 
 \section{Relevance to quantum software, and the talk}
 
@@ -196,22 +206,14 @@ reusable beyond this board.
 
 The lightning talk will demonstrate the end-to-end flow (submit, CI verifies,
 board updates), the computed layered scheme and its trust model, and how to
-contribute, including via LLM-guided search over code-generating programs. We
+contribute, including via LLM-guided search over code-generating
+programs~\cite{cruzbenito2026evolutionary}. We
 will also raise the questions the board is built to surface: whether planar
 weight-6 codes can close the gap to periodic records, how far the refutation gate
 and exact certification scale, and which families have unmined finite-size
 headroom.
 
-\subsection*{Key references}
-\begin{itemize}[nosep]
-  \item Bravyi, Cross, Gambetta, Maslov, Rall, Yoder, Nature \textbf{627}, 778
-  (2024), arXiv:2308.07915 (bivariate-bicycle / gross code).
-  \item Liang, Eberhardt, Chen, arXiv:2504.08887 (planar open-boundary qLDPC).
-  \item Steffan et al., tile codes, arXiv:2504.09171.
-  \item Panteleev, Kalachev, Quantum \textbf{5}, 585 (2021), arXiv:1904.02703;
-  Wang, Pryadko, arXiv:2203.17216 (generalized bicycle).
-  \item Bravyi, Poulin, Terhal, Phys.\ Rev.\ Lett.\ \textbf{104}, 050503 (2010),
-  arXiv:0909.5200 (the $\eff$ bound).
-\end{itemize}
+\bibliographystyle{unsrt}
+\bibliography{refs}
 
 \end{document}

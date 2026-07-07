@@ -8,3 +8,8 @@ _foldcerts.*
 _*.py
 research/candidates/
 research/board*.json
+# LaTeX build artifacts (talks/, docs/); the .tex/.bib sources and .pdf outputs are tracked
+*.aux
+*.bbl
+*.blg
+*.out

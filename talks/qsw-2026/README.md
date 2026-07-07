@@ -9,9 +9,15 @@ QEC Challenge.
   updated to the current board: the computed layered track scheme, the distance
   refutation gate, and current numbers.
 
+- `refs.bib` holds the references (self-contained so the folder builds
+  standalone); the bibliography is generated with BibTeX rather than hand-listed.
+
 Build:
 
 ```
+pdflatex abstract.tex
+bibtex abstract
+pdflatex abstract.tex
 pdflatex abstract.tex
 ```
 
