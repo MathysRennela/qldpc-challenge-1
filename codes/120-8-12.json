@@ -1020,7 +1020,7 @@
       "arXiv:2308.07915"
     ],
     "date": "2026-06-26",
-    "notes": "The [[120,8,12]] parameter set is already published: a weight-6 generalized-toric code (arXiv:2503.03827), a weight-8 self-dual bivariate-bicycle code (arXiv:2510.05211), and related twisted-torus constructions (arXiv:2606.17268). This entry is weight-6, matching the published weight-6 result, so it is not a weight improvement; the parameters are not novel and a code-equivalence audit is pending. Do not present it as a novel-parameter discovery.",
+    "notes": "The [[120,8,12]] parameter set is already published: a weight-8 self-dual bivariate-bicycle code (arXiv:2510.05211), and twisted-torus / generalized-toric codes (arXiv:2503.03827, arXiv:2606.17268). This entry is weight-6, so it improves on the weight-8 version, but the parameters are not novel; a code-equivalence audit is pending. Do not present it as a novel-parameter discovery.",
     "model": "Claude Opus 4.8"
   },
   "family": "bivariate-bicycle"
