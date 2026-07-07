@@ -1,14 +1,16 @@
 """Distance-refutation gate for the codes changed in a PR (CI).
 
-Runs independent bounded, fixed-seed refutation searches -- RIS
+Runs independent bounded, fixed-seed refutation searches -- python RIS
 (heuristic_distance), the syndrome decoder (decode/distance, needs ldpc), and,
-for frontier-advancing claims, a ~60x-deeper accelerated RIS pass (gf2_fast,
+for frontier-advancing claims, a ~150x-deeper accelerated RIS pass (gf2_fast,
 built via `make fast`) whose finds only count after the pinned python stack
 validates the witness -- only on the code/example submissions changed in this
 PR, and exits non-zero if ANY finds a logical lighter than the claimed distance
-(an over-claim). The syndrome-decoder and accelerated passes are each skipped
-if their dependency is unavailable; the python RIS passes always run, so a
-missing extension can only reduce extra depth, never weaken the baseline gate. Bulk
+(an over-claim). With the extension built, deep claims get 1 python RIS seed
+(the audited floor / canary) plus the fast pass; without it they get the full
+pre-accelerator battery of 3 python seeds, so a missing or broken extension can
+never leave the gate shallower than it was. The syndrome-decoder cross-check is
+skipped if ldpc is unavailable. Bulk
 re-verification of the whole board stays cheap -- only new/changed files pay the
 search cost. The RIS budget is ADAPTIVE (see _budget): trials scale with code
 size, so a small code gets near-exhaustive coverage and a large one a
@@ -94,7 +96,7 @@ def board_record_slugs(code_root=ROOT):
     return rec
 
 
-def _budget(n, deep):
+def _budget(n, deep, fast=False):
     """Adaptive refutation depth for a code with n qubits: (trials, seconds, seeds).
 
     Trials scale with n (the RIS target formula, without the flat 8000 cap the
@@ -108,16 +110,22 @@ def _budget(n, deep):
     deepens the old behavior, where the trial target was flat-capped at 8000 --
     reached in ~10 s -- so the deep pass's extra 120 s bought nothing.
 
-    Deep (frontier-advancing) claims get 3 independent seeds at ~60k-scale trial
+    Deep (frontier-advancing) claims get independent seeds at ~60k-scale trial
     targets: the depth that exposed real over-claims which 8k-trial passes let
-    through. Worst case is 3 x 240 s = 12 min of RIS per code (measured: ~11 min
-    at n=294), paid only by a code claiming a record; dominated rows stay
-    cheap."""
+    through. How many python seeds depends on whether the C++ accelerator is
+    available (``fast``): with it, ONE python seed remains as the audited floor
+    and in-production canary (it would expose a false-negative bug in the
+    extension by finding what the fast pass missed), and the reallocated
+    wall-clock goes into a ~150x-deeper fast pass; without it, the pre-
+    accelerator battery of 3 seeds runs unchanged, so a missing or broken
+    extension can never leave the gate shallower than it was. Worst case per
+    record claim is ~4 min of python RIS + the fast pass (or 3 x 240 s python-
+    only); dominated rows stay cheap."""
     per_trial = 0.0005 + 2.5e-6 * n              # seconds/trial, measured (both sides)
     if deep:
         trials = 25000 + 120 * n
         seconds = min(240.0, max(120.0, trials * per_trial * 3))
-        return trials, seconds, 3
+        return trials, seconds, (1 if fast else 3)
     trials = 2500 + 40 * n
     seconds = min(90.0, max(10.0, trials * per_trial * 4))
     return trials, seconds, 1
@@ -207,7 +215,7 @@ def main(argv):
         # standard, size-scaled pass.
         slug = os.path.splitext(os.path.basename(f))[0]
         deep = slug in records
-        trials, budget, nseeds = _budget(int(doc["n"]), deep)
+        trials, budget, nseeds = _budget(int(doc["n"]), deep, fast=GF is not None)
         seeds = [seed, seed + 2, seed + 3][:nseeds]
         # two independent mechanisms; a hit from EITHER (any seed) refutes.
         results = {}
@@ -217,14 +225,16 @@ def main(argv):
         if SD is not None:
             results["syndrome-decoder"] = SD.refute_check(doc, seed=seed + 1)
         # Frontier claims additionally face the accelerated deep search when the
-        # extension is built (CI builds it; see Makefile `fast`): ~60x the python
-        # trial target in comparable wall-clock. Additive only -- the python
-        # passes above are unchanged, so an absent/broken extension can never
-        # weaken the gate, and a fast hit counts only with a python-validated
-        # witness (see _fast_refute).
+        # extension is built (CI builds it; see Makefile `fast`): ~150x the
+        # python trial target in the wall-clock freed by dropping 2 of the 3
+        # python seeds (see _budget: without the extension the 3-seed battery
+        # runs unchanged, so an absent/broken build can never weaken the gate).
+        # A fast hit counts only with a python-validated witness (_fast_refute);
+        # the remaining python seed is the audited floor and would surface a
+        # false-negative extension bug by finding what the fast pass missed.
         ftrials = 0
         if GF is not None and deep:
-            ftrials = min(4_000_000, 60 * trials)
+            ftrials = min(8_000_000, 150 * trials)
             results["RIS-fast"] = _fast_refute(doc, seed + 7, ftrials)
         hits = {m: (dh, wit) for m, (ref, dh, wit, _) in results.items() if ref}
         fast_tag = (f" + fast x {ftrials}" if ftrials else "")
