@@ -613,6 +613,17 @@ box-shadow:0 10px 10px -10px rgba(17,17,17,.18)}}
 @media(max-width:880px){{table.board{{table-layout:auto;min-width:600px}}
 .board .model{{display:none}}}}
 @media(max-width:680px){{.board .date{{display:none}}}}
+/* phones: the board was cut off in a horizontal scroll with the scored columns
+   (kd2/n, w) off-screen. n, k and d are already printed inside the [[n,k,d]]
+   code name, and type/authors live on each row's detail page, so drop those
+   columns here and let the four that matter (code, kd2/n, w, plus the record
+   star) fit the viewport with no sideways scroll. */
+@media(max-width:620px){{
+.board .col-type,.board .col-n,.board .col-k,.board .col-d,
+.board .col-auth{{display:none}}
+table.board{{min-width:0;font-size:13px}}
+.board th,.board td{{padding:.5rem .45rem;white-space:normal}}
+.board td.auth{{max-width:none}}}}
 /* phones: reclaim horizontal space and shrink oversized headers */
 @media(max-width:560px){{.wrap{{padding:0 14px}}
 header.hero{{padding:34px 0 30px}}
@@ -1840,14 +1851,15 @@ def board_table(entries, records):
     head = ('<thead><tr><th></th>'
             '<th data-c=codekey data-num title="the code, written [[n,k,d]]; '
             'sorts by n, then k, then d">code</th>'
-            '<th data-c=type title="construction family / track">type</th>'
-            '<th data-c=n class=num title="physical qubits">n</th>'
-            '<th data-c=k class=num title="logical qubits">k</th>'
-            '<th data-c=d class=num title="distance">d</th>'
+            '<th data-c=type class=col-type title="construction family / track">'
+            'type</th>'
+            '<th data-c=n class="num col-n" title="physical qubits">n</th>'
+            '<th data-c=k class="num col-k" title="logical qubits">k</th>'
+            '<th data-c=d class="num col-d" title="distance">d</th>'
             '<th data-c=eff class=num title="k&middot;d&sup2;/n, higher is better">'
             'kd&sup2;/n</th>'
             '<th data-c=w class=num title="max check weight">w</th>'
-            '<th data-c=auth title="who submitted it">authors</th>'
+            '<th data-c=auth class=col-auth title="who submitted it">authors</th>'
             '<th class=model data-c=model title="claimed model that produced '
             'the code (self-reported, not verified); person icon = classical '
             'construction, no AI model">model</th>'
@@ -1893,11 +1905,12 @@ def board_table(entries, records):
                f'not a novelty claim">{HEX_MARK}</span>'
                if e["origin"] != "baseline" else "")
             + novelty
-            + f'</td><td class=typecell>{chips(e)}</td>'
-            f'<td class=num>{e["n"]}</td><td class=num>{e["k"]}</td>'
-            f'<td class=num>{badge(e["tier"])} {e["d"]}</td>'
+            + f'</td><td class="typecell col-type">{chips(e)}</td>'
+            f'<td class="num col-n">{e["n"]}</td>'
+            f'<td class="num col-k">{e["k"]}</td>'
+            f'<td class="num col-d">{badge(e["tier"])} {e["d"]}</td>'
             f'<td class=num>{e["eff"]}</td><td class=num>{e["w"]}</td>'
-            f'<td class=auth title="{html.escape(e["authors"])}">'
+            f'<td class="auth col-auth" title="{html.escape(e["authors"])}">'
             f'{authors_compact(e["authors_list"])}</td>'
             '<td class=model>'
             + (f'<span class=modelmark title="{html.escape(e["model"])}">'
