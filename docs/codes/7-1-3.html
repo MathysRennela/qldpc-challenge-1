@@ -170,11 +170,10 @@ border-bottom:1px solid var(--ln)}
 .board th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;
 font-family:'Space Mono',ui-monospace,monospace;
 color:var(--mut);cursor:pointer;user-select:none;border-bottom:2px solid var(--ln)}
-/* Header stays visible while the table scrolls. It pins below the pinned plots,
-   whose rendered height a script keeps in --ploth (0 when nothing is pinned).
-   box-shadow stands in for the bottom border, which a collapsed table drops
-   from a sticky cell. */
-.board thead th{position:sticky;top:var(--ploth,0px);z-index:3;
+/* Header stays visible while the rows scroll inside the bounded board box; it
+   pins to the top of that scroll container. box-shadow stands in for the bottom
+   border, which a collapsed table drops from a sticky cell. */
+.board thead th{position:sticky;top:0;z-index:3;
 background:var(--bg);box-shadow:0 2px 0 var(--ln)}
 .board th:hover{color:var(--ink)}.board td.num,.board th.num{text-align:center;
 font-variant-numeric:tabular-nums}
@@ -193,9 +192,9 @@ box-shadow:inset 3px 0 0 var(--ac)}
 .board tbody tr.xh,.board tbody tr.fr.xh{background:#fef3c7}
 .board tbody tr.xh td:first-child{box-shadow:inset 3px 0 0 #f59e0b}
 .typecell{white-space:normal!important}
-.tchip{display:inline-block;font-size:11px;line-height:1;padding:3px 7px;
+.tchip{display:inline-block;font-size:11px;line-height:1.25;padding:3px 7px;
 margin:2px 4px 2px 0;border-radius:999px;background:var(--soft);color:var(--mut);
-border:1px solid var(--ln);white-space:nowrap}
+border:1px solid var(--ln);white-space:normal}
 .tchip.loc{background:#eef2ff;color:#3730a3;border-color:#c7d2fe}
 /* Primary-tracks grid (locality x weight). */
 .ptgrid{margin:8px 0 4px}
@@ -211,11 +210,20 @@ font-family:'Space Mono',ui-monospace,monospace;text-transform:uppercase}
 white-space:nowrap;font-size:12px;
 font-family:'Space Mono',ui-monospace,monospace;text-transform:uppercase}
 .gcorner{background:var(--soft)}
-.gcell .gcount{font-size:11px;color:var(--mut)}
-.gcell .gbest{font-family:'Space Mono',ui-monospace,monospace;font-size:12px;
-color:var(--ac);text-decoration:none;font-weight:700}
-.gcell .gbest:hover{text-decoration:underline}
-.gcell .geff{font-size:11px;color:var(--mut);margin-top:1px}
+.gcell{min-width:158px}
+.gcount{font-size:11px;color:var(--mut);background:none;border:0;padding:0;
+margin:0 0 5px;cursor:pointer;font-family:inherit;text-align:left;display:block}
+.gcount:hover{color:var(--ac);text-decoration:underline}
+.gitem{display:flex;align-items:center;gap:6px;text-decoration:none;
+padding:3px 0;color:var(--ink)}
+.gitem+.gitem{border-top:1px dashed var(--ln)}
+.gitem:hover .gcode{text-decoration:underline}
+.gcode{font-family:'Space Mono',ui-monospace,monospace;font-size:12px;
+color:var(--ac);font-weight:700;flex:1 1 auto}
+.gitem .geff{font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}
+.gmore{font-size:11px;color:var(--ac);background:none;border:0;
+padding:5px 0 0;cursor:pointer;font-family:inherit;display:block}
+.gmore:hover{text-decoration:underline}
 .gempty{background:repeating-linear-gradient(45deg,#fafafa 0 6px,#fff 6px 12px)}
 .searchbar{display:flex;align-items:center;gap:12px;margin:14px 0 8px}
 #boardsearch{flex:1 1 0;min-width:0;font-size:14px;padding:10px 13px;
@@ -279,18 +287,14 @@ vertical-align:middle}
    drop the secondary metadata columns (model, then date) on smaller screens.
    Under the breakpoints the table sizes to content so freed space redistributes
    cleanly. */
-.boardscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-/* The table sits directly below the plots; pin the plots while the table
-   scrolls so the row-hover -> point highlight stays usable for every row. The
-   explorer wrapper bounds the sticky so the plots release at the leaderboard
-   instead of pinning over it. Wide screens only (narrow stacks the plots tall). */
-@media(min-width:760px){.explorer .plots{position:sticky;top:0;z-index:5;
-background:var(--bg);padding-top:8px;
-box-shadow:0 10px 10px -10px rgba(17,17,17,.18)}
-/* Drop the horizontal-scroll context on wide screens (the table fits the page
-   here), so the sticky header pins to the viewport below the plots rather than
-   to this wrapper, which would trap it. */
-.boardscroll{overflow:visible}}
+/* The table is a bounded, internally scrolling box so the board stays compact
+   instead of running the full length of the page. Its header pins to the top of
+   this box (thead is position:sticky) while the rows scroll under it, and the
+   plots sit just above it, both on screen at once, so the row-hover -> point
+   highlight stays usable. overflow:auto also carries the horizontal scroll on
+   narrow screens (where the table sets its own min-width). */
+.boardscroll{max-height:64vh;overflow:auto;-webkit-overflow-scrolling:touch;
+border:1px solid var(--ln);border-radius:12px}
 @media(max-width:880px){table.board{table-layout:auto;min-width:600px}
 .board .model{display:none}}
 @media(max-width:680px){.board .date{display:none}}
