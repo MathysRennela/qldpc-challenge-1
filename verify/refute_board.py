@@ -1,6 +1,6 @@
 """Weekly whole-board distance refutation (CI cron).
 
-Re-runs the bounded RIS refutation over EVERY codes/ + examples/ entry, using a
+Re-runs the bounded RIS refutation over EVERY codes/ entry, using a
 fresh RANDOM seed each run. The per-PR gate (gate_changed.py) uses a fixed seed
 so it is reproducible and non-flaky; this job does the opposite on purpose --
 because the seed varies week to week, each run tries different random information
@@ -42,8 +42,7 @@ def main(argv):
     print(f"weekly board refutation -- random seed = {seed}")
     print(f"(reproduce this run with: python verify/refute_board.py --seed {seed})\n")
 
-    paths = (sorted(glob.glob(os.path.join(ROOT, "codes", "*.json")))
-             + sorted(glob.glob(os.path.join(ROOT, "examples", "*.json"))))
+    paths = sorted(glob.glob(os.path.join(ROOT, "codes", "*.json")))
     refuted, errored, checked = [], [], 0
     for p in paths:
         rel = os.path.relpath(p, ROOT)

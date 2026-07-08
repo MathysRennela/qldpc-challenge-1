@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/favicon.svg" width="96" height="96" alt="qLDPC Challenge logo">
+  <img src="docs/favicon.svg" width="96" height="96" alt="QEC Challenge logo">
 </p>
 
-# qLDPC Challenge
+# QEC Challenge
 
 [![codes](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Funitaryfoundation.github.io%2Fqldpc-challenge%2Fstats.json&query=%24.verified_codes&label=codes&color=blue)](https://unitaryfoundation.github.io/qldpc-challenge/)
 [![certified exact](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Funitaryfoundation.github.io%2Fqldpc-challenge%2Fstats.json&query=%24.certified_exact&label=certified%20exact&color=brightgreen)](https://unitaryfoundation.github.io/qldpc-challenge/)

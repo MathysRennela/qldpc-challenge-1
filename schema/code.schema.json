@@ -25,6 +25,7 @@
       "type": "object",
       "required": ["d", "X", "Z"],
       "additionalProperties": false,
+      "description": "a claimed d needs witnesses for both sides to certify the upper bound.",
       "properties": {
         "d": {"type": "integer", "minimum": 1, "description": "claimed code distance = min(dX, dZ)"},
         "X": {"$ref": "#/$defs/sideDistance"},

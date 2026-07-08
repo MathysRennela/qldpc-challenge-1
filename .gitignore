@@ -4,7 +4,15 @@ __pycache__/
 _finalize.*
 *.log
 _foldcerts.*
+# `_`-prefixed scratch scripts (e.g. research/_find_dominators.py, verify/_sweep_ub.py)
+_*.py
 research/candidates/
 research/board*.json
+# LaTeX build artifacts (talks/, docs/); the .tex/.bib sources and .pdf outputs are tracked
+*.aux
+*.bbl
+*.blg
+*.out
+# compiled gf2 accelerator
 *.so
 build/

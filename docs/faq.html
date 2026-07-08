@@ -170,11 +170,10 @@ border-bottom:1px solid var(--ln)}
 .board th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;
 font-family:'Space Mono',ui-monospace,monospace;
 color:var(--mut);cursor:pointer;user-select:none;border-bottom:2px solid var(--ln)}
-/* Header stays visible while the table scrolls. It pins below the pinned plots,
-   whose rendered height a script keeps in --ploth (0 when nothing is pinned).
-   box-shadow stands in for the bottom border, which a collapsed table drops
-   from a sticky cell. */
-.board thead th{position:sticky;top:var(--ploth,0px);z-index:3;
+/* Header stays visible while the rows scroll inside the bounded board box; it
+   pins to the top of that scroll container. box-shadow stands in for the bottom
+   border, which a collapsed table drops from a sticky cell. */
+.board thead th{position:sticky;top:0;z-index:3;
 background:var(--bg);box-shadow:0 2px 0 var(--ln)}
 .board th:hover{color:var(--ink)}.board td.num,.board th.num{text-align:center;
 font-variant-numeric:tabular-nums}
@@ -193,9 +192,9 @@ box-shadow:inset 3px 0 0 var(--ac)}
 .board tbody tr.xh,.board tbody tr.fr.xh{background:#fef3c7}
 .board tbody tr.xh td:first-child{box-shadow:inset 3px 0 0 #f59e0b}
 .typecell{white-space:normal!important}
-.tchip{display:inline-block;font-size:11px;line-height:1;padding:3px 7px;
+.tchip{display:inline-block;font-size:11px;line-height:1.25;padding:3px 7px;
 margin:2px 4px 2px 0;border-radius:999px;background:var(--soft);color:var(--mut);
-border:1px solid var(--ln);white-space:nowrap}
+border:1px solid var(--ln);white-space:normal}
 .tchip.loc{background:#eef2ff;color:#3730a3;border-color:#c7d2fe}
 /* Primary-tracks grid (locality x weight). */
 .ptgrid{margin:8px 0 4px}
@@ -211,11 +210,20 @@ font-family:'Space Mono',ui-monospace,monospace;text-transform:uppercase}
 white-space:nowrap;font-size:12px;
 font-family:'Space Mono',ui-monospace,monospace;text-transform:uppercase}
 .gcorner{background:var(--soft)}
-.gcell .gcount{font-size:11px;color:var(--mut)}
-.gcell .gbest{font-family:'Space Mono',ui-monospace,monospace;font-size:12px;
-color:var(--ac);text-decoration:none;font-weight:700}
-.gcell .gbest:hover{text-decoration:underline}
-.gcell .geff{font-size:11px;color:var(--mut);margin-top:1px}
+.gcell{min-width:158px}
+.gcount{font-size:11px;color:var(--mut);background:none;border:0;padding:0;
+margin:0 0 5px;cursor:pointer;font-family:inherit;text-align:left;display:block}
+.gcount:hover{color:var(--ac);text-decoration:underline}
+.gitem{display:flex;align-items:center;gap:6px;text-decoration:none;
+padding:3px 0;color:var(--ink)}
+.gitem+.gitem{border-top:1px dashed var(--ln)}
+.gitem:hover .gcode{text-decoration:underline}
+.gcode{font-family:'Space Mono',ui-monospace,monospace;font-size:12px;
+color:var(--ac);font-weight:700;flex:1 1 auto}
+.gitem .geff{font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}
+.gmore{font-size:11px;color:var(--ac);background:none;border:0;
+padding:5px 0 0;cursor:pointer;font-family:inherit;display:block}
+.gmore:hover{text-decoration:underline}
 .gempty{background:repeating-linear-gradient(45deg,#fafafa 0 6px,#fff 6px 12px)}
 .searchbar{display:flex;align-items:center;gap:12px;margin:14px 0 8px}
 #boardsearch{flex:1 1 0;min-width:0;font-size:14px;padding:10px 13px;
@@ -279,18 +287,14 @@ vertical-align:middle}
    drop the secondary metadata columns (model, then date) on smaller screens.
    Under the breakpoints the table sizes to content so freed space redistributes
    cleanly. */
-.boardscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-/* The table sits directly below the plots; pin the plots while the table
-   scrolls so the row-hover -> point highlight stays usable for every row. The
-   explorer wrapper bounds the sticky so the plots release at the leaderboard
-   instead of pinning over it. Wide screens only (narrow stacks the plots tall). */
-@media(min-width:760px){.explorer .plots{position:sticky;top:0;z-index:5;
-background:var(--bg);padding-top:8px;
-box-shadow:0 10px 10px -10px rgba(17,17,17,.18)}
-/* Drop the horizontal-scroll context on wide screens (the table fits the page
-   here), so the sticky header pins to the viewport below the plots rather than
-   to this wrapper, which would trap it. */
-.boardscroll{overflow:visible}}
+/* The table is a bounded, internally scrolling box so the board stays compact
+   instead of running the full length of the page. Its header pins to the top of
+   this box (thead is position:sticky) while the rows scroll under it, and the
+   plots sit just above it, both on screen at once, so the row-hover -> point
+   highlight stays usable. overflow:auto also carries the horizontal scroll on
+   narrow screens (where the table sets its own min-width). */
+.boardscroll{max-height:64vh;overflow:auto;-webkit-overflow-scrolling:touch;
+border:1px solid var(--ln);border-radius:12px}
 @media(max-width:880px){table.board{table-layout:auto;min-width:600px}
 .board .model{display:none}}
 @media(max-width:680px){.board .date{display:none}}
@@ -392,7 +396,7 @@ border-radius:5px;padding:1px 6px;white-space:nowrap;text-decoration:none}
 <h1 style="margin:.4rem 0 0">FAQ</h1>
 <div class=faq><h3>What is a qLDPC code?</h3><p>A quantum low-density parity-check code. As in classical LDPC codes, the parity checks are sparse: each check involves only a few qubits and each qubit appears in only a few checks. It is a stabilizer code (here CSS), so it has two commuting sets of checks, X-type and Z-type. A code is summarized as [[n,k,d]]: n physical qubits encode k logical qubits, and the distance d is the lowest weight of an error that can go undetected.</p></div>
 <div class=faq><h3>Where are qLDPC codes useful?</h3><p>Fault-tolerant quantum computing. The surface code works but spends a large number of physical qubits per logical qubit. qLDPC codes can encode more logical qubits at higher distance for the same number of physical qubits, while keeping the checks sparse and low-weight so syndrome extraction stays manageable. They are a leading route to lowering the qubit overhead of error correction.</p></div>
-<div class=faq><h3>Why does this page exist?</h3><p>To collect the best known qLDPC codes in one place, with every entry's parameters checked automatically instead of taken on trust. The literature is scattered; this gathers codes, verifies them, and ranks them per track on a Pareto frontier, so it is easy to see the current state of the art and where there is room to do better.</p></div>
+<div class=faq><h3>Why does this page exist?</h3><p>To collect qLDPC codes in one place, with every entry's parameters checked automatically instead of taken on trust. The literature is scattered; this gathers codes, verifies them, and ranks them per track on a Pareto frontier, so it is easy to see this board's frontier and where there is room to do better. The frontier is board-relative: it reflects the codes seeded and submitted here, not an exhaustive snapshot of the literature.</p></div>
 <div class=faq><h3>What counts as a better code?</h3><p>The primary tracks are a computed grid of locality class by check-weight class. Within each cell, codes rank on a Pareto frontier over (n, k, d, w): a submission earns a record by beating that cell&rsquo;s frontier with fewer physical qubits n, more logical qubits k, higher distance d, or lower check weight. Tighter cells nest into looser ones, so a strong 2D-local low-weight code also competes on the looser boards. The board holds the best we know of so you know what to aim past.</p></div>
 <div class=faq><h3>How are a code&amp;rsquo;s tracks decided?</h3><p>You do not pick them. The verifier computes each code&rsquo;s locality class (single, bilayer, or unrestricted, derived from the layout) and its weight class (from the max check weight), so track membership cannot be gamed by relabeling. The construction family (bivariate bicycle, generalized bicycle, 2BGA, tile, and so on) is a separate self-declared tag, used only as a filter and never for ranking, because it cannot be recovered from the parity-check matrix.</p></div>
 <div class=faq><h3>Why is it hard to find good qLDPC codes?</h3><p>The checks have to commute (the CSS condition) and stay sparse, which constrains the construction. You want high k, high d, and low n at the same time, and those pull against each other. Computing the distance d is NP-hard, so even measuring how good a candidate is can be expensive. Good codes tend to come from algebraic constructions (bicycle, product, lifted) whose parameters are hard to predict, so improving on them is largely search.</p></div>
