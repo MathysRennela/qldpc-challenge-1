@@ -78,7 +78,19 @@ The QEC Challenge addresses both problems with quantum-software tooling rather
 than a static document. Every entry is a small machine-readable file that is
 automatically re-verified, distance claims must carry a checkable witness, and a
 distance refutation step actively searches for counterexamples. The result is a
-reproducible, community-extensible, self-certifying record.
+reproducible, community-extensible, self-certifying record. This matters doubly
+because automated code discovery already works: an LLM-guided evolutionary
+search recently screened ${\sim}2\times10^{5}$ bivariate-bicycle candidates and
+reported hundreds of codes in one campaign~\cite{cruzbenito2026evolutionary},
+reinforcement learning has cut the qubit overhead of low-weight codes by one to
+two orders of magnitude~\cite{he2025reinforcement}, and LLM-driven concept
+evolution reaches constructions, such as non-abelian families, outside the
+standard ans{\"a}tze~\cite{liu2026concept}. Such searches propose candidate
+codes far faster than humans can referee them, and an overstated distance is
+precisely their characteristic failure mode. An adversarial, machine-checked
+gate closes that loop, so the board doubles as the verification harness of an
+automated research cycle: an agent proposes, the pipeline refutes or verifies,
+and only survivors enter the record.
 
 Related resources catalog codes and bounds but do not automatically verify
 contributions. Grassl's tables of best-known code
@@ -138,13 +150,17 @@ runs, in order:
   \texttt{layers} qubits per site, distinct sites at least unit-spaced) and a
   bounded interaction radius, so a small radius cannot be faked by collapsing
   qubits.
-  \item \textbf{Distance refutation gate.} Two independent searches, a
+  \item \textbf{Distance refutation gate.} Independent searches, a
   random-information-set search and a syndrome-decoder search, look for a logical
   lighter than the claimed distance. Any hit is a sound refutation (it exhibits a
-  checkable counterexample). The per-run seed is random by design so an
-  over-claim cannot be tuned to evade one fixed search, and the gate fails closed.
-  A weekly whole-board sweep re-runs the refutation with fresh seeds to
-  accumulate coverage over time.
+  checkable counterexample). Frontier-advancing claims additionally face an
+  accelerated information-set search at roughly $150\times$ the baseline trial
+  budget that only \emph{proposes} candidates: a find counts as a refutation
+  solely after the trusted verifier validates the witness, so the extra depth
+  adds no trust surface. The per-run seed is
+  random by design so an over-claim cannot be tuned to evade one fixed search,
+  and the gate fails closed. A weekly whole-board sweep re-runs the refutation
+  with fresh seeds to accumulate coverage over time.
   \item \textbf{Identity and duplicate checks.} The pull-request author must be a
   listed author of the codes they add. Every code is fingerprinted two ways: the
   reduced-row-echelon form of $(H_X, H_Z)$ pins the exact stabilizer group (an
@@ -185,18 +201,24 @@ Rotated surface~\cite{kitaev2003fault}          & $[[d^2,1,d]]$   & planar      
 Gross code~\cite{bravyi2024high}                & $[[144,12,12]]$ & periodic     & 6  & $12$\\
 Tile code~\cite{steffan2025tile}                & $[[512,18,19]]$ & planar       & 8  & $12.7$\\
 Generalized bicycle~\cite{panteleev2021degenerate} & $[[126,28,8]]$  & periodic  & 10 & $14.2$\\
-Coset 2BGA~\cite{aydin2026breaking}             & $[[168,16,15]]$ & unrestricted & 8  & $21.4$\\
+Coset 2BGA~\cite{aydin2026breaking}             & $[[168,20,14]]$ & unrestricted & 8  & $23.3$\\
 \bottomrule
 \end{tabular}
 \caption{Reference points spanning the efficiency range; all values are the
-published parameters. The tile code is the sole 2D-local weight-8 entry.}
+published parameters.}
 \label{tab:ref}
 \end{table}
 
-At the time of writing the board holds 44 verified codes, 23 submitted through
-the challenge and 21 literature baselines, with 29 certified exact, across the
-bivariate-bicycle, generalized-bicycle, two-block group-algebra, tile, and
-topological families. It is seeded against a selection of published codes (the
+At the time of writing the board holds 47 verified codes, 25 submitted through
+the challenge and 22 literature baselines, with 29 certified exact, across the
+bivariate-bicycle, generalized-bicycle (including non-abelian two-block
+group-algebra), coset, tile, and topological families. Recent entries include the board's first odd-$k$ code, a
+$[[240,13,15]]$ two-block code on the symmetric group $S_5$ (odd $k$ is
+impossible for abelian two-block constructions), and a $[[216,15,11]]$ planar
+bilayer code that now leads the 2D-local weight-8 cell. Both were
+machine-discovered; the submission schema records the producing AI system in a
+version-specific \texttt{model} field, so the provenance of machine-found codes
+is part of the record. It is seeded against a selection of published codes (the
 planar open-boundary codes~\cite{liang2025planar}, the bivariate-bicycle gross
 code~\cite{bravyi2024high}, the generalized-bicycle
 codes~\cite{panteleev2021degenerate,wang2022distance,lin2024quantum}, and the
@@ -214,12 +236,14 @@ The challenge is a case study in software infrastructure for quantum error
 correction: it encodes a trust model directly in CI, with a verifiable file as
 the submission unit, a locally runnable script as the referee, and a pull
 request as the contribution workflow. The verifier and refutation gate are
-reusable beyond this board.
+reusable beyond this board. The autoresearch loop of Section~1 is not
+hypothetical: in one recent agent-driven sweep, deep self-refutation overturned
+five of seven staged frontier candidates before submission, and only the
+survivors reached the board.
 
 The lightning talk will demonstrate the end-to-end flow (submit, CI verifies,
 board updates), the layered scheme and its trust model, and how to contribute,
-including via LLM-guided search over code-generating
-programs~\cite{cruzbenito2026evolutionary}. It will also raise the questions the
+by hand or by agent. It will also raise the questions the
 board surfaces: whether planar weight-6 codes can close the gap to periodic
 records, how far the refutation gate and exact certification scale, and which
 families have unmined finite-size headroom.
