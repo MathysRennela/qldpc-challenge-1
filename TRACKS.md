@@ -96,9 +96,21 @@ radius, qubits per site, minimum spacing, density, bounding box).
 - 2D-local efficiency: the published weight-8 exact bar is kd^2/n ~ 12.7, the
   [[512,18,19]] tile code (arXiv:2504.09171, ILP-exact); the strictly
   nearest-neighbour directional-tile [[323,14,15]] (arXiv:2606.19482) reaches
-  ~9.75 at the higher check weight 11. Best on the board so far: [[294,12,14]] at
-  kd^2/n 8.0 (an upper bound, not yet certified exact).
-- High-rate / large-block: the Kasai-group codes [[9216,4612,<=48]]
+  ~9.75 at the higher check weight 11; at moderate size the planar weight-8
+  [[282,12,14]] (arXiv:2504.08887, v3+) reaches ~8.34. Best on the board so far:
+  [[294,12,14]] at kd^2/n 8.0 (an upper bound, not yet certified exact), which
+  the published [[282,12,14]] strictly dominates. Like the Kasai codes below,
+  [[282,12,14]] is cited as a bar rather than seeded: its bulk polynomials are
+  in the paper's text, but its boundary stabilizers (including secondary gauge
+  operators that are not truncations of bulk terms) and the 10 grafted-away
+  qubits are specified only in figures (Figs. 7 and 28), with no machine-readable
+  data published, so a faithful reproduction is not currently possible.
+- Weight-8, any connectivity: the double-cover 2BGA [[168,20,14]]
+  (arXiv:2606.17268, Table 4, distance stated exact there) reaches kd^2/n ~ 23.3,
+  beating the board's previous best [[180,20,14]] at 21.8 (an uncertified upper
+  bound); it strictly dominates both n=180 coset submissions. Now seeded as a
+  baseline (codes/168-20-14.json), so the board reflects it directly.
+- High-rate / large-block: Kasai's codes [[9216,4612,<=48]]
   (arXiv:2601.08824) and [[16384,4142,<=40]] (arXiv:2604.20838), cited as bars
   rather than seeded (their distance witnesses are not published and the verifier
   does not certify distance at these sizes). The challenge is to land a code in
