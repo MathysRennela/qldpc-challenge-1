@@ -79,13 +79,18 @@ than a static document. Every entry is a small machine-readable file that is
 automatically re-verified, distance claims must carry a checkable witness, and a
 distance refutation step actively searches for counterexamples. The result is a
 reproducible, community-extensible, self-certifying record. This matters doubly
-as code discovery itself becomes automated: LLM- and agent-driven
-searches~\cite{cruzbenito2026evolutionary} can propose candidate codes far
-faster than humans can referee them, and an overstated distance is precisely
-their characteristic failure mode. An adversarial, machine-checked gate closes
-that loop, so the board doubles as the verification harness of an automated
-research cycle: an agent proposes, the pipeline refutes or verifies, and only
-survivors enter the record.
+because automated code discovery already works: an LLM-guided evolutionary
+search recently screened ${\sim}2\times10^{5}$ bivariate-bicycle candidates and
+reported hundreds of codes in one campaign~\cite{cruzbenito2026evolutionary},
+reinforcement learning has cut the qubit overhead of low-weight codes by one to
+two orders of magnitude~\cite{he2025reinforcement}, and LLM-driven concept
+evolution reaches constructions, such as non-abelian families, outside the
+standard ans{\"a}tze~\cite{liu2026concept}. Such searches propose candidate
+codes far faster than humans can referee them, and an overstated distance is
+precisely their characteristic failure mode. An adversarial, machine-checked
+gate closes that loop, so the board doubles as the verification harness of an
+automated research cycle: an agent proposes, the pipeline refutes or verifies,
+and only survivors enter the record.
 
 Related resources catalog codes and bounds but do not automatically verify
 contributions. Grassl's tables of best-known code
