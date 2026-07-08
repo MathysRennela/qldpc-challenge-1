@@ -165,8 +165,12 @@ border-top:1px solid var(--ln);scroll-margin-top:16px}
 .tcount{color:var(--mut);font-size:14px;font-weight:400}
 .plots{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
 gap:16px;margin:14px 0 4px}
+/* Explicit width/height with the aspect ratio pinned to the viewBox: Safari
+   does not infer a sensible intrinsic size for a viewBox-only <svg> and blows
+   it up past its grid cell; Chrome merely tolerates the omission. */
 .plot{min-width:0;border:1px solid var(--ln);border-radius:4px;
-background:#fff;padding:8px}
+background:#fff;padding:8px;width:100%;height:auto;display:block;
+aspect-ratio:520/274;box-sizing:border-box}
 .chartlegend{display:flex;flex-wrap:wrap;gap:10px 20px;margin:10px 0 4px;
 padding:12px 16px;background:var(--soft);border:1px solid var(--ln);
 border-radius:3px;font-size:13px;color:var(--mut)}
