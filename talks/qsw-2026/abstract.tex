@@ -138,13 +138,15 @@ runs, in order:
   \texttt{layers} qubits per site, distinct sites at least unit-spaced) and a
   bounded interaction radius, so a small radius cannot be faked by collapsing
   qubits.
-  \item \textbf{Distance refutation gate.} Two independent searches, a
+  \item \textbf{Distance refutation gate.} Independent searches, a
   random-information-set search and a syndrome-decoder search, look for a logical
   lighter than the claimed distance. Any hit is a sound refutation (it exhibits a
-  checkable counterexample). The per-run seed is random by design so an
-  over-claim cannot be tuned to evade one fixed search, and the gate fails closed.
-  A weekly whole-board sweep re-runs the refutation with fresh seeds to
-  accumulate coverage over time.
+  checkable counterexample). Frontier claims also face an accelerated search at
+  ${\sim}150\times$ the baseline budget whose finds count only after the
+  trusted verifier validates the witness. The per-run seed is
+  random by design so an over-claim cannot be tuned to evade one fixed search,
+  and the gate fails closed. A weekly whole-board sweep re-runs the refutation
+  with fresh seeds to accumulate coverage over time.
   \item \textbf{Identity and duplicate checks.} The pull-request author must be a
   listed author of the codes they add. Every code is fingerprinted two ways: the
   reduced-row-echelon form of $(H_X, H_Z)$ pins the exact stabilizer group (an
@@ -185,18 +187,20 @@ Rotated surface~\cite{kitaev2003fault}          & $[[d^2,1,d]]$   & planar      
 Gross code~\cite{bravyi2024high}                & $[[144,12,12]]$ & periodic     & 6  & $12$\\
 Tile code~\cite{steffan2025tile}                & $[[512,18,19]]$ & planar       & 8  & $12.7$\\
 Generalized bicycle~\cite{panteleev2021degenerate} & $[[126,28,8]]$  & periodic  & 10 & $14.2$\\
-Coset 2BGA~\cite{aydin2026breaking}             & $[[168,16,15]]$ & unrestricted & 8  & $21.4$\\
+Coset 2BGA~\cite{aydin2026breaking}             & $[[168,20,14]]$ & unrestricted & 8  & $23.3$\\
 \bottomrule
 \end{tabular}
 \caption{Reference points spanning the efficiency range; all values are the
-published parameters. The tile code is the sole 2D-local weight-8 entry.}
+published parameters.}
 \label{tab:ref}
 \end{table}
 
-At the time of writing the board holds 44 verified codes, 23 submitted through
-the challenge and 21 literature baselines, with 29 certified exact, across the
-bivariate-bicycle, generalized-bicycle, two-block group-algebra, tile, and
-topological families. It is seeded against a selection of published codes (the
+At the time of writing the board holds 47 verified codes, 25 submitted through
+the challenge and 22 literature baselines, with 29 certified exact, across the
+bivariate-bicycle, generalized-bicycle (including non-abelian two-block
+group-algebra), coset, tile, and topological families, including a first odd-$k$ entry ($[[240,13,15]]$,
+non-abelian two-block on $S_5$) and a $[[216,15,11]]$ planar bilayer code
+leading the 2D-local weight-8 cell. It is seeded against a selection of published codes (the
 planar open-boundary codes~\cite{liang2025planar}, the bivariate-bicycle gross
 code~\cite{bravyi2024high}, the generalized-bicycle
 codes~\cite{panteleev2021degenerate,wang2022distance,lin2024quantum}, and the
