@@ -16,21 +16,24 @@ The QEC Challenge: a public, automatically verified leaderboard for quantum LDPC
 ## Talk description
 Quantum low-density parity-check (qLDPC) codes are the leading route to
 low-overhead fault tolerance, but there is no shared, machine-checked record of
-which codes are best under which constraints. Parameters are scattered across
-papers, and distance claims are especially hard to reproduce and easy to
-overstate: computing distance is NP-hard, and the heuristic decoders often used
-to estimate it can be wrong.
+which codes are best under a given hardware constraint, principally qubit
+connectivity and check weight. Parameters are scattered across papers, and
+distance claims are especially hard to reproduce and easy to overstate:
+computing distance is NP-hard, and the heuristic searches used to estimate it
+only ever return an upper bound.
 
 The QEC Challenge treats this as a software-infrastructure problem. A participant
 submits one JSON file describing a CSS code; continuous integration recomputes
 the code's parameters from its parity-check matrices, checks a self-certifying
 distance witness, actively searches for a lighter logical operator that would
-refute the claim, and merges the entry only if it survives. Ranking is a
-per-track Pareto frontier rather than a single gameable number, track membership
-is computed from the code rather than self-declared, and the whole pipeline runs
-on every pull request. This also makes the board a natural referee for
-machine-discovered codes, whose characteristic failure mode is an overstated
-distance.
+refute the claim, and merges the entry only if it survives. Codes are compared
+like with like, grouped by those same connectivity and weight constraints and
+ranked on a Pareto frontier rather than by a single gameable number, with the
+groupings computed from the code rather than self-declared. Because a distance
+from a heuristic search is only an upper bound, a missed lighter operator
+silently inflates it; the board's refutation step therefore also serves as a
+referee for machine-discovered codes, which are generated in volume with exactly
+such search-based distance estimates.
 
 The lightning talk walks through the end-to-end flow (submit, CI verifies, board
 updates), the layered trust model behind the distance tiers, and how to
