@@ -71,10 +71,54 @@ def changed_codes(base, code_root=ROOT):
     return [f for f in out.split() if f.endswith(".json")]
 
 
+def _locality_rank(doc):
+    """Home locality class as a tightness rank: 0 = local-2d-single,
+    1 = local-2d-bilayer, 2 = unrestricted. Mirrors the verifier's derivation
+    (TRACKS.md): an honest layout -- full coverage, at most `layers` qubits per
+    site, distinct sites unit-spaced -- earns a class when the measured check
+    radius is within the class cap; anything else is unrestricted. Used only
+    to pick the refutation BUDGET; the authoritative classification stays in
+    qldpc_verify."""
+    import math
+    from collections import Counter
+    loc = doc.get("locality")
+    n = doc["n"]
+    if not loc or len(loc.get("coordinates", [])) != n:
+        return 2
+    coords = loc["coordinates"]
+    layers = loc.get("layers", 1)
+
+    def diam(sup):
+        pts = [coords[q] for q in sup]
+        return max((math.dist(a, b) for a in pts for b in pts), default=0.0)
+    radius = max((diam(s) for s in doc["checks"]["X"] + doc["checks"]["Z"]),
+                 default=0.0)
+    mult = Counter(tuple(c) for c in coords)
+    sites = sorted(mult)
+    min_sp = min((math.dist(a, b) for i, a in enumerate(sites)
+                  for b in sites[i + 1:]), default=float("inf"))
+    if min_sp < 1.0:
+        return 2
+    for rank, (lay, cap) in enumerate(((1, 4.0), (2, 7.0))):
+        if layers <= lay and max(mult.values()) <= lay and radius <= cap:
+            return rank
+    return 2
+
+
+def _weight_rank(w):
+    """Check-weight class as a tightness rank: weight-4 < weight-6 < weight-8
+    < any weight."""
+    return 0 if w <= 4 else 1 if w <= 6 else 2 if w <= 8 else 3
+
+
 def board_record_slugs(code_root=ROOT):
-    """Slugs on the board's global (n, k, d, w) Pareto frontier. A code that
-    claims to advance the frontier gets deeper refutation than a dominated one,
-    so over-claims pay extra scrutiny exactly where gaming would matter."""
+    """Slugs that are records of their own primary-track CELL: undominated on
+    (n, k, d, w) among board codes whose locality and weight classes are
+    stricter or equal (the codes that share the cell under TRACKS.md nesting).
+    A code that claims a cell record gets deeper refutation than a dominated
+    one, so over-claims pay extra scrutiny exactly where gaming would matter.
+    Cell-aware on purpose: a 2D-local record is a record even when a nonlocal
+    code beats it globally, and it deserves the deep battery too."""
     rows = []
     for p in sorted(glob.glob(os.path.join(code_root, "codes", "*.json"))):
         try:
@@ -82,13 +126,16 @@ def board_record_slugs(code_root=ROOT):
             ck = d.get("checks", {})
             w = max((len(s) for s in ck.get("X", []) + ck.get("Z", [])), default=0)
             rows.append((os.path.splitext(os.path.basename(p))[0],
-                         d["n"], d["k"], d["distance"]["d"], w))
+                         d["n"], d["k"], d["distance"]["d"], w,
+                         _weight_rank(w), _locality_rank(d)))
         except Exception:
             continue
     rec = set()
     for i, a in enumerate(rows):
         dominated = any(
-            j != i and b[1] <= a[1] and b[2] >= a[2] and b[3] >= a[3] and b[4] <= a[4]
+            j != i
+            and b[5] <= a[5] and b[6] <= a[6]          # shares a's home cell
+            and b[1] <= a[1] and b[2] >= a[2] and b[3] >= a[3] and b[4] <= a[4]
             and (b[1] < a[1] or b[2] > a[2] or b[3] > a[3] or b[4] < a[4])
             for j, b in enumerate(rows))
         if not dominated:
@@ -208,11 +255,11 @@ def main(argv):
         doc = json.load(open(p))
         if "distance" not in doc or "d" not in doc.get("distance", {}):
             continue
-        # A code that advances the frontier is checked harder: several independent
-        # deep RIS seeds, not one short pass, so an over-claim cannot lean on a
-        # single search missing the lighter logical. Trials and wall-clock both
-        # scale with code size (see _budget). Dominated codes pay only the
-        # standard, size-scaled pass.
+        # A code that is a record of its own primary-track cell is checked
+        # harder: several independent deep RIS seeds, not one short pass, so an
+        # over-claim cannot lean on a single search missing the lighter logical.
+        # Trials and wall-clock both scale with code size (see _budget).
+        # Dominated codes pay only the standard, size-scaled pass.
         slug = os.path.splitext(os.path.basename(f))[0]
         deep = slug in records
         trials, budget, nseeds = _budget(int(doc["n"]), deep, fast=GF is not None)
