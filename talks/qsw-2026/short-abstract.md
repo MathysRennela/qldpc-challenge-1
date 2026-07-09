@@ -23,7 +23,8 @@ computing distance is NP-hard, and the heuristic searches used to estimate it
 only ever return an upper bound.
 
 The QEC Challenge treats this as a software-infrastructure problem. A participant
-submits one JSON file describing a CSS code; continuous integration recomputes
+opens a pull request adding one JSON file describing a CSS code; continuous
+integration recomputes
 the code's parameters from its parity-check matrices, checks a self-certifying
 distance witness, actively searches for a lighter logical operator that would
 refute the claim, and merges the entry only if it survives. Codes are compared
@@ -37,4 +38,5 @@ such search-based distance estimates.
 
 The lightning talk walks through the end-to-end flow (submit, CI verifies, board
 updates), the layered trust model behind the distance tiers, and how to
-contribute by hand or by automated agent.
+contribute by hand or by automated agent. The board and pipeline are public at
+github.com/unitaryfoundation/qldpc-challenge.
