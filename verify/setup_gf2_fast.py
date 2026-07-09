@@ -1,7 +1,9 @@
 """Build the OPTIONAL gf2_fast C++ accelerator (see gf2_fast.cpp).
 
-Not part of the trusted validation stack and never built by CI; the pure-Python
-engine is the reference and the fallback. Build it for fast local search:
+Not part of the trusted validation stack; the pure-Python engine is the
+reference and the fallback. CI builds it best-effort (continue-on-error) so
+the gate's deep pass can use it -- a failed build only loses the extra
+search depth. Build locally with:
 
     make fast
 """

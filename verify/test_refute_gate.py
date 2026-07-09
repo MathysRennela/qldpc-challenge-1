@@ -117,6 +117,42 @@ def main():
               if c["check"] == "distance_not_refuted")["detail"]
     check("no-seed runs are non-deterministic (different seeds reported)", d1 != d2)
 
+    print("\nCELL: deep-tier record detection is cell-aware, not global")
+    # A 2D-local cell record that a nonlocal code dominates GLOBALLY must still
+    # count as a record (and so face the deep refutation tier). Regression for
+    # the locality-blind global frontier the gate used before.
+    import tempfile
+    import gate_changed
+    with tempfile.TemporaryDirectory() as td:
+        cd = os.path.join(td, "codes")
+        os.makedirs(cd)
+        docs = {
+            # local-2d-single record: nothing in its cell dominates it
+            "local-rec": {"n": 4, "k": 2, "distance": {"d": 2},
+                          "checks": {"X": [[0, 1]], "Z": [[2, 3]]},
+                          "locality": {"coordinates": [[0, 0], [1, 0],
+                                                       [0, 1], [1, 1]],
+                                       "layers": 1}},
+            # nonlocal code that dominates local-rec on every (n,k,d,w) axis
+            "global-dom": {"n": 2, "k": 9, "distance": {"d": 9},
+                           "checks": {"X": [[0, 1]], "Z": [[0, 1]]}},
+            # local code dominated INSIDE its own cell by local-rec
+            "local-dominated": {"n": 6, "k": 1, "distance": {"d": 1},
+                                "checks": {"X": [[0, 1]], "Z": [[4, 5]]},
+                                "locality": {"coordinates": [[0, 0], [1, 0],
+                                                             [2, 0], [0, 1],
+                                                             [1, 1], [2, 1]],
+                                             "layers": 1}},
+        }
+        for slug, doc in docs.items():
+            json.dump(doc, open(os.path.join(cd, f"{slug}.json"), "w"))
+        rec = gate_changed.board_record_slugs(td)
+        check("locally-undominated code is a record despite global domination",
+              "local-rec" in rec)
+        check("globally-undominated code is still a record", "global-dom" in rec)
+        check("code dominated within its own cell is not a record",
+              "local-dominated" not in rec)
+
     print(f"\n{'ALL PASS' if not _fail else 'FAILURES: ' + ', '.join(_fail)}")
     return 1 if _fail else 0
 
