@@ -5,7 +5,7 @@ Workshop 2026 (IEEE Quantum Week, Toronto, September 17, 2026), highlighting the
 QEC Challenge.
 
 - `abstract.tex` is the extended abstract (about four pages). It reuses the
-  framing of the project whitepaper (`docs/planar_code_challenge.tex`) but is
+  framing of the project whitepaper (`docs/qec_challenge.tex`) but is
   updated to the current board: the computed layered track scheme, the distance
   refutation gate, and current numbers.
 
