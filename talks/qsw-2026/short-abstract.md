@@ -7,6 +7,11 @@ later.
 ## Name
 Farrokh Labib
 
+(The form accepts a single name only, used here as the presenter. The full
+author list is in `abstract.tex` and goes on the title slide: Farrokh Labib,
+Vincent Russo, Ben Castanon, Bradley A. Chase, Mathys Rennela, and
+William J. Zeng.)
+
 ## Lightning talk category
 QEC, infrastructure, and hardware
 
