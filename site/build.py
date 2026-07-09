@@ -1541,7 +1541,8 @@ def faq_page():
     P.append('<a class=back href="index.html">&larr; back to the board</a>')
     P.append('<h1 style="margin:.4rem 0 0">FAQ</h1>')
     for q, a in FAQ:
-        P.append(f'<div class=faq><h3>{html.escape(q)}</h3><p>{a}</p></div>')
+        question = html.escape(html.unescape(q))
+        P.append(f'<div class=faq><h3>{question}</h3><p>{a}</p></div>')
     P.append('</div></body></html>')
     return "\n".join(P)
 
