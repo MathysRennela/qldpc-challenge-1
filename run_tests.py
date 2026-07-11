@@ -18,9 +18,9 @@ import time
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
 # Slow tests (about a minute or more locally); skipped with --skip-slow.
-SLOW = {
-    "verify/test_heuristic_distance.py",   # corroborates over every certified code
-}
+# Currently empty: test_heuristic_distance.py used to sweep every certified code
+# (O(board size)) but now checks a fixed panel and runs in seconds.
+SLOW = set()
 
 
 def collect():
