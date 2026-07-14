@@ -1,4 +1,4 @@
-% The qLDPC Challenge -- talk slides
+% The QEC Challenge -- talk slides
 % Build: pdflatex qldpc-challenge-slides.tex  (run twice)
 \documentclass[11pt,aspectratio=169]{beamer}
 
@@ -42,7 +42,7 @@
 \newcommand{\wt}{\operatorname{wt}}
 \newcommand{\code}[1]{\texttt{\small #1}}
 
-\title{\textbf{The qLDPC Challenge}\\[6pt]
+\title{\textbf{The QEC Challenge}\\[6pt]
   \large A public, automatically verified leaderboard for quantum LDPC codes}
 \author{Unitary Foundation\\[2pt]
   \texttt{github.com/unitaryfoundation/qldpc-challenge}}
@@ -56,8 +56,7 @@
 
 \begin{frame}{This talk}
   \begin{enumerate}\setlength{\itemsep}{10pt}
-    \item Why quantum error correction, in five minutes
-    \item Quantum LDPC codes: beyond the surface code
+    \item Why quantum error correction, and what makes a code good
     \item Distance: the hard part, and how claims can be checked anyway
     \item The Challenge: an autoresearch loop with a trusted referee
   \end{enumerate}
@@ -116,14 +115,15 @@
       \begin{itemize}\setlength{\itemsep}{8pt}
         \item Qubits on a 2D grid; every check touches only its
               \textbf{4 neighbours} $\Rightarrow$ easy to build and measure.
-        \item Distance grows with the lattice: $d \sim \sqrt{n}$.
-        \item But it encodes \textbf{one} logical qubit per patch:
-              \[ k/n \longrightarrow 0. \]
-        \item A useful machine needs \emph{thousands} of patches --- millions of
-              physical qubits.
+        \item $d \sim \sqrt{n}$, but \textbf{one} logical qubit per patch:
+              $k/n \to 0$ --- a useful machine needs millions of physical
+              qubits.
+        \item Already LDPC; the problem is \textbf{2D locality},
+              not check weight.
       \end{itemize}
       \medskip
-      \emph{Can we keep the low-weight checks but get a constant rate?}
+      \emph{Can we keep the low-weight checks, drop the locality, and get a
+      constant rate?}
     \end{column}
     \begin{column}{0.42\textwidth}
       \centering
@@ -140,149 +140,53 @@
   \end{columns}
 \end{frame}
 
-% =====================================================================
-\section{qLDPC codes}
-% =====================================================================
-
-\begin{frame}{Quantum LDPC codes}
+\begin{frame}{Quantum LDPC codes, and the yardstick}
   \textbf{LDPC} $=$ low-density parity checks: every check touches $O(1)$ qubits
   and every qubit sits in $O(1)$ checks --- the property that makes syndrome
   measurement practical.
-  \begin{itemize}\setlength{\itemsep}{8pt}
+  \begin{itemize}\setlength{\itemsep}{6pt}
     \item Breakthrough (2020s): families with \textbf{constant rate and linear
-          distance} exist --- asymptotically ``good'' quantum codes.
-    \item Practical frontier: small-to-medium block codes that beat the surface
-          code's overhead \emph{today}, e.g.\ IBM's bivariate-bicycle
-          ``gross code'' $[[144,12,12]]$: 12 logical qubits at distance 12 from
-          144 data qubits, weight-6 checks.
-    \item Headline figure of merit used throughout the Challenge:
+          distance} exist. Practical frontier today: e.g.\ IBM's
+          bivariate-bicycle ``gross code'' $[[144,12,12]]$ --- 12 logical
+          qubits at distance 12 from 144 data qubits, weight-6 checks.
+    \item Headline figure of merit:
           \[ \text{efficiency} \;=\; \frac{k\,d^2}{n}
              \qquad (\text{surface code} \approx 1,\quad
                      \text{gross code} = 12,\quad
-                     \text{board record} = 21.78). \]
+                     \text{board record} = 23.81). \]
   \end{itemize}
-\end{frame}
-
-\begin{frame}{Why $kd^2/n$? A yardstick calibrated to two dimensions}
-  \begin{block}{Bravyi--Poulin--Terhal bound (2010)}
-    Any code whose checks are geometrically local in a 2D layout obeys
-    \[ k\,d^2 \;\le\; c\,n \qquad\Longleftrightarrow\qquad \frac{k\,d^2}{n} \le c, \]
-    with $c$ a constant depending only on the check range --- not on $n$.
+  \begin{block}{Why $kd^2/n$? (Bravyi--Poulin--Terhal, 2010)}
+    Any 2D-\emph{local} code obeys $kd^2 \le c\,n$; the surface code saturates
+    it at $\approx 1$. So $kd^2/n \gg 1$ \textbf{quantifies how far beyond a
+    strict 2D layout} a code performs --- the record of $23.81$
+    ($[[336,20,20]]$, a two-block group-algebra code on $\mathrm{PSL}(2,7)$)
+    is a statement about connectivity, not just cleverness.
   \end{block}
-  \begin{itemize}\setlength{\itemsep}{7pt}
-    \item So for \textbf{2D-local codes the metric cannot grow}: the surface code
-          ($k=1$, $d\sim\sqrt n$) already \emph{saturates the scaling} at
-          $kd^2/n \approx 1$; better 2D-local codes only improve the constant
-          (the Challenge's \code{2d-local} tracks live here).
-    \item Which is exactly why it makes a good yardstick: $kd^2/n \gg 1$
-          \textbf{quantifies how far beyond a strict 2D layout} a code performs.
-          The board record of $21.78$ is a statement about connectivity, not
-          just cleverness.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Dimensionality raises the ceiling}
-  \small
-  BPT generalizes to checks local in $D$ dimensions:
-  $\;k\,d^{\,2/(D-1)} \le O(n)$ and $d \le O(n^{(D-1)/D})$
-  $\;\Rightarrow\; kd^2/n \le O\!\left(n^{\,2(D-2)/D}\right)$.
-  \begin{center}
-  \renewcommand{\arraystretch}{1.15}
-  \begin{tabular}{@{}llll@{}}
-    \toprule
-    \textbf{Layout} & \textbf{BPT tradeoff} & \textbf{Max $d$} & \textbf{Ceiling on $kd^2/n$} \\
-    \midrule
-    2D local & $kd^{2} \le O(n)$ & $O(\sqrt{n})$ & $O(1)$ \\
-    3D local & $kd \le O(n)$ & $O(n^{2/3})$ & $O(n^{2/3})$ \\
-    all-to-all & --- & $\Theta(n)$ & $\Theta(n^{2})$ \\
-    \bottomrule
-  \end{tabular}
-  \end{center}
-  \begin{itemize}\setlength{\itemsep}{3pt}
-    \item The ceilings are \textbf{achievable}, not just bounds: BPT-saturating
-          constructions exist in every $D$ (Portnoy '23; Williamson--Baspin;
-          Lin--Wills--Hsieh); ``good'' codes reach $k,d = \Theta(n)$
-          (Panteleev--Kalachev '21).
-    \item So $kd^2/n$ is a \textbf{constant-vs-growing diagnostic}: flat for
-          planar hardware, polynomially higher with every dimension of
-          long-range connectivity.
-    \item On the leaderboard this needs \textbf{no new metric}: locality class is
-          computed from the layout, $kd^2/n$ compared only \emph{within} a
-          class --- a \code{3d-local} track would slot in unchanged.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{One structure, three generalizations}
-  Most board entries are \textbf{two-block} codes:
-  \[
-    H_X = [\,A \mid B\,], \qquad H_Z = [\,B^{\mathsf T} \mid A^{\mathsf T}\,],
-    \qquad AB = BA \;\Rightarrow\; H_X H_Z^{\mathsf T} = 0 .
-  \]
-  \begin{itemize}\setlength{\itemsep}{7pt}
-    \item \textbf{Bivariate bicycle (BB)}: $A, B$ are sparse polynomials in two
-          commuting cyclic shifts $x, y$ on a torus $\mathbb{Z}_\ell \times \mathbb{Z}_m$
-          --- commutativity is free.
-    \item \textbf{2BGA}: replace the torus by \emph{any} finite group $G$; $A$
-          acts by left multiplication, $B$ by right multiplication, which always
-          commute. Non-abelian $G$ (dihedral, metacyclic) reaches parameters BB
-          cannot, including odd $k$.
-    \item \textbf{Coset codes}: qubits on cosets $G/H$ --- the current
-          record-efficiency family ($k d^2/n = 21.78$ at $[[180,20,14]]$).
-  \end{itemize}
-  \medskip
-  Separate track: \textbf{2D-local planar} codes with open boundaries ---
-  qLDPC codes you could lay out on a chip bilayer, checks within radius
-  $\sim 3$ on the grid.
 \end{frame}
 
 % =====================================================================
 \section{Distance}
 % =====================================================================
 
-\begin{frame}{Distance: what it is}
+\begin{frame}{Distance: the hard part}
   A \textbf{logical operator} acts on the encoded qubits without triggering any
-  check:
-  \[
-    d_X \;=\; \min\Bigl\{\, \wt(v) \;:\; H_Z v = 0,\;\;
-      v \notin \operatorname{rowspace}(H_X) \,\Bigr\},
-    \qquad d = \min(d_X, d_Z).
-  \]
-  \begin{itemize}\setlength{\itemsep}{8pt}
-    \item In the kernel: commutes with every $Z$-check.
-          Outside the rowspace: not itself a product of stabilizers.
-    \item $d$ is the weight of the \emph{cheapest undetectable error} ---
-          it sets the protection level, and it enters the figure of merit
-          \emph{squared}.
-    \item \alert{Computing $d$ exactly is NP-hard.} Every distance number you
-          read in a paper was produced by a bounded search --- and bounded
-          searches miss things.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Measuring distance in practice}
+  check; $d$ is the weight of the cheapest one --- the cheapest
+  \emph{undetectable error} --- and it enters the figure of merit
+  \emph{squared}.
   \begin{columns}[T]
-    \begin{column}{0.5\textwidth}
-      \textbf{Upper bounds: find \emph{a} logical}
+    \begin{column}{0.52\textwidth}
       \begin{itemize}\setlength{\itemsep}{6pt}
-        \item \emph{Randomized information-set search}: RREF the kernel basis
-              under random column orders; light rows (and their pairwise sums)
-              are candidate logicals.
-        \item \emph{Decoder residuals}: inject errors, decode with BP+OSD;
-              a decoding failure that commutes with all checks \emph{is} a
-              logical operator.
-        \item Either way the output is an explicit \textbf{witness}: a vector
-              anyone can check in milliseconds. It proves $d \le \wt(v)$ ---
-              trustlessly.
+        \item \alert{Computing $d$ exactly is NP-hard.} Every distance in every
+              paper came from a bounded search --- and bounded searches miss
+              things.
+        \item But any search that \emph{finds} a logical yields an explicit
+              \textbf{witness}: a vector anyone can check in milliseconds.
+              It proves $d \le \wt(v)$ --- trustlessly.
+        \item Exact values ($d = v$): integer program per logical class ---
+              feasible for small codes, hopeless for large high-rate ones.
       \end{itemize}
     \end{column}
-    \begin{column}{0.48\textwidth}
-      \textbf{Exact values: prove nothing lighter exists}
-      \begin{itemize}\setlength{\itemsep}{6pt}
-        \item Integer program per logical class: minimize $\wt(v)$ subject to
-              $H_Z v = 0 \pmod 2$ and $\ell \cdot v = 1 \pmod 2$.
-        \item Feasible for small / low-rate codes; hopeless for large high-rate
-              ones.
-      \end{itemize}
+    \begin{column}{0.44\textwidth}
       \begin{alertblock}{The trap}
         A \emph{high} estimate from a \emph{short} search looks like a great
         code. It usually means the search hasn't found the light logical yet.
@@ -290,6 +194,42 @@
       \end{alertblock}
     \end{column}
   \end{columns}
+\end{frame}
+
+\begin{frame}{The two corroboration searches}
+  Both only ever \emph{exhibit} a logical of some weight --- each find tightens
+  $d \le w$, neither proves a lower bound. They attack the claim by
+  \textbf{independent mechanisms}:
+  \smallskip
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \textbf{Random information set (RIS)} \hfill {\color{muted}\scriptsize algebraic}
+      \begin{itemize}\setlength{\itemsep}{4pt}\small
+        \item Basis of $\ker H_Z$: everything that commutes with the checks.
+        \item Each trial: shuffle the columns, RREF the basis --- random
+              re-coordinatizations make different vectors \emph{sparse}.
+        \item Light rows (and pairwise sums) that are not stabilizer products
+              are logical operators; keep the lightest.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \textbf{BP+OSD decoder residuals} \hfill {\color{muted}\scriptsize operational}
+      \begin{itemize}\setlength{\itemsep}{4pt}\small
+        \item Each trial: inject a random weight-$w$ error $e$, hand its
+              syndrome to a BP+OSD decoder, get correction $\hat e$.
+        \item The residual $e + \hat e$ has zero syndrome by construction;
+              if it acts on the logicals, it \emph{is} a logical operator.
+        \item A good decoder's failures concentrate on the \emph{cheapest}
+              undetectable errors --- exactly what $d$ measures.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \medskip
+  \begin{block}{}
+    \small Survives \textbf{both} at deep budgets $\Rightarrow$ corroborated
+    ($d \le v^{*}$); either finds lighter $\Rightarrow$
+    \textcolor{flag}{refuted}, witness attached.
+  \end{block}
 \end{frame}
 
 % =====================================================================
@@ -300,7 +240,7 @@
   \begin{itemize}\setlength{\itemsep}{8pt}
     \item A \textbf{public leaderboard} of qLDPC codes: one JSON file per code,
           in a git repository, with a static site on top.
-          \hfill {\color{muted}\small 41 codes today}
+          \hfill {\color{muted}\small 49 codes today}
     \item Every claim is \textbf{recomputed from the parity checks} --- $n$, $k$,
           CSS commutation, check weights, distance witnesses, 2D-locality radius.
           Nothing is trusted from the submitter.
@@ -361,55 +301,18 @@
           committed manifest; any drift fails the build.
     \item \textbf{Self-tests}: the verifier must still \emph{reject} known-bad
           submissions and known over-claims.
-    \item \textbf{Recomputation}: $n$, $k$, CSS, weights, witnesses, locality ---
-          recomputed by the \emph{base branch's} verifier.
+    \item \textbf{Recomputation}: $n$, $k$, CSS, weights, witnesses --- recomputed
+          by the \emph{base branch's} verifier. Locality is \textbf{measured}
+          from a submitted layout certificate, never declared; no honest
+          layout $\Rightarrow$ the code competes as \code{unrestricted}.
     \item \textbf{Adaptive refutation}: two independent searches attack the
-          distance claim. Budget scales with size ($2500 + 40n$ trials);
-          a claim that advances a frontier pays
-          $3 \text{ seeds} \times (25000 + 120n)$ trials before it earns the
-          record. One lighter logical found $\Rightarrow$ PR fails, witness
-          printed.
+          distance claim, budget scaling with size ($2500 + 40n$ trials).
+          A claim that advances its cell's frontier triggers the deep tier:
+          a $\sim$150$\times$-deeper accelerated search plus a Python canary
+          seed (three full Python seeds if the accelerator is unavailable).
+          One lighter logical found $\Rightarrow$ PR fails, witness printed.
     \item \textbf{Authorship}: the PR author must be a listed author of the code.
   \end{enumerate}
-\end{frame}
-
-\begin{frame}{Geometry is verified too: you cannot lie about locality}
-  The 2D-local tracks matter (they carry the $kd^2/n \le c$ ceiling), so class
-  membership is \textbf{computed, never declared}: a submission carries its
-  layout --- coordinates plus a layer count --- as a \emph{checkable
-  certificate}, exactly like the distance witness.
-  \begin{columns}[T]
-    \begin{column}{0.56\textwidth}
-      \begin{itemize}\setlength{\itemsep}{5pt}
-        \item a coordinate for \textbf{every} qubit;
-        \item \textbf{no cramming}: at most \code{layers} qubits per site,
-              distinct sites $\ge 1$ apart --- a small radius cannot be faked by
-              collapsing or rescaling points;
-        \item the interaction radius is \textbf{measured} (largest check
-              diameter) and must sit under the class cap;
-        \item a dishonest or missing layout is not rejected --- the code simply
-              competes as \code{unrestricted}, the harder cell.
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.42\textwidth}
-      \centering
-      \begin{tikzpicture}[scale=0.55]
-        % crammed layout: denied
-        \foreach \i in {0,...,8} \fill[flag] (0.12*\i, 0.35+0.06*\i) circle (2.2pt);
-        \node[flag, font=\tiny, align=center] at (0.5,-0.75)
-          {crammed: spacing $<1$\\class \textbf{denied}};
-        % honest grid: earned
-        \foreach \i in {0,...,3} \foreach \j in {0,...,3}
-          \fill[trust] (5.2+0.55*\i, 0.55*\j-0.25) circle (2.2pt);
-        \node[trust, font=\tiny, align=center] at (6.0,-0.75)
-          {honest grid: radius 3.16\\\textbf{earns} the class};
-      \end{tikzpicture}
-      \par\vspace{6pt}
-      {\scriptsize\color{muted} Field test: retro-tagging seven planar codes,
-      the first (wrong) embedding measured radius 10.2, growing with size ---
-      refused. The correct one measured 3.16, size-independent --- earned.}
-    \end{column}
-  \end{columns}
 \end{frame}
 
 \begin{frame}{Distance claims are tiered by how they were earned}
@@ -419,7 +322,8 @@
     \toprule
     \textbf{Tier} & \textbf{Meaning} & \textbf{Earned by} \\
     \midrule
-    {\color{ink}$d \le v$} & upper bound & witness checked trustlessly, milliseconds \\
+    {\color{ink}$d \le v^{*}$} & corroborated & witness checked trustlessly; two independent searches
+      \\[-3pt] & & (RIS, BP+OSD) fail to find anything lighter \\
     {\color{trust}$d = v$} & exact & server MILP certificate committed to \code{certs/} \\
     {\color{flag}refuted} & claim killed & any search finding a lighter logical, witness attached \\
     \bottomrule
@@ -427,45 +331,28 @@
 
   \vspace{12pt}
   \begin{itemize}
-    \item 27 of 41 board codes hold an exact certificate.
+    \item 29 of 49 board codes hold an exact certificate.
     \item The other defense is time: a \textbf{weekly random-seed sweep}
           re-attacks every entry on the board, forever.
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Case study: the pipeline correcting an over-claim}
-  \textbf{$[[294,8,19]]$, a 2BGA code on a metacyclic group} (June 2026)
-  \begin{enumerate}\setlength{\itemsep}{8pt}
-    \item An LLM agent sweeping metacyclic 2BGA codes surfaced a candidate
-          claiming $d = 20$ (with a $Z$-side claim of 25). It \emph{passed} the
-          standard 8k-trial gate.
-    \item Deep refutation --- 60k trials across independent seeds --- found a
-          \textbf{weight-19 $Z$-logical}: the claim was an artifact of an
-          under-converged upper bound.
-    \item Resubmitted with the honest $d = 19$ \emph{and the found witness
-          attached}; the $X$-side value corroborated by every deep seed.
-    \item Merged as a non-dominated weight-8 entry --- and the incident sized
-          the adaptive deep gate that now guards every frontier claim.
-  \end{enumerate}
-  \medskip
-  {\color{muted}\small The system's job is not to prevent optimistic claims ---
-  it is to make sure they don't survive.}
-\end{frame}
-
 \begin{frame}{What it is for}
   \begin{itemize}\setlength{\itemsep}{9pt}
-    \item A \textbf{shared, machine-checked record} of which qLDPC codes are best
-          under which constraints --- parameters today live scattered across
-          papers, hard to reproduce or compare.
-    \item A \textbf{benchmark for AI research agents}: the starter kit
-          (\code{research/}) is tool-agnostic, pure numpy, and sits on the
-          verifier's own linear algebra; \code{AUTORESEARCH.md} is an operating
-          manual any model can be pointed at.
+    \item A \textbf{shared, machine-checked record} of the best qLDPC codes
+          under each constraint --- parameters that today live scattered
+          across papers.
+    \item A \textbf{benchmark for AI research agents}: a tool-agnostic,
+          pure-numpy starter kit plus an operating manual
+          (\code{AUTORESEARCH.md}) any model can be pointed at.
+    \item \textbf{Shared field notes}: campaigns end by distilling hard-won
+          lessons into the manual --- every newcomer, human or agent, starts
+          where the last one stopped.
     \item A template for \textbf{verification-first open science}: untrusted
-          exploration, a pinned referee, and claims that decay gracefully
-          (refuted with evidence) instead of persisting as folklore.
+          exploration, a pinned referee, claims that decay with evidence
+          instead of persisting as folklore.
   \end{itemize}
-  \vspace{8pt}
+  \vspace{6pt}
   \begin{center}
     \structure{\textbf{Beat the frontier:}}\quad
     \texttt{github.com/unitaryfoundation/qldpc-challenge}
