@@ -1354,9 +1354,10 @@ def progress_panel(entries, n_exact, best_eff):
 
 def contributors_panel(entries):
     """A leaderboard of who submitted the codes on the board. Ranks GitHub-handle
-    authors of contributed (non-baseline) codes by how many they have on the
-    board, then by how many sit on a track frontier, then by best kd2/n. The
-    seeded literature authors are not contributors and are excluded."""
+    authors of contributed (non-baseline) codes by the best kd2/n among their
+    codes, then by how many sit on a track frontier, then by how many they have
+    on the board. The seeded literature authors are not contributors and are
+    excluded."""
     front_slugs = {entries[i]["slug"] for i in compute_records(entries)}
     stats = {}
     for e in entries:
@@ -1375,8 +1376,8 @@ def contributors_panel(entries):
     if not stats:
         return ""
     order = sorted(stats.items(),
-                   key=lambda kv: (-kv[1]["codes"], -kv[1]["front"],
-                                   -kv[1]["eff"], kv[0]))
+                   key=lambda kv: (-kv[1]["eff"], -kv[1]["front"],
+                                   -kv[1]["codes"], kv[0]))
     n_codes = sum(1 for e in entries if e["origin"] != "baseline")
 
     def metric(v, lab):
