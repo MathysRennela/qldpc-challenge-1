@@ -384,6 +384,8 @@ font-family:'Space Mono',ui-monospace,monospace;
 background:var(--ac);border:none;border-radius:8px;padding:8px 14px;
 text-decoration:none;cursor:pointer;transition:background .15s}}
 .lbcta:hover{{background:#5b21b6}}
+.herocta{{padding:9px 16px;font-size:14px;
+box-shadow:0 4px 14px rgba(0,0,0,.35)}}
 .modal{{position:relative;border:none;border-radius:14px;padding:22px 24px;
 max-width:520px;width:92%;box-shadow:0 20px 60px rgba(17,17,17,.25)}}
 .modal::backdrop{{background:rgba(17,17,17,.45)}}
@@ -1939,7 +1941,11 @@ def build():
              '<span class=brandmark>'
              '<a href="https://unitary.foundation" '
              f'aria-label="Unitary Foundation">{UF_LOGO}</a>'
-             '</span></div>'
+             '</span>'
+             '<button class="lbcta herocta" type=button '
+             'onclick="document.getElementById('
+             '&quot;participate&quot;).showModal()">Participate</button>'
+             '</div>'
              '<h1>QEC Challenge</h1>'
              '<p>Find better quantum LDPC codes. '
              '<a href="qec_challenge.pdf">Read the whitepaper.</a></p>'
