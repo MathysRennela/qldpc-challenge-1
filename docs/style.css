@@ -164,6 +164,10 @@ border-radius:10px;font-size:13px;color:var(--mut)}
 .rcwrap{margin:26px 0 4px}
 .rcwrap .plot{padding:10px 12px 6px}
 .rcsub{font-size:13px;color:var(--mut);margin:2px 0 10px;max-width:760px}
+/* phones: scroll the wide chart instead of scaling its text away */
+@media(max-width:680px){.rcwrap .plot{overflow-x:auto;
+-webkit-overflow-scrolling:touch}
+.rcwrap svg{min-width:760px}}
 /* full width (matching the panels above) with fixed, evenly distributed
    columns so the slack isn't dumped into one column as a stray gap. */
 table.board{border-collapse:collapse;width:100%;table-layout:fixed;
