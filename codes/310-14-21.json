@@ -3169,11 +3169,9 @@
   },
   "provenance": {
     "authors": [
-      "@shassinger",
+      "@shassinger"
     ],
-    "model": [
-      "OpenAI 5.6 Sol",
-    ],  
+    "model": "OpenAI 5.6 Sol",
     "construction": "Regular 2BGA on C_31 semidirect C_5 with action r=16; supports a=[0, 19, 75, 101], b=[42, 67, 107, 124].",
     "references": [
       "arXiv:2306.16400"
