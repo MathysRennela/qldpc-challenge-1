@@ -31,7 +31,7 @@ jobs:
         run: make build
       - name: commit regenerated pages (if anything changed)
         run: |
-          git add docs/index.html docs/codes docs/stats.json docs/references.html
+          git add docs/index.html docs/codes docs/stats.json docs/references.html docs/faq.html docs/style.css docs/favicon.svg
           if git diff --cached --quiet; then
             echo "site already up to date"
             exit 0
