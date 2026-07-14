@@ -880,7 +880,7 @@ def head(title, rel=""):
         '<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;'
         '600;700&family=Space+Grotesk:wght@500;700&family=Space+Mono:wght@400;'
         '700&display=swap" rel=stylesheet>',
-        f"<style>{CSS}</style></head><body>"]))
+        f'<link rel=stylesheet href="{rel}style.css"></head><body>']))
 
 
 def cert_info(slug):
@@ -2029,6 +2029,8 @@ def build():
         f.write("\n".join(P))
     with open(os.path.join(DOCS, "favicon.svg"), "w") as f:
         f.write(FAVICON)
+    with open(os.path.join(DOCS, "style.css"), "w") as f:
+        f.write(CSS)
     with open(os.path.join(DOCS, "references.html"), "w") as f:
         f.write(references_page(entries))
     with open(os.path.join(DOCS, "faq.html"), "w") as f:
