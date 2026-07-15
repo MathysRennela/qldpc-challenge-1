@@ -55,9 +55,10 @@ Distance confidence is orthogonal to the tracks:
 
 - `d<=` (upper bound): a submission exhibits an explicit logical operator of the
   claimed weight, and the verifier confirms it is a genuine nontrivial logical,
-  so the distance is at most that weight.
-- `d<=*` (corroborated): an upper bound that an independent search has tried and
-  failed to beat. Evidence, not a proof.
+  so the distance is at most that weight. The claim is also refutation-tested:
+  independent searches (the deep RIS + BP+OSD gate at PR time, and weekly
+  fresh-seed sweeps of the whole board) try and fail to beat it. Evidence, not
+  a proof.
 - `d=` (exact): a server-side integer program has proven no lighter logical
   exists. This is NP-hard and does not scale, so large codes carry tight upper
   bounds while small and moderate codes are certified exact. The board shows an

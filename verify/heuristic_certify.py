@@ -1,6 +1,8 @@
 """Produce heuristic distance certificates -> certs/heuristic/<slug>.json.
 
-The producer for the `corroborated` tier (between `d<=` witness and `d=` exact).
+A manual deep-check for a single code's distance claim (the board no longer
+shows a separate corroborated tier -- every merged code faces the deeper
+per-PR refutation gate, so `d<=` already carries this meaning).
 Runs the RIS upper-bound search (verify/heuristic_distance) and, when ldpc is
 importable, the independent syndrome-decoder cross-check (decode/distance), then
 records both methods, an agreement flag, and a combined verdict. Analogous to

@@ -125,12 +125,11 @@ SITE_URL = "https://unitaryfoundation.github.io/qldpc-challenge"
 # Palette (single source of truth; the CSS :root and the inline SVGs all draw
 # from these). Adopts the Unitary Foundation brand: deep purple as the readable
 # primary accent, signature bright yellow as the highlight (records, hero glow,
-# logo node), near-black surfaces. Green/amber are kept as functional tier
-# signals (certified exact / corroborated) for chart and badge legibility.
+# logo node), near-black surfaces. Green is kept as the functional tier
+# signal (certified exact) for chart and badge legibility.
 ACCENT = "#36006c"        # UF deep purple (links, accents, stars) — reads on white
 HILITE = "#ffff00"        # UF signature yellow (highlight node, hero glow, records)
 EXACT = "#059669"         # certified-exact green, on light backgrounds
-CORR = "#d97706"          # heuristically-corroborated amber (between exact and ub)
 GREEN_BRIGHT = HILITE     # marks on the dark surface (logo highlight) — now yellow
 DARK = "#111111"          # near-black surface: hero background + logo/UI tiles
 
@@ -302,7 +301,7 @@ LI_ICON = ('<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" 
 
 CSS = f"""
 :root{{--ink:#0f172a;--mut:#64748b;--ln:#e2e8f0;--ac:{ACCENT};--ex:{EXACT};
---corr:{CORR};--exb:{GREEN_BRIGHT};--dark:{DARK};--bg:#fff;--soft:#f8fafc}}
+--exb:{GREEN_BRIGHT};--dark:{DARK};--bg:#fff;--soft:#f8fafc}}
 *{{box-sizing:border-box}}
 /* Unitary Foundation type stack: Manrope for body and page-level headings
    (H1/H2, per UF homepage), Space Grotesk for in-container display text,
@@ -443,7 +442,6 @@ line-height:1.7}}
 .dot{{display:inline-block;width:11px;height:11px;border-radius:50%;
 vertical-align:-1px;margin-right:2px}}
 .dot.ex{{background:var(--ex)}}.dot.ac{{background:var(--ac)}}
-.dot.corr{{background:var(--corr)}}
 .dot.ho{{background:#fff;border:2px solid var(--ac)}}
 .swatch{{display:inline-block;width:18px;height:11px;vertical-align:-1px;
 margin-right:3px;background:#fffbe0;border-left:3px solid var(--ac)}}
@@ -617,7 +615,7 @@ header.hero{{padding:34px 0 30px}}
 .b{{display:inline-block;font-size:11px;font-weight:700;padding:1px 6px;
 border-radius:5px;font-family:ui-monospace,monospace}}
 .b.exact{{background:#d1fae5;color:var(--ex)}}.b.ub{{background:#eef2f7;
-color:var(--mut)}}.b.corr{{background:#fef3c7;color:var(--corr)}}
+color:var(--mut)}}
 footer.foot{{margin-top:72px;border-top:1px solid var(--ln);
 background:linear-gradient(180deg,var(--soft),var(--bg));color:var(--mut);
 font-size:14px}}
@@ -910,19 +908,6 @@ def cert_consistent(cert, doc):
     return True
 
 
-def heuristic_cert_info(slug):
-    """Heuristic distance result (certs/heuristic/<slug>.json), if any. Carries a
-    `verdict` of corroborated / refuted / inconclusive (see verify/heuristic_*)."""
-    p = os.path.join(CERTS, "heuristic", slug + ".json")
-    if os.path.exists(p):
-        try:
-            with open(p) as f:
-                return json.load(f)
-        except Exception:
-            return None
-    return None
-
-
 def load_entries():
     entries = []
     for p in sorted(glob.glob(os.path.join(ROOT, "codes", "*.json"))):
@@ -941,19 +926,14 @@ def load_entries():
             print(f"  warning: {slug}: no earned distance; skipping board entry")
             continue
         cert = cert_info(slug)
-        hcert = heuristic_cert_info(slug)
-        corroborated = hcert and hcert.get("verdict") == "corroborated"
         if cert and cert.get("d_exact") and cert_consistent(cert, doc):
             tier = "exact"
-        elif cert and cert.get("d_exact"):
-            # cert claims exact but disagrees with the code's current distance
-            # (e.g. the code was edited without re-certifying); do not honor it.
-            print(f"  warning: {slug}: exact cert disagrees with the code's "
-                  f"distance; not labeling it d= (re-run verify/certify.py)")
-            tier = "corroborated" if corroborated else "ub"
-        elif corroborated:
-            tier = "corroborated"
         else:
+            if cert and cert.get("d_exact"):
+                # cert claims exact but disagrees with the code's current distance
+                # (e.g. the code was edited without re-certifying); do not honor it.
+                print(f"  warning: {slug}: exact cert disagrees with the code's "
+                      f"distance; not labeling it d= (re-run verify/certify.py)")
             tier = "ub"
         n, k, d = doc["n"], doc["k"], earned["value"]
         entries.append({
@@ -970,7 +950,7 @@ def load_entries():
             "model": doc["provenance"].get("model", ""),
             "date": doc["provenance"].get("date", ""),
             "construction": doc["provenance"].get("construction", ""),
-            "doc": doc, "cert": cert, "hcert": hcert,
+            "doc": doc, "cert": cert,
         })
     return entries
 
@@ -1038,11 +1018,10 @@ def scatter(te, front, yacc, ylabel):
     pts = []
     for i, e in enumerate(te):
         f = i in front
-        col = {"exact": EXACT, "corroborated": CORR}.get(e["tier"], ACCENT)
+        col = EXACT if e["tier"] == "exact" else ACCENT
         r = 6 if f else 4
         fill = col if f else "#fff"
-        _tlabel = {"exact": "exact", "corroborated": "corroborated"}.get(
-            e["tier"], "upper bound")
+        _tlabel = "exact" if e["tier"] == "exact" else "upper bound"
         tip = (f'[[{e["n"]},{e["k"]},{e["d"]}]]  kd2/n={e["eff"]}\n'
                f'{_tlabel}{", record" if f else ""}')
         cx, cy = sx(e["n"]), sy(yacc(e))
@@ -1063,10 +1042,9 @@ def scatter(te, front, yacc, ylabel):
 def badge(tier):
     if tier == "exact":
         return '<span class="b exact">d =</span>'
-    if tier == "corroborated":
-        return ('<span class="b corr" title="heuristically corroborated: an '
-                'independent search found nothing lighter">d &le;*</span>')
-    return '<span class="b ub">d &le;</span>'
+    return ('<span class="b ub" title="verified upper bound: an explicit '
+            'logical of this weight, and independent refutation searches '
+            'found nothing lighter">d &le;</span>')
 
 
 def mathfmt(s):
@@ -1497,20 +1475,21 @@ FAQ = [
      "weight. That certifies the distance as an upper bound (d &le;) with no "
      "trust required. A code shows d= (certified exact) only when an "
      "independent certificate proves no shorter logical operator exists."),
-    ("What do d=, d≤*, and d≤ mean, and how is the distance found?",
+    ("What do d= and d≤ mean, and how is the distance found?",
      "Distance d is the weight of the lightest nontrivial logical operator. "
-     "There are three confidence levels. d&le; (upper bound) means a submission "
+     "There are two confidence levels. d&le; (upper bound) means a submission "
      "exhibits an explicit logical operator of that weight, found by a "
      "decoder-based search (BP+OSD random coset, or heuristics like QDistEvol); "
      "the verifier confirms it is a genuine logical, so the distance is at most "
-     "that weight. d&le;* (corroborated) is an upper bound that an independent "
-     "heuristic search has tried and failed to beat: nothing lighter was found, "
-     "which is evidence but not a proof, so it sits between an upper bound and "
-     "exact. d= (certified exact) means a server-side integer program has proven "
-     "no lighter logical exists. Exact certification is NP-hard and does not "
-     "scale, so large codes carry a tight upper bound while small and moderate "
-     "codes are certified exact. A d&le; record is provisional: if the true "
-     "distance turns out lower, the entry is corrected."),
+     "that weight. The claim is also refutation-tested: independent searches "
+     "(deep randomized information-set and BP+OSD passes at submission time, "
+     "plus weekly fresh-seed sweeps of the whole board) try to find something "
+     "lighter, which is evidence but not a proof. d= (certified exact) means a "
+     "server-side integer program has proven no lighter logical exists. Exact "
+     "certification is NP-hard and does not scale, so large codes carry a tight "
+     "upper bound while small and moderate codes are certified exact. A d&le; "
+     "record is provisional: if the true distance turns out lower, the entry "
+     "is corrected."),
     ("What does kd&sup2;/n mean, and is bigger always better?",
      "It is an encoding-efficiency ratio: logical qubits times distance squared, "
      "per physical qubit. It comes from the Bravyi-Poulin-Terhal bound, which "
@@ -1816,8 +1795,6 @@ def charts_block(entries, records):
         '<div class=chartlegend>'
         f'<span class=ci><span class=cdot style="background:{EXACT}"></span>'
         'Certified exact</span>'
-        f'<span class=ci><span class=cdot style="background:{CORR}"></span>'
-        'Corroborated</span>'
         f'<span class=ci><span class=cdot style="background:{ACCENT}"></span>'
         'Upper bound</span>'
         '<span class=ci><span class=cdot style="background:#475569"></span>'
@@ -1981,11 +1958,10 @@ def build():
              'a code the literature beats may still be seeded.</span>'
              '<span><span class="dot ex"></span> certified exact '
              '(<span class="b exact">d =</span>)</span>'
-             '<span><span class="dot corr"></span> corroborated '
-             '(<span class="b corr">d &le;*</span>): an independent search '
-             'found nothing lighter, but it is not a proof</span>'
              '<span><span class="dot ac"></span> upper bound '
-             '(<span class="b ub">d &le;</span>)</span>'
+             '(<span class="b ub">d &le;</span>): a verified logical of that '
+             'weight; independent refutation searches found nothing lighter, '
+             'but it is not a proof</span>'
              f'<span><span class=hexwrap style="margin-left:0">{HEX_MARK}</span> '
              'submitted through the challenge (not a novelty claim; '
              'unmarked = literature baseline)</span>'
