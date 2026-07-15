@@ -392,15 +392,17 @@ max-width:520px;width:92%;box-shadow:0 20px 60px rgba(17,17,17,.25)}}
 font-size:24px;line-height:1;color:var(--mut);cursor:pointer}}
 .modalh{{margin:0 0 2px;font-size:20px}}
 .modalsub{{margin:0 0 14px;color:var(--mut);font-size:14px}}
-.codeblock{{position:relative;background:var(--dark);border-radius:10px;
-padding:14px 16px;overflow-x:auto}}
-.codeblock pre{{margin:0}}
-.codeblock code{{color:#e4e4e7;font-size:13px;line-height:1.7;
-white-space:pre-wrap;overflow-wrap:anywhere;background:none;padding:0;
-border:none}}
+.codeblock{{background:var(--dark);border-radius:10px;padding:12px 14px 14px}}
+/* header row holds the copy button so it never overlaps the commands */
+.cbbar{{display:flex;justify-content:flex-end;margin-bottom:6px}}
+/* the pre is the horizontal scroller; each command stays on its own line
+   (no wrap) so a long clone URL can't bleed into the next command */
+.codeblock pre{{margin:0;overflow-x:auto}}
+.codeblock code{{display:block;color:#e4e4e7;font-size:13px;line-height:1.7;
+white-space:pre;background:none;padding:0;border:none}}
 .codeblock ::selection{{background:#4f46e5;color:#fff}}
 .codeblock .cmt{{color:#8a8f98;background:none}}
-.copybtn{{position:absolute;top:8px;right:8px;border:1px solid #3a3f4a;
+.copybtn{{border:1px solid #3a3f4a;
 background:#1c2230;color:#cbd5e1;font-size:12px;padding:3px 8px;
 border-radius:6px;cursor:pointer}}
 .modalfoot{{margin:12px 0 0;font-size:13px;color:var(--mut)}}
@@ -518,9 +520,6 @@ padding:3px 0;color:var(--ink)}}
 .gcode{{font-family:'Space Mono',ui-monospace,monospace;font-size:12px;
 color:var(--ac);font-weight:700;flex:1 1 auto}}
 .gitem .geff{{font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}}
-.gmore{{font-size:11px;color:var(--ac);background:none;border:0;
-padding:5px 0 0;cursor:pointer;font-family:inherit;display:block}}
-.gmore:hover{{text-decoration:underline}}
 .gempty{{background:repeating-linear-gradient(45deg,#fafafa 0 6px,#fff 6px 12px)}}
 .searchbar{{display:flex;align-items:center;gap:12px;margin:14px 0 8px}}
 #boardsearch{{flex:1 1 0;min-width:0;font-size:14px;padding:10px 13px;
@@ -845,7 +844,7 @@ document.querySelectorAll('circle.hit[data-code]').forEach(c=>{
   if(dlo&&dhi){dlo.value=DMIN;dhi.value=DMAX;dpaint();}
   if(nlo&&nhi){nlo.value=NMIN;nhi.value=NMAX;npaint();}
   if(klo&&khi){klo.value=KMIN;khi.value=KMAX;kpaint();}}
- // Primary-tracks grid: a cell's count / 'see all' filters the table to that
+ // Primary-tracks grid: a cell's code-count chip filters the table to that
  // (locality x weight) cell and scrolls it into view.
  document.querySelectorAll('[data-cell]').forEach(b=>{
   b.addEventListener('click',()=>{
@@ -1387,8 +1386,9 @@ def contributors_panel(entries):
         '<h3 class=modalh>Participate</h3>'
         '<p class=modalsub>Run it yourself, or point a coding agent at it.</p>'
         '<div class=codeblock>'
+        '<div class=cbbar>'
         f'<button class=copybtn type=button data-copy="{html.escape(cmd)}">'
-        'copy</button>'
+        'copy</button></div>'
         f'<pre><code>git clone {REPO_ROOT}\n'
         'cd qldpc-challenge\n'
         '<span class=cmt># bring your H_X / H_Z as mycode.npz (keys hx, hz)'
@@ -1669,21 +1669,18 @@ def primary_tracks_grid(entries, records):
                 f'<span class=geff>{entries[i]["eff"]:g}</span></a>'
                 for i in ranked[:topn])
             n = len(idxs)
-            more = (f'<button type=button class=gmore data-cell="{key}">'
-                    f'see all {n} &rarr;</button>'
-                    if n > len(ranked[:topn]) else '')
             count = (f'<button type=button class=gcount data-cell="{key}" '
-                     f'title="filter the table to this cell">'
+                     f'title="filter the table below to this cell">'
                      f'{n} code{"s" if n != 1 else ""}</button>')
-            cellshtml.append(f'<td class=gcell>{count}{items}{more}</td>')
+            cellshtml.append(f'<td class=gcell>{count}{items}</td>')
         body.append(f'<tr><th class=grow>{html.escape(LOCALITY_LABEL[L])}</th>'
                     + "".join(cellshtml) + '</tr>')
     return ('<section class=ptgrid><h2 class=track>Primary tracks</h2>'
             '<p class=ptsub>Computed grid of locality &times; check weight, '
             'derived from <code>H</code> and the layout, not self-declared. '
             'Each cell lists its Pareto frontier, best kd&sup2;/n first; the '
-            'count and <em>see all</em> filter the table below to that cell, so '
-            'the runner-up and the rest of the ranking are one click away. '
+            'code count filters the table below to that cell, so the runner-up '
+            'and the rest of the ranking are one click away. '
             'Membership nests: a tighter cell&rsquo;s codes also compete in the '
             'looser ones.</p>'
             f'<div class=ptscroll><table class=grid>{head}'
