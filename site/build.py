@@ -460,6 +460,15 @@ border-radius:10px;font-size:13px;color:var(--mut)}}
 .chartlegend .ci{{display:inline-flex;align-items:center;gap:7px}}
 .plotx{{text-align:center;font-size:13px;color:#334155;margin:2px 0 0}}
 .cdot{{width:12px;height:12px;border-radius:50%;flex:0 0 auto}}
+/* Record-progress chart: running best kd^2/n per weight class over record
+   events (ecdsa.fail-style). One full-width panel; the SVG scales down. */
+.rcwrap{{margin:26px 0 4px}}
+.rcwrap .plot{{padding:10px 12px 6px}}
+.rcsub{{font-size:13px;color:var(--mut);margin:2px 0 10px;max-width:760px}}
+/* phones: scroll the wide chart instead of scaling its text away */
+@media(max-width:680px){{.rcwrap .plot{{overflow-x:auto;
+-webkit-overflow-scrolling:touch}}
+.rcwrap svg{{min-width:760px}}}}
 /* full width (matching the panels above) with fixed, evenly distributed
    columns so the slack isn't dumped into one column as a stray gap. */
 table.board{{border-collapse:collapse;width:100%;table-layout:fixed;
@@ -1635,6 +1644,121 @@ def cell_frontier_ranked(entries, idxs):
                                  -entries[i]["k"], entries[i]["n"]))
 
 
+RC_SERIES = [                       # label, weight cap, series color
+    ("w ≤ 6", 6, "#b45309"),   # validated categorical trio (amber /
+    ("w ≤ 8", 8, "#0369a1"),   # blue / violet): lightness band, chroma,
+    ("any w", 10**9, "#6d28d9"),    # CVD separation and contrast all pass
+]
+
+
+def record_chart(entries):
+    """Record progress, ecdsa.fail-style: the running best kd^2/n per check-
+    weight class (classes nest, so a light-check record competes upward). The
+    x axis is record EVENTS in date order, not elapsed time: literature seeds
+    span decades while challenge entries land weekly, so a linear time axis
+    would crush the interesting part into a sliver. y is log-scale (the
+    running best spans two orders of magnitude)."""
+    import math
+
+    def running_best(cap):
+        evs = sorted(((e["date"], e["eff"], e) for e in entries
+                      if e["date"] and e["w"] <= cap),
+                     key=lambda t: (t[0], t[1]))
+        best, out = 0.0, []
+        for date, eff, e in evs:
+            if eff > best:
+                best = eff
+                out.append((date, eff, e))
+        return out
+
+    series = [(lab, col, running_best(cap)) for lab, cap, col in RC_SERIES]
+    if not any(evs for _, _, evs in series):
+        return ""
+    # Union of record events (deduped by slug) in date order = the x axis.
+    seen, union = set(), []
+    for _, _, evs in series:
+        for date, eff, e in evs:
+            if e["slug"] not in seen:
+                seen.add(e["slug"])
+                union.append((date, eff, e["slug"]))
+    union.sort()
+    xof = {slug: i for i, (_, _, slug) in enumerate(union)}
+    W, H = 1040, 300
+    pad_l, pad_r, pad_b, pad_t = 64, 118, 30, 14
+    ymax = max(eff for _, _, evs in series for _, eff, _ in evs)
+    ylo, yhi = 0.0, math.log10(ymax) * 1.06
+
+    def sx(i):
+        return pad_l + (i / max(1, len(union) - 1)) * (W - pad_l - pad_r)
+
+    def sy(v):
+        f = (math.log10(max(v, 1.0)) - ylo) / (yhi - ylo)
+        return H - pad_b - f * (H - pad_t - pad_b)
+
+    grid, labels = [], []
+    ymid = (pad_t + H - pad_b) / 2
+    grid.append(f'<text transform="translate(14 {ymid:.0f}) rotate(-90)" '
+                'font-size="12.5" fill="#475569" text-anchor="middle">'
+                'Code Efficiency (kd&#178;/n)</text>')
+    for tick in (1, 2, 5, 10, 20, 50, 100):
+        if tick > ymax * 1.15:
+            break
+        y = sy(tick)
+        grid.append(f'<line x1="{pad_l}" y1="{y:.0f}" x2="{W-pad_r}" '
+                    f'y2="{y:.0f}" stroke="#eef2f7"/>'
+                    f'<text x="{pad_l-7}" y="{y:.0f}" font-size="12" '
+                    f'fill="#475569" text-anchor="end" dy="4">{tick}</text>')
+    year_seen = set()
+    for i, (date, _, _) in enumerate(union):
+        yr = date[:4]
+        if yr not in year_seen:
+            year_seen.add(yr)
+            grid.append(f'<text x="{sx(i):.0f}" y="{H-pad_b+19}" '
+                        f'font-size="12" fill="#475569" '
+                        f'text-anchor="middle">{yr}</text>'
+                        f'<line x1="{sx(i):.0f}" y1="{H-pad_b}" '
+                        f'x2="{sx(i):.0f}" y2="{H-pad_b+5}" stroke="#cbd5e1"/>')
+    paths, dots, ends = [], [], []
+    for lab, col, evs in series:
+        if not evs:
+            continue
+        pts = [(sx(xof[e["slug"]]), sy(eff)) for _, eff, e in evs]
+        d = f'M{pts[0][0]:.1f} {pts[0][1]:.1f}'
+        for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+            d += f' H{x1:.1f} V{y1:.1f}'
+        d += f' H{W-pad_r}'
+        paths.append(f'<path d="{d}" fill="none" stroke="{col}" '
+                     'stroke-width="2" stroke-linejoin="round"/>')
+        for (date, eff, e), (x, y) in zip(evs, pts):
+            tip = (f'[[{e["n"]},{e["k"]},{e["d"]}]] · w={e["w"]} · '
+                   f'kd²/n = {e["eff"]} · {date} · {lab} record')
+            dots.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4" '
+                        f'fill="#fff" stroke="{col}" stroke-width="2" '
+                        'pointer-events="none"/>')
+            dots.append(f'<circle class=hit data-code="{e["slug"]}" '
+                        f'cx="{x:.1f}" cy="{y:.1f}" r="11" fill="transparent" '
+                        f'data-tip="{html.escape(tip)}"/>')
+        _, last_eff, last_e = evs[-1]
+        ends.append(f'<text x="{W-pad_r+8}" y="{sy(last_eff):.0f}" dy="4" '
+                    f'font-size="12.5" fill="#334155">{lab} · '
+                    f'<tspan font-weight="700">{last_eff:g}</tspan></text>')
+    legend = "".join(
+        f'<span class=ci><span class=cdot style="background:{col}"></span>'
+        f'best kd&sup2;/n, {html.escape(lab)}</span>'
+        for lab, col, evs in series if evs)
+    return ('<section class=rcwrap id=progress>'
+            '<h2 class=track>Record progress</h2>'
+            f'<div class=plot><svg viewBox="0 0 {W} {H}" role="img" '
+            'style="width:100%;height:auto" '
+            'aria-label="Running best kd^2/n per weight class over record '
+            f'events">{"".join(grid)}{"".join(paths)}{"".join(dots)}'
+            f'{"".join(ends)}</svg></div>'
+            f'<div class=chartlegend>{legend}'
+            '<span class=ci>&#9675; a new record on this board (seeded '
+            'literature + challenge entries)</span></div>'
+            '</section>')
+
+
 def primary_tracks_grid(entries, records):
     """The Layer-1 primary tracks: the computed locality x check-weight grid. Each
     populated cell is a board; membership is derived from H and the layout (never
@@ -1932,6 +2056,7 @@ def build():
              '</div></header>')
     P.append('<div class=wrap>')
     P.append(progress_panel(entries, n_exact, best_eff))
+    P.append(record_chart(entries))
     P.append(primary_tracks_grid(entries, records))
     P.append('<div class=how>'
              '<div class=card><span class=n>1</span><h3>Build a code</h3>'
