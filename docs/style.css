@@ -1,6 +1,6 @@
 
 :root{--ink:#0f172a;--mut:#64748b;--ln:#e2e8f0;--ac:#36006c;--ex:#059669;
---corr:#d97706;--exb:#ffff00;--dark:#111111;--bg:#fff;--soft:#f8fafc}
+--exb:#ffff00;--dark:#111111;--bg:#fff;--soft:#f8fafc}
 *{box-sizing:border-box}
 /* Unitary Foundation type stack: Manrope for body and page-level headings
    (H1/H2, per UF homepage), Space Grotesk for in-container display text,
@@ -141,7 +141,6 @@ line-height:1.7}
 .dot{display:inline-block;width:11px;height:11px;border-radius:50%;
 vertical-align:-1px;margin-right:2px}
 .dot.ex{background:var(--ex)}.dot.ac{background:var(--ac)}
-.dot.corr{background:var(--corr)}
 .dot.ho{background:#fff;border:2px solid var(--ac)}
 .swatch{display:inline-block;width:18px;height:11px;vertical-align:-1px;
 margin-right:3px;background:#fffbe0;border-left:3px solid var(--ac)}
@@ -315,7 +314,7 @@ header.hero{padding:34px 0 30px}
 .b{display:inline-block;font-size:11px;font-weight:700;padding:1px 6px;
 border-radius:5px;font-family:ui-monospace,monospace}
 .b.exact{background:#d1fae5;color:var(--ex)}.b.ub{background:#eef2f7;
-color:var(--mut)}.b.corr{background:#fef3c7;color:var(--corr)}
+color:var(--mut)}
 footer.foot{margin-top:72px;border-top:1px solid var(--ln);
 background:linear-gradient(180deg,var(--soft),var(--bg));color:var(--mut);
 font-size:14px}
