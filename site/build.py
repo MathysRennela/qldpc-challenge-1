@@ -542,11 +542,11 @@ box-shadow:0 0 0 3px rgba(54,0,108,.15)}}
 .tracktabs{{display:flex;gap:6px;margin:6px 0 10px;overflow-x:auto;
 -webkit-overflow-scrolling:touch;scrollbar-width:none}}
 .tracktabs::-webkit-scrollbar{{display:none}}
-.ttab{{flex:0 0 auto;font-size:13px;padding:6px 13px;border-radius:999px;
+.ttab,.otog{{flex:0 0 auto;font-size:13px;padding:6px 13px;border-radius:999px;
 cursor:pointer;border:1px solid var(--ln);background:#fff;color:var(--mut);
 font-family:inherit;white-space:nowrap}}
-.ttab:hover{{border-color:var(--ac);color:var(--ac)}}
-.ttab.active{{background:var(--ac);border-color:var(--ac);color:#fff}}
+.ttab:hover,.otog:hover{{border-color:var(--ac);color:var(--ac)}}
+.ttab.active,.otog.active{{background:var(--ac);border-color:var(--ac);color:#fff}}
 .filterrow{{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px;align-items:center}}
 .searchhelp{{font-size:12px;color:var(--mut);margin:0 0 14px}}
 .searchhelp code{{background:var(--soft);padding:1px 5px;border-radius:4px;
@@ -784,6 +784,7 @@ document.querySelectorAll('circle.hit[data-code]').forEach(c=>{
  const klo=document.getElementById('klo'),khi=document.getElementById('khi');
  const kfill=document.getElementById('kffill'),kval=document.getElementById('kfval');
  const KMIN=klo?+klo.min:0,KMAX=klo?+klo.max:0,kspan=(KMAX-KMIN)||1;
+ const lit=document.getElementById('littoggle');
  const cmp=/^(n|k|d|w|eff)(>=|<=|>|<|=)(-?\\d+(?:\\.\\d+)?)$/;
  function term(r,t){
   const m=t.match(cmp);
@@ -826,10 +827,12 @@ document.querySelectorAll('circle.hit[data-code]').forEach(c=>{
  function apply(){
   const toks=q.value.toLowerCase().trim().split(/\\s+/).filter(Boolean);
   const wb=wbounds(),db=dbounds(),nb=nbounds(),kb=kbounds();
+  const litOn=lit&&lit.classList.contains('active');
   const vis=new Set();let shown=0;
   rows.forEach(r=>{const w=+r.dataset.w,d=+r.dataset.d,nn=+r.dataset.n,kk=+r.dataset.k;
    const ok=(w>=wb[0]&&w<=wb[1])&&(d>=db[0]&&d<=db[1])
-    &&(nn>=nb[0]&&nn<=nb[1])&&(kk>=kb[0]&&kk<=kb[1])&&toks.every(t=>term(r,t));
+    &&(nn>=nb[0]&&nn<=nb[1])&&(kk>=kb[0]&&kk<=kb[1])
+    &&(!litOn||r.dataset.origin==='literature')&&toks.every(t=>term(r,t));
    r.style.display=ok?'':'none';if(ok){shown++;vis.add(r.dataset.code);}});
   if(count)count.textContent=shown+(shown===rows.length?'':' of '+rows.length)+' codes';
   document.querySelectorAll('.plots svg.plot circle[data-code]').forEach(c=>{
@@ -852,7 +855,8 @@ document.querySelectorAll('circle.hit[data-code]').forEach(c=>{
   if(wlo&&whi){wlo.value=WMIN;whi.value=WMAX;wpaint();}
   if(dlo&&dhi){dlo.value=DMIN;dhi.value=DMAX;dpaint();}
   if(nlo&&nhi){nlo.value=NMIN;nhi.value=NMAX;npaint();}
-  if(klo&&khi){klo.value=KMIN;khi.value=KMAX;kpaint();}}
+  if(klo&&khi){klo.value=KMIN;khi.value=KMAX;kpaint();}
+  if(lit)lit.classList.remove('active');}
  // Primary-tracks grid: a cell's code-count chip filters the table to that
  // (locality x weight) cell and scrolls it into view.
  document.querySelectorAll('[data-cell]').forEach(b=>{
@@ -861,6 +865,7 @@ document.querySelectorAll('circle.hit[data-code]').forEach(c=>{
    resetsliders();q.value='cell:'+b.dataset.cell;apply();
    const bd=document.getElementById('board');
    if(bd)bd.scrollIntoView({behavior:'smooth'});});});
+ if(lit)lit.addEventListener('click',()=>{lit.classList.toggle('active');apply();});
  if(wlo&&whi){wlo.addEventListener('input',()=>{wpaint();apply();});
   whi.addEventListener('input',()=>{wpaint();apply();});wpaint();}
  if(dlo&&dhi){dlo.addEventListener('input',()=>{dpaint();apply();});
@@ -1895,12 +1900,17 @@ def board_controls(entries, records):
             'placeholder="search, e.g.  w&lt;=6 k&gt;=10 d&gt;=8  or  '
             'eff&gt;5" aria-label="search codes">'
             '<span id=boardcount class=searchcount></span></div>'
-            f'<nav class=tracktabs>{tabs}</nav>'
+            f'<nav class=tracktabs>{tabs}'
+            '<button type=button id=littoggle class=otog '
+            'title="show only literature baselines (codes seeded from '
+            'published papers, not submitted through the challenge)">'
+            'literature</button></nav>'
             f'<div class=filterrow>{wslider}{dslider}{nslider}{kslider}</div>'
             '<p class=searchhelp>Type terms (all must match): a family, author, '
             'or a comparison like <code>k&gt;=10</code> <code>d&gt;8</code> '
             '<code>eff&gt;=5</code>; <code>record</code> keeps only frontier '
-            'rows.</p>'
+            'rows; <code>literature</code> / <code>submitted</code> filter '
+            'by origin.</p>'
             '</section>')
 
 
@@ -1978,6 +1988,7 @@ def board_table(entries, records):
             FAMILY_TERM.get(e["family"], ""),
             e["locality_class"], e["weight_class"], e["novelty"],
             "2d-local" if e["locality_class"] != "unrestricted" else "",
+            "literature" if e["origin"] == "baseline" else "submitted",
         ]).lower()
         # every (locality x weight) cell this code competes in, so the grid's
         # cell links can filter with nesting (a weight-4 code shows in weight-6/8
@@ -1997,6 +2008,7 @@ def board_table(entries, records):
             f'data-tracks="{html.escape(search_terms)}" '
             f'data-cells="{html.escape(cell_keys)}" '
             f'data-record="{1 if fr else 0}" '
+            f'data-origin="{"literature" if e["origin"] == "baseline" else "submitted"}" '
             f'data-model="{html.escape(e["model"].lower())}" '
             f'data-date="{html.escape(e["date"])}" '
             f'data-auth="{html.escape(e["authors"])}">'
