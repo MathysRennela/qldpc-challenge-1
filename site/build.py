@@ -1684,7 +1684,7 @@ def record_chart(entries):
     union.sort()
     xof = {slug: i for i, (_, _, slug) in enumerate(union)}
     W, H = 1040, 300
-    pad_l, pad_r, pad_b, pad_t = 46, 118, 30, 14
+    pad_l, pad_r, pad_b, pad_t = 64, 118, 30, 14
     ymax = max(eff for _, _, evs in series for _, eff, _ in evs)
     ylo, yhi = 0.0, math.log10(ymax) * 1.06
 
@@ -1696,6 +1696,10 @@ def record_chart(entries):
         return H - pad_b - f * (H - pad_t - pad_b)
 
     grid, labels = [], []
+    ymid = (pad_t + H - pad_b) / 2
+    grid.append(f'<text transform="translate(14 {ymid:.0f}) rotate(-90)" '
+                'font-size="12.5" fill="#475569" text-anchor="middle">'
+                'Code Efficiency (kd&#178;/n)</text>')
     for tick in (1, 2, 5, 10, 20, 50, 100):
         if tick > ymax * 1.15:
             break
@@ -1744,12 +1748,6 @@ def record_chart(entries):
         for lab, col, evs in series if evs)
     return ('<section class=rcwrap id=progress>'
             '<h2 class=track>Record progress</h2>'
-            '<p class=rcsub>Running best kd&sup2;/n per check-weight class, '
-            'over this board&rsquo;s record events in date order (spacing is '
-            'per event, not elapsed time; log scale). Weight classes nest, '
-            'and the looser classes trade heavier checks for distance, so '
-            'lines are compared within a class, not across. Hover a step for '
-            'the code; click to open it.</p>'
             f'<div class=plot><svg viewBox="0 0 {W} {H}" role="img" '
             'style="width:100%;height:auto" '
             'aria-label="Running best kd^2/n per weight class over record '
