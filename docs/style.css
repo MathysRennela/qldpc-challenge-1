@@ -91,15 +91,17 @@ max-width:520px;width:92%;box-shadow:0 20px 60px rgba(17,17,17,.25)}
 font-size:24px;line-height:1;color:var(--mut);cursor:pointer}
 .modalh{margin:0 0 2px;font-size:20px}
 .modalsub{margin:0 0 14px;color:var(--mut);font-size:14px}
-.codeblock{position:relative;background:var(--dark);border-radius:10px;
-padding:14px 16px;overflow-x:auto}
-.codeblock pre{margin:0}
-.codeblock code{color:#e4e4e7;font-size:13px;line-height:1.7;
-white-space:pre-wrap;overflow-wrap:anywhere;background:none;padding:0;
-border:none}
+.codeblock{background:var(--dark);border-radius:10px;padding:12px 14px 14px}
+/* header row holds the copy button so it never overlaps the commands */
+.cbbar{display:flex;justify-content:flex-end;margin-bottom:6px}
+/* the pre is the horizontal scroller; each command stays on its own line
+   (no wrap) so a long clone URL can't bleed into the next command */
+.codeblock pre{margin:0;overflow-x:auto}
+.codeblock code{display:block;color:#e4e4e7;font-size:13px;line-height:1.7;
+white-space:pre;background:none;padding:0;border:none}
 .codeblock ::selection{background:#4f46e5;color:#fff}
 .codeblock .cmt{color:#8a8f98;background:none}
-.copybtn{position:absolute;top:8px;right:8px;border:1px solid #3a3f4a;
+.copybtn{border:1px solid #3a3f4a;
 background:#1c2230;color:#cbd5e1;font-size:12px;padding:3px 8px;
 border-radius:6px;cursor:pointer}
 .modalfoot{margin:12px 0 0;font-size:13px;color:var(--mut)}
@@ -217,9 +219,6 @@ padding:3px 0;color:var(--ink)}
 .gcode{font-family:'Space Mono',ui-monospace,monospace;font-size:12px;
 color:var(--ac);font-weight:700;flex:1 1 auto}
 .gitem .geff{font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}
-.gmore{font-size:11px;color:var(--ac);background:none;border:0;
-padding:5px 0 0;cursor:pointer;font-family:inherit;display:block}
-.gmore:hover{text-decoration:underline}
 .gempty{background:repeating-linear-gradient(45deg,#fafafa 0 6px,#fff 6px 12px)}
 .searchbar{display:flex;align-items:center;gap:12px;margin:14px 0 8px}
 #boardsearch{flex:1 1 0;min-width:0;font-size:14px;padding:10px 13px;
