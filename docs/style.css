@@ -241,11 +241,11 @@ box-shadow:0 0 0 3px rgba(54,0,108,.15)}
 .tracktabs{display:flex;gap:6px;margin:6px 0 10px;overflow-x:auto;
 -webkit-overflow-scrolling:touch;scrollbar-width:none}
 .tracktabs::-webkit-scrollbar{display:none}
-.ttab{flex:0 0 auto;font-size:13px;padding:6px 13px;border-radius:999px;
+.ttab,.otog{flex:0 0 auto;font-size:13px;padding:6px 13px;border-radius:999px;
 cursor:pointer;border:1px solid var(--ln);background:#fff;color:var(--mut);
 font-family:inherit;white-space:nowrap}
-.ttab:hover{border-color:var(--ac);color:var(--ac)}
-.ttab.active{background:var(--ac);border-color:var(--ac);color:#fff}
+.ttab:hover,.otog:hover{border-color:var(--ac);color:var(--ac)}
+.ttab.active,.otog.active{background:var(--ac);border-color:var(--ac);color:#fff}
 .filterrow{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px;align-items:center}
 .searchhelp{font-size:12px;color:var(--mut);margin:0 0 14px}
 .searchhelp code{background:var(--soft);padding:1px 5px;border-radius:4px;
