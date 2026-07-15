@@ -7111,6 +7111,7 @@
   "authors": [
    "@seunomonije"
   ],
+  "model": "Claude Fable 5",
   "construction": "Generalized bicycle (two-block) code on the cyclic group Z_195: H_X = [A|B], H_Z = [B^T|A^T] with A, B circulants; a(x) support {0,36,84,86,91,100,139,177}, b(x) support {24,30,82,102,133,169,175,185}. Both a and b are sparse multiples of a degree-37 divisor g of x^195-1 (product of the degree-1 factor x+1 and three degree-12 irreducible factors), giving k = 2*deg gcd(a,b,x^195-1) = 82 at n = 390 with weight-16 checks. Distance evidence: rising RIS ladder to 20M trials/side plus three independent 8M-trial refutation passes (seeds 777/888/999) all bottoming at d<=27; BP+OSD decoder search found nothing lighter than 46.",
   "references": [
    "arXiv:1904.02703",
