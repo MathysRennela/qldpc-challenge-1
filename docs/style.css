@@ -120,7 +120,13 @@ object-fit:cover;flex:0 0 auto}
 flex:0 0 auto}
 .lbm b{font-size:17px;font-variant-numeric:tabular-nums}
 .lbml{font-size:11px;color:var(--mut);margin-top:1px;white-space:nowrap}
-@media(max-width:680px){.lbm:nth-child(n+5){display:none}.lbm{width:64px}}
+/* phones: show every metric column (codes/frontier/exact/kd2n) instead of
+   hiding the right-hand ones. The list scrolls horizontally as one unit; rows
+   share a min-width so the columns stay aligned row-to-row while scrolling. */
+@media(max-width:680px){.lbm{width:64px}
+.lblist{overflow-x:auto}
+.lbrow{min-width:520px}
+.lbname{min-width:96px}}
 .how{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:40px 0}
 .how .card{border:1px solid var(--ln);border-radius:12px;padding:20px;
 background:var(--soft)}
