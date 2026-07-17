@@ -126,6 +126,68 @@ def score_from_computed(n, k, d, computed) -> dict | None:
     }
 
 
+def evaluate_embedding(n, k, d, coords, supports, layers: int = 1) -> dict:
+    """Score a single embedding. Returns a dict with the geometry and, when the
+    layout is honest and a distance is known, the score f. `valid` is False for a
+    crammed or malformed layout (more qubits per site than declared layers, or
+    sites closer than one lattice unit, which would fake a small range)."""
+    if len(coords) != n:
+        return {"valid": False, "reason": f"{len(coords)} coords != n={n}"}
+    import collections
+    pts = [tuple(c) for c in coords]
+    D = len(pts[0]) if pts else 0
+    mult = collections.Counter(pts)
+    max_mult = max(mult.values())
+    sites = sorted(mult)
+    min_spacing = min((math.dist(a, b)
+                       for i, a in enumerate(sites) for b in sites[i + 1:]),
+                      default=float("inf"))
+
+    def diam(sup):
+        ps = [pts[q] for q in sup]
+        return max((math.dist(a, b) for a in ps for b in ps), default=0.0)
+
+    radius = max((diam(s) for s in supports), default=0.0)
+    honest = (max_mult <= layers
+              and (min_spacing >= 1.0 - 1e-9 or min_spacing == float("inf")))
+    spacing = min_spacing if min_spacing != float("inf") else 1.0
+    w = box_range(pts, supports, spacing)
+    out = {
+        "valid": bool(honest and D >= 2 and w > 0 and k and d),
+        "D": D, "w": w, "radius": round(radius, 4),
+        "max_qubits_per_site": max_mult,
+        "min_spacing": (round(min_spacing, 4)
+                        if min_spacing != float("inf") else None),
+    }
+    if not honest:
+        out["reason"] = "crammed layout (qubits/site > layers or spacing < 1)"
+    elif out["valid"]:
+        out["f"] = round(score(n, k, d, D, w), 4)
+    return out
+
+
+def best_over_embeddings(n, k, d, embeddings) -> dict | None:
+    """f* = max f over a code's certified embeddings. `embeddings` is a list of
+    (coords, layers, label). Returns the winning embedding's score dict
+    augmented with how many embeddings were scored and which one won, or None if
+    none is valid (f is undefined)."""
+    scored = []
+    for coords, layers, label, supports in embeddings:
+        ev = evaluate_embedding(n, k, d, coords, supports, layers)
+        if ev.get("valid"):
+            scored.append((ev, label))
+    if not scored:
+        return None
+    ev, label = max(scored, key=lambda s: s[0]["f"])
+    return {
+        "f": ev["f"], "D": ev["D"], "w": ev["w"],
+        "ceiling": round(ceiling(ev["D"]), 1),
+        "ceiling_version": CEILING_VERSION,
+        "n_embeddings": len(scored),
+        "source": label,
+    }
+
+
 def _surface_code_layout(d: int):
     """Rotated surface code, distance d: d^2 data qubits on an integer grid with
     weight<=4 plaquettes on unit 2x2 cells. Returns (n, k, coords, supports)."""

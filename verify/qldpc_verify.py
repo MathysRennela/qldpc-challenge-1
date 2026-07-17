@@ -121,6 +121,11 @@ def resource_errors(doc):
     if len(coords) > MAX_COORDINATES:
         errs.append(f"locality.coordinates has {len(coords)} points, limit is "
                     f"{MAX_COORDINATES}")
+    for i, emb in enumerate(doc.get("alt_embeddings") or []):
+        ac = emb.get("coordinates") or []
+        if len(ac) > MAX_COORDINATES:
+            errs.append(f"alt_embeddings[{i}].coordinates has {len(ac)} points, "
+                        f"limit is {MAX_COORDINATES}")
     return errs
 
 
@@ -472,13 +477,23 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
     # the exact-d flag is added at site-build time from certs/, since exactness
     # is certified separately, not by this trustless check).
     report["computed"]["locality_class"] = locality_class
-    # Locality-track score f (issue #168); None unless an embedding certifies a
-    # grid dimension AND a distance has been earned (f is undefined otherwise).
+    # Locality-track score f* (issue #168): the max f over every certified
+    # embedding (the canonical `locality` plus any `alt_embeddings`). Decoupled
+    # from the locality class -- any honest embedding into a fixed-dimension grid
+    # is scorable; track membership stays with `locality`. None when no honest
+    # embedding exists or no distance has been earned (f is then undefined).
     _k = report["computed"].get("k")
     _d = report["earned_distance"].get("d", {}).get("value")
+    _sup = doc["checks"]["X"] + doc["checks"]["Z"]
+    _embs = []
+    if loc is not None and "coordinates" in loc:
+        _embs.append((loc["coordinates"], loc.get("layers", 1), "locality", _sup))
+    for _i, _e in enumerate(doc.get("alt_embeddings", []) or []):
+        _embs.append((_e["coordinates"], _e.get("layers", 1),
+                      f"alt_embeddings[{_i}]", _sup))
     report["computed"]["locality_score"] = (
-        locality_score.score_from_computed(n, _k, _d, report["computed"])
-        if _k and _d else None)
+        locality_score.best_over_embeddings(n, _k, _d, _embs)
+        if _k and _d and _embs else None)
     report["computed"]["flags"] = {
         "css": bool(report["checks"] and
                     all(c["ok"] for c in report["checks"]

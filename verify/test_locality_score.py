@@ -57,6 +57,42 @@ def test_score_from_computed_roundtrip():
     assert out["ceiling_version"] == "v1"
 
 
+def test_evaluate_embedding_scores_surface_plaquette():
+    n, k, coords, supports = ls._surface_code_layout(5)
+    ev = ls.evaluate_embedding(n, k, 5, coords, supports, layers=1)
+    assert ev["valid"] and ev["D"] == 2 and ev["w"] == 2
+    assert abs(ev["f"] - 1.0) < 1e-9
+
+
+def test_evaluate_embedding_rejects_crammed_layout():
+    # Two qubits on the same site with layers=1 is cramming -> not scorable.
+    coords = [(0, 0), (0, 0), (1, 0), (1, 1)]
+    ev = ls.evaluate_embedding(4, 1, 3, coords, [[0, 1, 2, 3]], layers=1)
+    assert ev["valid"] is False and "cram" in ev["reason"]
+    # With two declared layers the same layout is honest again.
+    ev2 = ls.evaluate_embedding(4, 1, 3, coords, [[0, 1, 2, 3]], layers=2)
+    assert ev2["valid"] is True
+
+
+def test_best_over_embeddings_takes_the_max():
+    supports = [[0, 1, 2, 3]]
+    tight = [(0, 0), (1, 0), (0, 1), (1, 1)]          # span 1/axis -> w=2
+    loose = [(0, 0), (2, 0), (0, 1), (1, 1)]          # x-span 2   -> w=3
+    embs = [(loose, 1, "alt_embeddings[0]", supports),
+            (tight, 1, "locality", supports)]
+    best = ls.best_over_embeddings(4, 1, 3, embs)
+    assert best["w"] == 2 and best["source"] == "locality"
+    assert best["n_embeddings"] == 2
+    # The tight embedding must out-score the loose one.
+    assert best["f"] == ls.evaluate_embedding(4, 1, 3, tight, supports)["f"]
+
+
+def test_best_over_embeddings_none_when_all_crammed():
+    crammed = [(0, 0), (0, 0)]
+    assert ls.best_over_embeddings(
+        2, 1, 2, [(crammed, 1, "locality", [[0, 1]])]) is None
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):

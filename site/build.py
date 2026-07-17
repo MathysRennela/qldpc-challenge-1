@@ -1174,12 +1174,15 @@ def detail_page(e):
                        "physical layers (e.g. 2 for a flip-chip bilayer)"))
     if e.get("lscore"):
         ls = e["lscore"]
+        nemb = ls.get("n_embeddings", 1)
+        best_of = (f' Best of {nemb} certified embeddings.'
+                   if nemb > 1 else "")
         params.append(
             (f'f (D={ls["D"]})', ls["f"],
              f'locality-track score 16&middot;k&middot;d^(2/(D-1)) / '
              f'(w^(2+2/(D-1))&middot;n), range w={ls["w"]} (issue #168). '
              f'Rotated surface code = 1; f>1 beats it. Proven ceiling '
-             f'{ls["ceiling"]:g} ({ls["ceiling_version"]}).'))
+             f'{ls["ceiling"]:g} ({ls["ceiling_version"]}).{best_of}'))
     for lab, val, tip in params:
         P.append(f'<div class=cell title="{html.escape(tip)}">'
                  f'<div class=l>{lab}</div><div class=v>{val}</div></div>')

@@ -49,6 +49,11 @@ Two principles drive the format:
   - `interaction_radius`: claimed max check diameter in the layout; the
     verifier recomputes the true max check diameter and requires
     `measured <= claim`.
+- `alt_embeddings` (optional): a list of further certified layouts, each with the
+  same shape as `locality`. The verifier scores every honest embedding and
+  reports the locality-track score `f*` as the maximum over all of them (issue
+  #168). Extra embeddings only raise `f*`; they never change the locality class,
+  which is derived from `locality` alone.
 - `provenance`: `authors`, `construction` (how it was built), optional
   `references`, `date`, `notes`, `model`.
   - `origin`: `"baseline"` for a literature seed or `"submission"` for a code

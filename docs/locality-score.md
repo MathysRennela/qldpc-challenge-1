@@ -50,9 +50,13 @@ rho * delta^2 > 1/16 at D=2. That is a concrete open target: exhibit a good code
 with rho * delta^2 > 1/16, or any 2D-local family with f > 1.
 
 Because f decreases in both D and w, and a code can trade D against w along its
-embedding curve, a code's score is the maximum of f over its certified
+embedding curve, a code's score is f*, the maximum of f over its certified
 embeddings, an intrinsic invariant of (H_X, H_Z), NP-hard to compute exactly but
-certifiable in the same sense as the distance d.
+certifiable in the same sense as the distance d. A submission gives its canonical
+layout in `locality` and may list further certified layouts in `alt_embeddings`;
+the verifier scores each honest one and reports the maximum. Extra embeddings can
+only raise f*, never lower it, and they do not change track membership, which
+stays with `locality`.
 
 ## The ceiling (versioned)
 

@@ -33,20 +33,14 @@
       }
     },
     "locality": {
-      "type": "object",
-      "description": "optional; required only for the 2d-local tracks",
-      "required": ["coordinates"],
-      "additionalProperties": false,
-      "properties": {
-        "coordinates": {
-          "type": "array",
-          "description": "one [x, y] per qubit, indexed 0..n-1",
-          "maxItems": 5000,
-          "items": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}
-        },
-        "layers": {"type": "integer", "minimum": 1, "description": "physical layers (e.g. 2 for flip-chip bilayer)"},
-        "interaction_radius": {"type": "number", "minimum": 0, "description": "claimed max check diameter in the layout; verifier recomputes"}
-      }
+      "allOf": [{"$ref": "#/$defs/embedding"}],
+      "description": "optional; required only for the 2d-local tracks. The canonical layout: sets track membership and the reported diagnostics."
+    },
+    "alt_embeddings": {
+      "type": "array",
+      "description": "optional additional certified layouts. Each is scored and the locality-track score f* is the max f over all embeddings (issue #168). These raise f* only; track membership stays derived from `locality`.",
+      "maxItems": 16,
+      "items": {"$ref": "#/$defs/embedding"}
     },
     "provenance": {
       "type": "object",
@@ -82,6 +76,21 @@
     }
   },
   "$defs": {
+    "embedding": {
+      "type": "object",
+      "required": ["coordinates"],
+      "additionalProperties": false,
+      "properties": {
+        "coordinates": {
+          "type": "array",
+          "description": "one [x, y] per qubit, indexed 0..n-1",
+          "maxItems": 5000,
+          "items": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}
+        },
+        "layers": {"type": "integer", "minimum": 1, "description": "physical layers (e.g. 2 for flip-chip bilayer)"},
+        "interaction_radius": {"type": "number", "minimum": 0, "description": "claimed max check diameter in the layout; verifier recomputes"}
+      }
+    },
     "supportList": {
       "type": "array",
       "description": "one entry per parity check; each entry is the sorted list of distinct qubit indices in that check's support",
