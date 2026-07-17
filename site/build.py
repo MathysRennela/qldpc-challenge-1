@@ -1365,8 +1365,9 @@ def contributors_panel(entries):
             h = a.strip()
             if not (h.startswith("@") and re.fullmatch(r"@[A-Za-z0-9-]+", h)):
                 continue
-            s = stats.setdefault(h, {"codes": 0, "front": 0, "exact": 0,
-                                     "eff": 0.0})
+            s = stats.setdefault(h.casefold(),
+                                 {"codes": 0, "front": 0, "exact": 0,
+                                  "eff": 0.0, "handle": h})
             s["codes"] += 1
             s["front"] += e["slug"] in front_slugs
             s["exact"] += e["tier"] == "exact"
@@ -1375,7 +1376,7 @@ def contributors_panel(entries):
         return ""
     order = sorted(stats.items(),
                    key=lambda kv: (-kv[1]["eff"], -kv[1]["front"],
-                                   -kv[1]["codes"], kv[0]))
+                                   -kv[1]["codes"], kv[1]["handle"]))
     n_codes = sum(1 for e in entries if e["origin"] != "baseline")
 
     def metric(v, lab):
@@ -1383,7 +1384,8 @@ def contributors_panel(entries):
                 f'<span class=lbml>{lab}</span></span>')
 
     rows = []
-    for r, (h, s) in enumerate(order, 1):
+    for r, (_, s) in enumerate(order, 1):
+        h = s["handle"]
         crown = ' <span class=lbcrown title="top contributor">&#128081;</span>' \
             if r == 1 else ''
         rows.append(
