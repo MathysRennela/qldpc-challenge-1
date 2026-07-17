@@ -58,10 +58,16 @@ by the weekly board sweep, in which case the code is removed. The seed is printe
 so any failure reproduces.
 
 Public CI also enforces resource limits before dense verifier matrices are
-allocated: 5 MB JSON files, `n <= 5000`, at most 10000 checks per side, max check
-weight 40, at most 200000 total support entries, and at most 5000 locality
-coordinates. Larger codes need maintainer handling until the verifier is sparse
-end-to-end.
+allocated: 5 MB JSON files, `n <= 700`, at most 10000 checks per side, max check
+weight 40, at most 200000 total support entries, and at most 700 locality
+coordinates.
+
+The `n <= 700` cap is the verification-budget rule (issue #249): the adaptive
+distance gate runs under a fixed wall-clock budget, so its trials-per-qubit thin
+out as `n` grows, and exact MILP certification scales worse still. Above the cap
+the pipeline cannot stand behind a distance claim, so the board is kept a
+finite-length benchmark. The cap is raise-only: it states what the verification
+machinery can vouch for today, and rises as the tooling improves.
 
 ## Contribute with an LLM
 
