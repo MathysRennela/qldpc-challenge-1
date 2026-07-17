@@ -204,7 +204,8 @@ box-shadow:inset 3px 0 0 var(--ac)}
 .board tr.fr:hover{background:#fff6c4}
 .board tbody tr.xh,.board tbody tr.fr.xh{background:#fef3c7}
 .board tbody tr.xh td:first-child{box-shadow:inset 3px 0 0 #f59e0b}
-.typecell{white-space:normal!important}
+.typecell{white-space:normal!important;line-height:1.7}
+.codecell{white-space:normal!important;line-height:1.7}
 .tchip{display:inline-block;font-size:11px;line-height:1.25;padding:3px 7px;
 margin:2px 4px 2px 0;border-radius:999px;background:var(--soft);color:var(--mut);
 border:1px solid var(--ln);white-space:normal}
