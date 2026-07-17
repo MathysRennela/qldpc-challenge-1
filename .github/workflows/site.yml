@@ -26,18 +26,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@v5
-      - name: rebuild the leaderboard site
-        run: make build
-      - name: commit regenerated pages (if anything changed)
+      - name: rebuild and commit regenerated pages (race-safe)
         run: |
-          git add docs/index.html docs/codes docs/stats.json docs/references.html docs/faq.html docs/style.css docs/favicon.svg
-          if git diff --cached --quiet; then
-            echo "site already up to date"
-            exit 0
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Rebuild leaderboard site [skip ci]"
-          git pull --rebase origin main
-          git push origin main
+          # Each run is triggered by its own merge commit, so a rebase of the
+          # rebuild commit conflicts against another run's rebuild. Instead,
+          # reset to the LATEST main, rebuild fresh, and retry push on any race
+          # -- this always converges docs/ to the current code state.
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            make build
+            git add docs/index.html docs/codes docs/stats.json docs/references.html docs/faq.html docs/style.css docs/favicon.svg
+            if git diff --cached --quiet; then
+              echo "site already up to date"; exit 0
+            fi
+            git commit -m "Rebuild leaderboard site [skip ci]"
+            if git push origin main; then
+              echo "pushed on attempt $attempt"; exit 0
+            fi
+            echo "push raced; retrying ($attempt)"
+          done
+          echo "failed to push after 5 attempts"; exit 1
