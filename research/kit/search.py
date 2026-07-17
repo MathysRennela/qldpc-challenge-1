@@ -30,6 +30,9 @@ from css import compute_k, verify_css, rref
 from surrogate import distance_rand
 from bb import build_bb
 from group_algebra import build_2bga, dihedral, metacyclic
+from products import (hypergraph_product, lifted_product, balanced_product,
+                      sample_hypergraph_product, sample_lifted_product,
+                      sample_balanced_product)
 
 
 def efficiency(n, k, d):
@@ -73,7 +76,9 @@ def screen(candidates, *, min_k=1, min_d=1, trials=400, seed=0,
         d = distance_rand(HX, HZ, trials=trials, seed=seed)
         if d == float("inf") or d < min_d:
             continue
-        rec = {"spec": spec, "n": n, "k": int(k), "d": int(d),
+        w = int(max((HX.shape[0] and max((int(r.sum()) for r in HX), default=0)),
+                    (HZ.shape[0] and max((int(r.sum()) for r in HZ), default=0))))
+        rec = {"spec": spec, "n": n, "k": int(k), "d": int(d), "w": w,
                "efficiency": round(float(metric(n, k, d)), 4), "fingerprint": fp}
         seen[fp] = rec
         if verbose:
