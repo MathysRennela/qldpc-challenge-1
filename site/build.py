@@ -505,7 +505,8 @@ box-shadow:inset 3px 0 0 var(--ac)}}
 .board tr.fr:hover{{background:#fff6c4}}
 .board tbody tr.xh,.board tbody tr.fr.xh{{background:#fef3c7}}
 .board tbody tr.xh td:first-child{{box-shadow:inset 3px 0 0 #f59e0b}}
-.typecell{{white-space:normal!important}}
+.typecell{{white-space:normal!important;line-height:1.7}}
+.codecell{{white-space:normal!important;line-height:1.7}}
 .tchip{{display:inline-block;font-size:11px;line-height:1.25;padding:3px 7px;
 margin:2px 4px 2px 0;border-radius:999px;background:var(--soft);color:var(--mut);
 border:1px solid var(--ln);white-space:normal}}
@@ -1956,8 +1957,8 @@ def board_table(entries, records):
                        f'{html.escape(LOCALITY_LABEL[e["locality_class"]])}</span>')
         return "".join(out)
 
-    cols = ('<colgroup><col style="width:3%"><col style="width:14%">'
-            '<col style="width:12%"><col style="width:6%"><col style="width:6%">'
+    cols = ('<colgroup><col style="width:3%"><col style="width:13%">'
+            '<col style="width:13%"><col style="width:6%"><col style="width:6%">'
             '<col style="width:7%"><col style="width:8%"><col style="width:5%">'
             '<col style="width:16%"><col style="width:14%">'
             '<col style="width:9%"></colgroup>')
@@ -2020,7 +2021,7 @@ def board_table(entries, records):
             f'data-auth="{html.escape(e["authors"])}">'
             f'<td class=star title="{"record: Pareto-best in a computed cell among listed codes (board-relative, not a literature record)" if fr else ""}">'
             f'{"&#9733;" if fr else ""}</td>'
-            f'<td><span class=mono>[[{e["n"]},{e["k"]},{e["d"]}]]</span>'
+            f'<td class=codecell><span class=mono>[[{e["n"]},{e["k"]},{e["d"]}]]</span>'
             + ('<span class=hexwrap title="submitted through the challenge; '
                f'not a novelty claim">{HEX_MARK}</span>'
                if e["origin"] != "baseline" else "")
