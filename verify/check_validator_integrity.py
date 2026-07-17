@@ -27,6 +27,7 @@ MANIFEST = os.path.join(_HERE, "validator_manifest.json")
 TRUSTED = [
     "validate_candidate.py",     # the gate itself
     "qldpc_verify.py",           # the real verifier (schema/n/k/CSS/weight/witness)
+    "locality_score.py",         # locality-track score, imported by the verifier
     "heuristic_distance.py",     # the RIS distance search + refute_check
     "gf2.py",                    # the GF(2) core (rref/rank/kernel used above)
     "check_validator_integrity.py",  # this checker, pinned as its own tripwire
