@@ -1009,6 +1009,9 @@ def load_entries():
             "eff": round(k * d * d / n, 3), "tier": tier,
             "w": rep["computed"].get("max_check_weight"),
             "family": doc.get("family", "other"),
+            # Locality-track score f (issue #168); None unless an embedding
+            # certifies a grid dimension (undefined for expander/unrestricted).
+            "lscore": rep["computed"].get("locality_score"),
             "locality_class": rep["computed"].get("locality_class", "unrestricted"),
             "weight_class": rep["computed"].get("weight_class", "weight-9plus"),
             "origin": doc["provenance"].get("origin", "submission"),
@@ -1169,6 +1172,14 @@ def detail_page(e):
         loc = doc["locality"]
         params.append(("layers", loc.get("layers", "?"),
                        "physical layers (e.g. 2 for a flip-chip bilayer)"))
+    if e.get("lscore"):
+        ls = e["lscore"]
+        params.append(
+            (f'f (D={ls["D"]})', ls["f"],
+             f'locality-track score 16&middot;k&middot;d^(2/(D-1)) / '
+             f'(w^(2+2/(D-1))&middot;n), range w={ls["w"]} (issue #168). '
+             f'Rotated surface code = 1; f>1 beats it. Proven ceiling '
+             f'{ls["ceiling"]:g} ({ls["ceiling_version"]}).'))
     for lab, val, tip in params:
         P.append(f'<div class=cell title="{html.escape(tip)}">'
                  f'<div class=l>{lab}</div><div class=v>{val}</div></div>')
@@ -1645,6 +1656,20 @@ FAQ = [
      "hundreds). So kd&sup2;/n is compared within a track, among codes of "
      "comparable size and check weight, not across the whole field. The "
      "headline number is the best among the codes on this board."),
+    ("What is the locality-track score f?",
+     "For a code with a certified 2D (or higher) layout, f measures how close it "
+     "comes to the Bravyi-Poulin-Terhal ceiling for geometrically local codes: "
+     "f = 16&middot;k&middot;d<sup>2/(D-1)</sup> / (w<sup>2+2/(D-1)</sup>&middot;n), "
+     "where D is the grid dimension and w is the interaction range (the box of "
+     "sites each stabilizer fits in, a geometric quantity, not the algebraic "
+     "check weight). The constant is fixed so the rotated surface code scores "
+     "exactly 1 at every size; the challenge is to beat it, f &gt; 1. The "
+     "exponents are provably optimal (a tiled good code saturates them), so "
+     "unlike kd&sup2;/n this is a saturation ratio against a proven ceiling "
+     "(f &le; 2<sup>17</sup> at D=2), not a convention. It applies only to codes "
+     "that embed in a fixed dimension; the high-rate expander codes have no such "
+     "embedding, so f is undefined for them and they compete on kd&sup2;/n "
+     "instead. See docs/locality-score.md and issue #168."),
     ("What do I get if I find a new code?",
      "Bragging rights, chiefly. Your code lands on the board under your GitHub "
      "handle with a permanent link you can wave around, and if it advances a "

@@ -23,6 +23,12 @@ Locality class, derived from the layout (one coordinate per qubit):
 These nest: a `local-2d-single` code also competes as `local-2d-bilayer` and
 `unrestricted`.
 
+Codes with a certified embedding also carry a locality-track score `f`, a
+saturation ratio against the Bravyi-Poulin-Terhal ceiling for geometrically
+local codes, normalized so the rotated surface code scores 1. Unlike kd^2/n its
+exponents are proven optimal, so f > 1 is a well-posed target. It is undefined
+for unrestricted (expander) codes. See `docs/locality-score.md` (issue #168).
+
 Check-weight class, from the maximum row weight of `H_X`, `H_Z`:
 
 - `weight-4` (w <= 4), `weight-6` (w <= 6), `weight-8` (w <= 8), `any weight`

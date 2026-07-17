@@ -36,6 +36,7 @@ import numpy as np
 
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
 import gf2
+import locality_score
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _SCHEMA_PATH = os.path.join(_HERE, "..", "schema", "code.schema.json")
@@ -441,6 +442,11 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
             ys = [p[1] for p in pts]
             bbox = [round(max(xs) - min(xs), 4), round(max(ys) - min(ys), 4)]
             area = bbox[0] * bbox[1]
+            # Box-side range w for the locality score (issue #168): smallest box
+            # of sites, per axis, containing every stabilizer's support.
+            spacing = min_spacing if min_spacing != float("inf") else 1.0
+            box_w = locality_score.box_range(
+                coords, doc["checks"]["X"] + doc["checks"]["Z"], spacing)
             report["computed"]["locality"] = {
                 "interaction_radius": round(radius, 4),
                 "layers": layers,
@@ -449,6 +455,7 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
                                      if min_spacing != float("inf") else None),
                 "qubits_per_unit_area": round(len(pts) / area, 4) if area else None,
                 "bbox": bbox,
+                "box_range": box_w,
             }
             if "interaction_radius" in loc:
                 record("interaction_radius_within_claim",
@@ -465,6 +472,13 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
     # the exact-d flag is added at site-build time from certs/, since exactness
     # is certified separately, not by this trustless check).
     report["computed"]["locality_class"] = locality_class
+    # Locality-track score f (issue #168); None unless an embedding certifies a
+    # grid dimension AND a distance has been earned (f is undefined otherwise).
+    _k = report["computed"].get("k")
+    _d = report["earned_distance"].get("d", {}).get("value")
+    report["computed"]["locality_score"] = (
+        locality_score.score_from_computed(n, _k, _d, report["computed"])
+        if _k and _d else None)
     report["computed"]["flags"] = {
         "css": bool(report["checks"] and
                     all(c["ok"] for c in report["checks"]
