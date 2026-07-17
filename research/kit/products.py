@@ -13,8 +13,9 @@
       algebraic structure from both parents.  The general balanced product
       (Hastings-Haah-O'Donnell, arXiv:2009.03921) is broader.
 
-CSS commutation is AUTOMATIC for all three (left and right regular reps commute
-for LP/BP; the tensor-product structure guarantees it for HP).
+CSS commutation is AUTOMATIC for all three: the tensor-product structure
+guarantees it for HP and BP (which is HP of two 2BGA codes), and left/right
+regular reps commute for LP.
 
 The sampler functions yield (spec, HX, HZ) triples consumable by kit/search.screen.
 """
