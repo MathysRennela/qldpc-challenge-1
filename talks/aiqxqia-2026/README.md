@@ -18,6 +18,6 @@ Build:
 Submission is through EasyChair
 (https://easychair.org/conferences/?conf=aiqxqia2026). Deadline July 31.
 
-Author order follows the QSW 2.6 abstract. Before submitting: add ORCIDs and
+Authors are alphabetical by surname. Before submitting: add ORCIDs and
 co-author emails, and update the
 `\conference` line once the workshop announces dates and location.
