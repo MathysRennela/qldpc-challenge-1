@@ -93,11 +93,11 @@ even an unintentional one, to overclaim.
 The QEC Challenge\footnote{\url{https://github.com/unitaryfoundation/qldpc-challenge}}
 is a public, continuously verified leaderboard designed around that asymmetry.
 This paper describes its design and reports on its first months of operation.
-The system is of interest to this workshop in both directions of the AI and
-quantum intersection: it is infrastructure that makes AI-driven quantum code
-discovery auditable, and its accumulated history of refuted and confirmed
-claims is itself a dataset about the reliability of heuristic verification,
-a question AI methods for quantum error correction cannot avoid.
+The system faces both directions of the AI and quantum intersection: it is
+infrastructure that makes AI-driven quantum code discovery auditable, and its
+accumulated history of refuted and confirmed claims is a dataset about the
+reliability of heuristic verification, a question AI methods for quantum error
+correction cannot avoid.
 
 \section{Design principles}
 
@@ -163,9 +163,12 @@ codes~\cite{panteleev2021degenerate,wang2022distance}, tile
 codes~\cite{steffan2025tile}, two-block coset codes~\cite{aydin2026breaking},
 and the surface, toric, and Steane
 codes~\cite{kitaev2003fault,steane1996error}, so a new entry is measured
-against published codes rather than an empty table.
+against published codes rather than an empty table. The board complements the
+Error Correction Zoo~\cite{eczoo}: the Zoo catalogs code families and their
+known parameters, while the board stores concrete parity-check instances whose
+claims are machine-checked and then kept under attack.
 
-\section{Figures of merit, honestly labeled}
+\section{Figures of merit}
 \label{sec:metrics}
 
 The efficiency figure $\eff$ is the standard headline number in the qLDPC
@@ -215,7 +218,7 @@ independent bounded searches for a logical operator \emph{lighter} than the
 claim: a random-information-set search in the spirit of
 QDistRnd~\cite{pryadko2023qdistrnd} and a syndrome-decoder search built on
 belief propagation with ordered-statistics
-post-processing~\cite{roffe2020decoding}, two genuinely different mechanisms.
+post-processing~\cite{roffe2020decoding}, two different search mechanisms.
 Budgets are adaptive. Trial counts scale with block length, and a code that
 would enter a cell's Pareto frontier faces a much deeper multi-seed battery
 than a dominated one, so scrutiny concentrates exactly where gaming would
@@ -234,7 +237,7 @@ generator $t$ of the relevant type, a bounded solver decides feasibility of
 \end{equation}
 with the parity constraints linearized by integer slacks. Infeasibility for
 every generator on both sides proves $d$ exact; a feasible point is a
-refutation; a solver timeout leaves the claim honestly an upper bound.
+refutation; a solver timeout leaves the claim an upper bound.
 Nothing is ever silently upgraded, and every tier is backed by an artifact in
 the repository: the witness inside the submission, a heuristic certificate
 recording the failed attack, or an exact certificate. Of the 124 codes
@@ -273,7 +276,7 @@ The adaptive gate runs under a fixed wall-clock budget, so its trials per
 qubit thin out as $n$ grows, and exact certification scales worse; above the
 cap the pipeline can no longer stand behind a distance claim at all. The cap
 states what the machinery can vouch for today and is raised as the tooling
-improves, keeping the board an honestly finite-length benchmark rather than
+improves, keeping the board a finite-length benchmark rather than
 letting scale substitute for evidence.
 
 \section{Operational lessons}
@@ -293,8 +296,7 @@ for abelian two-block constructions).
 
 The board's history has begun to answer a question that any AI-for-QEC
 pipeline must face: how deep must a randomized refutation search run before
-an upper-bound claim deserves confidence? The accumulated record is
-consistent and sobering.
+an upper-bound claim deserves confidence? The record so far:
 
 \begin{itemize}
     \item In one agent-driven sweep, five of seven staged frontier candidates
@@ -308,13 +310,13 @@ consistent and sobering.
     factor-of-ten deeper search changed the verdict in every single case.
     \item A submitted $[[684,8]]$ code claimed $d=100$; the gate's two
     independent mechanisms found logicals of weight $97$ and then $85$,
-    and the honest entry became $d\le 85$. The refutation arrived in
+    and the entry became $d\le 85$. The refutation arrived in
     continuous integration, minutes after submission.
 \end{itemize}
 
 The general pattern is that heuristic distance estimates at $10^6$ to $10^7$
 trials are systematically inflated at block lengths in the low hundreds, and
-that genuinely independent search mechanisms (information-set sampling versus
+that independent search mechanisms (information-set sampling versus
 syndrome decoding) catch overclaims that either alone would miss. For
 machine-discovery loops, whose internal fitness signal is exactly such a
 heuristic estimate, this argues for a verification budget comparable to the
