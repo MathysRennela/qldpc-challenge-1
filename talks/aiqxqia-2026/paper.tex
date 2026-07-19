@@ -31,8 +31,9 @@
 \author[1]{Seun Omonije}
 \author[1]{Mathys Rennela}
 \author[1]{Vincent Russo}[email=vincentrusso1@gmail.com]
-\author[1]{William J. Zeng}
+\author[1,2]{William J. Zeng}
 \address[1]{Unitary Foundation}
+\address[2]{Quantonation}
 
 \begin{abstract}
     AI systems now produce candidate quantum low-density parity-check (qLDPC)
@@ -130,13 +131,13 @@ beat the claim, an optional corroboration tier recording how hard the claim
 has been attacked, and an exact tier in which an integer program proves no
 lighter logical exists.
 
-\paragraph{A code is not a single number.} A quantum code trades physical
+\paragraph{Ranking by Pareto dominance.} A quantum code trades physical
 qubits $n$, logical qubits $k$, distance $d$, check weight $w$, and geometric
 locality against one another. Collapsing these into one scalar invites gaming
 that scalar. The board instead stratifies codes into cells by two computed
 constraint axes and ranks each cell by Pareto dominance, as described next.
 
-\section{A leaderboard of cells, not one number}
+\section{Cells and Pareto frontiers}
 
 Track membership is computed by the verifier from the parity checks and the
 layout; it cannot be claimed. The two axes are a locality class (single-layer
@@ -336,7 +337,14 @@ certification scale past $n\approx 300$, and can refutation-depth
 requirements be predicted from $(n,k,w)$ rather than learned by collapse? The
 challenge is open, the pipeline and its history are public, and both human
 and automated contributors are welcome to attack the frontiers, and the
-claims, directly.
+claims, directly. The design is meant to scale with participation:
+verification is automated and per-submission, so widening the contributor
+pool adds search volume without diluting the board's guarantees, and every
+accepted or refuted claim enriches the public record either way. Whether an
+open, adversarially verified frontier actually speeds up code discovery is
+itself an experiment this challenge runs; the early signs, records set by
+independent contributors and search loops within weeks of launch, are
+consistent with it, though the sample is small.
 
 %% ceurart's default style (elsarticle-num-names) is vendored alongside.
 \bibliography{refs}
