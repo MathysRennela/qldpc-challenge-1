@@ -90,7 +90,7 @@
         "type": "array",
         "items": {"type": "integer", "minimum": 0},
         "minItems": 1,
-        "maxItems": 40
+        "maxItems": 32
       }
     },
     "sideDistance": {

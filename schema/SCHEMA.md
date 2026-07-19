@@ -84,7 +84,7 @@ limits are:
 - JSON file size: 5 MB.
 - `n <= 700` (the verification-budget cap, issue #249; raise-only).
 - At most 10000 X-checks and 10000 Z-checks.
-- Max check weight 40.
+- Max check weight 32 (issue #249: beyond this, validating a claim is not practical, and weight 32 is already beyond near-term hardware).
 - At most 200000 total support entries across all checks.
 - At most 600 locality coordinate entries.
 - Dense verifier intermediates capped at 50000000 cells.

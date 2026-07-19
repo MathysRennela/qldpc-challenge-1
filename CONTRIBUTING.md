@@ -59,7 +59,7 @@ so any failure reproduces.
 
 Public CI also enforces resource limits before dense verifier matrices are
 allocated: 5 MB JSON files, `n <= 700`, at most 10000 checks per side, max check
-weight 40, at most 200000 total support entries, and at most 700 locality
+weight 32, at most 200000 total support entries, and at most 700 locality
 coordinates.
 
 The `n <= 700` cap is the verification-budget rule (issue #249): the adaptive
