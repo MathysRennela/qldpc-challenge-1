@@ -189,22 +189,16 @@ clear that the comparison concedes long-range connectivity for free. The
 board therefore reports $\eff$ as a sortable, incumbent-relative column and
 never lets it collapse a Pareto frontier.
 
-For codes that do certify a geometric layout, the board reports a second,
-ceiling-relative score obtained from the BPT tradeoff with its range and
-dimension dependence made explicit,
-\begin{equation}
-    f \;=\; \frac{16\, k\, d^{2/(D-1)}}{w_r^{\,2+2/(D-1)}\, n},
-\end{equation}
-where $D$ is the grid dimension and $w_r$ the interaction range measured from
-the submitted layout. The exponents are provably optimal (tiling a good qLDPC
-code~\cite{panteleev2022asymptotically} into range-$w_r$ boxes saturates
-them), and the constant is fixed so that the rotated surface code scores
-exactly $f=1$ at every distance; any 2D-local code with $f>1$ would beat the
-surface code at its own geometric game. The best 2D-local code currently on
-the board reaches $f=0.907$, and whether $f>1$ is achievable by a 2D-local
-family is an open target the board makes concrete. The two scores answer
-different questions, savings against the incumbent versus saturation of a
-proven ceiling, and the board keeps them separate by construction.
+A second, ceiling-relative score is under design for codes that certify a
+geometric layout: the BPT tradeoff with its range and dimension dependence
+made explicit, normalized so the rotated surface code sits at the reference
+value. Its exponents are provably optimal (tiling a good qLDPC
+code~\cite{panteleev2022asymptotically} into fixed-range boxes saturates
+them), but scoring a code requires an embedding dimension and a measured
+interaction range, which is distinct from check weight, and for expander-like
+codes built for all-to-all connectivity no finite dimension is natural. It is
+therefore a research direction rather than a board column; the design
+discussion is public in the challenge repository.
 
 \section{Distance verification: witness, attack, certificate}
 \label{sec:distance}
@@ -330,7 +324,7 @@ the search that produced it.
 The board keeps several questions concrete and live. Can planar
 open-boundary codes close the efficiency gap to periodic and unrestricted
 records, or is part of that gap intrinsic to boundaries? Can any 2D-local
-family exceed the surface code's ceiling-relative score, $f>1$? How far does
+family beat the surface code's saturation of the BPT ceiling? How far does
 the non-abelian two-block design space reach, given that groups outside the
 systematically enumerated ranges keep yielding records? Can exact
 certification scale past $n\approx 300$, and can refutation-depth
