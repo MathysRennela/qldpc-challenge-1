@@ -366,10 +366,8 @@ text-transform:uppercase;letter-spacing:.05em}}
 gap:14px;margin:28px 0 8px}}
 .stat-card{{border:1px solid var(--ln);border-radius:14px;padding:18px 20px;
 background:var(--soft)}}
-.stat-card.hero{{border-color:var(--ac);background:#fffbe0}}
 .stat-card .v{{font-size:34px;font-weight:700;line-height:1.05;
 font-family:'Space Mono',ui-monospace,monospace}}
-.stat-card.hero .v{{color:var(--ac)}}
 .stat-card .l{{font-size:13px;color:var(--mut);margin-top:6px}}
 .lb{{margin:18px 0 8px;border:1px solid var(--ln);border-radius:14px;
 background:#fff;overflow:hidden}}
@@ -397,9 +395,10 @@ font-size:24px;line-height:1;color:var(--mut);cursor:pointer}}
 .cbbar{{display:flex;justify-content:flex-end;margin-bottom:6px}}
 /* the pre is the horizontal scroller; each command stays on its own line
    (no wrap) so a long clone URL can't bleed into the next command */
-.codeblock pre{{margin:0;overflow-x:auto}}
+.codeblock pre{{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}}
 .codeblock code{{display:block;color:#e4e4e7;font-size:13px;line-height:1.7;
-white-space:pre;background:none;padding:0;border:none}}
+white-space:pre-wrap;overflow-wrap:anywhere;background:none;padding:0;
+border:none}}
 .codeblock ::selection{{background:#4f46e5;color:#fff}}
 .codeblock .cmt{{color:#8a8f98;background:none}}
 .copybtn{{border:1px solid #3a3f4a;
@@ -416,9 +415,9 @@ font-variant-numeric:tabular-nums}}
 .lbav{{width:34px;height:34px;border-radius:50%;background:var(--soft);
 object-fit:cover;flex:0 0 auto}}
 .lbname{{flex:1 1 auto;font-weight:600;min-width:0;color:var(--ac)}}
-.lbwho{{display:flex;align-items:center;gap:14px;flex:1 1 auto;min-width:0;
-text-decoration:none;color:var(--ink)}}
-.lbwho:hover .lbname{{text-decoration:underline}}
+.lbnamewrap{{flex:1 1 auto;min-width:0;font-weight:600}}
+.lbname{{color:var(--ac);text-decoration:none}}
+.lbname:hover{{text-decoration:underline}}
 .lbcrown{{margin-left:5px}}
 .lbm{{display:flex;flex-direction:column;align-items:center;width:82px;
 flex:0 0 auto;text-decoration:none;color:var(--ink)}}
@@ -1390,7 +1389,7 @@ def progress_panel(entries, n_exact, best_eff):
          "grows with n for high-rate codes, so it is compared within tracks, not "
          "as a global record. This is the best among the codes on this board."),
     ]
-    cards = "".join(f'<div class="stat-card{" hero" if i == 0 else ""}"'
+    cards = "".join(f'<div class="stat-card"'
                     f'{f" title=\"{t}\"" if t else ""}>'
                     f'<div class=v>{v}</div>'
                     f'<div class=l>{lab}</div></div>'
@@ -1451,11 +1450,12 @@ def contributors_panel(entries):
         qh = html.escape(f"?q={h}")
         rows.append(
             f'<div class=lbrow data-h="{html.escape(h)}">'
-            f'<a class=lbwho href="https://github.com/{h[1:]}">'
             f'<span class=lbrank>{r}</span>'
             f'<img class=lbav loading=lazy alt="" '
             f'src="https://github.com/{h[1:]}.png?size=64">'
-            f'<span class=lbname>{html.escape(h)}{crown}</span></a>'
+            f'<span class=lbnamewrap><a class=lbname '
+            f'href="https://github.com/{h[1:]}" title="GitHub profile">'
+            f'{html.escape(h)}</a>{crown}</span>'
             + metric(s["codes"], "codes", qh, f"all {h} codes on the board")
             + metric(s["front"], "on frontier",
                      html.escape(f"?q={h} record"), f"{h} frontier codes")
@@ -1556,8 +1556,6 @@ def contributors_panel(entries):
             f'{"" if len(order) == 1 else "s"} &middot; {n_codes} codes submitted '
             'through the challenge</p></div>'
             + hero +
-            '<button class=lbcta type=button onclick="document.getElementById('
-            '&quot;participate&quot;).showModal()">Participate</button>'
             '</div>'
             f'<div class=lblist>{"".join(rows)}</div>'
             + modal + cmodal +
