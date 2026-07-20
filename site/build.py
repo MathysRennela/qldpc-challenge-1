@@ -425,6 +425,43 @@ flex:0 0 auto;text-decoration:none;color:var(--ink)}}
 a.lbm:hover b{{text-decoration:underline;color:var(--ac)}}
 .lbm b{{font-size:17px;font-variant-numeric:tabular-nums}}
 .lbml{{font-size:11px;color:var(--mut);margin-top:1px;white-space:nowrap}}
+.lbrow{{cursor:pointer}}
+.lbscore{{text-align:right;margin-right:14px}}
+.lbscore .lbsv{{font-size:30px;font-weight:800;line-height:1;
+font-variant-numeric:tabular-nums;color:var(--ink)}}
+.lbscore .lbsl{{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+color:var(--mut)}}
+.lbscore .lbsd{{font-size:11.5px;color:var(--mut);margin-top:2px}}
+.lbscore .lbsd a{{color:var(--ac);text-decoration:none}}
+.lbscore .lbsd a:hover{{text-decoration:underline}}
+.rcbar{{display:flex;gap:14px;flex-wrap:wrap;margin:2px 0 10px}}
+.rcgroup{{display:inline-flex;gap:4px;border:1px solid var(--ln);
+border-radius:999px;padding:3px}}
+.rcbtn{{border:0;background:none;font:inherit;font-size:12.5px;
+color:var(--mut);padding:4px 11px;border-radius:999px;cursor:pointer}}
+.rcbtn.active{{background:var(--ac);color:#fff}}
+.rcbtn:hover:not(.active){{background:var(--soft)}}
+.cmodal{{border:none;border-radius:14px;padding:0;max-width:520px;width:92vw;
+box-shadow:0 24px 70px rgba(20,24,60,.35)}}
+.cmodal::backdrop{{background:rgba(18,20,34,.45)}}
+.cmhead{{display:flex;align-items:center;gap:12px;padding:16px 20px;
+border-bottom:1px solid var(--ln)}}
+.cmhead img{{width:40px;height:40px;border-radius:50%}}
+.cmhead .cmh{{flex:1;font-weight:700}}
+.cmhead a{{color:var(--ac);text-decoration:none}}
+.cmhead a:hover{{text-decoration:underline}}
+.cmstats{{display:flex;gap:10px;padding:14px 20px}}
+.cmstat{{flex:1;border:1px solid var(--ln);border-radius:9px;padding:9px 11px}}
+.cmstat b{{display:block;font-size:18px;font-variant-numeric:tabular-nums}}
+.cmstat span{{font-size:10.5px;color:var(--mut);letter-spacing:.06em;
+text-transform:uppercase}}
+.cmlist{{max-height:280px;overflow-y:auto;padding:0 20px 16px}}
+.cmrow{{display:flex;justify-content:space-between;gap:10px;padding:7px 0;
+border-top:1px dashed var(--ln);text-decoration:none;color:var(--ink);
+font-size:13.5px}}
+.cmrow:hover .cmname{{text-decoration:underline}}
+.cmrow .cmname{{color:var(--ac);font-family:var(--mono,monospace)}}
+.cmrow .cmeff{{font-variant-numeric:tabular-nums;color:var(--mut)}}
 /* phones: show every metric column (codes/frontier/exact/kd2n) instead of
    hiding the right-hand ones. The list scrolls horizontally as one unit; rows
    share a min-width so the columns stay aligned row-to-row while scrolling. */
@@ -1378,10 +1415,15 @@ def contributors_panel(entries):
                 continue
             s = stats.setdefault(h.casefold(),
                                  {"codes": 0, "front": 0, "exact": 0,
-                                  "eff": 0.0, "slug": None, "handle": h})
+                                  "eff": 0.0, "slug": None, "handle": h,
+                                  "list": []})
             s["codes"] += 1
             s["front"] += e["slug"] in front_slugs
             s["exact"] += e["tier"] == "exact"
+            s["list"].append({"name": f'[[{e["n"]},{e["k"]},{e["d"]}]]',
+                              "slug": e["slug"], "eff": e["eff"],
+                              "w": e["w"], "date": e["date"],
+                              "front": e["slug"] in front_slugs})
             if e["eff"] > s["eff"]:
                 s["eff"] = e["eff"]
                 s["slug"] = e["slug"]    # the code achieving the best kd^2/n
@@ -1408,7 +1450,7 @@ def contributors_panel(entries):
         # filtered to this handle; the best-kd^2/n number links to that code.
         qh = html.escape(f"?q={h}")
         rows.append(
-            '<div class=lbrow>'
+            f'<div class=lbrow data-h="{html.escape(h)}">'
             f'<a class=lbwho href="https://github.com/{h[1:]}">'
             f'<span class=lbrank>{r}</span>'
             f'<img class=lbav loading=lazy alt="" '
@@ -1454,16 +1496,71 @@ def contributors_panel(entries):
         'var o=c.textContent;c.textContent="copied";'
         'setTimeout(function(){c.textContent=o;},1200);});})();</script>'
         '</dialog>')
+    # ecdsa.fail-style headline: the best score among contributed codes, with
+    # the code and holder it belongs to.
+    best = order[0][1]
+    best_entry = next((e for e in entries if e["slug"] == best["slug"]), None)
+    hero = ""
+    if best_entry:
+        be = best_entry
+        hero = (
+            '<div class=lbscore><div class=lbsl>best kd&sup2;/n</div>'
+            f'<div class=lbsv>{be["eff"]:g}</div>'
+            f'<div class=lbsd><a href="codes/{be["slug"]}.html">'
+            f'[[{be["n"]},{be["k"]},{be["d"]}]]</a> &middot; d&le;{be["d"]} '
+            f'&middot; w={be["w"]} &middot; {html.escape(best["handle"])}'
+            '</div></div>')
+    # Contributor modal: row click opens a summary card; inner links still
+    # navigate (profile, filtered board, code pages).
+    cdata = json.dumps({s["handle"]: {
+        "codes": s["codes"], "front": s["front"], "exact": s["exact"],
+        "eff": s["eff"],
+        "list": sorted(s["list"], key=lambda c: -c["eff"])}
+        for _, s in order})
+    cmodal = (
+        '<dialog id=cmodal class=cmodal>'
+        '<div class=cmhead><img id=cmav alt="">'
+        '<span class=cmh id=cmh></span>'
+        '<a id=cmgh href="#" target=_blank rel=noopener>View profile</a>'
+        '<form method=dialog><button class=modalx aria-label="close">'
+        '&times;</button></form></div>'
+        '<div class=cmstats id=cmstats></div>'
+        '<div class=cmlist id=cmlist></div>'
+        '</dialog>'
+        f'<script id=cmdata type="application/json">{cdata}</script>'
+        '<script>(function(){'
+        'var D=JSON.parse(document.getElementById("cmdata").textContent);'
+        'var dlg=document.getElementById("cmodal");if(!dlg)return;'
+        'dlg.addEventListener("click",function(e){if(e.target===dlg)dlg.close();});'
+        'document.querySelectorAll(".lbrow[data-h]").forEach(function(r){'
+        'r.addEventListener("click",function(e){'
+        'if(e.target.closest("a"))return;'
+        'var h=r.dataset.h,s=D[h];if(!s)return;'
+        'document.getElementById("cmav").src="https://github.com/"+h.slice(1)+".png?size=80";'
+        'document.getElementById("cmh").textContent=h;'
+        'var g=document.getElementById("cmgh");g.href="https://github.com/"+h.slice(1);'
+        'document.getElementById("cmstats").innerHTML='
+        '[["codes",s.codes],["on frontier",s.front],["exact",s.exact],'
+        '["best kd\\u00b2/n",s.eff]].map(function(p){'
+        'return "<div class=cmstat><b>"+p[1]+"</b><span>"+p[0]+"</span></div>";'
+        '}).join("");'
+        'document.getElementById("cmlist").innerHTML=s.list.map(function(c){'
+        'return "<a class=cmrow href=\\"codes/"+c.slug+".html\\">"'
+        '+"<span class=cmname>"+c.name+(c.front?" \\u2605":"")+"</span>"'
+        '+"<span class=cmeff>"+c.eff+" \\u00b7 w="+c.w+" \\u00b7 "+c.date+"</span></a>";'
+        '}).join("");'
+        'dlg.showModal();});});})();</script>')
     return ('<section class=lb id=leaderboard><div class=lbhead>'
             '<div><h2 class=lbh>Leaderboard</h2>'
             f'<p class=lbsub>{len(order)} contributor'
             f'{"" if len(order) == 1 else "s"} &middot; {n_codes} codes submitted '
             'through the challenge</p></div>'
+            + hero +
             '<button class=lbcta type=button onclick="document.getElementById('
             '&quot;participate&quot;).showModal()">Participate</button>'
             '</div>'
             f'<div class=lblist>{"".join(rows)}</div>'
-            + modal +
+            + modal + cmodal +
             '</section>')
 
 
@@ -1688,6 +1785,100 @@ RC_SERIES = [                       # label, weight cap, series color
 ]
 
 
+# Client-side re-renderer for the record-progress chart: modes (record / all
+# submissions / by model), log/lin scale, and time windows. The server-rendered
+# SVG stays as the initial view and no-JS fallback. Plain string (no f-string)
+# so braces stay literal.
+_RC_JS = """<script>(function(){
+var D=JSON.parse(document.getElementById('rcdata').textContent);
+var S=JSON.parse(document.getElementById('rcseries').textContent);
+var plot=document.getElementById('rcplot');if(!plot)return;
+var init=plot.innerHTML, leg=document.getElementById('rclegend'), legInit=leg.innerHTML;
+var MC=['#6d28d9','#0369a1','#b45309','#15803d','#be185d','#475569'];
+var st={m:'record',s:'log',w:'all'};
+function days(t){return Date.parse(t)/864e5;}
+function windowed(){
+ if(st.w==='all')return D.slice();
+ var now=Math.max.apply(null,D.map(function(r){return days(r.t);}));
+ return D.filter(function(r){return now-days(r.t)<=+st.w;});
+}
+function runbest(rows){
+ rows=rows.slice().sort(function(a,b){return a.t<b.t?-1:a.t>b.t?1:a.eff-b.eff;});
+ var best=0,out=[];
+ rows.forEach(function(r){if(r.eff>best){best=r.eff;out.push(r);}});
+ return out;
+}
+function draw(){
+ if(st.m==='record'&&st.s==='log'&&st.w==='all'){plot.innerHTML=init;leg.innerHTML=legInit;return;}
+ var W=1040,H=300,pl=64,pr=118,pb=30,pt=14;
+ var data=windowed(); if(st.m!=='record')data=data.filter(function(r){return r.sub;});
+ var series=[];
+ if(st.m==='record'){
+  S.forEach(function(s){series.push({lab:s[0],col:s[2],step:true,
+   rows:runbest(data.filter(function(r){return r.w<=s[1];}))});});
+ }else if(st.m==='model'){
+  var by={},disp={};data.forEach(function(r){var k=r.model.toLowerCase();
+   if(!disp[k])disp[k]=r.model;(by[k]=by[k]||[]).push(r);});
+  var names=Object.keys(by).sort(function(a,b){return by[b].length-by[a].length;}).slice(0,6);
+  names.forEach(function(nm,i){series.push({lab:disp[nm],col:MC[i%MC.length],step:true,rows:runbest(by[nm])});});
+ }else{series.push({lab:'submissions',col:'#6d28d9',step:false,rows:data.slice()});}
+ series=series.filter(function(s){return s.rows.length;});
+ if(!series.length){plot.innerHTML='<div style="padding:40px;color:#64748b">no data in this window</div>';leg.innerHTML='';return;}
+ var pts=[];series.forEach(function(s){pts=pts.concat(s.rows);});
+ var xs={},xn=0;
+ if(st.m==='all'){
+  var t0=Math.min.apply(null,pts.map(function(r){return days(r.t);}));
+  var t1=Math.max.apply(null,pts.map(function(r){return days(r.t);}));
+  if(t1-t0<1)t1=t0+1;
+  var fx=function(r){return pl+(days(r.t)-t0)/(t1-t0)*(W-pl-pr);};
+ }else{
+  var seen={},u=[];pts.slice().sort(function(a,b){return a.t<b.t?-1:1;})
+   .forEach(function(r){if(!seen[r.slug]){seen[r.slug]=1;u.push(r.slug);}});
+  u.forEach(function(sl,i){xs[sl]=i;});xn=u.length;
+  var fx=function(r){return pl+(xs[r.slug]/Math.max(1,xn-1))*(W-pl-pr);};
+ }
+ var ymax=Math.max.apply(null,pts.map(function(r){return r.eff;}));
+ var fy;
+ if(st.s==='log'){var yhi=Math.log10(ymax)*1.06||1;
+  fy=function(v){return H-pb-(Math.log10(Math.max(v,1))/yhi)*(H-pt-pb);};
+ }else{fy=function(v){return H-pb-(v/(ymax*1.08))*(H-pt-pb);};}
+ var g='<text transform="translate(14 '+((pt+H-pb)/2)+') rotate(-90)" font-size="12.5" fill="#475569" text-anchor="middle">Code Efficiency (kd&#178;/n)</text>';
+ var ticks=st.s==='log'?[1,2,5,10,20,50,100,200,500]:
+  (function(){var s=Math.pow(10,Math.floor(Math.log10(ymax)))/2,o=[];
+   for(var v=0;v<=ymax*1.05;v+=s)if(v>0)o.push(Math.round(v*100)/100);return o.slice(0,8);})();
+ ticks.forEach(function(t){if(t>ymax*1.15)return;var y=fy(t);
+  g+='<line x1="'+pl+'" y1="'+y+'" x2="'+(W-pr)+'" y2="'+y+'" stroke="#eef2f7"/>'
+   +'<text x="'+(pl-7)+'" y="'+y+'" font-size="12" fill="#475569" text-anchor="end" dy="4">'+t+'</text>';});
+ var mseen={};pts.slice().sort(function(a,b){return a.t<b.t?-1:1;}).forEach(function(r){
+  var m=r.t.slice(0,7);if(!mseen[m]){mseen[m]=1;
+   g+='<text x="'+fx(r)+'" y="'+(H-pb+19)+'" font-size="12" fill="#475569" text-anchor="middle">'+m+'</text>';}});
+ var body='',ends='',endlist=[];
+ series.forEach(function(s){
+  var P=s.rows.map(function(r){return[fx(r),fy(r.eff),r];});
+  if(s.step&&P.length){var d='M'+P[0][0]+' '+P[0][1];
+   for(var i=1;i<P.length;i++)d+=' H'+P[i][0]+' V'+P[i][1];
+   d+=' H'+(W-pr);
+   body+='<path d="'+d+'" fill="none" stroke="'+s.col+'" stroke-width="2" stroke-linejoin="round"/>';
+   var le=s.rows[s.rows.length-1];
+   endlist.push({y:fy(le.eff),lab:s.lab,eff:le.eff});}
+  P.forEach(function(p){var r=p[2];
+   body+='<a href="codes/'+r.slug+'.html"><circle cx="'+p[0]+'" cy="'+p[1]+'" r="'+(s.step?4:3.4)+'" fill="'+(s.step?'#fff':s.col)+'" fill-opacity="'+(s.step?1:0.55)+'" stroke="'+s.col+'" stroke-width="'+(s.step?2:0)+'"><title>[['+r.n+','+r.k+','+r.d+']] &#183; w='+r.w+' &#183; kd&#178;/n='+r.eff+' &#183; '+r.t+' &#183; '+r.model+'</title></circle></a>';});
+ });
+ endlist.sort(function(a,b){return a.y-b.y;});
+ for(var i=1;i<endlist.length;i++)if(endlist[i].y-endlist[i-1].y<15)endlist[i].y=endlist[i-1].y+15;
+ endlist.forEach(function(e){ends+='<text x="'+(W-pr+8)+'" y="'+e.y+'" dy="4" font-size="12.5" fill="#334155">'+e.lab+' &#183; <tspan font-weight="700">'+e.eff+'</tspan></text>';});
+ plot.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto">'+g+body+ends+'</svg>';
+ leg.innerHTML=series.map(function(s){return '<span class=ci><span class=cdot style="background:'+s.col+'"></span>'+(s.step?'best kd&#178;/n, ':'')+s.lab+'</span>';}).join('');
+}
+document.querySelectorAll('.rcbtn').forEach(function(b){
+ b.addEventListener('click',function(){
+  var k=b.dataset.m?'m':(b.dataset.s?'s':'w');
+  st[k]=b.dataset.m||b.dataset.s||b.dataset.w;
+  b.parentElement.querySelectorAll('.rcbtn').forEach(function(x){x.classList.remove('active');});
+  b.classList.add('active');draw();});});
+})();</script>"""
+
+
 def record_chart(entries):
     """Record progress, ecdsa.fail-style: the running best kd^2/n per check-
     weight class (classes nest, so a light-check record competes upward). The
@@ -1783,16 +1974,44 @@ def record_chart(entries):
         f'<span class=ci><span class=cdot style="background:{col}"></span>'
         f'best kd&sup2;/n, {html.escape(lab)}</span>'
         for lab, col, evs in series if evs)
+    # Data + client-side renderer for the alternate views (all submissions,
+    # per-model) and the scale/window controls; the server-rendered SVG above
+    # stays as the no-JS fallback and the initial view.
+    data = [{"t": e["date"], "eff": e["eff"], "n": e["n"], "k": e["k"],
+             "d": e["d"], "w": e["w"], "slug": e["slug"],
+             "model": (e["model"] or "human"),
+             "sub": e["origin"] != "baseline"}
+            for e in entries if e["date"]]
+    rcjson = json.dumps(data)
+    rcseries = json.dumps([[lab, cap, col] for lab, cap, col in RC_SERIES])
+    controls = (
+        '<div class=rcbar>'
+        '<span class=rcgroup>'
+        '<button class="rcbtn active" data-m=record>Record</button>'
+        '<button class=rcbtn data-m=all>All submissions</button>'
+        '<button class=rcbtn data-m=model>By model</button></span>'
+        '<span class=rcgroup>'
+        '<button class="rcbtn active" data-s=log>Log</button>'
+        '<button class=rcbtn data-s=lin>Lin</button></span>'
+        '<span class=rcgroup>'
+        '<button class="rcbtn active" data-w=all>All</button>'
+        '<button class=rcbtn data-w=90>90D</button>'
+        '<button class=rcbtn data-w=30>30D</button></span>'
+        '</div>')
     return ('<section class=rcwrap id=progress>'
             '<h2 class=track>Record progress</h2>'
-            f'<div class=plot><svg viewBox="0 0 {W} {H}" role="img" '
+            + controls +
+            f'<div class=plot id=rcplot><svg viewBox="0 0 {W} {H}" role="img" '
             'style="width:100%;height:auto" '
             'aria-label="Running best kd^2/n per weight class over record '
             f'events">{"".join(grid)}{"".join(paths)}{"".join(dots)}'
             f'{"".join(ends)}</svg></div>'
-            f'<div class=chartlegend>{legend}'
+            f'<div class=chartlegend id=rclegend>{legend}'
             '<span class=ci>&#9675; a new record on this board (seeded '
             'literature + challenge entries)</span></div>'
+            f'<script id=rcdata type="application/json">{rcjson}</script>'
+            f'<script id=rcseries type="application/json">{rcseries}</script>'
+            + _RC_JS +
             '</section>')
 
 
