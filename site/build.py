@@ -425,6 +425,11 @@ a.lbm:hover b{{text-decoration:underline;color:var(--ac)}}
 .lbm b{{font-size:17px;font-variant-numeric:tabular-nums}}
 .lbml{{font-size:11px;color:var(--mut);margin-top:1px;white-space:nowrap}}
 .lbrow{{cursor:pointer}}
+.qchip{{margin-left:12px;font:inherit;font-size:12.5px;border:1px solid #f59e0b;
+background:#fef3c7;color:#92400e;border-radius:999px;padding:3px 11px;
+cursor:pointer;vertical-align:3px}}
+.qchip b{{font-weight:700}}
+.qchip:hover{{background:#fde68a}}
 .lbscore{{text-align:right;margin-right:14px}}
 .lbscore .lbsv{{font-size:30px;font-weight:800;line-height:1;
 font-variant-numeric:tabular-nums;color:var(--ink)}}
@@ -882,9 +887,17 @@ document.querySelectorAll('circle.hit[data-code]').forEach(c=>{
     &&(!litOn||r.dataset.origin==='literature')&&toks.every(t=>term(r,t));
    r.style.display=ok?'':'none';if(ok){shown++;vis.add(r.dataset.code);}});
   if(count)count.textContent=shown+(shown===rows.length?'':' of '+rows.length)+' codes';
+  var chip=document.getElementById('qchip');
+  if(chip){var f=q.value.trim();
+   chip.style.display=f?'':'none';
+   if(f)chip.innerHTML='filtered: '+f.replace(/</g,'&lt;')+' <b>&times; clear</b>';}
   document.querySelectorAll('.plots svg.plot circle[data-code]').forEach(c=>{
    c.style.display=vis.has(c.dataset.code)?'':'none';});
  }
+ var chipEl=document.getElementById('qchip');
+ if(chipEl)chipEl.addEventListener('click',()=>{q.value='';
+  document.querySelectorAll('.ttab').forEach(t=>
+   t.classList.toggle('active',t.dataset.q==='')); resetsliders();apply();});
  // typing syncs the active tab (the one whose filter term matches, else none).
  q.addEventListener('input',()=>{
   document.querySelectorAll('.ttab').forEach(t=>
@@ -2143,7 +2156,10 @@ def board_controls(entries, records):
     return ('<section id=board>'
             '<h2 class=track>Codes '
             f'<span class=tcount>&middot; {len(entries)} total, '
-            f'{len(records)} records</span></h2>'
+            f'{len(records)} records</span>'
+            '<button id=qchip class=qchip style="display:none" type=button '
+            'title="an active search filter is hiding rows; click to clear">'
+            '</button></h2>'
             '<div class=searchbar>'
             '<input id=boardsearch type=text autocomplete=off '
             'placeholder="search, e.g.  w&lt;=6 k&gt;=10 d&gt;=8  or  '
