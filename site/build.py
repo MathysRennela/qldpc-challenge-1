@@ -2018,8 +2018,9 @@ def record_chart(entries):
             f'events">{"".join(grid)}{"".join(paths)}{"".join(dots)}'
             f'{"".join(ends)}</svg></div>'
             f'<div class=chartlegend id=rclegend>{legend}'
-            '<span class=ci>&#9675; a new record on this board (seeded '
-            'literature + challenge entries)</span></div>'
+            '<span class=ci title="board-relative: among the seeded literature '
+            'baselines and challenge entries listed here">&#9675; new record'
+            '</span></div>'
             f'<script id=rcdata type="application/json">{rcjson}</script>'
             f'<script id=rcseries type="application/json">{rcseries}</script>'
             + _RC_JS +
