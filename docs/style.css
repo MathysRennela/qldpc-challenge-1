@@ -124,6 +124,11 @@ a.lbm:hover b{text-decoration:underline;color:var(--ac)}
 .lbm b{font-size:17px;font-variant-numeric:tabular-nums}
 .lbml{font-size:11px;color:var(--mut);margin-top:1px;white-space:nowrap}
 .lbrow{cursor:pointer}
+.qchip{margin-left:12px;font:inherit;font-size:12.5px;border:1px solid #f59e0b;
+background:#fef3c7;color:#92400e;border-radius:999px;padding:3px 11px;
+cursor:pointer;vertical-align:3px}
+.qchip b{font-weight:700}
+.qchip:hover{background:#fde68a}
 .lbscore{text-align:right;margin-right:14px}
 .lbscore .lbsv{font-size:30px;font-weight:800;line-height:1;
 font-variant-numeric:tabular-nums;color:var(--ink)}
