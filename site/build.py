@@ -2308,7 +2308,7 @@ def build():
              '</div>'
              '<h1>QEC Challenge</h1>'
              '<p>Find better quantum LDPC codes. '
-             '<a href="qec_challenge.pdf">Read the whitepaper.</a></p>'
+             '<a href="whitepaper.html">Read the whitepaper.</a></p>'
              '<nav class=topnav>'
              '<a href="faq.html">FAQ</a>'
              '<a href="references.html">References</a>'
@@ -2395,6 +2395,18 @@ def build():
         f.write(references_page(entries))
     with open(os.path.join(DOCS, "faq.html"), "w") as f:
         f.write(faq_page())
+    # Wrapper so the whitepaper opens with the site favicon and a proper tab
+    # title (a raw PDF tab shows the browser's PDF-viewer icon instead).
+    with open(os.path.join(DOCS, "whitepaper.html"), "w") as f:
+        f.write(
+            '<!doctype html><html lang=en><head><meta charset=utf-8>'
+            '<meta name=viewport content="width=device-width,initial-scale=1">'
+            '<title>The QEC Challenge whitepaper</title>'
+            '<link rel=icon type="image/svg+xml" href="favicon.svg">'
+            '<style>html,body{margin:0;height:100%}'
+            'embed{width:100%;height:100%}</style></head><body>'
+            '<embed src="qec_challenge.pdf" type="application/pdf">'
+            '</body></html>')
     slugs = {e["slug"] for e in entries}
     for e in entries:
         with open(os.path.join(DOCS, "codes", e["slug"] + ".html"), "w") as f:
