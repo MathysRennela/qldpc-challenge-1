@@ -10,7 +10,7 @@
     "schema_version": {"const": "0.1"},
     "name": {"type": "string", "minLength": 1, "maxLength": 200},
     "code_type": {"enum": ["CSS"]},
-    "n": {"type": "integer", "minimum": 1, "maximum": 5000, "description": "number of physical (data) qubits"},
+    "n": {"type": "integer", "minimum": 1, "maximum": 700, "description": "number of physical (data) qubits; capped at 700 by the verification-budget rule (issue #249)"},
     "k": {"type": "integer", "minimum": 1, "description": "claimed number of logical qubits; verifier recomputes exactly"},
     "checks": {
       "type": "object",
@@ -90,7 +90,7 @@
         "type": "array",
         "items": {"type": "integer", "minimum": 0},
         "minItems": 1,
-        "maxItems": 40
+        "maxItems": 32
       }
     },
     "sideDistance": {

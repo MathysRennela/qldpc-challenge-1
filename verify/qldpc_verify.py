@@ -59,13 +59,15 @@ _FAMILIES = {"bivariate-bicycle", "generalized-bicycle", "2bga-coset",
              "quantum-tanner", "tile", "topological", "other"}
 _NOVELTY = {"unknown", "known_parameters", "new_parameters"}
 
-# Public CI resource limits. These are intentionally generous relative to the
-# current board (n<=336, row weight<=10) but finite: larger submissions need a
-# maintainer-run path until the verifier is sparse end-to-end.
+# Public CI resource limits. Finite by design so malformed or hostile JSON
+# cannot force unbounded work. MAX_N is also the blocklength cap from the
+# verification-budget rule (issue #249): above it the adaptive gate and MILP
+# certification cannot stand behind a claim, so the board is a finite-length
+# benchmark. Raise-only, as the tooling improves.
 MAX_SUBMISSION_BYTES = 5_000_000
-MAX_N = 5_000
+MAX_N = 700
 MAX_CHECKS_PER_SIDE = 10_000
-MAX_CHECK_WEIGHT = 40
+MAX_CHECK_WEIGHT = 32
 MAX_TOTAL_SUPPORT = 200_000
 MAX_COORDINATES = MAX_N
 MAX_DENSE_MATRIX_CELLS = 50_000_000
@@ -90,7 +92,9 @@ def resource_errors(doc):
     supports = X + Z
     errs = []
     if n > MAX_N:
-        errs.append(f"n={n} exceeds public CI limit {MAX_N}")
+        errs.append(f"n={n} exceeds the blocklength cap {MAX_N} "
+                    f"(verification-budget rule, issue #249; the pipeline "
+                    f"cannot stand behind a distance claim above it)")
     if len(X) > MAX_CHECKS_PER_SIDE:
         errs.append(f"checks.X has {len(X)} rows, limit is {MAX_CHECKS_PER_SIDE}")
     if len(Z) > MAX_CHECKS_PER_SIDE:
