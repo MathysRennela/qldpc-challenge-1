@@ -1860,9 +1860,15 @@ function draw(){
  ticks.forEach(function(t){if(t>ymax*1.15)return;var y=fy(t);
   g+='<line x1="'+pl+'" y1="'+y+'" x2="'+(W-pr)+'" y2="'+y+'" stroke="#eef2f7"/>'
    +'<text x="'+(pl-7)+'" y="'+y+'" font-size="12" fill="#475569" text-anchor="end" dy="4">'+t+'</text>';});
- var mseen={};pts.slice().sort(function(a,b){return a.t<b.t?-1:1;}).forEach(function(r){
-  var m=r.t.slice(0,7);if(!mseen[m]){mseen[m]=1;
-   g+='<text x="'+fx(r)+'" y="'+(H-pb+19)+'" font-size="12" fill="#475569" text-anchor="middle">'+m+'</text>';}});
+ var srt=pts.slice().sort(function(a,b){return a.t<b.t?-1:1;});
+ var span=days(srt[srt.length-1].t)-days(srt[0].t);
+ var lseen={},cand=[];
+ srt.forEach(function(r){var lab=span>730?r.t.slice(0,4):r.t.slice(0,7);
+  if(!lseen[lab]){lseen[lab]=1;cand.push({x:fx(r),lab:lab});}});
+ var lastx=-1e9;
+ cand.forEach(function(c){if(c.x-lastx<62)return;lastx=c.x;
+  g+='<line x1="'+c.x+'" y1="'+(H-pb)+'" x2="'+c.x+'" y2="'+(H-pb+5)+'" stroke="#cbd5e1"/>'
+   +'<text x="'+c.x+'" y="'+(H-pb+19)+'" font-size="12" fill="#475569" text-anchor="middle">'+c.lab+'</text>';});
  var body='',ends='',endlist=[];
  series.forEach(function(s){
   var P=s.rows.map(function(r){return[fx(r),fy(r.eff),r];});
