@@ -1,0 +1,346 @@
+%% AIQxQIA 2026 full paper (>4 pages + references), CEUR-WS ceurart class,
+%% single-blind (authors named). Submission via EasyChair.
+\documentclass{ceurart}
+
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+
+\newcommand{\GF}{\mathbb{F}_2}
+\newcommand{\HX}{H_X}
+\newcommand{\HZ}{H_Z}
+\newcommand{\ranktwo}{\operatorname{rank}_{\GF}}
+\newcommand{\wt}{\operatorname{wt}}
+\newcommand{\eff}{kd^2/n}
+
+\begin{document}
+
+\copyrightyear{2026}
+\copyrightclause{Copyright for this paper by its authors. Use permitted under
+    Creative Commons License Attribution 4.0 International (CC BY 4.0).}
+\conference{AIQxQIA 2026: International Workshop on AI for Quantum and Quantum
+    for AI, 2026}
+
+\title{The QEC Challenge: an adversarially verified leaderboard for AI-driven
+    discovery of quantum LDPC codes}
+
+%% Authors alphabetical by surname. TODO before submission: add ORCIDs and
+%% the co-authors' emails.
+\author[1]{Bradley A. Chase}
+\author[1]{Sebastian Hassinger}
+\author[1]{Farrokh Labib}
+\author[1]{Seun Omonije}
+\author[1]{Mathys Rennela}
+\author[1]{Vincent Russo}[email=vincentrusso1@gmail.com]
+\author[1,2]{William J. Zeng}
+\address[1]{Unitary Foundation}
+\address[2]{Quantonation}
+
+\begin{abstract}
+    AI systems now produce candidate quantum low-density parity-check (qLDPC)
+    codes faster than human referees can check them, and the characteristic
+    failure mode of machine-generated codes is an overstated distance. The QEC
+    Challenge is a public leaderboard built around that fact: a submission is a
+    single machine-readable description of a CSS code, and an automated
+    pipeline recomputes every cheap property from scratch, verifies a
+    self-certifying distance witness, and then actively attacks the distance
+    claim with independent randomized searches before the code is accepted.
+    Three design principles follow. Everything inexpensive is trustless and
+    mandatory; distance confidence is layered, from a witnessed upper bound
+    through corroboration to exact certification by integer programming; and
+    the ranking is a Pareto frontier inside computed constraint cells rather
+    than a single scalar. Because nothing a submission contains is trusted,
+    the leaderboard doubles as the verification harness of LLM- and
+    agent-driven code-discovery loops, and several of its current records were
+    found by such loops. We describe the design, report on the first months of
+    operation (124 verified codes, 29 with exactly certified distance), and
+    present the empirical lessons the board has produced about how deeply a
+    heuristic distance claim must be attacked before it deserves confidence.
+\end{abstract}
+
+\begin{keywords}
+    quantum error correction \sep qLDPC codes \sep benchmark \sep
+    leaderboard \sep verification \sep large language models \sep
+    automated discovery
+\end{keywords}
+
+\maketitle
+
+\section{Introduction}
+
+Quantum low-density parity-check (qLDPC) codes are the leading route to
+fault-tolerant quantum memories with constant or near-constant overhead:
+asymptotically good families exist~\cite{panteleev2022asymptotically}, and
+concrete constructions such as the bivariate-bicycle codes of Bravyi et
+al.~\cite{bravyi2024high} encode an order of magnitude more logical qubits
+than surface-code patches of comparable distance. Finding good codes at
+practical block lengths, however, remains a search problem over a large
+discrete space, and it is exactly the kind of search that machine methods have
+begun to win. LLM-guided evolutionary search~\cite{cruzbenito2026evolutionary},
+reinforcement learning~\cite{he2025reinforcement}, and LLM-driven concept
+evolution over non-abelian code families~\cite{liu2026concept} all generate
+candidate codes at a rate no human refereeing process can keep up with.
+
+The bottleneck this creates is verification, and one property in particular.
+Computing the distance of a stabilizer code is
+NP-hard~\cite{kapshikar2023hardness}, and the hardness is asymmetric:
+exhibiting a single low-weight logical operator proves an upper bound, while
+certifying that no lighter one exists is the intractable direction. Heuristic
+distance estimates, the kind a search loop produces internally, deflate
+routinely under deeper search. A leaderboard that accepted claimed distances
+at face value would fill with codes whose headline numbers are artifacts of
+under-powered estimation, and a machine-driven search has every incentive,
+even an unintentional one, to overclaim.
+
+The QEC Challenge\footnote{\url{https://github.com/unitaryfoundation/qldpc-challenge}}
+is a public, continuously verified leaderboard designed around that asymmetry.
+This paper describes its design and reports on its first months of operation.
+The system faces both directions of the AI and quantum intersection: it is
+infrastructure that makes AI-driven quantum code discovery auditable, and its
+accumulated history of refuted and confirmed claims is a dataset about the
+reliability of heuristic verification, a question AI methods for quantum error
+correction cannot avoid.
+
+\section{Design principles}
+
+Three principles shape the system.
+
+\paragraph{Everything cheap is trustless and mandatory.} A submission
+describes one CSS code by its two parity-check matrices $\HX$ and $\HZ$,
+given as sparse supports, together with claimed parameters $[[n,k,d]]$,
+optional geometric layout data, and provenance. The verifier recomputes every
+polynomial-time property from scratch over $\GF$: the qubit count implied by
+the checks, the logical dimension
+\begin{equation}
+    k \;=\; n-\ranktwo(\HX)-\ranktwo(\HZ),
+\end{equation}
+CSS commutation $\HX\HZ^{\top}=0$, the maximum check weight, and the locality
+class implied by the layout. A wrong claimed $k$ or a non-commuting
+``stabilizer'' is rejected in milliseconds. None of these facts are taken from
+the submission; the submission merely has to agree with them.
+
+\paragraph{Distance confidence is layered by how much is proven.} The
+distance claim is split into an upper bound the submitter proves and a lower
+bound the submitter is not asked for. Every submission must include, for each
+Pauli side, a \emph{witness}: the support of an explicit logical operator of
+the claimed weight. The verifier checks that the witness lies in the kernel
+of the opposite-side checks and outside the row space of its own side, which
+certifies $d \le \text{value}$ with no trust required. Everything beyond the
+upper bound is earned in tiers described in
+Section~\ref{sec:distance}: an adversarial refutation gate that must fail to
+beat the claim, an optional corroboration tier recording how hard the claim
+has been attacked, and an exact tier in which an integer program proves no
+lighter logical exists.
+
+\paragraph{Ranking by Pareto dominance.} A quantum code trades physical
+qubits $n$, logical qubits $k$, distance $d$, check weight $w$, and geometric
+locality against one another. Collapsing these into one scalar invites gaming
+that scalar. The board instead stratifies codes into cells by two computed
+constraint axes and ranks each cell by Pareto dominance, as described next.
+
+\section{Cells and Pareto frontiers}
+
+Track membership is computed by the verifier from the parity checks and the
+layout; it cannot be claimed. The two axes are a locality class (single-layer
+2D-local, bilayer 2D-local in the flip-chip regime, or unrestricted; the
+class is earned from submitted coordinates whose interaction radius the
+verifier measures, and a missing or dishonest layout simply lands the code in
+unrestricted) and a check-weight class ($w\le 4$, $w\le 6$, $w\le 8$, or any
+weight, from the maximum row weight of $\HX$ and $\HZ$). The classes nest: a
+single-layer weight-4 code competes in every looser cell as well.
+
+Within a cell, a code is a record if no other code in the cell dominates it,
+meaning no other code has $n'\le n$, $k'\ge k$, $d'\ge d$, and $w'\le w$ with
+at least one strict inequality. There can be many co-leaders, and that is
+deliberate: a cell is a frontier, not a podium. Construction-family labels
+(bivariate bicycle, generalized bicycle and its non-abelian two-block
+group-algebra generalization~\cite{lin2024quantum}, coset, tile, topological)
+cannot be recovered from the matrices, so they are filterable tags with no
+ranking effect.
+
+The board is seeded with literature baselines, including the planar
+open-boundary codes of Liang, Eberhardt, and Chen~\cite{liang2025planar}, the
+gross code~\cite{bravyi2024high}, generalized-bicycle
+codes~\cite{panteleev2021degenerate,wang2022distance}, tile
+codes~\cite{steffan2025tile}, two-block coset codes~\cite{aydin2026breaking},
+and the surface, toric, and Steane
+codes~\cite{kitaev2003fault,steane1996error}, so a new entry is measured
+against published codes rather than an empty table. The board complements the
+Error Correction Zoo~\cite{eczoo}: the Zoo catalogs code families and their
+known parameters, while the board stores concrete parity-check instances whose
+claims are machine-checked and then kept under attack.
+
+\section{Figures of merit}
+\label{sec:metrics}
+
+The efficiency figure $\eff$ is the standard headline number in the qLDPC
+literature, usually motivated by the Bravyi--Poulin--Terhal (BPT)
+bound~\cite{bravyi2010tradeoffs}: a geometrically 2D-local code obeys
+$kd^2 \le c\,n$ with $c$ independent of $n$. Operating the board forced us to
+be precise about what this number means, because most codes on it are
+expander-like and not 2D-local, so the BPT bound does not bind them at all,
+and for asymptotically good families $\eff$ grows like $n^2$ without bound.
+
+The reading that survives is baseline-relative: $k$ rotated surface-code
+patches of distance $d$ cost $kd^2$ data qubits, so $\eff$ is the
+qubit-savings factor against building the same logical count and distance out
+of the incumbent architecture. That reading is legitimate on any hardware,
+needs no geometry theorem, and explains the metric's behavior; it also makes
+clear that the comparison concedes long-range connectivity for free. The
+board therefore reports $\eff$ as a sortable, incumbent-relative column and
+never lets it collapse a Pareto frontier.
+
+A second, ceiling-relative score is under design for codes that certify a
+geometric layout: the BPT tradeoff with its range and dimension dependence
+made explicit, normalized so the rotated surface code sits at the reference
+value. Its exponents are provably optimal (tiling a good qLDPC
+code~\cite{panteleev2022asymptotically} into fixed-range boxes saturates
+them), but scoring a code requires an embedding dimension and a measured
+interaction range, which is distinct from check weight, and for expander-like
+codes built for all-to-all connectivity no finite dimension is natural. It is
+therefore a research direction rather than a board column; the design
+discussion is public in the challenge repository.
+
+\section{Distance verification: witness, attack, certificate}
+\label{sec:distance}
+
+\paragraph{Trustless upper bound.} The submitted witness is validated
+arithmetically, as described above. This tier requires no trust in the
+submitter, which is what lets anonymous or automated contributors climb the
+board instantly.
+
+\paragraph{The adversarial gate.} Every new or changed code then faces
+independent bounded searches for a logical operator \emph{lighter} than the
+claim: a random-information-set search in the spirit of
+QDistRnd~\cite{pryadko2023qdistrnd} and a syndrome-decoder search built on
+belief propagation with ordered-statistics
+post-processing~\cite{roffe2020decoding}, two different search mechanisms.
+Budgets are adaptive. Trial counts scale with block length, and a code that
+would enter a cell's Pareto frontier faces a much deeper multi-seed battery
+than a dominated one, so scrutiny concentrates exactly where gaming would
+pay. Any hit is a sound refutation, since it exhibits a checkable
+counterexample, and rejects the submission. Seeds are fresh on every run, so
+an overclaim cannot be tuned to survive one fixed search, and a weekly sweep
+re-attacks the entire board to accumulate coverage over time.
+
+\paragraph{Exact certification.} A separate, maintainer-run tier upgrades an
+upper bound to an exact distance by integer programming: for each logical
+generator $t$ of the relevant type, a bounded solver decides feasibility of
+\begin{equation}
+    H v \equiv 0 \pmod 2, \qquad
+    \langle v, t\rangle \equiv 1 \pmod 2, \qquad
+    \wt(v) \le d-1,
+\end{equation}
+with the parity constraints linearized by integer slacks. Infeasibility for
+every generator on both sides proves $d$ exact; a feasible point is a
+refutation; a solver timeout leaves the claim an upper bound.
+Nothing is ever silently upgraded, and every tier is backed by an artifact in
+the repository: the witness inside the submission, a heuristic certificate
+recording the failed attack, or an exact certificate. Of the 124 codes
+currently on the board, 29 carry exactly certified distances; the integer
+programs currently stop scaling near $n\approx 300$.
+
+\section{Trust architecture for machine submissions}
+
+The pipeline assumes every submission may come from an automated system and
+that nothing it contains can be trusted. Four mechanisms carry that
+assumption.
+
+First, scope separation: a pull request that adds code data may not touch the
+verifier, the schema, the workflows, or the site generator, and for code
+submissions the entire judgment runs from the base branch, so a submission
+cannot alter the rules it is judged by. Second, a pinned validation stack:
+the trusted closure of the verifier, including the refutation engine, the
+$\GF$ core, and the integrity checker itself, is pinned by a cryptographic
+manifest, and any drift fails the build, making changes to the rules a
+deliberate, reviewable act. Third, authorship binding: the submitting account
+must be listed as an author of the code it adds. Fourth, duplicate detection:
+row-echelon forms of $(\HX,\HZ)$ pin the exact stabilizer group, and a
+permutation-invariant Weisfeiler--Leman signature of the Tanner graph flags
+likely equivalents for human review.
+
+Two further conventions target AI-driven contributors specifically.
+Submissions carry an optional, self-reported model attribution naming the
+system that produced the code to a specific version, so machine-discovered
+entries are labeled as such on the board. And the same validator that CI runs
+is available locally, so an autonomous search agent can adopt the discipline
+that no candidate counts as a find until the pinned validator passes it,
+reaching the same verdict CI will reach before a pull request is ever opened.
+
+Finally, the board enforces a block-length cap as a verification-budget rule.
+The adaptive gate runs under a fixed wall-clock budget, so its trials per
+qubit thin out as $n$ grows, and exact certification scales worse; above the
+cap the pipeline can no longer stand behind a distance claim at all. The cap
+states what the machinery can vouch for today and is raised as the tooling
+improves, keeping the board a finite-length benchmark rather than
+letting scale substitute for evidence.
+
+\section{Operational lessons}
+\label{sec:lessons}
+
+At the time of writing the board holds 124 verified codes across the
+bivariate-bicycle, generalized-bicycle, two-block group-algebra, coset,
+lifted-product, tile, and topological families, a majority contributed
+through the challenge rather than seeded, with the best incumbent-relative
+efficiency at $\eff = 189.2$. Several records are machine-discovered and
+attributed to the producing model, including the current efficiency leader, a
+$[[390,82,30]]$ generalized-bicycle code found by an LLM-driven search over
+divisor structures of $x^{195}-1$, a $[[336,20,20]]$ two-block code on the
+Klein-quartic group $\mathrm{PSL}(2,7)$, and a $[[240,13,15]]$ code on the
+symmetric group $S_5$, the board's first odd-$k$ entry (odd $k$ is impossible
+for abelian two-block constructions).
+
+The board's history has begun to answer a question that any AI-for-QEC
+pipeline must face: how deep must a randomized refutation search run before
+an upper-bound claim deserves confidence? The record so far:
+
+\begin{itemize}
+    \item In one agent-driven sweep, five of seven staged frontier candidates
+    were refuted by the deep gate before a pull request was opened; the
+    shallow estimates that had promoted them were optimistic in every case.
+    \item Around the current efficiency record, eleven independent candidates
+    from the same construction family read distances of $31$ to $34$ under
+    $8\times 10^6$ randomized trials, an apparent improvement on the record.
+    Under $8\times 10^7$ trials per seed across three seeds, all eleven
+    collapsed to $d\le 30$, exactly the record they appeared to beat. The
+    factor-of-ten deeper search changed the verdict in every single case.
+    \item A submitted $[[684,8]]$ code claimed $d=100$; the gate's two
+    independent mechanisms found logicals of weight $97$ and then $85$,
+    and the entry became $d\le 85$. The refutation arrived in
+    continuous integration, minutes after submission.
+\end{itemize}
+
+The general pattern is that heuristic distance estimates at $10^6$ to $10^7$
+trials are systematically inflated at block lengths in the low hundreds, and
+that independent search mechanisms (information-set sampling versus
+syndrome decoding) catch overclaims that either alone would miss. For
+machine-discovery loops, whose internal fitness signal is exactly such a
+heuristic estimate, this argues for a verification budget comparable to the
+search budget, and for treating any frontier-adjacent estimate as provisional
+until it has survived a multi-seed attack an order of magnitude deeper than
+the search that produced it.
+
+\section{Open questions}
+
+The board keeps several questions concrete and live. Can planar
+open-boundary codes close the efficiency gap to periodic and unrestricted
+records, or is part of that gap intrinsic to boundaries? Can any 2D-local
+family beat the surface code's saturation of the BPT ceiling? How far does
+the non-abelian two-block design space reach, given that groups outside the
+systematically enumerated ranges keep yielding records? Can exact
+certification scale past $n\approx 300$, and can refutation-depth
+requirements be predicted from $(n,k,w)$ rather than learned by collapse? The
+challenge is open, the pipeline and its history are public, and both human
+and automated contributors are welcome to attack the frontiers, and the
+claims, directly. The design is meant to scale with participation:
+verification is automated and per-submission, so widening the contributor
+pool adds search volume without diluting the board's guarantees, and every
+accepted or refuted claim enriches the public record either way. Whether an
+open, adversarially verified frontier actually speeds up code discovery is
+itself an experiment this challenge runs; the early signs, records set by
+independent contributors and search loops within weeks of launch, are
+consistent with it, though the sample is small.
+
+%% ceurart's default style (elsarticle-num-names) is vendored alongside.
+\bibliography{refs}
+
+\end{document}
