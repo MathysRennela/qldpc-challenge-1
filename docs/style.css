@@ -115,9 +115,13 @@ font-variant-numeric:tabular-nums}
 .lbav{width:34px;height:34px;border-radius:50%;background:var(--soft);
 object-fit:cover;flex:0 0 auto}
 .lbname{flex:1 1 auto;font-weight:600;min-width:0;color:var(--ac)}
+.lbwho{display:flex;align-items:center;gap:14px;flex:1 1 auto;min-width:0;
+text-decoration:none;color:var(--ink)}
+.lbwho:hover .lbname{text-decoration:underline}
 .lbcrown{margin-left:5px}
 .lbm{display:flex;flex-direction:column;align-items:center;width:82px;
-flex:0 0 auto}
+flex:0 0 auto;text-decoration:none;color:var(--ink)}
+a.lbm:hover b{text-decoration:underline;color:var(--ac)}
 .lbm b{font-size:17px;font-variant-numeric:tabular-nums}
 .lbml{font-size:11px;color:var(--mut);margin-top:1px;white-space:nowrap}
 /* phones: show every metric column (codes/frontier/exact/kd2n) instead of

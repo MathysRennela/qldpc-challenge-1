@@ -416,9 +416,13 @@ font-variant-numeric:tabular-nums}}
 .lbav{{width:34px;height:34px;border-radius:50%;background:var(--soft);
 object-fit:cover;flex:0 0 auto}}
 .lbname{{flex:1 1 auto;font-weight:600;min-width:0;color:var(--ac)}}
+.lbwho{{display:flex;align-items:center;gap:14px;flex:1 1 auto;min-width:0;
+text-decoration:none;color:var(--ink)}}
+.lbwho:hover .lbname{{text-decoration:underline}}
 .lbcrown{{margin-left:5px}}
 .lbm{{display:flex;flex-direction:column;align-items:center;width:82px;
-flex:0 0 auto}}
+flex:0 0 auto;text-decoration:none;color:var(--ink)}}
+a.lbm:hover b{{text-decoration:underline;color:var(--ac)}}
 .lbm b{{font-size:17px;font-variant-numeric:tabular-nums}}
 .lbml{{font-size:11px;color:var(--mut);margin-top:1px;white-space:nowrap}}
 /* phones: show every metric column (codes/frontier/exact/kd2n) instead of
@@ -881,6 +885,13 @@ document.querySelectorAll('circle.hit[data-code]').forEach(c=>{
   nhi.addEventListener('input',()=>{npaint();apply();});npaint();}
  if(klo&&khi){klo.addEventListener('input',()=>{kpaint();apply();});
   khi.addEventListener('input',()=>{kpaint();apply();});kpaint();}
+ // ?q=... deep-links a search (used by the contributor leaderboard counts).
+ const uq=new URLSearchParams(location.search).get('q');
+ if(uq){q.value=uq;
+  document.querySelectorAll('.ttab').forEach(t=>
+   t.classList.toggle('active', t.dataset.q===uq));
+  const bd=document.getElementById('board');
+  if(bd)bd.scrollIntoView();}
  apply();
 })();
 
@@ -1367,11 +1378,13 @@ def contributors_panel(entries):
                 continue
             s = stats.setdefault(h.casefold(),
                                  {"codes": 0, "front": 0, "exact": 0,
-                                  "eff": 0.0, "handle": h})
+                                  "eff": 0.0, "slug": None, "handle": h})
             s["codes"] += 1
             s["front"] += e["slug"] in front_slugs
             s["exact"] += e["tier"] == "exact"
-            s["eff"] = max(s["eff"], e["eff"])
+            if e["eff"] > s["eff"]:
+                s["eff"] = e["eff"]
+                s["slug"] = e["slug"]    # the code achieving the best kd^2/n
     if not stats:
         return ""
     order = sorted(stats.items(),
@@ -1379,26 +1392,36 @@ def contributors_panel(entries):
                                    -kv[1]["codes"], kv[1]["handle"]))
     n_codes = sum(1 for e in entries if e["origin"] != "baseline")
 
-    def metric(v, lab):
-        return (f'<span class=lbm><b>{v}</b>'
-                f'<span class=lbml>{lab}</span></span>')
+    def metric(v, lab, href=None, tip=""):
+        body = f'<b>{v}</b><span class=lbml>{lab}</span>'
+        if href:
+            return (f'<a class=lbm href="{href}" title="{html.escape(tip)}">'
+                    f'{body}</a>')
+        return f'<span class=lbm>{body}</span>'
 
     rows = []
     for r, (_, s) in enumerate(order, 1):
         h = s["handle"]
         crown = ' <span class=lbcrown title="top contributor">&#128081;</span>' \
             if r == 1 else ''
+        # identity links to the GitHub profile; the counts deep-link the board
+        # filtered to this handle; the best-kd^2/n number links to that code.
+        qh = html.escape(f"?q={h}")
         rows.append(
-            f'<a class=lbrow href="https://github.com/{h[1:]}">'
+            '<div class=lbrow>'
+            f'<a class=lbwho href="https://github.com/{h[1:]}">'
             f'<span class=lbrank>{r}</span>'
             f'<img class=lbav loading=lazy alt="" '
             f'src="https://github.com/{h[1:]}.png?size=64">'
-            f'<span class=lbname>{html.escape(h)}{crown}</span>'
-            + metric(s["codes"], "codes")
-            + metric(s["front"], "on frontier")
-            + metric(s["exact"], "exact")
-            + metric(f'{s["eff"]:g}', "best kd&sup2;/n")
-            + '</a>')
+            f'<span class=lbname>{html.escape(h)}{crown}</span></a>'
+            + metric(s["codes"], "codes", qh, f"all {h} codes on the board")
+            + metric(s["front"], "on frontier",
+                     html.escape(f"?q={h} record"), f"{h} frontier codes")
+            + metric(s["exact"], "exact", qh, f"all {h} codes on the board")
+            + metric(f'{s["eff"]:g}', "best kd&sup2;/n",
+                     f'codes/{s["slug"]}.html' if s["slug"] else None,
+                     "the code achieving this")
+            + '</div>')
     cmd = (f"git clone {REPO_ROOT}\n"
            "cd qldpc-challenge\n"
            "./qldpc submit mycode.npz --authors @you")
