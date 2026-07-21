@@ -802,18 +802,23 @@ document.querySelectorAll('tr[data-href]').forEach(r=>{
   el.addEventListener('mouseleave',()=>mark(code,false));
  });
 })();
+// Delegated so it survives the record chart re-rendering its own circles.
 const tip=document.getElementById('tip');
-if(tip)document.querySelectorAll('circle.hit').forEach(c=>{
- c.addEventListener('mouseenter',()=>{tip.textContent=c.dataset.tip;
-  tip.classList.add('show');});
- c.addEventListener('mousemove',e=>{let x=e.clientX+14,y=e.clientY+14;
+if(tip){
+ document.addEventListener('mouseover',e=>{
+  const c=e.target.closest('.hit[data-tip]');if(!c)return;
+  tip.textContent=c.getAttribute('data-tip');tip.classList.add('show');});
+ document.addEventListener('mousemove',e=>{
+  if(!tip.classList.contains('show'))return;
+  let x=e.clientX+14,y=e.clientY+14;
   if(x+310>innerWidth)x=e.clientX-tip.offsetWidth-14;
   tip.style.left=x+'px';tip.style.top=y+'px';});
- c.addEventListener('mouseleave',()=>tip.classList.remove('show'));
-});
-document.querySelectorAll('circle.hit[data-code]').forEach(c=>{
- c.addEventListener('click',()=>{location.href='codes/'+c.dataset.code+'.html';});
-});
+ document.addEventListener('mouseout',e=>{
+  if(e.target.closest('.hit[data-tip]'))tip.classList.remove('show');});
+}
+document.addEventListener('click',e=>{
+ const c=e.target.closest('.hit[data-code]');
+ if(c)location.href='codes/'+c.getAttribute('data-code')+'.html';});
 // Smart search over the unified board: space-separated terms, all must match.
 // A term is either a comparison (n/k/d/w/eff with >= <= > < =) or free text
 // matched against the code name, type, and authors. 'record' keeps frontier
@@ -1821,7 +1826,7 @@ function runbest(rows){
 }
 function draw(){
  if(st.m==='record'&&st.s==='log'&&st.w==='all'){plot.innerHTML=init;leg.innerHTML=legInit;return;}
- var W=1040,H=300,pl=64,pr=118,pb=30,pt=14;
+ var W=1040,H=300,pl=64,pr=(st.m==='model'?182:118),pb=30,pt=14;
  var data=windowed(); if(st.m!=='record')data=data.filter(function(r){return r.sub;});
  var series=[];
  if(st.m==='record'){
@@ -1879,11 +1884,14 @@ function draw(){
    var le=s.rows[s.rows.length-1];
    endlist.push({y:fy(le.eff),lab:s.lab,eff:le.eff});}
   P.forEach(function(p){var r=p[2];
-   body+='<a href="codes/'+r.slug+'.html"><circle cx="'+p[0]+'" cy="'+p[1]+'" r="'+(s.step?4:3.4)+'" fill="'+(s.step?'#fff':s.col)+'" fill-opacity="'+(s.step?1:0.55)+'" stroke="'+s.col+'" stroke-width="'+(s.step?2:0)+'"><title>[['+r.n+','+r.k+','+r.d+']] &#183; w='+r.w+' &#183; kd&#178;/n='+r.eff+' &#183; '+r.t+' &#183; '+r.model+'</title></circle></a>';});
+   var tp=('[['+r.n+','+r.k+','+r.d+']] · w='+r.w+' · kd²/n='+r.eff+' · '+r.t+' · '+r.model).replace(/"/g,'&quot;');
+   body+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="'+(s.step?4:3.4)+'" fill="'+(s.step?'#fff':s.col)+'" fill-opacity="'+(s.step?1:0.55)+'" stroke="'+s.col+'" stroke-width="'+(s.step?2:0)+'" pointer-events="none"/>'
+    +'<circle class=hit data-code="'+r.slug+'" data-tip="'+tp+'" cx="'+p[0]+'" cy="'+p[1]+'" r="9" fill="transparent"/>';});
  });
  endlist.sort(function(a,b){return a.y-b.y;});
  for(var i=1;i<endlist.length;i++)if(endlist[i].y-endlist[i-1].y<15)endlist[i].y=endlist[i-1].y+15;
- endlist.forEach(function(e){ends+='<text x="'+(W-pr+8)+'" y="'+e.y+'" dy="4" font-size="12.5" fill="#334155">'+e.lab+' &#183; <tspan font-weight="700">'+e.eff+'</tspan></text>';});
+ endlist.forEach(function(e){var lab=e.lab.length>18?e.lab.slice(0,17)+'…':e.lab;
+  ends+='<text x="'+(W-pr+8)+'" y="'+e.y+'" dy="4" font-size="12" fill="#334155">'+lab+' &#183; <tspan font-weight="700">'+e.eff+'</tspan></text>';});
  plot.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto">'+g+body+ends+'</svg>';
  leg.innerHTML=series.map(function(s){return '<span class=ci><span class=cdot style="background:'+s.col+'"></span>'+(s.step?'best kd&#178;/n, ':'')+s.lab+'</span>';}).join('');
 }
