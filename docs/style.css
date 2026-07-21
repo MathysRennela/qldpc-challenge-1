@@ -202,6 +202,12 @@ border-top:1px solid var(--ln);scroll-margin-top:16px}
 .tcount{color:var(--mut);font-size:14px;font-weight:400}
 .plots{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
 gap:16px;margin:14px 0 4px}
+/* Pin the scatters to the top while the table scrolls beneath, so the
+   point<->row hover highlight stays visible. The table header sticks within
+   its own scroll box (a separate scroll context), so no header offset needed.
+   Desktop only; on phones the plots scroll away to save vertical space. */
+@media(min-width:760px){.explorer .plots{position:sticky;top:0;z-index:5;
+background:var(--bg);padding:8px 0 6px;margin-top:0}}
 .plot{min-width:0;border:1px solid var(--ln);border-radius:12px;
 background:#fff;padding:8px}
 .chartlegend{display:flex;flex-wrap:wrap;gap:10px 20px;margin:10px 0 4px;
