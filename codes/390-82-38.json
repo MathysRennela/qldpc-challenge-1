@@ -13364,7 +13364,8 @@
  },
  "provenance": {
   "authors": [
-   "@mathysrennela"
+   "@mathysrennela",
+   "@seunomonije"
   ],
   "construction": "Generalized bicycle (2BGA on Z_195), circulant size 195, a(x) weight 16, b(x) weight 16, both multiples of degree-41 divisor g of x^195-1 (k=82). Symmetric high-distance variant of [[390,82,27]].",
   "origin": "submission",
