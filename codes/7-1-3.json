@@ -77,7 +77,41 @@
   "references": [
    "arXiv:quant-ph/9601029"
   ],
-  "notes": "Distance is exact by construction."
+  "notes": "Distance is exact by construction. 2D layout added 2026-07-23: compact unit-spaced triangular patch (qubit 6, shared by all three faces, at the centre); single layer, measured interaction radius 2.0."
  },
- "family": "topological"
+ "family": "topological",
+ "locality": {
+  "coordinates": [
+   [
+    1.5,
+    0.8660254037844386
+   ],
+   [
+    -0.5,
+    0.8660254037844386
+   ],
+   [
+    0.5,
+    0.8660254037844386
+   ],
+   [
+    -0.5,
+    -0.8660254037844386
+   ],
+   [
+    1.0,
+    0.0
+   ],
+   [
+    -1.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "interaction_radius": 2.0,
+  "layers": 1
+ }
 }

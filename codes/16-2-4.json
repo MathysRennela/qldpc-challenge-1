@@ -139,7 +139,77 @@
   "references": [
    "arXiv:quant-ph/9707021"
   ],
-  "notes": "Distance is exact by construction."
+  "notes": "Distance is exact by construction. 2D layout added 2026-07-23: the 4x4 torus folded into the plane (ring fold i -> 2i / 2(L-i)-1 per axis), making the wrap-around checks geometrically local; single layer, measured interaction radius 2*sqrt(2)."
  },
- "family": "topological"
+ "family": "topological",
+ "locality": {
+  "coordinates": [
+   [
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    2.0
+   ],
+   [
+    0.0,
+    3.0
+   ],
+   [
+    0.0,
+    1.0
+   ],
+   [
+    2.0,
+    0.0
+   ],
+   [
+    2.0,
+    2.0
+   ],
+   [
+    2.0,
+    3.0
+   ],
+   [
+    2.0,
+    1.0
+   ],
+   [
+    3.0,
+    0.0
+   ],
+   [
+    3.0,
+    2.0
+   ],
+   [
+    3.0,
+    3.0
+   ],
+   [
+    3.0,
+    1.0
+   ],
+   [
+    1.0,
+    0.0
+   ],
+   [
+    1.0,
+    2.0
+   ],
+   [
+    1.0,
+    3.0
+   ],
+   [
+    1.0,
+    1.0
+   ]
+  ],
+  "interaction_radius": 2.8284271247461903,
+  "layers": 1
+ }
 }
