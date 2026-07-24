@@ -92,6 +92,47 @@ checks span about 5.83 and open-boundary corner stabilizers reach about 6.71,
 both constant in n. The verifier also reports layout diagnostics (interaction
 radius, qubits per site, minimum spacing, density, bounding box).
 
+## Two efficiency scores
+
+The site shows two figures of merit (issue #276); both normalize the rotated
+surface code to 1, but they answer different questions.
+
+- **Operational efficiency** `kd^2/n`: the Bravyi-Poulin-Terhal saturation
+  ratio, incumbent-relative. Bounded and meaningful for 2D-local /
+  bounded-weight codes at comparable n; grows with n for high-rate codes, so
+  it is compared within tracks.
+- **Geometric efficiency** `g = 4 k d^2 / (n rho^2 r^4)` (written `f` in
+  the working notes): the same ratio priced
+  by the layout the code ships with. `r` is the measured interaction radius
+  (max check diameter, Euclidean, in units of the unit qubit spacing), `rho`
+  the layer count. The constant 4 = (sqrt 2)^4 puts the surface code
+  (r = sqrt 2, rho = 1) at exactly 1. The `rho^2` factor is the capacity
+  charge: it is the unique exponent that makes re-packaging a layout into
+  layers score-neutral (folding halves the area within reach, gaining
+  (sqrt 2)^4 = 4 in r^4, and pays exactly 4 in rho^2), so layers are neither
+  free nor forbidden -- they must earn their density.
+
+  Conventions and guards:
+  - g is computed only from a verifier-accepted layout (an honest layout
+    within a class cap). A code without one has no f. That is a certification
+    status, not a property: such a code may still be geometrically local
+    (e.g. on a torus, or simply unlayouted) -- it is not thereby an
+    "expander code".
+  - g inherits the distance tier: computed from an upper-bound d it is an
+    upper bound, and the site marks it so.
+  - The headline card requires d >= 3: g is scale-free, so d = 2 tilings
+    (a [[4,2,2]] block on one plaquette scores g = 2) would "beat" the
+    surface code without encoding anything asymptotic. No known d = 3-4
+    code with an honest layout comes near 1, but no theorem caps that band
+    either; the threshold will be raised (or replaced by the d_min(w, rho)
+    rule of the working notes) if a small-d packing exploit materializes.
+  - D = 2 only for now: the schema stores planar coordinates. The D > 2
+    generalization changes the exponents (kd^(2/(D-1)) per the BPT bound)
+    and is reserved.
+  - The caps above stay what they are: coarse eligibility gates. g prices
+    range continuously inside the class; a trivial sqrt(n)-range layout is
+    not banned by g, just priced into irrelevance (g ~ n^-2).
+
 ## Reference bars
 
 - 2D-local efficiency: the published weight-8 exact bar is kd^2/n ~ 12.7, the
