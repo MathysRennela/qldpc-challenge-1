@@ -375,7 +375,7 @@ gap:14px;margin:28px 0 8px}}
 .stat-card{{border:1px solid var(--ln);border-radius:14px;padding:18px 20px;
 background:var(--soft)}}
 .stat-card .v{{font-size:34px;font-weight:700;line-height:1.05;
-font-family:'Space Mono',ui-monospace,monospace}}
+font-variant-numeric:tabular-nums}}
 .stat-card .l{{font-size:13px;color:var(--mut);margin-top:6px}}
 .stat-card .sub{{font-size:12.5px;margin-top:5px;color:var(--mut)}}
 .stat-card .sub a{{font-family:'Space Mono',ui-monospace,monospace;

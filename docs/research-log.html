@@ -1,0 +1,179 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Research log · QEC Challenge</title><link rel=icon type="image/svg+xml" href="favicon.svg"><link rel=preconnect href="https://fonts.googleapis.com"><link rel=preconnect href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Space+Grotesk:wght@500;700&family=Space+Mono:wght@400;700&display=swap" rel=stylesheet><link rel=stylesheet href="style.css"></head><body>
+<div class=wrap>
+<a class=back href="index.html">&larr; back to the board</a>
+<h1>Research log</h1>
+<p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/126-18-14.html">[[126,18,14]] — 126-18-14</a></h3><div class=kv style="color:var(--mut)">2026-07-14 &middot; submission note &middot; <a href="https://github.com/willzeng">@willzeng</a> &middot; Claude Fable 5</div><details open><summary>note</summary><div class=notebody><h3>[[126,18,14]] — designed-divisor weight-10 GB on Z_63</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>First find of the designed-divisor track (see notes/258-32-22.md for the full campaign): weight-9plus cell, k pinned by a degree-9 divisor g | x^63−1 (k = 18), weight-5 multiples of g as supports.</p>
+<h4>What was searched</h4>
+<p>Designed-divisor sweep at N=63 within the 13,200-candidate campaign; screen at 1.5k RIS trials. This code: a(x) = 1+x¹⁴+x¹⁶+x²¹+x²⁷, b(x) = 1+x³¹+x³⁹+x⁴⁰+x⁴⁵.</p>
+<h4>Evidence trail</h4>
+<p>Ladder 8k → 60k → 200k → 1M trials/side: lightest logical 14 at every rung (seed 424242); claimed d = witnessed weight-14 logicals. Pre-submission adversarial re-check: 3 fresh seeds × 1M trials/side, all 14. Claim: <b>upper bound d ≤ 14</b>. At n=126 the gate&#x27;s refutation search is meaningful, and the weekly board sweep re-tests with fresh seeds.</p>
+<h4>Dead ends</h4>
+<p>n=126 sits inside Lin–Pryadko&#x27;s exhaustively enumerated range for W ≤ 8, so the lit check mattered: no published [[126,18,14]] at w ≤ 10 was found (closest: [[126,28,8]] at w8, [[126,12,10]]/[[126,14,10]]); weight-10 is outside the exhaustive enumerations. Novelty vs literature: unverified.</p>
+<h4>Tools</h4>
+<p>Claude Fable 5 agent campaign, research/ kit, gf2_fast.</p>
+<h4>Reproduction</h4>
+<p>GB on Z_63 with the supports above; construction string in <code>codes/126-18-14.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/126-18-14.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/210-24-20.html">[[210,24,20]] — 210-24-20</a></h3><div class=kv style="color:var(--mut)">2026-07-14 &middot; submission note &middot; <a href="https://github.com/willzeng">@willzeng</a> &middot; Claude Fable 5</div><details open><summary>note</summary><div class=notebody><h3>[[210,24,20]] — designed-divisor weight-10 GB on Z_105</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Same campaign and construction as [[258,32,22]] (see that note for the full search): weight-9plus cell, designed-divisor GB — k fixed by a degree-12 divisor g | x^105−1 (k = 2·deg g = 24), search over weight-5 multiples.</p>
+<h4>What was searched</h4>
+<p>Part of the 13,200-candidate designed-divisor sweep over N = 63–147 (screen: 1.5k RIS trials). This code: N=105, a(x) = 1+x³²+x⁸²+x⁸⁴+x¹⁰², b(x) = 1+x³⁰+x⁴⁸+x⁵⁹+x⁷⁴.</p>
+<h4>Evidence trail</h4>
+<p>Ladder 8k → 60k → 200k → 1M trials/side: lightest logical 20 at every rung; claimed d = witnessed weight-20 logicals at 1M. Adversarial re-check before submission: 4 fresh seeds × 1.5M trials/side, all 20, nothing lighter. Claim: <b>upper bound d ≤ 20</b>.</p>
+<h4>Dead ends</h4>
+<p>Sibling candidates at nearby N collapsed on the ladder (screen values fell up to ~50% before flattening); only flat-from-8k survivors were packaged. The random support-5 track (85,828 samples) never matched the designed route.</p>
+<h4>Tools</h4>
+<p>Claude Fable 5 agent campaign, research/ kit, gf2_fast deep RIS (~20s per 1.5M trials/side at n=210).</p>
+<h4>Reproduction</h4>
+<p>GB/2BGA on Z_105 with the supports above; construction string in <code>codes/210-24-20.json</code>. Lit check at submission: closest published n=210 code was [[210,10,16]] (arXiv:2503.03827).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/210-24-20.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/240-16-20.html">[[240,16,20]] — 240-16-20</a></h3><div class=kv style="color:var(--mut)">2026-07-14 &middot; submission note &middot; Aydin and Arda and Tamo and Itzhak and Barg and Alexander</div><details open><summary>note</summary><div class=notebody><h3>[[240,16,20]] — literature baseline (Aydin–Tamo–Barg), exact reproduction</h3>
+<h4>Why this entry exists</h4>
+<p>This is a <b>baseline seeding</b>, not an original submission: the code is published in arXiv:2606.17268 (Appendix F, Table VI: n=240, k=16, d ≤ 20 via QDistRnd at 10⁶ iterations) and was absent from the board. On the board of 2026-07-14 it landed as a weight-8 frontier point, which meant several then-staged candidates were being measured against an artificially weak frontier. Seeding it made the repo-local frontier honest.</p>
+<h4>Reproduction (the actual work)</h4>
+<p>The paper specifies the code by GAP identifiers, so exact reproduction required GAP 4.14.0 (the paper&#x27;s pinned version; installed via conda-forge): G = SmallGroup(240,39) = C3×((C5⋊C8)⋊C2); H = Filtered(AllSubgroups(G), K -&gt; not IsNormal(G,K))[1] ≅ C2; a = [1,37,136,228] as 1-based indices into LeftCosets(G, Core(G,H)); b = [1,11,35,52] into LeftCosets(Normalizer(G,H), H); two-block coset action H_X = [A|B], H_Z = [Bᵀ|Aᵀ]. The caption&#x27;s convention worked on the first interpretation — no alternative reading was needed.</p>
+<p><b>Validation before trusting the target:</b> the same pipeline reproduced three exact-distance rows of Table VI first — [[80,8,10]] and [[80,10,8]] (both MILP-certified exact, both sides) and [[120,14,12]] (k exact; 2M-trial RIS finds weight 12, nothing lighter).</p>
+<h4>Evidence trail</h4>
+<p>Target build: CSS holds, k=16, max check weight 8. Ladder 8k → 2M trials/side flat at 20; +3 fresh seeds × 2M, all 20; matches the paper&#x27;s bound. Claim: <b>upper bound d ≤ 20</b>, attributed to the paper&#x27;s authors (<code>origin: baseline</code>, no @handle — baseline exemption per CONTRIBUTING).</p>
+<h4>Dead ends / tips</h4>
+<ul>
+<li>The paper&#x27;s Appendix F (Table VI) is not extractable from the arXiv HTML</li>
+<p>render — every route truncates before the appendix. Reading the PDF&#x27;s pages 23–24 directly works.</p>
+<li>GAP&#x27;s conda-forge build segfaults on <code>--version</code> but runs scripts; confirm</li>
+<p>the version via <code>GAPInfo.Version</code>.</p>
+</ul>
+<h4>Tools</h4>
+<p>Claude Fable 5 agent (GAP install, convention validation, build); gf2_fast for the deep rungs; MILP exact certification via the repo&#x27;s certifier for the two [[80,·,·]] validation rows.</p>
+<h4>Reproduction pointer</h4>
+<p>GAP script + matrices + validation artifacts: <code>research/candidates/campaign-20260714/baseline-240-16-20/</code> (in the campaign branch history); construction string in <code>codes/240-16-20.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/240-16-20.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/258-32-22.html">[[258,32,22]] — 258-32-22</a></h3><div class=kv style="color:var(--mut)">2026-07-14 &middot; submission note &middot; <a href="https://github.com/willzeng">@willzeng</a> &middot; Claude Fable 5</div><details ><summary>note</summary><div class=notebody><h3>[[258,32,22]] — designed-divisor weight-10 GB on Z_129</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: the weight-9plus × unrestricted cell, which held a single code ([[126,28,8]], kd²/n 14.2). Hypothesis: support-5 GB codes open the cell, but random sampling wastes the weight budget — aligning k with d needs structure.</p>
+<h4>What was searched</h4>
+<p>Two tracks. (a) Random support-5 2BGA over 15 nonabelian groups: 85,828 candidates — k and d never aligned; nothing board-advancing survived. (b) The designed-divisor construction that produced this code: pick a divisor g(x) | x^N−1 of target degree (k = 2·deg g guaranteed), then meet-in-the-middle enumerate weight-5 multiples of g. 13,200 such codes screened over cyclic groups N = 63–147 at 1.5k RIS trials. This code: N=129, deg g = 16, a(x) = 1+x²+x⁴¹+x⁷³+x⁸³, b(x) = 1+x⁴⁷+x⁹²+x¹¹²+x¹²⁵.</p>
+<h4>Evidence trail</h4>
+<p>Screen values in this family inflate up to ~50% (e.g. 42→34, 38→28, 30→20 by 20k trials), so every survivor was laddered. This code: 8k → 60k → 200k → 1M trials/side all find lightest logical 22, flat from the first rung; claimed d equals the witnessed weight-22 logicals at the 1M rung. Post-hoc adversarial re-check: 4 fresh seeds × 1.5M trials/side, all find 22, nothing lighter. Independent BP+OSD decoder search: nothing below weight 24. Claim: <b>upper bound d ≤ 22</b>, no lighter logical proven absent.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>Random support-5 (85,828 samples): k·d never beat the designed route — the</li>
+<p>divisor trick, not sampling volume, was the win.</p>
+<li>Ten flat-ladder survivors were found; seven remain unpackaged (staged) —</li>
+<p>confirmation, not generation, is the bottleneck.</p>
+<li>Nearest literature neighbor checked before claiming: [[254,28,14]]</li>
+<p>(arXiv:1904.02703); weight-10 supports sit outside the exhaustive W≤8 enumerations. Novelty vs literature: unverified, per board policy.</p>
+</ul>
+<h4>Tools</h4>
+<p>Claude Fable 5 multi-agent campaign on the repo&#x27;s research/ kit; gf2_fast for all deep RIS runs (~9–30s per 1M trials/side at this n); BP+OSD via the decode/ stack for the independent check. ~45 min generation, ~hours of confirmation across parallel agents.</p>
+<h4>Reproduction</h4>
+<p><code>research/kit/group_algebra.py::build_2bga</code> on Z_129 with the supports above (exponents of a(x), b(x)); or see the construction string in <code>codes/258-32-22.json</code>. Code-capacity performance study (BP+OSD, MWPM comparison): <code>research/candidates/campaign-20260714/plots/</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/258-32-22.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/288-16-16.html">[[288,16,16]] — 288-16-16</a></h3><div class=kv style="color:var(--mut)">2026-07-14 &middot; submission note &middot; <a href="https://github.com/willzeng">@willzeng</a> &middot; Claude Fable 5</div><details ><summary>note</summary><div class=notebody><h3>[[288,16,16]] — annealed 2BGA on the metacyclic group C12⋊C12</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: the weight-6 × unrestricted cell (best 13.50, [[288,12,18]]; frontier k-max 12). Hypothesis: nonabelian metacyclic groups of order 100–180 are outside Lin–Pryadko&#x27;s exhaustive n ≤ 200 enumeration, so novelty is possible, and annealing should out-search blind sampling once tuned.</p>
+<h4>What was searched</h4>
+<p>4,700 random screens + ~2,500 anneal evaluations over all nonabelian metacyclic (conjugacy-deduped) and dicyclic groups of order 100–180, support-3 (w6) and support-4 (w8). This code: 2BGA on C12⋊C12 = ⟨x,y | x¹²=y¹²=1, yxy⁻¹=x⁵⟩ (order 144, GAP-independent presentation), a=[0,9,55], b=[0,26,37] (element indices in the kit&#x27;s enumeration), found by annealing from the screened seed [[288,8,18]].</p>
+<p><b>Method result worth having:</b> the historic ~0.1% anneal acceptance on this family was never a temperature problem — 60–80% of support mutations destroy k and must be auto-rejected before the Metropolis step; among k-viable moves acceptance at T = 1–2 is ~50%. With that fix, T=1.5 with cooling worked.</p>
+<h4>Evidence trail</h4>
+<p>Ladder 2k/8k/60k/200k: 16/16/16/16, flat; 600k-trial deep search witnessed weight-16 logicals on both sides. Pre-submission adversarial re-check: 3 fresh seeds × 1M trials/side (gf2_fast), all 16. Claim: **upper bound d ≤ 16**. Gate verdict: board_advancing, dedup clean.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>[[252,8,26]] (screen) collapsed to 19 by the 8k rung.</li>
+<li>All n ≥ 330 anneal stars ([[360,18,38]], [[360,12,42]], [[360,12,22]])</li>
+<p>were left unpackaged: the 1M-trial rung was too expensive on a contended machine, and this family&#x27;s screen values inflate. Treat those parameters as unconfirmed leads, not results.</p>
+<li>Dicyclic groups never out-screened metacyclic at equal order.</li>
+</ul>
+<h4>Tools</h4>
+<p>Claude Fable 5 agent campaign; annealer in the campaign staging dir (tune/screen/anneal/ladder phases); gf2_fast for deep rungs.</p>
+<h4>Reproduction</h4>
+<p><code>research/kit/group_algebra.py</code> metacyclic builder with the presentation and supports above; construction string in <code>codes/288-16-16.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/288-16-16.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/336-20-21.html">[[336,20,21]] — 336-20-21</a></h3><div class=kv style="color:var(--mut)">2026-07-14 &middot; submission note &middot; <a href="https://github.com/willzeng">@willzeng</a> &middot; Claude Fable 5</div><details ><summary>note</summary><div class=notebody><h3>[[336,20,21]] — coset 2BGA on C56⋊C6 / C2 (weight-8)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: the weight-8 × unrestricted headline ([[336,20,20]], kd²/n 23.81). Hypothesis, learned the hard way (see fieldnote on the simple-group d=2 plateau): record coset codes live on *solvable metacyclic* groups with a large normalizer quotient |N_G(H)/H| — not on simple groups. So: coset 2BGA on C_m⋊C6 with H = C2 at sizes above everything published (n = 336/408/504), annealed with tuned acceptance.</p>
+<h4>What was searched</h4>
+<p>5 group configs, 498 anneal restarts, ~173k evaluations (acceptance 5.7–12.1% after raising T_HI 1.2 → 1.8). This code: G = C56⋊C6 (order 336, twist r=29), non-normal H = ⟨(0,3)⟩ ≅ C2, |N_G(H)| = 168, |W| = 84; a = [0,225,233,239], b = [0,36,134,194].</p>
+<h4>Evidence trail</h4>
+<p>Ladder [27, 21, 21, 21] — flat from 8k trials; then ~2M aggregate trials/side over 10 independent seeds, all finding 21. Pre-submission: 3 fresh seeds × 2M trials/side single-run, all 21. Claim: <b>upper bound d ≤ 21</b> — strictly improves [[336,20,20]] (same n, k; d+1).</p>
+<h4>Dead ends</h4>
+<ul>
+<li>n=168 scale-down (C28⋊C6, |W|=42): 55k evals, zero hits — [[168,20,14]]</li>
+<p>unbeaten.</p>
+<li>n=180 two-element correlated moves around the board optimum: 447,859 pair</li>
+<p>evaluations, zero improvements. Combined with earlier single-move exhaustion, [[180,20,14]] is locally optimal under 1- and 2-element moves; that direction is closed.</p>
+<li>n=408/504 hits showed classic large-n inflation (63→40, 66→30 still</li>
+<p>descending at 190k trials); one nominally-flat [[504,16,≤27]] never met the 1M floor and was handed off unpackaged.</p>
+<li>Lit check: arXiv:2606.17268&#x27;s full Table VI (Appendix F) was extracted and</li>
+<p>checked — no n=336 entries; largest published w8 coset distance there is ≤20. (Extraction tip: the HTML renders truncate; read the PDF pages directly.)</p>
+</ul>
+<h4>Tools</h4>
+<p>Claude Fable 5 agent campaign; coset builder <code>research/kit/coset.py</code>; gf2_fast; sampler guards from the prior blocked route (odd |b| forces k=0; b = whole normalizer quotient is a k-inflating d=2 degeneracy).</p>
+<h4>Reproduction</h4>
+<p><code>research/kit/coset.py::build_coset</code> with (G, H, a, b) above; construction string in <code>codes/336-20-21.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/336-20-21.md">raw markdown</a></div></details></section>
+<section class=blk><h3>The 0.1%-acceptance annealing problem was never temperature — it is k-destroying moves</h3><div class=kv style="color:var(--mut)">2026-07-14 &middot; fieldnote &middot; <a href="https://github.com/willzeng">@willzeng</a> &middot; Claude Fable 5</div><details ><summary>note</summary><div class=notebody><p><b>Finding.</b> Simulated annealing over 2BGA support sets was historically run at ~0.1% acceptance and written off as &quot;too cold.&quot; Instrumenting the move loop shows the real cause: **60–80% of single-support mutations destroy k entirely** (k → 0 or below the target floor), and a k=0 candidate scores so badly that Metropolis rejects it at any reasonable temperature. Temperature was never the knob.</p>
+<p><b>Fix.</b> Reject k-crashing moves *before* the Metropolis step (cheap: k via gf2 rank on the mutated supports), and tune temperature only over k-viable moves. Among k-viable moves, acceptance at T = 1–2 is ~50%; production runs at T = 1.5 with cooling then actually anneal. On the metacyclic 2BGA family this lifted a screened [[288,8,18]] seed to the board&#x27;s [[288,16,16]] (weight-6 cell best at the time), and [[360,10,40]] → [[360,18,38]] at screen depth.</p>
+<p><b>Numbers.</b> Tuning runs: order-100–180 metacyclic/dicyclic groups, 4,700 random screens + ~2,500 anneal evaluations; acceptance measured 5.7–12.1% across configs after the fix (vs ~0.1% before). A separate coset-2BGA campaign reproduced the pattern: raising T_HI 1.2 → 1.8 helped only after k-crash pre-rejection was in place.</p>
+<p><b>Boundary.</b> Measured on 2BGA/coset-2BGA support mutations. Any family whose moves can silently zero k (most two-block algebraic constructions) likely behaves the same; families with k fixed by construction (e.g. designed-divisor GB, where k = 2·deg g is invariant under the move set) do not need the pre-rejection and can spend the temperature budget on d.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes/2026-07-14-anneal-acceptance-k-crashes.md">raw markdown</a></div></details></section>
+<section class=blk><h3>Coset 2BGA on simple groups with small subgroups sits on a d=2 plateau</h3><div class=kv style="color:var(--mut)">2026-07-14 &middot; fieldnote &middot; <a href="https://github.com/willzeng">@willzeng</a> &middot; Claude Fable 5</div><details ><summary>note</summary><div class=notebody><p><b>Finding.</b> Coset 2BGA codes built from simple or almost-simple groups G with a small non-normal subgroup H (C2/C3/C4) do not reach useful distance: across 10 (G, H) pairs — PSL(2,7)/C2, PGL(2,7)/C4 and /C3, A6/C3 (two classes), S6/S3, PSL(2,8)/C3, PSL(2,11)/C3, A6/C2, S6/C4, with n ∈ {168, 224, 240, 336, 360, 440} — random screening (4,185 samples on A6/C3 alone, ~730 k-filtered overall), simulated annealing (~75s/config), and a 252-restart / ~75k-evaluation local search all topped out at **d = 6, with d = 2 typical**, despite healthy k (up to 34).</p>
+<p><b>Contrast.</b> The record coset codes ([[168,20,14]], [[180,20,14]], arXiv:2606.17268) live on *solvable metacyclic* groups where the normalizer quotient is large (|N_G(H)/H| = 30–84). A large right-action class space appears necessary for distance in this construction; simple groups with tiny H give the right action almost nothing to act on. Consistent with this, the follow-up sweep on C56⋊C6 / C2 (|W| = 84) immediately produced [[336,20,21]] and [[336,12,26]].</p>
+<p><b>Sampler guards discovered en route</b> (worth hard-coding in any coset sampler): odd |b| forces k = 0 (300/300 across four size combos); b = the whole normalizer quotient is a k-inflating degeneracy that yields k = 54–70 at d = 2 — screening on k·d²/n without a d floor will chase it.</p>
+<p><b>Boundary.</b> This blocks {simple/almost-simple G} × {|H| ≤ 4} at the stated search depth (~10⁵ evaluations total). It says nothing about larger H in simple groups, or about lifted/balanced-product constructions on the same groups. Reopen with a genuinely different mechanism, not more of the same sampling.</p>
+<p><b>Also closed (exhaustion, same campaign):</b> the n=180 coset optimum [[180,20,14]] is locally optimal under all 1-element moves and all 447,859 2-element correlated moves — improving it needs a different construction, not a better local search.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes/2026-07-14-coset-simple-groups-d2-plateau.md">raw markdown</a></div></details></section>
+<section class=blk><h3>Two constructive mechanisms: designed-divisor GB (k by construction) and the odd-k parity rule</h3><div class=kv style="color:var(--mut)">2026-07-14 &middot; fieldnote &middot; <a href="https://github.com/willzeng">@willzeng</a> &middot; Claude Fable 5</div><details ><summary>note</summary><div class=notebody><p>Two mechanisms from the 2026-07-14 campaign that turn blind sweeps into directed ones. Both are positive results, recorded here because the *mechanism* is the transferable part, beyond any single code.</p>
+<p><b>1. Designed-divisor GB: fix k first, spend the search on d.</b> For a cyclic GB code on Z_N, choosing both generator polynomials as multiples of a common divisor g(x) | x^N − 1 guarantees k = 2·deg g by construction. The search then reduces to enumerating (e.g. meet-in-the-middle) weight-w multiples of g, ranking purely on surrogate distance — no compute wasted on k-collapsed candidates, and no k/d misalignment. One 13,200-candidate sweep over N = 63–147 at support-5 produced [[126,18,14]], [[210,24,20]], and [[258,32,22]] (then a 4× cell-efficiency record). For contrast, 85,828 random support-5 samples over 15 nonabelian groups produced nothing board-advancing: <b>structure beat sampling volume by orders of magnitude.</b> The subsequently-submitted [[390,82,·]] family shows the same trick scaling further (Z_195, larger divisors, higher weight).</p>
+<p><b>2. When is odd k possible?</b> Verified identity (400-sample spot check) for 2BGA with supports a, b on group G: k = 2|G| − rank[L(a)|R(b)] − rank[L(a⁻¹)|R(b⁻¹)], so **odd k requires the inversion a → a⁻¹, b → b⁻¹ to flip a rank parity.** Consequences, all confirmed empirically: abelian groups never give odd k; inverse-closed supports never do (0/1,342 odd-k finds violated this); an even-size support appears required — support-3 × support-3 gave 0 odd-k in 27,000 samples, so <b>the weight-6 cell is closed to odd k</b> for this construction. Group structure gates the rate: PSL(2,7) ~29% of samples odd-k, S5 ~15%, SL(2,5) 0.4% (central Z2 hurts), solvable metacyclic 0% (0/24,000). Odd-k codes occupy Pareto slots abelian constructions cannot reach (e.g. [[240,15,15]] at w8), but odd k is not itself a board axis — check domination before spending confirmation compute.</p>
+<p><b>Boundary.</b> Both mechanisms are stated for two-block group-algebra constructions over GF(2). The parity rule&#x27;s &quot;even support size required&quot; is empirical (27k samples), not proved.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes/2026-07-14-designed-divisor-and-odd-k.md">raw markdown</a></div></details></section>
+<section class=blk><h3>Large n calibration: flat-at-16k is not convergence, and the gate refuter is weak above n≈1000</h3><div class=kv style="color:var(--mut)">2026-07-14 &middot; fieldnote &middot; <a href="https://github.com/willzeng">@willzeng</a> &middot; Claude Fable 5</div><details ><summary>note</summary><div class=notebody><p>Two related findings from a PSL(2,8) campaign at n = 1008, both of which generalize beyond that family.</p>
+<p><b>1. The flatness heuristic does not transfer to large n.</b> Near n ≈ 300, a surrogate distance that is flat across a 2k → 8k → 16k RIS ladder is usually converged. At n = 1008 it is not: two candidates whose estimates were flat across 4k → 16k dropped a further <b>34% and 17%</b> at a fresh-seed 60k rung. Ladder observations across the campaign: k=12 codes fell 114→108→104→92→68; k=16: 94→106→88→78→56 and 98→92→74→72→52; k=8: 132→112→82→82→68 — still descending at 60k trials in every case. Sizing rule adopted afterwards: treat ≥1M trials/side as the packaging floor for n ≥ 300, and extend the ladder well past 60k before &quot;flat&quot; means anything at n ≈ 1000.</p>
+<p><b>2. The gate&#x27;s refutation search cannot catch inflation at large n.</b> The CI refuter runs ~8k trials in a bounded time budget. At n ≈ 1000 that depth would likely *pass* a claim inflated by 40%+ (see the ladders above — 8k-trial values were nowhere near converged). Below n ≈ 300 the gate plus the weekly fresh-seed sweep is a real adversary; above it, **deep self-refutation is the only honest bar**, and a submitter who skips it is publishing a number that nobody else&#x27;s compute will check. Suggested norm: for n ≥ 500, state the self-refutation depth explicitly in the submission note (this campaign declined to package anything at n = 1008 for exactly this reason — every candidate was still descending).</p>
+<p><b>Corollary for readers of the board:</b> distance claims at large n carry systematically less adversarial testing than small-n claims at the same confidence label. Weight the evidence, not just the tier.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes/2026-07-14-large-n-refutation-calibration.md">raw markdown</a></div></details></section>
+<section class=blk><h3>Confirmation is the bottleneck, not generation</h3><div class=kv style="color:var(--mut)">2026-07-01 &middot; fieldnote</div><details ><summary>note</summary><div class=notebody><p>Screening covers hundreds of candidates in seconds; deep confirmation takes minutes–hours per survivor, and exact MILP certification can run &gt;15 min at n≈126 without finishing. Consequences:</p>
+<ul>
+<li><b>Budget a sweep around how many survivors you can confirm</b>, not how many</li>
+<p>candidates you can generate. Carrying 3 honest survivors beats 15 inflated ones.</p>
+<li>Never block a sweep on exact certification; it is a separate, post-hoc</li>
+<p>tier for standouts.</p>
+<li>One code per PR (CI-enforced) at ~12 min of gate time each — promote</li>
+<p>selectively, best-settled first.</p>
+</ul>
+<p>*Ported 2026-07-23 from <code>research/AUTORESEARCH.md</code>, &quot;Field notes from past campaigns (2026-06 → 2026-07)&quot;.*</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes/2026-07-01-confirmation-is-the-bottleneck.md">raw markdown</a></div></details></section>
+<section class=blk><h3>Lit-check before you fall in love</h3><div class=kv style="color:var(--mut)">2026-07-01 &middot; fieldnote</div><details ><summary>note</summary><div class=notebody><p>Random sweeps rediscover the literature: an A5 [[120,12,10]] &quot;find&quot; turned out to be a known W≤8 optimum from Lin–Pryadko&#x27;s *exhaustive* nonabelian 2BGA enumeration (n≤200, github.com/QEC-pages/2BGA-codes).</p>
+<p>Check the literature <b>before</b> the expensive deep-confirmation runs, not after:</p>
+<ul>
+<li>Lin–Pryadko&#x27;s exhaustive 2BGA enumeration (n≤200, W≤8);</li>
+<li>the bivariate-bicycle papers (arXiv:2308.07915 and follow-ons);</li>
+<li>the Aydin–Tamo–Barg coset tables (arXiv:2606.17268 — note its Appendix F</li>
+<p>Table VI does not survive HTML extraction; read the PDF pages directly).</p>
+</ul>
+<p>Deep confirmation costs minutes to hours per candidate; a lit check costs minutes total. Order them accordingly.</p>
+<p>*Ported 2026-07-23 from <code>research/AUTORESEARCH.md</code>, &quot;Field notes from past campaigns (2026-06 → 2026-07)&quot;.*</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes/2026-07-01-lit-check-before-deep-confirmation.md">raw markdown</a></div></details></section>
+<section class=blk><h3>Open directions that produced the early wins (snapshot, 2026-06 → 2026-07)</h3><div class=kv style="color:var(--mut)">2026-07-01 &middot; fieldnote</div><details ><summary>note</summary><div class=notebody><p>A historical snapshot of the directions that produced the first months&#x27; wins, preserved as recorded; several have since been executed or superseded (noted inline). Treat as a map of *where wins came from*, not a current to-do list — check the research log for what has landed since.</p>
+<ul>
+<li><b>Nonabelian 2BGA beyond n=200</b> — outside the exhaustive enumeration, so</li>
+<p>novelty is real. S5 gave odd-k [[240,13,15]] (odd k is unreachable by abelian BB — a niche only nonabelian constructions can enter); PSL(2,7) gave [[336,20,20]], then a board-best efficiency. Untried neighbors at the time: PSL(2,8), PSL(2,11), SL(2,7), other simple/Hurwitz groups. *(Since executed: the 2026-07-14 campaign swept SL(2,7) and PSL(2,8); see those submission notes. For coset variants, simple groups with small subgroups are a blocked route — see the d=2 plateau fieldnote.)*</p>
+<li><b>The weight-9plus cell is thin.</b> Support-5 2BGA opens it; apply the</li>
+<p>1M-trial floor from the start (this family is the worst inflater). *(Since executed: designed-divisor GB filled the cell — [[126,18,14]], [[210,24,20]], [[258,32,22]], and the later [[390,82,·]] family.)*</p>
+<li><b>2D-local grafts:</b> codes dominated on the unrestricted board still set</li>
+<p>locality records ([[216,15,11]] is a bilayer k-record only because of its layout). Seeded, deterministic graft replay gives bit-exact provenance for a checkpointed matrix. *(Still open.)*</p>
+<li><b>Re-mining old low-trial sweep artifacts at honest trial counts</b> is</li>
+<p>cheap and productive. *(Still open.)*</p>
+<li><b>Annealing (screen-then-confirm) beats blind sampling</b> once a fertile</li>
+<p>group is chosen — but tune acceptance first (T_HI=2.0 ran at ~0.1% acceptance, far too cold). *(Since diagnosed: the acceptance problem was k-destroying moves, not temperature — see the 2026-07-14 annealing fieldnote.)*</p>
+</ul>
+<p>*Ported 2026-07-23 from <code>research/AUTORESEARCH.md</code>, &quot;Field notes from past campaigns (2026-06 → 2026-07)&quot;.*</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes/2026-07-01-open-directions-snapshot.md">raw markdown</a></div></details></section>
+<section class=blk><h3>Tooling landmine: reduce_weights can zero out redundant rows</h3><div class=kv style="color:var(--mut)">2026-07-01 &middot; fieldnote</div><details ><summary>note</summary><div class=notebody><p><code>reduce_weights</code> (research/local2d) can zero out redundant check rows during generating-set weight minimization. <b>Drop empty rows before packaging</b> — the submission schema rejects empty supports, and the failure only surfaces at packaging time, after the compute is spent.</p>
+<p>*Ported 2026-07-23 from <code>research/AUTORESEARCH.md</code>, &quot;Field notes from past campaigns (2026-06 → 2026-07)&quot;.*</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes/2026-07-01-reduce-weights-empty-rows.md">raw markdown</a></div></details></section>
+<section class=blk><h3>Trial-depth floors: the distance-inflation failure mode that repeats every campaign</h3><div class=kv style="color:var(--mut)">2026-07-01 &middot; fieldnote</div><details ><summary>note</summary><div class=notebody><p>Every inflated distance claim across the first months of campaigns died the same way: a high surrogate d at low trials that collapsed as trials rose. [[392,6,32]]→26; [[294,8,20]]→19 *after passing an 8k-trial gate*; [[400,8,50]]→44; [[336,12,36]]→24; overall **5 of 7 staged n≥300 candidates were refuted at 2M trials/side**. Support-5 2BGA (weight-9plus) inflates 8–30% even at 30–60k-trial depth.</p>
+<p>The discipline that fixed it:</p>
+<ul>
+<li>Screen at low trials, but confirm on a <b>rising ladder</b> (e.g.</li>
+<p>2k→8k→60k→1M trials) and keep only candidates whose d is *flat* across the ladder — a value still descending is not a value.</p>
+<li>For n≥300, treat <b>~1M+ trials/side as the packaging floor</b>. With the</li>
+<p><code>gf2_fast</code> extension (<code>make fast</code>, ~30–170× over pure Python) that is minutes, so there is no excuse to skip it.</p>
+<li>Package claimed d = <b>the lightest logical you yourself witnessed</b> in deep</li>
+<p>self-refutation, never &quot;the best value I failed to refute&quot; — leave the gate nothing left to find.</p>
+<li>Distance floors/records established in low-trial eras are suspect (one</li>
+<p>d≥14 &quot;floor&quot; fell at 200k trials). Re-refute an old claim before building on it.</p>
+</ul>
+<p>See also: the 2026-07-14 large-n calibration fieldnote — at n≈1000 even &quot;flat across 4k→16k&quot; is not convergence, and the CI refuter&#x27;s depth cannot catch inflation there.</p>
+<p>*Ported 2026-07-23 from <code>research/AUTORESEARCH.md</code>, &quot;Field notes from past campaigns (2026-06 → 2026-07)&quot;, where this experience was originally accumulated.*</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes/2026-07-01-trial-depth-floors.md">raw markdown</a></div></details></section>
+</div></body></html>
