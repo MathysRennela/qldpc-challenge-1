@@ -1922,7 +1922,10 @@ function draw(){
  if(st.m==='record'&&st.s==='log'&&st.w==='all'&&st.y==='eff'){plot.innerHTML=init;leg.innerHTML=legInit;return;}
  var W=1040,H=300,pl=64,pr=(st.m==='model'?182:118),pb=30,pt=14;
  var data=windowed(); if(st.m!=='record')data=data.filter(function(r){return r.sub;});
- if(st.y==='geo')data=data.filter(function(r){return r.geo!=null;});
+ // f view: the surface/toric reference codes ARE the f=1 ceiling; keeping
+ // them in the record race would freeze it at 1997. They become a dashed
+ // reference line instead, and the series show everyone else's climb.
+ if(st.y==='geo')data=data.filter(function(r){return r.geo!=null&&!r.topo;});
  var series=[];
  if(st.m==='record'){
   S.forEach(function(s){series.push({lab:s[0],col:s[2],step:true,
@@ -1950,24 +1953,29 @@ function draw(){
  }
  var ymax=Math.max.apply(null,pts.map(mv));
  var ymin=Math.min.apply(null,pts.map(mv));
+ // f view: the y range always includes the f=1 surface-code ceiling
+ var yceil=(st.y==='geo')?Math.max(ymax,1):ymax;
  var fy;
  if(st.s==='log'){
   if(st.y==='geo'){
    // f spans decades BELOW 1, so the log floor is the data minimum, not 1
-   var glo=Math.log10(Math.max(ymin,1e-6))-0.08,ghi=Math.log10(ymax)+0.08;
+   var glo=Math.log10(Math.max(ymin,1e-6))-0.08,ghi=Math.log10(yceil)+0.08;
    if(ghi-glo<1e-9)ghi=glo+1;
    fy=function(v){return H-pb-((Math.log10(Math.max(v,1e-9))-glo)/(ghi-glo))*(H-pt-pb);};
   }else{var yhi=Math.log10(ymax)*1.06||1;
    fy=function(v){return H-pb-(Math.log10(Math.max(v,1))/yhi)*(H-pt-pb);};}
- }else{fy=function(v){return H-pb-(v/(ymax*1.08))*(H-pt-pb);};}
+ }else{fy=function(v){return H-pb-(v/(yceil*1.08))*(H-pt-pb);};}
  var ylab=st.y==='geo'?'Geometric Efficiency (f)':'Code Efficiency (kd&#178;/n)';
  var g='<text transform="translate(14 '+((pt+H-pb)/2)+') rotate(-90)" font-size="12.5" fill="#475569" text-anchor="middle">'+ylab+'</text>';
  var ticks=st.s==='log'?(st.y==='geo'?[0.001,0.002,0.005,0.01,0.02,0.05,0.1,0.2,0.5,1]:[1,2,5,10,20,50,100,200,500]):
   (function(){var s=Math.pow(10,Math.floor(Math.log10(ymax)))/2,o=[];
    for(var v=0;v<=ymax*1.05;v+=s)if(v>0)o.push(Math.round(v*1000)/1000);return o.slice(0,8);})();
- ticks.forEach(function(t){if(t>ymax*1.15||(st.y==='geo'&&st.s==='log'&&t<ymin/1.15))return;var y=fy(t);
+ ticks.forEach(function(t){if(t>yceil*1.15||(st.y==='geo'&&st.s==='log'&&t<ymin/1.15))return;var y=fy(t);
   g+='<line x1="'+pl+'" y1="'+y+'" x2="'+(W-pr)+'" y2="'+y+'" stroke="#eef2f7"/>'
    +'<text x="'+(pl-7)+'" y="'+y+'" font-size="12" fill="#475569" text-anchor="end" dy="4">'+t+'</text>';});
+ if(st.y==='geo'){var yr=fy(1);
+  g+='<line x1="'+pl+'" y1="'+yr+'" x2="'+(W-pr)+'" y2="'+yr+'" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 5"/>'
+   +'<text x="'+(pl+6)+'" y="'+(yr-6)+'" font-size="11.5" fill="#64748b">surface code = 1 (the ceiling to beat)</text>';}
  var srt=pts.slice().sort(function(a,b){return a.t<b.t?-1:1;});
  var span=days(srt[srt.length-1].t)-days(srt[0].t);
  var lseen={},cand=[];
@@ -1997,7 +2005,8 @@ function draw(){
   ends+='<text x="'+(W-pr+8)+'" y="'+e.y+'" dy="4" font-size="12" fill="#334155">'+lab+' &#183; <tspan font-weight="700">'+e.eff+'</tspan></text>';});
  plot.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto">'+g+body+ends+'</svg>';
  var mlab=st.y==='geo'?'best f, ':'best kd&#178;/n, ';
- leg.innerHTML=series.map(function(s){return '<span class=ci><span class=cdot style="background:'+s.col+'"></span>'+(s.step?mlab:'')+s.lab+'</span>';}).join('');
+ leg.innerHTML=series.map(function(s){return '<span class=ci><span class=cdot style="background:'+s.col+'"></span>'+(s.step?mlab:'')+s.lab+'</span>';}).join('')
+  +(st.y==='geo'?'<span class=ci title="the surface/toric reference codes sit at the conjectured f ceiling and are drawn as the dashed line, not raced">&#8213; surface code = 1</span>':'');
 }
 document.querySelectorAll('.rcbtn').forEach(function(b){
  b.addEventListener('click',function(){
@@ -2109,6 +2118,7 @@ def record_chart(entries):
     data = [{"t": e["date"], "eff": e["eff"], "geo": e["geo"], "n": e["n"],
              "k": e["k"], "d": e["d"], "w": e["w"], "slug": e["slug"],
              "model": (e["model"] or "human"),
+             "topo": e["family"] == "topological",
              "sub": e["origin"] != "baseline"}
             for e in entries if e["date"]]
     rcjson = json.dumps(data)
