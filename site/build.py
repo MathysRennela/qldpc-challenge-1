@@ -1904,7 +1904,8 @@ var S=JSON.parse(document.getElementById('rcseries').textContent);
 var plot=document.getElementById('rcplot');if(!plot)return;
 var init=plot.innerHTML, leg=document.getElementById('rclegend'), legInit=leg.innerHTML;
 var MC=['#6d28d9','#0369a1','#b45309','#15803d','#be185d','#475569'];
-var st={m:'record',s:'log',w:'all'};
+var st={m:'record',s:'log',w:'all',y:'eff'};
+function mv(r){return st.y==='geo'?r.geo:r.eff;}
 function days(t){return Date.parse(t)/864e5;}
 function windowed(){
  if(st.w==='all')return D.slice();
@@ -1912,15 +1913,16 @@ function windowed(){
  return D.filter(function(r){return now-days(r.t)<=+st.w;});
 }
 function runbest(rows){
- rows=rows.slice().sort(function(a,b){return a.t<b.t?-1:a.t>b.t?1:a.eff-b.eff;});
+ rows=rows.slice().sort(function(a,b){return a.t<b.t?-1:a.t>b.t?1:mv(a)-mv(b);});
  var best=0,out=[];
- rows.forEach(function(r){if(r.eff>best){best=r.eff;out.push(r);}});
+ rows.forEach(function(r){if(mv(r)>best){best=mv(r);out.push(r);}});
  return out;
 }
 function draw(){
- if(st.m==='record'&&st.s==='log'&&st.w==='all'){plot.innerHTML=init;leg.innerHTML=legInit;return;}
+ if(st.m==='record'&&st.s==='log'&&st.w==='all'&&st.y==='eff'){plot.innerHTML=init;leg.innerHTML=legInit;return;}
  var W=1040,H=300,pl=64,pr=(st.m==='model'?182:118),pb=30,pt=14;
  var data=windowed(); if(st.m!=='record')data=data.filter(function(r){return r.sub;});
+ if(st.y==='geo')data=data.filter(function(r){return r.geo!=null;});
  var series=[];
  if(st.m==='record'){
   S.forEach(function(s){series.push({lab:s[0],col:s[2],step:true,
@@ -1946,16 +1948,24 @@ function draw(){
   u.forEach(function(sl,i){xs[sl]=i;});xn=u.length;
   var fx=function(r){return pl+(xs[r.slug]/Math.max(1,xn-1))*(W-pl-pr);};
  }
- var ymax=Math.max.apply(null,pts.map(function(r){return r.eff;}));
+ var ymax=Math.max.apply(null,pts.map(mv));
+ var ymin=Math.min.apply(null,pts.map(mv));
  var fy;
- if(st.s==='log'){var yhi=Math.log10(ymax)*1.06||1;
-  fy=function(v){return H-pb-(Math.log10(Math.max(v,1))/yhi)*(H-pt-pb);};
+ if(st.s==='log'){
+  if(st.y==='geo'){
+   // f spans decades BELOW 1, so the log floor is the data minimum, not 1
+   var glo=Math.log10(Math.max(ymin,1e-6))-0.08,ghi=Math.log10(ymax)+0.08;
+   if(ghi-glo<1e-9)ghi=glo+1;
+   fy=function(v){return H-pb-((Math.log10(Math.max(v,1e-9))-glo)/(ghi-glo))*(H-pt-pb);};
+  }else{var yhi=Math.log10(ymax)*1.06||1;
+   fy=function(v){return H-pb-(Math.log10(Math.max(v,1))/yhi)*(H-pt-pb);};}
  }else{fy=function(v){return H-pb-(v/(ymax*1.08))*(H-pt-pb);};}
- var g='<text transform="translate(14 '+((pt+H-pb)/2)+') rotate(-90)" font-size="12.5" fill="#475569" text-anchor="middle">Code Efficiency (kd&#178;/n)</text>';
- var ticks=st.s==='log'?[1,2,5,10,20,50,100,200,500]:
+ var ylab=st.y==='geo'?'Geometric Efficiency (f)':'Code Efficiency (kd&#178;/n)';
+ var g='<text transform="translate(14 '+((pt+H-pb)/2)+') rotate(-90)" font-size="12.5" fill="#475569" text-anchor="middle">'+ylab+'</text>';
+ var ticks=st.s==='log'?(st.y==='geo'?[0.001,0.002,0.005,0.01,0.02,0.05,0.1,0.2,0.5,1]:[1,2,5,10,20,50,100,200,500]):
   (function(){var s=Math.pow(10,Math.floor(Math.log10(ymax)))/2,o=[];
-   for(var v=0;v<=ymax*1.05;v+=s)if(v>0)o.push(Math.round(v*100)/100);return o.slice(0,8);})();
- ticks.forEach(function(t){if(t>ymax*1.15)return;var y=fy(t);
+   for(var v=0;v<=ymax*1.05;v+=s)if(v>0)o.push(Math.round(v*1000)/1000);return o.slice(0,8);})();
+ ticks.forEach(function(t){if(t>ymax*1.15||(st.y==='geo'&&st.s==='log'&&t<ymin/1.15))return;var y=fy(t);
   g+='<line x1="'+pl+'" y1="'+y+'" x2="'+(W-pr)+'" y2="'+y+'" stroke="#eef2f7"/>'
    +'<text x="'+(pl-7)+'" y="'+y+'" font-size="12" fill="#475569" text-anchor="end" dy="4">'+t+'</text>';});
  var srt=pts.slice().sort(function(a,b){return a.t<b.t?-1:1;});
@@ -1969,15 +1979,15 @@ function draw(){
    +'<text x="'+c.x+'" y="'+(H-pb+19)+'" font-size="12" fill="#475569" text-anchor="middle">'+c.lab+'</text>';});
  var body='',ends='',endlist=[];
  series.forEach(function(s){
-  var P=s.rows.map(function(r){return[fx(r),fy(r.eff),r];});
+  var P=s.rows.map(function(r){return[fx(r),fy(mv(r)),r];});
   if(s.step&&P.length){var d='M'+P[0][0]+' '+P[0][1];
    for(var i=1;i<P.length;i++)d+=' H'+P[i][0]+' V'+P[i][1];
    d+=' H'+(W-pr);
    body+='<path d="'+d+'" fill="none" stroke="'+s.col+'" stroke-width="2" stroke-linejoin="round"/>';
    var le=s.rows[s.rows.length-1];
-   endlist.push({y:fy(le.eff),lab:s.lab,eff:le.eff});}
+   endlist.push({y:fy(mv(le)),lab:s.lab,eff:mv(le)});}
   P.forEach(function(p){var r=p[2];
-   var tp=('[['+r.n+','+r.k+','+r.d+']] · w='+r.w+' · kd²/n='+r.eff+' · '+r.t+' · '+r.model).replace(/"/g,'&quot;');
+   var tp=('[['+r.n+','+r.k+','+r.d+']] · w='+r.w+' · kd²/n='+r.eff+(r.geo!=null?' · f='+r.geo:'')+' · '+r.t+' · '+r.model).replace(/"/g,'&quot;');
    body+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="'+(s.step?4:3.4)+'" fill="'+(s.step?'#fff':s.col)+'" fill-opacity="'+(s.step?1:0.55)+'" stroke="'+s.col+'" stroke-width="'+(s.step?2:0)+'" pointer-events="none"/>'
     +'<circle class=hit data-code="'+r.slug+'" data-tip="'+tp+'" cx="'+p[0]+'" cy="'+p[1]+'" r="9" fill="transparent"/>';});
  });
@@ -1986,12 +1996,13 @@ function draw(){
  endlist.forEach(function(e){var lab=e.lab.length>18?e.lab.slice(0,17)+'…':e.lab;
   ends+='<text x="'+(W-pr+8)+'" y="'+e.y+'" dy="4" font-size="12" fill="#334155">'+lab+' &#183; <tspan font-weight="700">'+e.eff+'</tspan></text>';});
  plot.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto">'+g+body+ends+'</svg>';
- leg.innerHTML=series.map(function(s){return '<span class=ci><span class=cdot style="background:'+s.col+'"></span>'+(s.step?'best kd&#178;/n, ':'')+s.lab+'</span>';}).join('');
+ var mlab=st.y==='geo'?'best f, ':'best kd&#178;/n, ';
+ leg.innerHTML=series.map(function(s){return '<span class=ci><span class=cdot style="background:'+s.col+'"></span>'+(s.step?mlab:'')+s.lab+'</span>';}).join('');
 }
 document.querySelectorAll('.rcbtn').forEach(function(b){
  b.addEventListener('click',function(){
-  var k=b.dataset.m?'m':(b.dataset.s?'s':'w');
-  st[k]=b.dataset.m||b.dataset.s||b.dataset.w;
+  var k=b.dataset.m?'m':(b.dataset.s?'s':(b.dataset.y?'y':'w'));
+  st[k]=b.dataset.m||b.dataset.s||b.dataset.y||b.dataset.w;
   b.parentElement.querySelectorAll('.rcbtn').forEach(function(x){x.classList.remove('active');});
   b.classList.add('active');draw();});});
 })();</script>"""
@@ -2095,8 +2106,8 @@ def record_chart(entries):
     # Data + client-side renderer for the alternate views (all submissions,
     # per-model) and the scale/window controls; the server-rendered SVG above
     # stays as the no-JS fallback and the initial view.
-    data = [{"t": e["date"], "eff": e["eff"], "n": e["n"], "k": e["k"],
-             "d": e["d"], "w": e["w"], "slug": e["slug"],
+    data = [{"t": e["date"], "eff": e["eff"], "geo": e["geo"], "n": e["n"],
+             "k": e["k"], "d": e["d"], "w": e["w"], "slug": e["slug"],
              "model": (e["model"] or "human"),
              "sub": e["origin"] != "baseline"}
             for e in entries if e["date"]]
@@ -2115,6 +2126,15 @@ def record_chart(entries):
         '<button class="rcbtn active" data-w=all>All</button>'
         '<button class=rcbtn data-w=90>90D</button>'
         '<button class=rcbtn data-w=30>30D</button></span>'
+        # metric toggle (issue #276), pinned to the right end of the bar: f is
+        # defined only for codes that ship a verified layout, so that view
+        # restricts to them.
+        '<span class=rcgroup style="margin-left:auto">'
+        '<button class="rcbtn active" data-y=eff '
+        'title="operational efficiency kd&sup2;/n">kd&sup2;/n</button>'
+        '<button class=rcbtn data-y=geo title="geometric efficiency '
+        'f = 4kd&sup2;/(n&rho;&sup2;r&#8308;); only codes with a verified '
+        'layout">f</button></span>'
         '</div>')
     return ('<section class=rcwrap id=progress>'
             '<h2 class=track>Record progress</h2>'
