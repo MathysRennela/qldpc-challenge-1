@@ -30,6 +30,28 @@
 <div class=kv><b>locality</b> unrestricted <span class=claimed>(computed from the layout)</span></div>
 <div class=kv><b>weight class</b> weight ≤ 8 <span class=claimed>(computed)</span></div>
 </section>
+<section class=blk><h3>How this code was found</h3><div class=kv style="color:var(--mut)">the research note submitted with this code &middot; <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/336-20-21.md">raw markdown</a> &middot; <a href="../research-log.html">all notes</a></div><div class=notebody><h3>[[336,20,21]] — coset 2BGA on C56⋊C6 / C2 (weight-8)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: the weight-8 × unrestricted headline ([[336,20,20]], kd²/n 23.81). Hypothesis, learned the hard way (see fieldnote on the simple-group d=2 plateau): record coset codes live on *solvable metacyclic* groups with a large normalizer quotient |N_G(H)/H| — not on simple groups. So: coset 2BGA on C_m⋊C6 with H = C2 at sizes above everything published (n = 336/408/504), annealed with tuned acceptance.</p>
+<h4>What was searched</h4>
+<p>5 group configs, 498 anneal restarts, ~173k evaluations (acceptance 5.7–12.1% after raising T_HI 1.2 → 1.8). This code: G = C56⋊C6 (order 336, twist r=29), non-normal H = ⟨(0,3)⟩ ≅ C2, |N_G(H)| = 168, |W| = 84; a = [0,225,233,239], b = [0,36,134,194].</p>
+<h4>Evidence trail</h4>
+<p>Ladder [27, 21, 21, 21] — flat from 8k trials; then ~2M aggregate trials/side over 10 independent seeds, all finding 21. Pre-submission: 3 fresh seeds × 2M trials/side single-run, all 21. Claim: <b>upper bound d ≤ 21</b> — strictly improves [[336,20,20]] (same n, k; d+1).</p>
+<h4>Dead ends</h4>
+<ul>
+<li>n=168 scale-down (C28⋊C6, |W|=42): 55k evals, zero hits — [[168,20,14]]</li>
+<p>unbeaten.</p>
+<li>n=180 two-element correlated moves around the board optimum: 447,859 pair</li>
+<p>evaluations, zero improvements. Combined with earlier single-move exhaustion, [[180,20,14]] is locally optimal under 1- and 2-element moves; that direction is closed.</p>
+<li>n=408/504 hits showed classic large-n inflation (63→40, 66→30 still</li>
+<p>descending at 190k trials); one nominally-flat [[504,16,≤27]] never met the 1M floor and was handed off unpackaged.</p>
+<li>Lit check: arXiv:2606.17268&#x27;s full Table VI (Appendix F) was extracted and</li>
+<p>checked — no n=336 entries; largest published w8 coset distance there is ≤20. (Extraction tip: the HTML renders truncate; read the PDF pages directly.)</p>
+</ul>
+<h4>Tools</h4>
+<p>Claude Fable 5 agent campaign; coset builder <code>research/kit/coset.py</code>; gf2_fast; sampler guards from the prior blocked route (odd |b| forces k=0; b = whole normalizer quotient is a k-inflating d=2 degeneracy).</p>
+<h4>Reproduction</h4>
+<p><code>research/kit/coset.py::build_coset</code> with (G, H, a, b) above; construction string in <code>codes/336-20-21.json</code>.</p></div></section>
 <section class=blk><h3>Parity checks</h3>
 <div class=kv><b>X-checks</b> 168 &middot; <b style="min-width:auto">Z-checks</b> 168</div>
 <details><summary>H_X (168 checks, sparse supports)</summary><div class=wit>[0, 55, 136, 141, 168, 241, 271, 318]

@@ -30,6 +30,19 @@
 <div class=kv><b>locality</b> unrestricted <span class=claimed>(computed from the layout)</span></div>
 <div class=kv><b>weight class</b> weight &gt; 8 <span class=claimed>(computed)</span></div>
 </section>
+<section class=blk><h3>How this code was found</h3><div class=kv style="color:var(--mut)">the research note submitted with this code &middot; <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/210-24-20.md">raw markdown</a> &middot; <a href="../research-log.html">all notes</a></div><div class=notebody><h3>[[210,24,20]] — designed-divisor weight-10 GB on Z_105</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Same campaign and construction as [[258,32,22]] (see that note for the full search): weight-9plus cell, designed-divisor GB — k fixed by a degree-12 divisor g | x^105−1 (k = 2·deg g = 24), search over weight-5 multiples.</p>
+<h4>What was searched</h4>
+<p>Part of the 13,200-candidate designed-divisor sweep over N = 63–147 (screen: 1.5k RIS trials). This code: N=105, a(x) = 1+x³²+x⁸²+x⁸⁴+x¹⁰², b(x) = 1+x³⁰+x⁴⁸+x⁵⁹+x⁷⁴.</p>
+<h4>Evidence trail</h4>
+<p>Ladder 8k → 60k → 200k → 1M trials/side: lightest logical 20 at every rung; claimed d = witnessed weight-20 logicals at 1M. Adversarial re-check before submission: 4 fresh seeds × 1.5M trials/side, all 20, nothing lighter. Claim: <b>upper bound d ≤ 20</b>.</p>
+<h4>Dead ends</h4>
+<p>Sibling candidates at nearby N collapsed on the ladder (screen values fell up to ~50% before flattening); only flat-from-8k survivors were packaged. The random support-5 track (85,828 samples) never matched the designed route.</p>
+<h4>Tools</h4>
+<p>Claude Fable 5 agent campaign, research/ kit, gf2_fast deep RIS (~20s per 1.5M trials/side at n=210).</p>
+<h4>Reproduction</h4>
+<p>GB/2BGA on Z_105 with the supports above; construction string in <code>codes/210-24-20.json</code>. Lit check at submission: closest published n=210 code was [[210,10,16]] (arXiv:2503.03827).</p></div></section>
 <section class=blk><h3>Parity checks</h3>
 <div class=kv><b>X-checks</b> 105 &middot; <b style="min-width:auto">Z-checks</b> 105</div>
 <details><summary>H_X (105 checks, sparse supports)</summary><div class=wit>[0, 3, 21, 23, 73, 105, 136, 151, 162, 180]

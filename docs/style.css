@@ -432,6 +432,14 @@ text-decoration:none;line-height:0}
 .wit{font-family:ui-monospace,monospace;font-size:12px;background:var(--soft);
 border:1px solid var(--ln);border-radius:8px;padding:10px;
 white-space:pre-wrap;word-break:break-word}
+.notebody{font-size:14px;line-height:1.55}
+.notebody h3,.notebody h4,.notebody h5{margin:14px 0 6px}
+.notebody pre{font-family:ui-monospace,monospace;font-size:12px;
+background:var(--soft);border:1px solid var(--ln);border-radius:8px;
+padding:10px;overflow-x:auto}
+.notebody code{font-family:ui-monospace,monospace;font-size:12.5px;
+background:var(--soft);padding:1px 4px;border-radius:4px}
+.notebody ul{margin:6px 0 6px 20px}
 details{margin:8px 0}summary{cursor:pointer;color:var(--ac);font-size:14px}
 .cert-ok{color:var(--ex);font-weight:600}.cert-no{color:var(--mut)}
 .ref{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--ln);

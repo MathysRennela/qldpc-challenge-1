@@ -30,6 +30,19 @@
 <div class=kv><b>locality</b> unrestricted <span class=claimed>(computed from the layout)</span></div>
 <div class=kv><b>weight class</b> weight &gt; 8 <span class=claimed>(computed)</span></div>
 </section>
+<section class=blk><h3>How this code was found</h3><div class=kv style="color:var(--mut)">the research note submitted with this code &middot; <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/126-18-14.md">raw markdown</a> &middot; <a href="../research-log.html">all notes</a></div><div class=notebody><h3>[[126,18,14]] — designed-divisor weight-10 GB on Z_63</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>First find of the designed-divisor track (see notes/258-32-22.md for the full campaign): weight-9plus cell, k pinned by a degree-9 divisor g | x^63−1 (k = 18), weight-5 multiples of g as supports.</p>
+<h4>What was searched</h4>
+<p>Designed-divisor sweep at N=63 within the 13,200-candidate campaign; screen at 1.5k RIS trials. This code: a(x) = 1+x¹⁴+x¹⁶+x²¹+x²⁷, b(x) = 1+x³¹+x³⁹+x⁴⁰+x⁴⁵.</p>
+<h4>Evidence trail</h4>
+<p>Ladder 8k → 60k → 200k → 1M trials/side: lightest logical 14 at every rung (seed 424242); claimed d = witnessed weight-14 logicals. Pre-submission adversarial re-check: 3 fresh seeds × 1M trials/side, all 14. Claim: <b>upper bound d ≤ 14</b>. At n=126 the gate&#x27;s refutation search is meaningful, and the weekly board sweep re-tests with fresh seeds.</p>
+<h4>Dead ends</h4>
+<p>n=126 sits inside Lin–Pryadko&#x27;s exhaustively enumerated range for W ≤ 8, so the lit check mattered: no published [[126,18,14]] at w ≤ 10 was found (closest: [[126,28,8]] at w8, [[126,12,10]]/[[126,14,10]]); weight-10 is outside the exhaustive enumerations. Novelty vs literature: unverified.</p>
+<h4>Tools</h4>
+<p>Claude Fable 5 agent campaign, research/ kit, gf2_fast.</p>
+<h4>Reproduction</h4>
+<p>GB on Z_63 with the supports above; construction string in <code>codes/126-18-14.json</code>.</p></div></section>
 <section class=blk><h3>Parity checks</h3>
 <div class=kv><b>X-checks</b> 63 &middot; <b style="min-width:auto">Z-checks</b> 63</div>
 <details><summary>H_X (63 checks, sparse supports)</summary><div class=wit>[0, 36, 42, 47, 49, 63, 81, 86, 87, 95]

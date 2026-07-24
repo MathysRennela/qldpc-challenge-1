@@ -30,6 +30,26 @@
 <div class=kv><b>locality</b> unrestricted <span class=claimed>(computed from the layout)</span></div>
 <div class=kv><b>weight class</b> weight &gt; 8 <span class=claimed>(computed)</span></div>
 </section>
+<section class=blk><h3>How this code was found</h3><div class=kv style="color:var(--mut)">the research note submitted with this code &middot; <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/258-32-22.md">raw markdown</a> &middot; <a href="../research-log.html">all notes</a></div><div class=notebody><h3>[[258,32,22]] — designed-divisor weight-10 GB on Z_129</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: the weight-9plus × unrestricted cell, which held a single code ([[126,28,8]], kd²/n 14.2). Hypothesis: support-5 GB codes open the cell, but random sampling wastes the weight budget — aligning k with d needs structure.</p>
+<h4>What was searched</h4>
+<p>Two tracks. (a) Random support-5 2BGA over 15 nonabelian groups: 85,828 candidates — k and d never aligned; nothing board-advancing survived. (b) The designed-divisor construction that produced this code: pick a divisor g(x) | x^N−1 of target degree (k = 2·deg g guaranteed), then meet-in-the-middle enumerate weight-5 multiples of g. 13,200 such codes screened over cyclic groups N = 63–147 at 1.5k RIS trials. This code: N=129, deg g = 16, a(x) = 1+x²+x⁴¹+x⁷³+x⁸³, b(x) = 1+x⁴⁷+x⁹²+x¹¹²+x¹²⁵.</p>
+<h4>Evidence trail</h4>
+<p>Screen values in this family inflate up to ~50% (e.g. 42→34, 38→28, 30→20 by 20k trials), so every survivor was laddered. This code: 8k → 60k → 200k → 1M trials/side all find lightest logical 22, flat from the first rung; claimed d equals the witnessed weight-22 logicals at the 1M rung. Post-hoc adversarial re-check: 4 fresh seeds × 1.5M trials/side, all find 22, nothing lighter. Independent BP+OSD decoder search: nothing below weight 24. Claim: <b>upper bound d ≤ 22</b>, no lighter logical proven absent.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>Random support-5 (85,828 samples): k·d never beat the designed route — the</li>
+<p>divisor trick, not sampling volume, was the win.</p>
+<li>Ten flat-ladder survivors were found; seven remain unpackaged (staged) —</li>
+<p>confirmation, not generation, is the bottleneck.</p>
+<li>Nearest literature neighbor checked before claiming: [[254,28,14]]</li>
+<p>(arXiv:1904.02703); weight-10 supports sit outside the exhaustive W≤8 enumerations. Novelty vs literature: unverified, per board policy.</p>
+</ul>
+<h4>Tools</h4>
+<p>Claude Fable 5 multi-agent campaign on the repo&#x27;s research/ kit; gf2_fast for all deep RIS runs (~9–30s per 1M trials/side at this n); BP+OSD via the decode/ stack for the independent check. ~45 min generation, ~hours of confirmation across parallel agents.</p>
+<h4>Reproduction</h4>
+<p><code>research/kit/group_algebra.py::build_2bga</code> on Z_129 with the supports above (exponents of a(x), b(x)); or see the construction string in <code>codes/258-32-22.json</code>. Code-capacity performance study (BP+OSD, MWPM comparison): <code>research/candidates/campaign-20260714/plots/</code>.</p></div></section>
 <section class=blk><h3>Parity checks</h3>
 <div class=kv><b>X-checks</b> 129 &middot; <b style="min-width:auto">Z-checks</b> 129</div>
 <details><summary>H_X (129 checks, sparse supports)</summary><div class=wit>[0, 46, 56, 88, 127, 129, 133, 146, 166, 211]

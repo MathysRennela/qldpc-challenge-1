@@ -29,6 +29,25 @@
 <div class=kv><b>locality</b> unrestricted <span class=claimed>(computed from the layout)</span></div>
 <div class=kv><b>weight class</b> weight ≤ 8 <span class=claimed>(computed)</span></div>
 </section>
+<section class=blk><h3>How this code was found</h3><div class=kv style="color:var(--mut)">the research note submitted with this code &middot; <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/240-16-20.md">raw markdown</a> &middot; <a href="../research-log.html">all notes</a></div><div class=notebody><h3>[[240,16,20]] — literature baseline (Aydin–Tamo–Barg), exact reproduction</h3>
+<h4>Why this entry exists</h4>
+<p>This is a <b>baseline seeding</b>, not an original submission: the code is published in arXiv:2606.17268 (Appendix F, Table VI: n=240, k=16, d ≤ 20 via QDistRnd at 10⁶ iterations) and was absent from the board. On the board of 2026-07-14 it landed as a weight-8 frontier point, which meant several then-staged candidates were being measured against an artificially weak frontier. Seeding it made the repo-local frontier honest.</p>
+<h4>Reproduction (the actual work)</h4>
+<p>The paper specifies the code by GAP identifiers, so exact reproduction required GAP 4.14.0 (the paper&#x27;s pinned version; installed via conda-forge): G = SmallGroup(240,39) = C3×((C5⋊C8)⋊C2); H = Filtered(AllSubgroups(G), K -&gt; not IsNormal(G,K))[1] ≅ C2; a = [1,37,136,228] as 1-based indices into LeftCosets(G, Core(G,H)); b = [1,11,35,52] into LeftCosets(Normalizer(G,H), H); two-block coset action H_X = [A|B], H_Z = [Bᵀ|Aᵀ]. The caption&#x27;s convention worked on the first interpretation — no alternative reading was needed.</p>
+<p><b>Validation before trusting the target:</b> the same pipeline reproduced three exact-distance rows of Table VI first — [[80,8,10]] and [[80,10,8]] (both MILP-certified exact, both sides) and [[120,14,12]] (k exact; 2M-trial RIS finds weight 12, nothing lighter).</p>
+<h4>Evidence trail</h4>
+<p>Target build: CSS holds, k=16, max check weight 8. Ladder 8k → 2M trials/side flat at 20; +3 fresh seeds × 2M, all 20; matches the paper&#x27;s bound. Claim: <b>upper bound d ≤ 20</b>, attributed to the paper&#x27;s authors (<code>origin: baseline</code>, no @handle — baseline exemption per CONTRIBUTING).</p>
+<h4>Dead ends / tips</h4>
+<ul>
+<li>The paper&#x27;s Appendix F (Table VI) is not extractable from the arXiv HTML</li>
+<p>render — every route truncates before the appendix. Reading the PDF&#x27;s pages 23–24 directly works.</p>
+<li>GAP&#x27;s conda-forge build segfaults on <code>--version</code> but runs scripts; confirm</li>
+<p>the version via <code>GAPInfo.Version</code>.</p>
+</ul>
+<h4>Tools</h4>
+<p>Claude Fable 5 agent (GAP install, convention validation, build); gf2_fast for the deep rungs; MILP exact certification via the repo&#x27;s certifier for the two [[80,·,·]] validation rows.</p>
+<h4>Reproduction pointer</h4>
+<p>GAP script + matrices + validation artifacts: <code>research/candidates/campaign-20260714/baseline-240-16-20/</code> (in the campaign branch history); construction string in <code>codes/240-16-20.json</code>.</p></div></section>
 <section class=blk><h3>Parity checks</h3>
 <div class=kv><b>X-checks</b> 120 &middot; <b style="min-width:auto">Z-checks</b> 120</div>
 <details><summary>H_X (120 checks, sparse supports)</summary><div class=wit>[0, 1, 65, 111, 120, 155, 193, 221]

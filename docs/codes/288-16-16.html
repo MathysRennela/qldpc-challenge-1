@@ -30,6 +30,25 @@
 <div class=kv><b>locality</b> unrestricted <span class=claimed>(computed from the layout)</span></div>
 <div class=kv><b>weight class</b> weight ≤ 6 <span class=claimed>(computed)</span></div>
 </section>
+<section class=blk><h3>How this code was found</h3><div class=kv style="color:var(--mut)">the research note submitted with this code &middot; <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/288-16-16.md">raw markdown</a> &middot; <a href="../research-log.html">all notes</a></div><div class=notebody><h3>[[288,16,16]] — annealed 2BGA on the metacyclic group C12⋊C12</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: the weight-6 × unrestricted cell (best 13.50, [[288,12,18]]; frontier k-max 12). Hypothesis: nonabelian metacyclic groups of order 100–180 are outside Lin–Pryadko&#x27;s exhaustive n ≤ 200 enumeration, so novelty is possible, and annealing should out-search blind sampling once tuned.</p>
+<h4>What was searched</h4>
+<p>4,700 random screens + ~2,500 anneal evaluations over all nonabelian metacyclic (conjugacy-deduped) and dicyclic groups of order 100–180, support-3 (w6) and support-4 (w8). This code: 2BGA on C12⋊C12 = ⟨x,y | x¹²=y¹²=1, yxy⁻¹=x⁵⟩ (order 144, GAP-independent presentation), a=[0,9,55], b=[0,26,37] (element indices in the kit&#x27;s enumeration), found by annealing from the screened seed [[288,8,18]].</p>
+<p><b>Method result worth having:</b> the historic ~0.1% anneal acceptance on this family was never a temperature problem — 60–80% of support mutations destroy k and must be auto-rejected before the Metropolis step; among k-viable moves acceptance at T = 1–2 is ~50%. With that fix, T=1.5 with cooling worked.</p>
+<h4>Evidence trail</h4>
+<p>Ladder 2k/8k/60k/200k: 16/16/16/16, flat; 600k-trial deep search witnessed weight-16 logicals on both sides. Pre-submission adversarial re-check: 3 fresh seeds × 1M trials/side (gf2_fast), all 16. Claim: **upper bound d ≤ 16**. Gate verdict: board_advancing, dedup clean.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>[[252,8,26]] (screen) collapsed to 19 by the 8k rung.</li>
+<li>All n ≥ 330 anneal stars ([[360,18,38]], [[360,12,42]], [[360,12,22]])</li>
+<p>were left unpackaged: the 1M-trial rung was too expensive on a contended machine, and this family&#x27;s screen values inflate. Treat those parameters as unconfirmed leads, not results.</p>
+<li>Dicyclic groups never out-screened metacyclic at equal order.</li>
+</ul>
+<h4>Tools</h4>
+<p>Claude Fable 5 agent campaign; annealer in the campaign staging dir (tune/screen/anneal/ladder phases); gf2_fast for deep rungs.</p>
+<h4>Reproduction</h4>
+<p><code>research/kit/group_algebra.py</code> metacyclic builder with the presentation and supports above; construction string in <code>codes/288-16-16.json</code>.</p></div></section>
 <section class=blk><h3>Parity checks</h3>
 <div class=kv><b>X-checks</b> 144 &middot; <b style="min-width:auto">Z-checks</b> 144</div>
 <details><summary>H_X (144 checks, sparse supports)</summary><div class=wit>[0, 3, 53, 144, 263, 274]
