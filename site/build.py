@@ -914,6 +914,10 @@ document.addEventListener('click',e=>{
    if(f)chip.innerHTML='filtered: '+f.replace(/</g,'&lt;')+' <b>&times; clear</b>';}
   document.querySelectorAll('.plots svg.plot circle[data-code]').forEach(c=>{
    c.style.display=vis.has(c.dataset.code)?'':'none';});
+  // 'with layout' swaps the efficiency chart from kd^2/n to f (issue #276)
+  const pe=document.getElementById('ploteff'),pg=document.getElementById('plotgeo');
+  if(pe&&pg){const g=(geoMode==='with');
+   pg.style.display=g?'':'none';pe.style.display=g?'none':'';}
  }
  var chipEl=document.getElementById('qchip');
  if(chipEl)chipEl.addEventListener('click',()=>{q.value='';
@@ -2290,6 +2294,18 @@ def charts_block(entries, records):
     it keeps real font sizes and reflows on mobile."""
     d_plot = scatter(entries, records, lambda e: e["d"], "Code Distance (d)")
     eff_plot = scatter(entries, records, lambda e: e["eff"], "kd²/n")
+    # A second version of the efficiency scatter with y = f, only the codes
+    # that ship a layout. The "with layout" toggle swaps it in for the kd^2/n
+    # view (issue #276); both are rendered statically, JS flips display.
+    geo_idx = [i for i, e in enumerate(entries) if e["geo"] is not None]
+    f_plot = scatter([entries[i] for i in geo_idx],
+                     {j for j, i in enumerate(geo_idx) if i in records},
+                     lambda e: e["geo"], "f (geometric efficiency)")
+    if eff_plot:
+        eff_plot = eff_plot.replace('<svg ', '<svg id=ploteff ', 1)
+    if f_plot:
+        f_plot = f_plot.replace(
+            '<svg ', '<svg id=plotgeo style="display:none" ', 1)
     if not d_plot and not eff_plot:
         return ""
     # layout toggle, top right of the charts (issue #276). "no layout" is a
@@ -2298,8 +2314,9 @@ def charts_block(entries, records):
     toggle = (
         '<div class=geotabs role=group aria-label="filter by layout status">'
         '<button type=button class=geotab data-geo=with '
-        'title="only codes with a verifier-accepted 2D layout (geometric '
-        'efficiency f defined)">with layout</button>'
+        'title="only codes with a verifier-accepted 2D layout; the efficiency '
+        'chart switches from kd&sup2;/n to the geometric efficiency f">'
+        'with layout</button>'
         '<button type=button class=geotab data-geo=without '
         'title="only codes without a verified layout; locality may exist but '
         'is uncertified (not necessarily expander codes)">no layout</button>'
@@ -2317,7 +2334,8 @@ def charts_block(entries, records):
         'Open = non-frontier</span>'
         '</div>')
     xlabel = '<div class=plotx>Physical Qubits (n)</div>'
-    return f'<div class=plots>{toggle}{d_plot}{eff_plot}</div>{xlabel}{legend}'
+    return (f'<div class=plots>{toggle}{d_plot}{eff_plot}{f_plot}</div>'
+            f'{xlabel}{legend}')
 
 
 def board_table(entries, records):
