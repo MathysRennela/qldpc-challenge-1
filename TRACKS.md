@@ -101,7 +101,8 @@ surface code to 1, but they answer different questions.
   ratio, incumbent-relative. Bounded and meaningful for 2D-local /
   bounded-weight codes at comparable n; grows with n for high-rate codes, so
   it is compared within tracks.
-- **Geometric efficiency** `f = 4 k d^2 / (n rho^2 r^4)`: the same ratio priced
+- **Geometric efficiency** `g = 4 k d^2 / (n rho^2 r^4)` (written `f` in
+  the working notes): the same ratio priced
   by the layout the code ships with. `r` is the measured interaction radius
   (max check diameter, Euclidean, in units of the unit qubit spacing), `rho`
   the layer count. The constant 4 = (sqrt 2)^4 puts the surface code
@@ -112,22 +113,22 @@ surface code to 1, but they answer different questions.
   free nor forbidden -- they must earn their density.
 
   Conventions and guards:
-  - f is computed only from a verifier-accepted layout (an honest layout
+  - g is computed only from a verifier-accepted layout (an honest layout
     within a class cap). A code without one has no f. That is a certification
     status, not a property: such a code may still be geometrically local
     (e.g. on a torus, or simply unlayouted) -- it is not thereby an
     "expander code".
-  - f inherits the distance tier: computed from an upper-bound d it is an
+  - g inherits the distance tier: computed from an upper-bound d it is an
     upper bound, and the site marks it so.
-  - The headline card requires d >= 5: f is scale-free, so constant-distance
+  - The headline card requires d >= 5: g is scale-free, so constant-distance
     tilings (a [[4,2,2]] block on one plaquette scores f = 2) would "beat"
     the surface code without encoding anything asymptotic.
   - D = 2 only for now: the schema stores planar coordinates. The D > 2
     generalization changes the exponents (kd^(2/(D-1)) per the BPT bound)
     and is reserved.
-  - The caps above stay what they are: coarse eligibility gates. f prices
+  - The caps above stay what they are: coarse eligibility gates. g prices
     range continuously inside the class; a trivial sqrt(n)-range layout is
-    not banned by f, just priced into irrelevance (f ~ n^-2).
+    not banned by g, just priced into irrelevance (g ~ n^-2).
 
 ## Reference bars
 

@@ -363,6 +363,13 @@ background:rgba(255,255,255,.06)}}
 font-family:'Space Mono',ui-monospace,monospace}}
 .stat .l{{color:#c7d2fe;font-size:13px;
 text-transform:uppercase;letter-spacing:.05em}}
+.scoredefs{{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));
+gap:10px 22px;margin:12px 0 18px;padding:14px 18px;border:1px solid var(--ln);
+border-radius:14px;background:#fff;font-size:13.5px;color:var(--mut);
+line-height:1.5}}
+.scoredefs b{{color:var(--ink)}}
+.sgloss{{grid-column:1/-1;border-top:1px solid var(--ln);padding-top:10px;
+font-size:12.5px}}
 .statsbar{{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
 gap:14px;margin:28px 0 8px}}
 .stat-card{{border:1px solid var(--ln);border-radius:14px;padding:18px 20px;
@@ -855,10 +862,10 @@ document.addEventListener('click',e=>{
  // with a verified layout (f defined), 'without' = only codes with none.
  // Clicking the active button clears it back to 'all'.
  let geoMode='';
- const cmp=/^(n|k|d|w|eff|f|geo)(>=|<=|>|<|=)(-?\\d+(?:\\.\\d+)?)$/;
+ const cmp=/^(n|k|d|w|eff|f|g|geo)(>=|<=|>|<|=)(-?\\d+(?:\\.\\d+)?)$/;
  function term(r,t){
   const m=t.match(cmp);
-  if(m){const key=m[1]==='f'?'geo':m[1];
+  if(m){const key=(m[1]==='f'||m[1]==='g')?'geo':m[1];
    const x=parseFloat(r.dataset[key]),v=parseFloat(m[3]);
    if(key==='geo'&&x<0)return false;
    switch(m[2]){case'>=':return x>=v;case'<=':return x<=v;
@@ -1172,7 +1179,7 @@ def scatter(te, front, yacc, ylabel):
         r = 6 if f else 4
         fill = col if f else "#fff"
         _tlabel = "exact" if e["tier"] == "exact" else "upper bound"
-        _geo = f'  f={e["geo"]:.3g}' if e["geo"] is not None else ""
+        _geo = f'  g={e["geo"]:.3g}' if e["geo"] is not None else ""
         tip = (f'[[{e["n"]},{e["k"]},{e["d"]}]]  kd2/n={e["eff"]}{_geo}\n'
                f'{_tlabel}{", record" if f else ""}')
         cx, cy = sx(e["n"]), sy(yacc(e))
@@ -1249,7 +1256,7 @@ def detail_page(e):
         ("w", e["w"], "max check weight"),
     ]
     if e.get("geo") is not None:
-        params.append(("f", f'{e["geo"]:.3g}',
+        params.append(("g", f'{e["geo"]:.3g}',
                        "geometric efficiency 4kd²/(nρ²r⁴) "
                        "from the verified layout; surface code = 1"
                        + ("" if e["tier"] == "exact"
@@ -1482,7 +1489,7 @@ def progress_panel(entries, best_eff, best_geo_e):
         (str(n_base), "literature baselines",
          "published codes seeded as the bar to beat"),
         (geo_v, "best geometric efficiency",
-         "Geometric efficiency f = 4kd^2/(n rho^2 r^4): the kd^2/n ratio priced "
+         "Geometric efficiency g = 4kd^2/(n rho^2 r^4): the kd^2/n ratio priced "
          "by the layout the code ships with -- r is the measured interaction "
          "radius (max check diameter, in units of the unit qubit spacing) and "
          "rho the number of layers (the capacity charge). Normalized so the "
@@ -1965,7 +1972,7 @@ function draw(){
   }else{var yhi=Math.log10(ymax)*1.06||1;
    fy=function(v){return H-pb-(Math.log10(Math.max(v,1))/yhi)*(H-pt-pb);};}
  }else{fy=function(v){return H-pb-(v/(yceil*1.08))*(H-pt-pb);};}
- var ylab=st.y==='geo'?'Geometric Efficiency (f)':'Code Efficiency (kd&#178;/n)';
+ var ylab=st.y==='geo'?'Geometric Efficiency (g)':'Code Efficiency (kd&#178;/n)';
  var g='<text transform="translate(14 '+((pt+H-pb)/2)+') rotate(-90)" font-size="12.5" fill="#475569" text-anchor="middle">'+ylab+'</text>';
  var ticks=st.s==='log'?(st.y==='geo'?[0.001,0.002,0.005,0.01,0.02,0.05,0.1,0.2,0.5,1]:[1,2,5,10,20,50,100,200,500]):
   (function(){var s=Math.pow(10,Math.floor(Math.log10(ymax)))/2,o=[];
@@ -1995,7 +2002,7 @@ function draw(){
    var le=s.rows[s.rows.length-1];
    endlist.push({y:fy(mv(le)),lab:s.lab,eff:mv(le)});}
   P.forEach(function(p){var r=p[2];
-   var tp=('[['+r.n+','+r.k+','+r.d+']] · w='+r.w+' · kd²/n='+r.eff+(r.geo!=null?' · f='+r.geo:'')+' · '+r.t+' · '+r.model).replace(/"/g,'&quot;');
+   var tp=('[['+r.n+','+r.k+','+r.d+']] · w='+r.w+' · kd²/n='+r.eff+(r.geo!=null?' · g='+r.geo:'')+' · '+r.t+' · '+r.model).replace(/"/g,'&quot;');
    body+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="'+(s.step?4:3.4)+'" fill="'+(s.step?'#fff':s.col)+'" fill-opacity="'+(s.step?1:0.55)+'" stroke="'+s.col+'" stroke-width="'+(s.step?2:0)+'" pointer-events="none"/>'
     +'<circle class=hit data-code="'+r.slug+'" data-tip="'+tp+'" cx="'+p[0]+'" cy="'+p[1]+'" r="9" fill="transparent"/>';});
  });
@@ -2004,7 +2011,7 @@ function draw(){
  endlist.forEach(function(e){var lab=e.lab.length>18?e.lab.slice(0,17)+'…':e.lab;
   ends+='<text x="'+(W-pr+8)+'" y="'+e.y+'" dy="4" font-size="12" fill="#334155">'+lab+' &#183; <tspan font-weight="700">'+e.eff+'</tspan></text>';});
  plot.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto">'+g+body+ends+'</svg>';
- var mlab=st.y==='geo'?'best f, ':'best kd&#178;/n, ';
+ var mlab=st.y==='geo'?'best g, ':'best kd&#178;/n, ';
  leg.innerHTML=series.map(function(s){return '<span class=ci><span class=cdot style="background:'+s.col+'"></span>'+(s.step?mlab:'')+s.lab+'</span>';}).join('')
   +(st.y==='geo'?'<span class=ci title="the surface/toric reference codes sit at the conjectured f ceiling and are drawn as the dashed line, not raced">&#8213; surface code = 1</span>':'');
 }
@@ -2143,8 +2150,8 @@ def record_chart(entries):
         '<button class="rcbtn active" data-y=eff '
         'title="operational efficiency kd&sup2;/n">kd&sup2;/n</button>'
         '<button class=rcbtn data-y=geo title="geometric efficiency '
-        'f = 4kd&sup2;/(n&rho;&sup2;r&#8308;); only codes with a verified '
-        'layout">f</button></span>'
+        'g = 4kd&sup2;/(n&rho;&sup2;r&#8308;); only codes with a verified '
+        'layout">g</button></span>'
         '</div>')
     return ('<section class=rcwrap id=progress>'
             '<h2 class=track>Record progress</h2>'
@@ -2311,7 +2318,7 @@ def board_controls(entries, records):
             f'<div class=filterrow>{wslider}{dslider}{nslider}{kslider}</div>'
             '<p class=searchhelp>Type terms (all must match): a family, author, '
             'or a comparison like <code>k&gt;=10</code> <code>d&gt;8</code> '
-            '<code>eff&gt;=5</code> <code>f&gt;=0.1</code>; <code>record</code> '
+            '<code>eff&gt;=5</code> <code>g&gt;=0.1</code>; <code>record</code> '
             'keeps only frontier rows; <code>literature</code> / '
             '<code>submitted</code> filter by origin; <code>with-layout</code> '
             '/ <code>no-layout</code> filter by layout status.</p>'
@@ -2330,7 +2337,7 @@ def charts_block(entries, records):
     geo_idx = [i for i, e in enumerate(entries) if e["geo"] is not None]
     f_plot = scatter([entries[i] for i in geo_idx],
                      {j for j, i in enumerate(geo_idx) if i in records},
-                     lambda e: e["geo"], "f (geometric efficiency)")
+                     lambda e: e["geo"], "g (geometric efficiency)")
     if eff_plot:
         eff_plot = eff_plot.replace('<svg ', '<svg id=ploteff ', 1)
     if f_plot:
@@ -2345,7 +2352,7 @@ def charts_block(entries, records):
         '<div class=geotabs role=group aria-label="filter by layout status">'
         '<button type=button class=geotab data-geo=with '
         'title="only codes with a verifier-accepted 2D layout; the efficiency '
-        'chart switches from kd&sup2;/n to the geometric efficiency f">'
+        'chart switches from kd&sup2;/n to the geometric efficiency g">'
         'with layout</button>'
         '<button type=button class=geotab data-geo=without '
         'title="only codes without a verified layout; locality may exist but '
@@ -2397,9 +2404,9 @@ def board_table(entries, records):
             '<th data-c=eff class=num title="operational efficiency '
             'k&middot;d&sup2;/n, higher is better">kd&sup2;/n</th>'
             '<th data-c=geo class=num title="geometric efficiency '
-            'f = 4kd&sup2;/(n&rho;&sup2;r&#8308;), priced by the verified '
+            'g = 4kd&sup2;/(n&rho;&sup2;r&#8308;), priced by the verified '
             'layout&rsquo;s interaction radius r and layers &rho;; surface '
-            'code = 1; &middot; = no verified layout">f</th>'
+            'code = 1; &middot; = no verified layout">g</th>'
             '<th data-c=w class=num title="max check weight">w</th>'
             '<th data-c=auth class=col-auth title="who submitted it">authors</th>'
             '<th class=model data-c=model title="claimed model that produced '
@@ -2516,6 +2523,29 @@ def build():
              '</div></header>')
     P.append('<div class=wrap>')
     P.append(progress_panel(entries, best_eff, best_geo_e))
+    # plain-sight definitions of the two headline scores (issue #276 review:
+    # tooltips are invisible on mobile and undiscoverable in general)
+    P.append(
+        '<section class=scoredefs>'
+        '<div class=sdef><b>Operational efficiency</b> '
+        '<span class=mono>kd&sup2;/n</span> &mdash; the Bravyi&ndash;Poulin&ndash;'
+        'Terhal ratio, normalized so the surface code sits at 1. Bounded for '
+        '2D-local and bounded-weight codes; grows with n for high-rate codes, '
+        'so it is compared within tracks, not as a global record.</div>'
+        '<div class=sdef><b>Geometric efficiency</b> '
+        '<span class=mono>g = 4kd&sup2;/(n&rho;&sup2;r&#8308;)</span> &mdash; '
+        'the same ratio priced by the layout the code ships with, normalized '
+        'so the planar surface code scores exactly 1. Computed only for codes '
+        'with a verifier-accepted layout; an upper-bound distance makes g an '
+        f'upper bound, and the headline requires d &ge; {GEO_MIN_D}.</div>'
+        '<div class=sgloss><b>n</b> physical qubits &middot; '
+        '<b>k</b> logical qubits &middot; <b>d</b> code distance (smallest '
+        'undetectable error) &middot; <b>w</b> max check weight &middot; '
+        '<b>r</b> interaction radius: the largest check diameter in the '
+        'layout, in units of the minimum qubit spacing &middot; '
+        '<b>&rho;</b> qubit layers per site (2 = flip-chip bilayer; charged '
+        'as &rho;&sup2; so stacking must earn its density)</div>'
+        '</section>')
     P.append(record_chart(entries))
     P.append(primary_tracks_grid(entries, records))
     P.append('<div class=how>'
@@ -2553,7 +2583,7 @@ def build():
              '<b>n</b> physical qubits &middot; <b>k</b> logical qubits '
              '&middot; <b>d</b> distance (smallest undetectable error) '
              '&middot; <b>kd&sup2;/n</b> operational efficiency (per track) '
-             '&middot; <b>f</b> geometric efficiency 4kd&sup2;/(n&rho;&sup2;'
+             '&middot; <b>g</b> geometric efficiency 4kd&sup2;/(n&rho;&sup2;'
              'r&#8308;), priced by the layout&rsquo;s radius r and layers '
              '&rho; (surface code = 1; &middot; = no verified layout) '
              '&middot; <b>w</b> max check weight</span>'
