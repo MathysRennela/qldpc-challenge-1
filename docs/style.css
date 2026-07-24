@@ -61,6 +61,13 @@ background:rgba(255,255,255,.06)}
 font-family:'Space Mono',ui-monospace,monospace}
 .stat .l{color:#c7d2fe;font-size:13px;
 text-transform:uppercase;letter-spacing:.05em}
+.scoredefs{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));
+gap:10px 22px;margin:12px 0 18px;padding:14px 18px;border:1px solid var(--ln);
+border-radius:14px;background:#fff;font-size:13.5px;color:var(--mut);
+line-height:1.5}
+.scoredefs b{color:var(--ink)}
+.sgloss{grid-column:1/-1;border-top:1px solid var(--ln);padding-top:10px;
+font-size:12.5px}
 .statsbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
 gap:14px;margin:28px 0 8px}
 .stat-card{border:1px solid var(--ln);border-radius:14px;padding:18px 20px;
@@ -68,6 +75,9 @@ background:var(--soft)}
 .stat-card .v{font-size:34px;font-weight:700;line-height:1.05;
 font-family:'Space Mono',ui-monospace,monospace}
 .stat-card .l{font-size:13px;color:var(--mut);margin-top:6px}
+.stat-card .sub{font-size:12.5px;margin-top:5px;color:var(--mut)}
+.stat-card .sub a{font-family:'Space Mono',ui-monospace,monospace;
+color:var(--ink)}
 .lb{margin:18px 0 8px;border:1px solid var(--ln);border-radius:14px;
 background:#fff;overflow:hidden}
 .lbhead{display:flex;justify-content:space-between;align-items:center;gap:16px;
@@ -201,7 +211,8 @@ h2.track{font-size:24px;margin:48px 0 4px;padding-top:24px;
 border-top:1px solid var(--ln);scroll-margin-top:16px}
 .tcount{color:var(--mut);font-size:14px;font-weight:400}
 .plots{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
-gap:16px;margin:14px 0 4px}
+gap:16px;margin:14px 0 4px;position:relative}
+.geotabs{position:absolute;top:2px;right:2px;z-index:6;display:flex;gap:6px}
 /* Pin the scatters to the top while the table scrolls beneath, so the
    point<->row hover highlight stays visible. The table header sticks within
    its own scroll box (a separate scroll context), so no header offset needed.
@@ -299,11 +310,12 @@ box-shadow:0 0 0 3px rgba(54,0,108,.15)}
 .tracktabs{display:flex;gap:6px;margin:6px 0 10px;overflow-x:auto;
 -webkit-overflow-scrolling:touch;scrollbar-width:none}
 .tracktabs::-webkit-scrollbar{display:none}
-.ttab,.otog{flex:0 0 auto;font-size:13px;padding:6px 13px;border-radius:999px;
+.ttab,.otog,.geotab{flex:0 0 auto;font-size:13px;padding:6px 13px;border-radius:999px;
 cursor:pointer;border:1px solid var(--ln);background:#fff;color:var(--mut);
 font-family:inherit;white-space:nowrap}
-.ttab:hover,.otog:hover{border-color:var(--ac);color:var(--ac)}
-.ttab.active,.otog.active{background:var(--ac);border-color:var(--ac);color:#fff}
+.geotab{font-size:12px;padding:4px 11px}
+.ttab:hover,.otog:hover,.geotab:hover{border-color:var(--ac);color:var(--ac)}
+.ttab.active,.otog.active,.geotab.active{background:var(--ac);border-color:var(--ac);color:#fff}
 .filterrow{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px;align-items:center}
 .searchhelp{font-size:12px;color:var(--mut);margin:0 0 14px}
 .searchhelp code{background:var(--soft);padding:1px 5px;border-radius:4px;

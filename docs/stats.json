@@ -2,5 +2,6 @@
   "verified_codes": 141,
   "certified_exact": 29,
   "tracks": 12,
-  "best_kd2_over_n": 303.61
+  "best_kd2_over_n": 303.61,
+  "best_geometric_efficiency": 1.0
 }
