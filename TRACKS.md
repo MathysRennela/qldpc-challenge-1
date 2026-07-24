@@ -120,9 +120,12 @@ surface code to 1, but they answer different questions.
     "expander code".
   - g inherits the distance tier: computed from an upper-bound d it is an
     upper bound, and the site marks it so.
-  - The headline card requires d >= 5: g is scale-free, so constant-distance
-    tilings (a [[4,2,2]] block on one plaquette scores f = 2) would "beat"
-    the surface code without encoding anything asymptotic.
+  - The headline card requires d >= 3: g is scale-free, so d = 2 tilings
+    (a [[4,2,2]] block on one plaquette scores g = 2) would "beat" the
+    surface code without encoding anything asymptotic. No known d = 3-4
+    code with an honest layout comes near 1, but no theorem caps that band
+    either; the threshold will be raised (or replaced by the d_min(w, rho)
+    rule of the working notes) if a small-d packing exploit materializes.
   - D = 2 only for now: the schema stores planar coordinates. The D > 2
     generalization changes the exponents (kd^(2/(D-1)) per the BPT bound)
     and is reserved.

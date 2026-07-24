@@ -1038,9 +1038,12 @@ def cert_consistent(cert, doc):
 # (locality class != unrestricted); a code without a layout has no f -- that
 # is a certification status, not a claim that the code is an expander.
 # D = 2 only: the schema accepts planar coordinates; other D are reserved.
-GEO_MIN_D = 5   # headline eligibility: constant-distance tilings (e.g. a
-                # [[4,2,2]] block at f = 2) beat the surface code trivially,
-                # so the headline requires d >= GEO_MIN_D (f-note section 6).
+GEO_MIN_D = 3   # headline eligibility: d = 2 tilings (a [[4,2,2]] block on
+                # one plaquette scores g = 2) beat the surface code trivially,
+                # so the headline requires d >= GEO_MIN_D. All KNOWN d = 3..4
+                # codes with honest layouts sit far below 1 (Steane 0.32), but
+                # no theorem caps that band; raise this (or implement the
+                # d_min(w, rho) rule) if a small-d packing exploit shows up.
 
 
 def geo_score(doc, n, k, d, locality_class):
