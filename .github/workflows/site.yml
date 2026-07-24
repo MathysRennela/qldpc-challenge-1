@@ -41,7 +41,7 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             make build
-            git add docs/index.html docs/codes docs/stats.json docs/references.html docs/faq.html docs/style.css docs/favicon.svg
+            git add docs/*.html docs/codes docs/stats.json docs/style.css docs/favicon.svg
             if git diff --cached --quiet; then
               echo "site already up to date"; exit 0
             fi
