@@ -12,6 +12,7 @@ parity checks so the verification is transparent.
 import glob
 import html
 import json
+import math
 import os
 import re
 import sys
@@ -502,7 +503,8 @@ h2.track{{font-size:24px;margin:48px 0 4px;padding-top:24px;
 border-top:1px solid var(--ln);scroll-margin-top:16px}}
 .tcount{{color:var(--mut);font-size:14px;font-weight:400}}
 .plots{{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
-gap:16px;margin:14px 0 4px}}
+gap:16px;margin:14px 0 4px;position:relative}}
+.geotabs{{position:absolute;top:2px;right:2px;z-index:6;display:flex;gap:6px}}
 /* Pin the scatters to the top while the table scrolls beneath, so the
    point<->row hover highlight stays visible. The table header sticks within
    its own scroll box (a separate scroll context), so no header offset needed.
@@ -600,11 +602,12 @@ box-shadow:0 0 0 3px rgba(54,0,108,.15)}}
 .tracktabs{{display:flex;gap:6px;margin:6px 0 10px;overflow-x:auto;
 -webkit-overflow-scrolling:touch;scrollbar-width:none}}
 .tracktabs::-webkit-scrollbar{{display:none}}
-.ttab,.otog{{flex:0 0 auto;font-size:13px;padding:6px 13px;border-radius:999px;
+.ttab,.otog,.geotab{{flex:0 0 auto;font-size:13px;padding:6px 13px;border-radius:999px;
 cursor:pointer;border:1px solid var(--ln);background:#fff;color:var(--mut);
 font-family:inherit;white-space:nowrap}}
-.ttab:hover,.otog:hover{{border-color:var(--ac);color:var(--ac)}}
-.ttab.active,.otog.active{{background:var(--ac);border-color:var(--ac);color:#fff}}
+.geotab{{font-size:12px;padding:4px 11px}}
+.ttab:hover,.otog:hover,.geotab:hover{{border-color:var(--ac);color:var(--ac)}}
+.ttab.active,.otog.active,.geotab.active{{background:var(--ac);border-color:var(--ac);color:#fff}}
 .filterrow{{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px;align-items:center}}
 .searchhelp{{font-size:12px;color:var(--mut);margin:0 0 14px}}
 .searchhelp code{{background:var(--soft);padding:1px 5px;border-radius:4px;
@@ -848,10 +851,16 @@ document.addEventListener('click',e=>{
  const kfill=document.getElementById('kffill'),kval=document.getElementById('kfval');
  const KMIN=klo?+klo.min:0,KMAX=klo?+klo.max:0,kspan=(KMAX-KMIN)||1;
  const lit=document.getElementById('littoggle');
- const cmp=/^(n|k|d|w|eff)(>=|<=|>|<|=)(-?\\d+(?:\\.\\d+)?)$/;
+ // layout toggle (top right of the charts): '' = all, 'with' = only codes
+ // with a verified layout (f defined), 'without' = only codes with none.
+ // Clicking the active button clears it back to 'all'.
+ let geoMode='';
+ const cmp=/^(n|k|d|w|eff|f|geo)(>=|<=|>|<|=)(-?\\d+(?:\\.\\d+)?)$/;
  function term(r,t){
   const m=t.match(cmp);
-  if(m){const x=parseFloat(r.dataset[m[1]]),v=parseFloat(m[3]);
+  if(m){const key=m[1]==='f'?'geo':m[1];
+   const x=parseFloat(r.dataset[key]),v=parseFloat(m[3]);
+   if(key==='geo'&&x<0)return false;
    switch(m[2]){case'>=':return x>=v;case'<=':return x<=v;
     case'>':return x>v;case'<':return x<v;default:return x===v;}}
   if(t==='record'||t==='frontier')return r.dataset.record==='1';
@@ -895,6 +904,7 @@ document.addEventListener('click',e=>{
   rows.forEach(r=>{const w=+r.dataset.w,d=+r.dataset.d,nn=+r.dataset.n,kk=+r.dataset.k;
    const ok=(w>=wb[0]&&w<=wb[1])&&(d>=db[0]&&d<=db[1])
     &&(nn>=nb[0]&&nn<=nb[1])&&(kk>=kb[0]&&kk<=kb[1])
+    &&(geoMode===''||(geoMode==='with')===(+r.dataset.geo>=0))
     &&(!litOn||r.dataset.origin==='literature')&&toks.every(t=>term(r,t));
    r.style.display=ok?'':'none';if(ok){shown++;vis.add(r.dataset.code);}});
   if(count)count.textContent=shown+(shown===rows.length?'':' of '+rows.length)+' codes';
@@ -927,7 +937,9 @@ document.addEventListener('click',e=>{
   if(dlo&&dhi){dlo.value=DMIN;dhi.value=DMAX;dpaint();}
   if(nlo&&nhi){nlo.value=NMIN;nhi.value=NMAX;npaint();}
   if(klo&&khi){klo.value=KMIN;khi.value=KMAX;kpaint();}
-  if(lit)lit.classList.remove('active');}
+  if(lit)lit.classList.remove('active');
+  geoMode='';document.querySelectorAll('.geotab').forEach(x=>
+   x.classList.remove('active'));}
  // Primary-tracks grid: a cell's code-count chip filters the table to that
  // (locality x weight) cell and scrolls it into view.
  document.querySelectorAll('[data-cell]').forEach(b=>{
@@ -937,6 +949,12 @@ document.addEventListener('click',e=>{
    const bd=document.getElementById('board');
    if(bd)bd.scrollIntoView({behavior:'smooth'});});});
  if(lit)lit.addEventListener('click',()=>{lit.classList.toggle('active');apply();});
+ document.querySelectorAll('.geotab').forEach(g=>{
+  g.addEventListener('click',()=>{
+   geoMode=(geoMode===g.dataset.geo)?'':g.dataset.geo;
+   document.querySelectorAll('.geotab').forEach(x=>
+    x.classList.toggle('active',x.dataset.geo===geoMode));
+   apply();});});
  if(wlo&&whi){wlo.addEventListener('input',()=>{wpaint();apply();});
   whi.addEventListener('input',()=>{wpaint();apply();});wpaint();}
  if(dlo&&dhi){dlo.addEventListener('input',()=>{dpaint();apply();});
@@ -999,6 +1017,38 @@ def cert_consistent(cert, doc):
     return True
 
 
+# Geometric efficiency (issue #276): f = 4 k d^2 / (n rho^2 r^4), the BPT
+# ratio priced by the layout it comes with -- r is the measured interaction
+# radius (max check diameter, Euclidean, in units of the unit qubit spacing)
+# and rho the layer count (the capacity charge rho^2 is the unique exponent
+# that makes re-packaging a layout into layers score-neutral). The constant 4
+# = (sqrt(2))^4 normalizes the planar surface code (r = sqrt(2), rho = 1) to
+# exactly 1. Defined only for codes whose layout the verifier accepted
+# (locality class != unrestricted); a code without a layout has no f -- that
+# is a certification status, not a claim that the code is an expander.
+# D = 2 only: the schema accepts planar coordinates; other D are reserved.
+GEO_MIN_D = 5   # headline eligibility: constant-distance tilings (e.g. a
+                # [[4,2,2]] block at f = 2) beat the surface code trivially,
+                # so the headline requires d >= GEO_MIN_D (f-note section 6).
+
+
+def geo_score(doc, n, k, d, locality_class):
+    """(f, r, rho) for a verifier-accepted layout, else (None, None, None).
+    r is recomputed exactly from the stored coordinates (the report's value
+    is rounded for display)."""
+    if locality_class == "unrestricted" or "locality" not in doc:
+        return None, None, None
+    loc = doc["locality"]
+    coords = [tuple(c) for c in loc["coordinates"]]
+    r = max((max(math.dist(coords[a], coords[b]) for a in sup for b in sup)
+             for sup in doc["checks"]["X"] + doc["checks"]["Z"] if sup),
+            default=0.0)
+    if r <= 0:
+        return None, None, None
+    rho = loc.get("layers", 1)
+    return 4.0 * k * d * d / (n * rho * rho * r ** 4), r, rho
+
+
 def load_entries():
     entries = []
     for p in sorted(glob.glob(os.path.join(ROOT, "codes", "*.json"))):
@@ -1027,12 +1077,17 @@ def load_entries():
                       f"distance; not labeling it d= (re-run verify/certify.py)")
             tier = "ub"
         n, k, d = doc["n"], doc["k"], earned["value"]
+        loc_cls = rep["computed"].get("locality_class", "unrestricted")
+        geo, geo_r, geo_rho = geo_score(doc, n, k, d, loc_cls)
         entries.append({
             "slug": slug, "name": doc["name"], "n": n, "k": k, "d": d,
             "eff": round(k * d * d / n, 3), "tier": tier,
+            "geo": round(geo, 4) if geo is not None else None,
+            "geo_r": round(geo_r, 4) if geo_r is not None else None,
+            "geo_rho": geo_rho,
             "w": rep["computed"].get("max_check_weight"),
             "family": doc.get("family", "other"),
-            "locality_class": rep["computed"].get("locality_class", "unrestricted"),
+            "locality_class": loc_cls,
             "weight_class": rep["computed"].get("weight_class", "weight-9plus"),
             "origin": doc["provenance"].get("origin", "submission"),
             "novelty": doc["provenance"].get("novelty", "unknown"),
@@ -1113,7 +1168,8 @@ def scatter(te, front, yacc, ylabel):
         r = 6 if f else 4
         fill = col if f else "#fff"
         _tlabel = "exact" if e["tier"] == "exact" else "upper bound"
-        tip = (f'[[{e["n"]},{e["k"]},{e["d"]}]]  kd2/n={e["eff"]}\n'
+        _geo = f'  f={e["geo"]:.3g}' if e["geo"] is not None else ""
+        tip = (f'[[{e["n"]},{e["k"]},{e["d"]}]]  kd2/n={e["eff"]}{_geo}\n'
                f'{_tlabel}{", record" if f else ""}')
         cx, cy = sx(e["n"]), sy(yacc(e))
         pts.append(f'<circle class=pt data-code="{e["slug"]}" cx="{cx:.1f}" '
@@ -1185,9 +1241,18 @@ def detail_page(e):
         ("n", n, "physical qubits"),
         ("k", k, "logical qubits"),
         ("d", d, "distance (smallest undetectable error)"),
-        ("kd&sup2;/n", e["eff"], "encoding-efficiency ratio (BPT), compared within a track at comparable n"),
+        ("kd&sup2;/n", e["eff"], "operational efficiency (BPT ratio), compared within a track at comparable n"),
         ("w", e["w"], "max check weight"),
     ]
+    if e.get("geo") is not None:
+        params.append(("f", f'{e["geo"]:.3g}',
+                       "geometric efficiency 4kd²/(nρ²r⁴) "
+                       "from the verified layout; surface code = 1"
+                       + ("" if e["tier"] == "exact"
+                          else "; inherits the upper-bound distance tier")))
+        params.append(("r", e["geo_r"],
+                       "measured interaction radius: the largest check "
+                       "diameter in the layout, in units of the qubit spacing"))
     if "locality" in doc:
         loc = doc["locality"]
         params.append(("layers", loc.get("layers", "?"),
@@ -1393,25 +1458,43 @@ def references_page(entries):
 
 
 
-def progress_panel(entries, n_exact, best_eff):
+def progress_panel(entries, best_eff, best_geo_e):
     """The prominent stats bar at the top of the board: the headline numbers as
     big cards. This is the single home for the board's numbers (the hero carries
     none). The contributed count is non-baseline codes only; it is not a novelty
-    claim."""
+    claim. best_geo_e is the entry holding the best geometric efficiency among
+    eligible codes (verified layout, d >= GEO_MIN_D), or None."""
     n_base = sum(1 for e in entries if e["origin"] == "baseline")
     n_contrib = len(entries) - n_base
+    if best_geo_e is None:
+        geo_v = "&middot;"
+    else:
+        # an upper-bound distance makes f an upper bound too; show it as such
+        geo_v = (f"{best_geo_e['geo']:.3g}" if best_geo_e["tier"] == "exact"
+                 else f"&le;{best_geo_e['geo']:.3g}")
     metrics = [
         (str(n_contrib), "submitted codes",
          "codes submitted through the challenge; not necessarily novel parameter sets"),
         (str(n_base), "literature baselines",
          "published codes seeded as the bar to beat"),
-        (str(n_exact), "certified exact",
-         "distance proven exact by server-side certification (d =)"),
-        (f"{best_eff:g}", "best kd&sup2;/n on the board",
-         "kd^2/n is the Bravyi-Poulin-Terhal saturation ratio. It is bounded and "
-         "meaningful for 2D-local / bounded-weight codes at comparable n, but "
-         "grows with n for high-rate codes, so it is compared within tracks, not "
-         "as a global record. This is the best among the codes on this board."),
+        (geo_v, "best geometric efficiency",
+         "Geometric efficiency f = 4kd^2/(n rho^2 r^4): the kd^2/n ratio priced "
+         "by the layout the code ships with -- r is the measured interaction "
+         "radius (max check diameter, in units of the unit qubit spacing) and "
+         "rho the number of layers (the capacity charge). Normalized so the "
+         "planar surface code scores exactly 1; beating 1 at growing distance "
+         "would beat the surface code. Computed only for codes with a "
+         f"verifier-accepted 2D layout and shown here for distance d >= {GEO_MIN_D} "
+         "(constant-distance tilings exceed 1 trivially). A <= marks a value "
+         "inherited from an upper-bound distance. Codes without a layout have "
+         "no f; that is a certification status, not proof they are expanders."),
+        (f"{best_eff:g}", "best operational efficiency",
+         "Operational efficiency kd^2/n, the Bravyi-Poulin-Terhal saturation "
+         "ratio against the surface code baseline (surface = 1). It is bounded "
+         "and meaningful for 2D-local / bounded-weight codes at comparable n, "
+         "but grows with n for high-rate codes, so it is compared within "
+         "tracks, not as a global record. This is the best among the codes on "
+         "this board."),
     ]
     cards = "".join(f'<div class="stat-card"'
                     f'{f" title=\"{t}\"" if t else ""}>'
@@ -2194,9 +2277,10 @@ def board_controls(entries, records):
             f'<div class=filterrow>{wslider}{dslider}{nslider}{kslider}</div>'
             '<p class=searchhelp>Type terms (all must match): a family, author, '
             'or a comparison like <code>k&gt;=10</code> <code>d&gt;8</code> '
-            '<code>eff&gt;=5</code>; <code>record</code> keeps only frontier '
-            'rows; <code>literature</code> / <code>submitted</code> filter '
-            'by origin.</p>'
+            '<code>eff&gt;=5</code> <code>f&gt;=0.1</code>; <code>record</code> '
+            'keeps only frontier rows; <code>literature</code> / '
+            '<code>submitted</code> filter by origin; <code>with-layout</code> '
+            '/ <code>no-layout</code> filter by layout status.</p>'
             '</section>')
 
 
@@ -2208,6 +2292,18 @@ def charts_block(entries, records):
     eff_plot = scatter(entries, records, lambda e: e["eff"], "kd²/n")
     if not d_plot and not eff_plot:
         return ""
+    # layout toggle, top right of the charts (issue #276). "no layout" is a
+    # certification status -- such codes may still be local, nobody proved it
+    # -- so the label is neutral rather than "expander".
+    toggle = (
+        '<div class=geotabs role=group aria-label="filter by layout status">'
+        '<button type=button class=geotab data-geo=with '
+        'title="only codes with a verifier-accepted 2D layout (geometric '
+        'efficiency f defined)">with layout</button>'
+        '<button type=button class=geotab data-geo=without '
+        'title="only codes without a verified layout; locality may exist but '
+        'is uncertified (not necessarily expander codes)">no layout</button>'
+        '</div>')
     legend = (
         '<div class=chartlegend>'
         f'<span class=ci><span class=cdot style="background:{EXACT}"></span>'
@@ -2221,7 +2317,7 @@ def charts_block(entries, records):
         'Open = non-frontier</span>'
         '</div>')
     xlabel = '<div class=plotx>Physical Qubits (n)</div>'
-    return f'<div class=plots>{d_plot}{eff_plot}</div>{xlabel}{legend}'
+    return f'<div class=plots>{toggle}{d_plot}{eff_plot}</div>{xlabel}{legend}'
 
 
 def board_table(entries, records):
@@ -2236,10 +2332,11 @@ def board_table(entries, records):
                        f'{html.escape(LOCALITY_LABEL[e["locality_class"]])}</span>')
         return "".join(out)
 
-    cols = ('<colgroup><col style="width:3%"><col style="width:13%">'
-            '<col style="width:13%"><col style="width:6%"><col style="width:6%">'
-            '<col style="width:7%"><col style="width:8%"><col style="width:5%">'
-            '<col style="width:16%"><col style="width:14%">'
+    cols = ('<colgroup><col style="width:3%"><col style="width:12%">'
+            '<col style="width:12%"><col style="width:5%"><col style="width:5%">'
+            '<col style="width:6%"><col style="width:7%"><col style="width:7%">'
+            '<col style="width:5%">'
+            '<col style="width:15%"><col style="width:14%">'
             '<col style="width:9%"></colgroup>')
     head = ('<thead><tr><th></th>'
             '<th data-c=codekey data-num title="the code, written [[n,k,d]]; '
@@ -2249,8 +2346,12 @@ def board_table(entries, records):
             '<th data-c=n class="num col-n" title="physical qubits">n</th>'
             '<th data-c=k class="num col-k" title="logical qubits">k</th>'
             '<th data-c=d class="num col-d" title="distance">d</th>'
-            '<th data-c=eff class=num title="k&middot;d&sup2;/n, higher is better">'
-            'kd&sup2;/n</th>'
+            '<th data-c=eff class=num title="operational efficiency '
+            'k&middot;d&sup2;/n, higher is better">kd&sup2;/n</th>'
+            '<th data-c=geo class=num title="geometric efficiency '
+            'f = 4kd&sup2;/(n&rho;&sup2;r&#8308;), priced by the verified '
+            'layout&rsquo;s interaction radius r and layers &rho;; surface '
+            'code = 1; &middot; = no verified layout">f</th>'
             '<th data-c=w class=num title="max check weight">w</th>'
             '<th data-c=auth class=col-auth title="who submitted it">authors</th>'
             '<th class=model data-c=model title="claimed model that produced '
@@ -2274,6 +2375,7 @@ def board_table(entries, records):
             FAMILY_TERM.get(e["family"], ""),
             e["locality_class"], e["weight_class"], e["novelty"],
             "2d-local" if e["locality_class"] != "unrestricted" else "",
+            "with-layout" if e["geo"] is not None else "no-layout",
             "literature" if e["origin"] == "baseline" else "submitted",
         ]).lower()
         # every (locality x weight) cell this code competes in, so the grid's
@@ -2291,6 +2393,7 @@ def board_table(entries, records):
             f'data-n="{e["n"]}" data-k="{e["k"]}" data-d="{e["d"]}" '
             f'data-codekey="{e["n"]*1000000 + e["k"]*1000 + e["d"]}" '
             f'data-eff="{e["eff"]}" data-w="{e["w"]}" '
+            f'data-geo="{e["geo"] if e["geo"] is not None else -1}" '
             f'data-tracks="{html.escape(search_terms)}" '
             f'data-cells="{html.escape(cell_keys)}" '
             f'data-record="{1 if fr else 0}" '
@@ -2309,7 +2412,15 @@ def board_table(entries, records):
             f'<td class="num col-n">{e["n"]}</td>'
             f'<td class="num col-k">{e["k"]}</td>'
             f'<td class="num col-d">{badge(e["tier"])} {e["d"]}</td>'
-            f'<td class=num>{e["eff"]}</td><td class=num>{e["w"]}</td>'
+            f'<td class=num>{e["eff"]}</td>'
+            + (f'<td class=num title="r = {e["geo_r"]}, {e["geo_rho"]} '
+               f'layer{"s" if e["geo_rho"] != 1 else ""}'
+               f'{"; inherits the upper-bound distance tier" if e["tier"] != "exact" else ""}">'
+               f'{e["geo"]:.3g}</td>'
+               if e["geo"] is not None else
+               '<td class=num title="no verified layout; geometric efficiency '
+               'undefined (not necessarily an expander code)">&middot;</td>')
+            + f'<td class=num>{e["w"]}</td>'
             f'<td class="auth col-auth" title="{html.escape(e["authors"])}">'
             f'{authors_compact(e["authors_list"])}</td>'
             '<td class=model>'
@@ -2330,6 +2441,9 @@ def build():
     entries = load_entries()
     n_exact = sum(1 for e in entries if e["tier"] == "exact")
     best_eff = max((e["eff"] for e in entries), default=0)
+    geo_pool = [e for e in entries
+                if e["geo"] is not None and e["d"] >= GEO_MIN_D]
+    best_geo_e = max(geo_pool, key=lambda e: e["geo"], default=None)
     records = compute_records(entries)
 
     P = [head("QEC Challenge")]
@@ -2353,7 +2467,7 @@ def build():
              '</nav>'
              '</div></header>')
     P.append('<div class=wrap>')
-    P.append(progress_panel(entries, n_exact, best_eff))
+    P.append(progress_panel(entries, best_eff, best_geo_e))
     P.append(record_chart(entries))
     P.append(primary_tracks_grid(entries, records))
     P.append('<div class=how>'
@@ -2390,7 +2504,10 @@ def build():
              '<span class=collegend><b>columns:</b> '
              '<b>n</b> physical qubits &middot; <b>k</b> logical qubits '
              '&middot; <b>d</b> distance (smallest undetectable error) '
-             '&middot; <b>kd&sup2;/n</b> encoding efficiency (per track) '
+             '&middot; <b>kd&sup2;/n</b> operational efficiency (per track) '
+             '&middot; <b>f</b> geometric efficiency 4kd&sup2;/(n&rho;&sup2;'
+             'r&#8308;), priced by the layout&rsquo;s radius r and layers '
+             '&rho; (surface code = 1; &middot; = no verified layout) '
              '&middot; <b>w</b> max check weight</span>'
              '</div>')
     P.append(board_table(entries, records))
@@ -2458,7 +2575,9 @@ def build():
     # out of sync.
     n_cells = len(cells_by_key(entries))
     stats = {"verified_codes": len(entries), "certified_exact": n_exact,
-             "tracks": n_cells, "best_kd2_over_n": best_eff}
+             "tracks": n_cells, "best_kd2_over_n": best_eff,
+             "best_geometric_efficiency":
+                 best_geo_e["geo"] if best_geo_e else None}
     with open(os.path.join(DOCS, "stats.json"), "w") as f:
         json.dump(stats, f, indent=2)
     print(f"wrote docs/index.html + {len(entries)} detail pages + "
