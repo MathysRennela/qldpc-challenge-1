@@ -377,6 +377,9 @@ background:var(--soft)}}
 .stat-card .v{{font-size:34px;font-weight:700;line-height:1.05;
 font-family:'Space Mono',ui-monospace,monospace}}
 .stat-card .l{{font-size:13px;color:var(--mut);margin-top:6px}}
+.stat-card .sub{{font-size:12.5px;margin-top:5px;color:var(--mut)}}
+.stat-card .sub a{{font-family:'Space Mono',ui-monospace,monospace;
+color:var(--ink)}}
 .lb{{margin:18px 0 8px;border:1px solid var(--ln);border-radius:14px;
 background:#fff;overflow:hidden}}
 .lbhead{{display:flex;justify-content:space-between;align-items:center;gap:16px;
@@ -1472,26 +1475,39 @@ def references_page(entries):
 
 
 
-def progress_panel(entries, best_eff, best_geo_e):
+def progress_panel(entries, best_eff_e, best_geo_e):
     """The prominent stats bar at the top of the board: the headline numbers as
     big cards. This is the single home for the board's numbers (the hero carries
     none). The contributed count is non-baseline codes only; it is not a novelty
-    claim. best_geo_e is the entry holding the best geometric efficiency among
-    eligible codes (verified layout, d >= GEO_MIN_D), or None."""
+    claim. best_eff_e / best_geo_e are the entries ACHIEVING the two headline
+    efficiencies (geo: among eligible codes -- verified layout, d >= GEO_MIN_D);
+    each card names its code so the parameters behind the number are visible."""
     n_base = sum(1 for e in entries if e["origin"] == "baseline")
     n_contrib = len(entries) - n_base
+
+    def by_line(e, geo=False):
+        """The achieving code, linked: [[n,k,d]] plus the layout facts that
+        enter the score."""
+        if e is None:
+            return ""
+        extra = (f" &middot; r={e['geo_r']:g} &middot; &rho;={e['geo_rho']}"
+                 if geo else f" &middot; w={e['w']}")
+        return (f'<div class=sub><a href="codes/{e["slug"]}.html">'
+                f'[[{e["n"]},{e["k"]},{e["d"]}]]</a>{extra}</div>')
+
     if best_geo_e is None:
         geo_v = "&middot;"
     else:
-        # an upper-bound distance makes f an upper bound too; show it as such
+        # an upper-bound distance makes g an upper bound too; show it as such
         geo_v = (f"{best_geo_e['geo']:.3g}" if best_geo_e["tier"] == "exact"
                  else f"&le;{best_geo_e['geo']:.3g}")
+    best_eff = best_eff_e["eff"] if best_eff_e else 0
     metrics = [
         (str(n_contrib), "submitted codes",
          "codes submitted through the challenge; not necessarily novel parameter sets"),
         (str(n_base), "literature baselines",
          "published codes seeded as the bar to beat"),
-        (geo_v, "best geometric efficiency",
+        (geo_v + by_line(best_geo_e, geo=True), "best geometric efficiency",
          "Geometric efficiency g = 4kd^2/(n rho^2 r^4): the kd^2/n ratio priced "
          "by the layout the code ships with -- r is the measured interaction "
          "radius (max check diameter, in units of the unit qubit spacing) and "
@@ -1502,7 +1518,7 @@ def progress_panel(entries, best_eff, best_geo_e):
          "(constant-distance tilings exceed 1 trivially). A <= marks a value "
          "inherited from an upper-bound distance. Codes without a layout have "
          "no f; that is a certification status, not proof they are expanders."),
-        (f"{best_eff:g}", "best operational efficiency",
+        (f"{best_eff:g}" + by_line(best_eff_e), "best operational efficiency",
          "Operational efficiency kd^2/n, the Bravyi-Poulin-Terhal saturation "
          "ratio against the surface code baseline (surface = 1). It is bounded "
          "and meaningful for 2D-local / bounded-weight codes at comparable n, "
@@ -2499,9 +2515,11 @@ def build():
     entries = load_entries()
     n_exact = sum(1 for e in entries if e["tier"] == "exact")
     best_eff = max((e["eff"] for e in entries), default=0)
+    best_eff_e = max(entries, key=lambda e: (e["eff"], -e["n"]), default=None)
     geo_pool = [e for e in entries
                 if e["geo"] is not None and e["d"] >= GEO_MIN_D]
-    best_geo_e = max(geo_pool, key=lambda e: e["geo"], default=None)
+    best_geo_e = max(geo_pool, key=lambda e: (e["geo"], -e["n"]),
+                     default=None)
     records = compute_records(entries)
 
     P = [head("QEC Challenge")]
@@ -2525,7 +2543,7 @@ def build():
              '</nav>'
              '</div></header>')
     P.append('<div class=wrap>')
-    P.append(progress_panel(entries, best_eff, best_geo_e))
+    P.append(progress_panel(entries, best_eff_e, best_geo_e))
     # plain-sight definitions of the two headline scores (issue #276 review:
     # tooltips are invisible on mobile and undiscoverable in general)
     P.append(
