@@ -173,7 +173,113 @@
   "references": [
    "arXiv:quant-ph/9707021"
   ],
-  "notes": "Distance is exact by construction."
+  "notes": "Distance is exact by construction. 2D layout added 2026-07-23: qubit q at (q//5, q%5) on the 5x5 planar grid; single layer, measured interaction radius sqrt(2)."
  },
- "family": "topological"
+ "family": "topological",
+ "locality": {
+  "coordinates": [
+   [
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    1.0
+   ],
+   [
+    0.0,
+    2.0
+   ],
+   [
+    0.0,
+    3.0
+   ],
+   [
+    0.0,
+    4.0
+   ],
+   [
+    1.0,
+    0.0
+   ],
+   [
+    1.0,
+    1.0
+   ],
+   [
+    1.0,
+    2.0
+   ],
+   [
+    1.0,
+    3.0
+   ],
+   [
+    1.0,
+    4.0
+   ],
+   [
+    2.0,
+    0.0
+   ],
+   [
+    2.0,
+    1.0
+   ],
+   [
+    2.0,
+    2.0
+   ],
+   [
+    2.0,
+    3.0
+   ],
+   [
+    2.0,
+    4.0
+   ],
+   [
+    3.0,
+    0.0
+   ],
+   [
+    3.0,
+    1.0
+   ],
+   [
+    3.0,
+    2.0
+   ],
+   [
+    3.0,
+    3.0
+   ],
+   [
+    3.0,
+    4.0
+   ],
+   [
+    4.0,
+    0.0
+   ],
+   [
+    4.0,
+    1.0
+   ],
+   [
+    4.0,
+    2.0
+   ],
+   [
+    4.0,
+    3.0
+   ],
+   [
+    4.0,
+    4.0
+   ]
+  ],
+  "interaction_radius": 1.4142135623730951,
+  "layers": 1
+ }
 }
