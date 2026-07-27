@@ -486,7 +486,10 @@ font-size:13.5px}}
 .lbname{{min-width:96px}}}}
 .how{{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:40px 0}}
 .how .card{{border:1px solid var(--ln);border-radius:12px;padding:20px;
-background:var(--soft)}}
+background:var(--soft);display:block;color:inherit;text-decoration:none}}
+a.card{{transition:border-color .12s,transform .12s}}
+a.card:hover{{border-color:var(--ac);transform:translateY(-2px)}}
+a.card .arrow{{color:var(--ac);font-weight:700}}
 .how .n{{display:inline-flex;width:26px;height:26px;border-radius:50%;
 background:var(--ac);color:#fff;align-items:center;justify-content:center;
 font-size:14px;font-weight:700;margin-bottom:10px;
@@ -937,10 +940,13 @@ document.addEventListener('click',e=>{
   if(pe&&pg){const g=(geoMode==='with');
    pg.style.display=g?'':'none';pe.style.display=g?'none':'';}
  }
- var chipEl=document.getElementById('qchip');
- if(chipEl)chipEl.addEventListener('click',()=>{q.value='';
+ function clearall(){q.value='';
   document.querySelectorAll('.ttab').forEach(t=>
-   t.classList.toggle('active',t.dataset.q==='')); resetsliders();apply();});
+   t.classList.toggle('active',t.dataset.q==='')); resetsliders();apply();}
+ var chipEl=document.getElementById('qchip');
+ if(chipEl)chipEl.addEventListener('click',clearall);
+ var clrEl=document.getElementById('clearfilters');
+ if(clrEl)clrEl.addEventListener('click',clearall);
  // typing syncs the active tab (the one whose filter term matches, else none).
  q.addEventListener('input',()=>{
   document.querySelectorAll('.ttab').forEach(t=>
@@ -2517,7 +2523,10 @@ def board_controls(entries, records):
             'title="show only literature baselines (codes seeded from '
             'published papers, not submitted through the challenge)">'
             'literature</button></nav>'
-            f'<div class=filterrow>{wslider}{dslider}{nslider}{kslider}</div>'
+            f'<div class=filterrow>{wslider}{dslider}{nslider}{kslider}'
+            '<button type=button id=clearfilters class=otog '
+            'title="reset search, sliders, and every active filter">'
+            'clear filters</button></div>'
             '<p class=searchhelp>Type terms (all must match): a family, author, '
             'or a comparison like <code>k&gt;=10</code> <code>d&gt;8</code> '
             '<code>eff&gt;=5</code> <code>g&gt;=0.1</code>; <code>record</code> '
@@ -2754,16 +2763,22 @@ def build():
     P.append(record_chart(entries))
     P.append(primary_tracks_grid(entries, records))
     P.append('<div class=how>'
-             '<div class=card><span class=n>1</span><h3>Build a code</h3>'
+             f'<a class=card href="{REPO_ROOT}/blob/main/CONTRIBUTING.md">'
+             '<span class=n>1</span><h3>Build a code</h3>'
              '<p>A CSS qLDPC code, written as one JSON file with its parity '
-             'checks and a distance witness.</p></div>'
-             '<div class=card><span class=n>2</span><h3>Open a PR</h3>'
+             'checks and a distance witness. <span class=arrow>&rarr;</span></p>'
+             '</a>'
+             f'<a class=card href="{REPO_ROOT}/pulls">'
+             '<span class=n>2</span><h3>Open a PR</h3>'
              '<p>Add it under <code>codes/</code>. CI runs the verifier on '
-             'every submission automatically.</p></div>'
-             '<div class=card><span class=n>3</span><h3>Climb the board</h3>'
+             'every submission automatically. <span class=arrow>&rarr;</span></p>'
+             '</a>'
+             '<a class=card href="#board">'
+             '<span class=n>3</span><h3>Climb the board</h3>'
              '<p>If it advances a track&rsquo;s frontier it is highlighted. '
-             'Click any row for the witness, certificate, and checks.</p>'
-             '</div></div>')
+             'Click any row for the witness, certificate, and checks. '
+             '<span class=arrow>&rarr;</span></p>'
+             '</a></div>')
     P.append(board_controls(entries, records))
     P.append('<div class=explorer>')
     P.append(charts_block(entries, records))
