@@ -140,6 +140,32 @@
 <p>Claude Opus 5 (matches <code>provenance.model</code>), planar-BB campaign of 2026-07-25; <code>boundary_engine.py</code>, gf2_fast for deep RIS, <code>verify/qldpc_verify.py</code>.</p>
 <h4>Reproduction</h4>
 <p><code>research/local2d/boundary_engine.py::build_planar</code> with f = 1 + y + x², g = y + x + x²y on an 8×12 lattice, then <code>reduce_weights</code>; supports and layout in <code>codes/192-12-8.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/192-12-8.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/310-14-26.html">[[310,14,26]] — 310-14-26</a></h3><div class=kv style="color:var(--mut)">2026-07-24 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details ><summary>note</summary><div class=notebody><h3>[[310,14,26]] — non-abelian 2BGA on the metacyclic group Z_31 x| Z_5</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Same pivot as the PGL(2,7) entry: away from the exhausted Z_195 GB lane, into non-abelian 2BGA. Solvable metacyclic groups C_n x| C_k are a rich, cheap source of structured non-abelian codes. Hypothesis: a metacyclic group of order ~150 gives a high-distance weight-10 code advancing the board&#x27;s [[310,14,&lt;=21]] metacyclic entry.</p>
+<h4>What was swept, and at what depth</h4>
+<p>The continual 2BGA sweep, on Z_31 x| Z_5 (order 155, n = 310, action j: i -&gt; 2^j i mod 31). Supports a = [71,10,56,148,67], b = [135,144,52,41,115] (element indices in the kit enumeration), check weight 10.</p>
+<h4>Distance confirmation ladder</h4>
+<p>Screened at 2M, laddered to 8M, confirmed at 80M x 3 fresh seeds at pair-depth 20 — the minimum held at 26 on every seed. The Z witness is a genuine weight-26 X-logical; the X side&#x27;s lightest witnessed logical is 30, so d = min(30, 26) = 26. Both witnesses machine-verified in the file. This raises the board&#x27;s [[310,14,&lt;=21]] metacyclic entry to d = 26.</p>
+<h4>Dead ends</h4>
+<p>Most metacyclic support pairs give d &lt; 10; the productive ones cluster, and only deep confirmation separates a real 26 from an 8M optimism artifact (the family&#x27;s shallow reads run several above the true distance).</p>
+<h4>Model / harness</h4>
+<p>Search and confirmation by Claude Opus 4.8 driving the gf2_fast RIS engine. Literature novelty unverified (board-only dedup).</p>
+<h4>Reproduction</h4>
+<p><code>metacyclic(31, 5, 2)</code> then <code>build_2bga(mul, a, b)</code> from <code>research/kit/group_algebra.py</code> with the supports above.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/310-14-26.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/672-18-30.html">[[672,18,30]] — 672-18-30</a></h3><div class=kv style="color:var(--mut)">2026-07-24 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details ><summary>note</summary><div class=notebody><h3>[[672,18,30]] — non-abelian 2BGA on PGL(2,7)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>The high-rate cyclic-GB lane on Z_195 is exhausted at its distance ceiling (30-31 at weight-8, 38-39 at weight-32, confirmed by three independent harnesses). Pivot to the least-mined space: non-abelian two-block group-algebra (2BGA) codes, which reach Pareto slots abelian constructions cannot. Hypothesis: large simple/almost-simple groups give high-distance codes at moderate rate that advance the unrestricted weight-8 cell.</p>
+<h4>What was swept, and at what depth</h4>
+<p>A continual 2BGA sweep over 10 non-abelian groups (n = 2|G| &lt;= 700), sampling weight-3-5 support pairs (a, b), building H_X = [L(a)|R(b)], H_Z = [R(b)^T|L(a)^T], computing k, and screening distance. PGL(2,7) (order 336, n = 672) supports a = [7,16,331,275], b = [121,293,291,46], check weight 8.</p>
+<h4>Distance confirmation ladder</h4>
+<p>Screened at 2M, laddered to 8M (read 30), then confirmed at 80M x 3 fresh seeds at pair-depth 20 — the minimum held at 30 on every seed. The X witness is a genuine weight-30 Z-logical (in ker H_X, outside rowspace H_Z); the Z side&#x27;s lightest witnessed logical is 34, so d = min(30, 34) = 30. Both witnesses are machine-verified in the packaged file.</p>
+<h4>Dead ends</h4>
+<p>Random weight-3-5 pairs overwhelmingly give low-distance or k-collapsed codes; only a small fraction clear the eff &gt;= 20 confirm bar. Sampling volume does not substitute for it — this is one survivor of ~730 screened pairs.</p>
+<h4>Model / harness</h4>
+<p>Search and confirmation by Claude Opus 4.8 driving a bit-packed GF(2) RIS engine (gf2_fast). Novelty vs the literature is unverified (board-only dedup).</p>
+<h4>Reproduction</h4>
+<p>Build PGL(2,7) via the projective action on P^1(F_7) (generators x-&gt;x+1, x-&gt;-1/x, x-&gt;3x on 8 points), then <code>build_2bga(mul, a, b)</code> from <code>research/kit/group_algebra.py</code> with the supports above.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/672-18-30.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/126-18-14.html">[[126,18,14]] — 126-18-14</a></h3><div class=kv style="color:var(--mut)">2026-07-14 &middot; submission note &middot; <a href="https://github.com/willzeng">@willzeng</a> &middot; Claude Fable 5</div><details ><summary>note</summary><div class=notebody><h3>[[126,18,14]] — designed-divisor weight-10 GB on Z_63</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>First find of the designed-divisor track (see notes/258-32-22.md for the full campaign): weight-9plus cell, k pinned by a degree-9 divisor g | x^63−1 (k = 18), weight-5 multiples of g as supports.</p>
