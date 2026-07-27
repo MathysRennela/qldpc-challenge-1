@@ -452,6 +452,25 @@ padding:10px;overflow-x:auto}
 .notebody code{font-family:ui-monospace,monospace;font-size:12.5px;
 background:var(--soft);padding:1px 4px;border-radius:4px}
 .notebody ul{margin:6px 0 6px 20px}
+.layoutfig svg{width:100%;max-width:560px;height:auto;display:block;
+background:var(--soft);border:1px solid var(--ln);border-radius:10px}
+.lo-chk{fill-opacity:.15;stroke-width:1.3;stroke-linejoin:round}
+.lo-x{fill:#36006c;stroke:#36006c}
+.lo-z{fill:#059669;stroke:#059669;stroke-dasharray:5 3}
+.lo-q{fill:var(--ink);stroke:#fff;stroke-width:1}
+.lo-q2{fill:none;stroke:var(--ink);stroke-width:1.4}
+.lo-dense .lo-chk{fill-opacity:.05;stroke-opacity:.35}
+.lo-r{stroke:var(--ink);stroke-width:1.6;stroke-dasharray:6 4;fill:none}
+.lo-rt{fill:var(--ink);font-size:13px;font-family:'Space Mono',monospace;
+paint-order:stroke;stroke:var(--soft);stroke-width:3.5px}
+.lolegend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;
+color:var(--mut);margin-top:8px;align-items:center}
+.lolegend .sw{display:inline-block;width:11px;height:11px;border-radius:3px;
+margin-right:5px;vertical-align:-1px;opacity:.55}
+.lolegend .dt{display:inline-block;width:8px;height:8px;border-radius:50%;
+background:var(--ink);margin-right:5px}
+.lolegend .rg{display:inline-block;width:10px;height:10px;border-radius:50%;
+border:1.5px solid var(--ink);margin-right:5px;vertical-align:-1px}
 details{margin:8px 0}summary{cursor:pointer;color:var(--ac);font-size:14px}
 .cert-ok{color:var(--ex);font-weight:600}.cert-no{color:var(--mut)}
 .ref{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--ln);
