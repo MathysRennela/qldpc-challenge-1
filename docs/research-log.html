@@ -112,6 +112,34 @@
 <p>Claude Opus 5 (matches <code>provenance.model</code>), layout-optimization campaign of 2026-07-25; <code>verify/certify.py</code>, <code>verify/qldpc_verify.py</code>. Minutes per optimizer run at n = 16.</p>
 <h4>Reproduction</h4>
 <p>H_X = H_Z = RM(1,4) generator minus the all-ones row; supports in <code>codes/16-6-4.json</code>, layout in <code>locality.coordinates</code>. Verify with <code>uv run python verify/qldpc_verify.py codes/16-6-4.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/16-6-4.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/192-12-8.html">[[192,12,8]] — 192-12-8</a></h3><div class=kv style="color:var(--mut)">2026-07-25 &middot; submission note &middot; <a href="https://github.com/FarLab">@FarLab</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[192,12,8]] — open-boundary planar bivariate-bicycle, found by aspect-ratio optimization</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: the k ≥ 12 end of <code>weight-6 × local-2d-bilayer</code>, held only by [[198,12,7]]. Hypothesis: for open-boundary planar BB codes the merit is k·s₀·s₁ (per-axis transfer-graph distance slopes), so at fixed polynomials a *balanced rectangle* beats the square lattice everyone defaults to — distance is set by the shorter axis, and the longer axis past balance only spends qubits.</p>
+<h4>What was searched</h4>
+<p>Not a wider (f, g) polynomial sweep — a lattice-geometry sweep at fixed f = 1 + y + x², g = y + x + x²y across lattice sizes. On 12×12 this pair gives [[288,12,8]] (kd²/n = 2.67); on 8×12 it gives [[192,12,8]] (kd²/n = 4.00) — identical distance on two-thirds of the qubits. k = 12 is stable across lattice sizes and equals the mixed volume of the support pair. Built via <code>research/local2d/boundary_engine.py::build_planar</code> + <code>reduce_weights</code> (0 qubits removed; max row weight 6 after reduction).</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: d = 8 flat across 20k → 100k → 250k → 1M RIS trials/side, with</li>
+<p>d_X = d_Z = 8 witnessed.</p>
+<li>Independent 1M-trial re-refutation on two fresh seeds (4271, 9133) the</li>
+<p>search agent never used: corroborated on both.</p>
+<li>Post-submission re-check (2026-07-27): three more fresh seeds × 8M</li>
+<p>gf2_fast trials each, plus one seed × 2M pure-python trials — all four corroborated, weight-8 found every time, nothing lighter.</p>
+<li>Filed <code>upper_bound</code>; MILP exact certification not tractable at n = 192.</li>
+</ul>
+<h4>Dead ends / novelty diligence</h4>
+<ul>
+<li>Square lattices: strictly dominated at fixed polynomials — the aspect</li>
+<p>ratio, not the polynomial search, was the win.</p>
+<li>Literature check read the LaTeX sources (not abstracts) of</li>
+<p>arXiv:2504.08887, 2504.09171, 2606.19482, 2607.05897; no match. The exhaustive table of 2504.08887 (min n = 264 for k=12, d=8) does not cover this code: its Eq. (9) form needs a single M ∈ GL(2,ℤ) with unit determinant across support differences, and all candidate determinants here are 2,3,5 / 3,4,7 / 5,7,12. Also not a 2BGA (90+90 checks of non-uniform weight, vs 96+96 uniform), so Lin–Pryadko&#x27;s n ≤ 200 enumeration cannot contain it. <code>novelty: new_parameters</code> remains a submitter claim.</p>
+</ul>
+<h4>Open leads</h4>
+<p>The layout is the unoptimized stacked bilayer grid (r = 3.6056). Under g ∝ r⁻⁴ this entry is likely improvable substantially by relayout alone.</p>
+<h4>Tools</h4>
+<p>Claude Opus 5 (matches <code>provenance.model</code>), planar-BB campaign of 2026-07-25; <code>boundary_engine.py</code>, gf2_fast for deep RIS, <code>verify/qldpc_verify.py</code>.</p>
+<h4>Reproduction</h4>
+<p><code>research/local2d/boundary_engine.py::build_planar</code> with f = 1 + y + x², g = y + x + x²y on an 8×12 lattice, then <code>reduce_weights</code>; supports and layout in <code>codes/192-12-8.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/192-12-8.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/126-18-14.html">[[126,18,14]] — 126-18-14</a></h3><div class=kv style="color:var(--mut)">2026-07-14 &middot; submission note &middot; <a href="https://github.com/willzeng">@willzeng</a> &middot; Claude Fable 5</div><details ><summary>note</summary><div class=notebody><h3>[[126,18,14]] — designed-divisor weight-10 GB on Z_63</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>First find of the designed-divisor track (see notes/258-32-22.md for the full campaign): weight-9plus cell, k pinned by a degree-9 divisor g | x^63−1 (k = 18), weight-5 multiples of g as supports.</p>
