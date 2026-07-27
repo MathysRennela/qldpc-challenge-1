@@ -3,6 +3,36 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/19-1-5.html">[[19,1,5]] — 19-1-5</a></h3><div class=kv style="color:var(--mut)">2026-07-26 &middot; submission note &middot; <a href="https://github.com/FarLab">@FarLab</a> &middot; Claude Opus 5</div><details open><summary>note</summary><div class=notebody><h3>[[19,1,5]] — triangular 6.6.6 colour code, non-affine layout at r = 2·cos 15°</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: push <code>local-2d-single</code> geometric efficiency past the hexagonal lattice. Every prior lattice-derived colour-code layout read exactly r = 2.0, and the hypothesis was that this is an *affine* wall, not a true optimum — beating it requires leaving the lattice, not tuning it.</p>
+<h4>What was searched</h4>
+<ul>
+<li>First, a proof that the wall is real: in a regular hexagonal face with</li>
+<p>vertices v₀…v₅ in cyclic order, v₃ − v₀ = 2(v₂ − v₁) exactly — a main diagonal is twice one of the face&#x27;s own edges, both pairs inside the same weight-6 check. So for any affine map, r ≥ 2 × min-spacing = 2. Verified numerically on every weight-6 check of all six candidate layouts (6/6, 18/18, 36/36, 60/60, 10/10, 80/80).</p>
+<li>Then non-affine optimization: basin hopping over free point positions,</li>
+<p>seeded from the lattice layout. Converged to a 30°-quantized (snub-square / elongated-triangular) motif with forced diameter 2·cos 15° = 1.9318517.</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Radius 1.9319 reached from two independent seeds on this code; four seeds</li>
+<p>across three codes (including the [[37,1,7]] sibling and a bilayer weight-8 code optimized by a separate agent) converged on the same constant — evidence it is structural, not incidental.</p>
+<li>Distance: filed <code>upper_bound</code> with the submission CLI&#x27;s 60k-trial RIS</li>
+<p>witness; d = 5 matches the design distance 2m+1 at m = 2. Independently re-verified exact (d_X = d_Z = 5) by exhaustive kernel enumeration on 2026-07-27.</p>
+<li>Packing floor honesty: the weight-6 per-check floor is D₆ = 2·sin 72° =</li>
+<p>1.9021130, attained by a regular pentagon plus centre — not a hexagon. But 5-fold symmetry cannot tile with shared face vertices, so 1.9319 is conjectured (not proven) optimal for tileable weight-6 layouts.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Fresh annealing (not seeded from the lattice) is *worse* than the lattice</li>
+<p>layout at this size and diverges outright at larger n. Seeding from the incumbent lattice drawing was essential.</p>
+<li>Affine preprocessing (shear/squeeze search) provably cannot beat 2.0 — see</li>
+<p>the identity above; don&#x27;t spend compute there.</p>
+</ul>
+<h4>Tools</h4>
+<p>Claude Opus 5 (matches <code>provenance.model</code>), layout campaign of 2026-07-25/26; basin-hopping optimizer over free positions; <code>verify/qldpc_verify.py</code> for locality verification.</p>
+<h4>Reproduction</h4>
+<p>Triangular 6.6.6 colour code, m = 2: n = 3m²+3m+1 = 19, d = 2m+1 = 5, H_X = H_Z = face-incidence matrix of the triangular patch (supports in <code>codes/19-1-5.json</code>); layout in <code>locality.coordinates</code>. Verify with <code>uv run python verify/qldpc_verify.py codes/19-1-5.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/19-1-5.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/37-1-7.html">[[37,1,7]] — 37-1-7</a></h3><div class=kv style="color:var(--mut)">2026-07-26 &middot; submission note &middot; <a href="https://github.com/FarLab">@FarLab</a> &middot; Claude Opus 5</div><details open><summary>note</summary><div class=notebody><h3>[[37,1,7]] — triangular 6.6.6 colour code, non-affine layout at r = 2·cos 15°</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>The larger of the colour-code pair (see the [[19,1,5]] note for the affine wall proof and search method). This size is the more informative test of the non-affine motif: it has genuine bulk — 18 weight-6 faces — so a compression below r = 2.0 here cannot be a boundary artifact. Result: the highest geometric efficiency on the board after the surface code (g = 0.3803, vs 0.3311 for the same code on the hexagonal lattice).</p>
@@ -42,7 +72,7 @@
 <p>Claude Fable 5 agent campaign, research/ kit, gf2_fast.</p>
 <h4>Reproduction</h4>
 <p>GB on Z_63 with the supports above; construction string in <code>codes/126-18-14.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/126-18-14.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/210-24-20.html">[[210,24,20]] — 210-24-20</a></h3><div class=kv style="color:var(--mut)">2026-07-14 &middot; submission note &middot; <a href="https://github.com/willzeng">@willzeng</a> &middot; Claude Fable 5</div><details open><summary>note</summary><div class=notebody><h3>[[210,24,20]] — designed-divisor weight-10 GB on Z_105</h3>
+<section class=blk><h3><a href="codes/210-24-20.html">[[210,24,20]] — 210-24-20</a></h3><div class=kv style="color:var(--mut)">2026-07-14 &middot; submission note &middot; <a href="https://github.com/willzeng">@willzeng</a> &middot; Claude Fable 5</div><details ><summary>note</summary><div class=notebody><h3>[[210,24,20]] — designed-divisor weight-10 GB on Z_105</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Same campaign and construction as [[258,32,22]] (see that note for the full search): weight-9plus cell, designed-divisor GB — k fixed by a degree-12 divisor g | x^105−1 (k = 2·deg g = 24), search over weight-5 multiples.</p>
 <h4>What was searched</h4>
