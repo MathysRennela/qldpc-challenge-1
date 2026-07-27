@@ -59,7 +59,60 @@
 <p>Claude Opus 5 (matches <code>provenance.model</code>), layout campaign of 2026-07-25/26; basin-hopping optimizer; <code>verify/qldpc_verify.py</code>.</p>
 <h4>Reproduction</h4>
 <p>Triangular 6.6.6 colour code, m = 3: n = 37, d = 7, H_X = H_Z = face-incidence matrix (supports in <code>codes/37-1-7.json</code>); layout in <code>locality.coordinates</code>. Verify with <code>uv run python verify/qldpc_verify.py codes/37-1-7.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/37-1-7.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/126-18-14.html">[[126,18,14]] — 126-18-14</a></h3><div class=kv style="color:var(--mut)">2026-07-14 &middot; submission note &middot; <a href="https://github.com/willzeng">@willzeng</a> &middot; Claude Fable 5</div><details open><summary>note</summary><div class=notebody><h3>[[126,18,14]] — designed-divisor weight-10 GB on Z_63</h3>
+<section class=blk><h3><a href="codes/15-7-3.html">[[15,7,3]] — 15-7-3</a></h3><div class=kv style="color:var(--mut)">2026-07-25 &middot; submission note &middot; <a href="https://github.com/FarLab">@FarLab</a> &middot; Claude Opus 5</div><details open><summary>note</summary><div class=notebody><h3>[[15,7,3]] — quantum Hamming code, single-layer layout at r = √7</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: the <code>weight-8 × local-2d-single</code> cell, which held nothing. The board&#x27;s geometric-efficiency score <code>g = 4kd²/(nρ²r⁴)</code> is dominated by r⁻⁴, so the hypothesis was that small textbook codes with *optimized* layouts beat large qLDPC codes with lazy layouts. The code itself (Steane&#x27;s CSS construction on the [15,11,3] Hamming code) is textbook; the layout is the contribution.</p>
+<h4>What was searched</h4>
+<p>Layout only: minimize the maximum check diameter subject to unit minimum site spacing, directly over free point positions — not an affine image of a lattice. Optimizers: random multistart (~480 restarts) and basin hopping seeded from the incumbent. Two independently written optimizers were run to convergence.</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>Distance: MILP-certified exact on both sides via <code>verify/certify.py</code></li>
+<p>(&quot;no logical &lt; 3 exists&quot;); filed as <code>upper_bound</code> per board policy since only that tier is server-certified. Independently re-verified exact (d_X = d_Z = 3) by exhaustive kernel enumeration on 2026-07-27.</p>
+<li>Radius: r = √7 = 2.6458, and probably optimal. The 11 qubits whose Hamming</li>
+<p>column has weight ≥ 2 form a core that is pairwise check-sharing except for 3 complementary pairs; laying out that core alone gives exactly √7, and the full 15-qubit layout achieves the same value with the four weight-1 qubits unconstrained. So √7 is both achieved and the optimum of a subproblem that lower-bounds the whole. Both optimizers converged there.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li><b>Random multistart is a trap.</b> ~480 random restarts all returned</li>
+<p>r = 2.909313 to six decimals — a convincing false optimum, 46% worse in g. Only basin hopping seeded from the incumbent escaped it. Assume the same trap on any layout optimization on this board.</p>
+<li>The per-check packing floor for weight-8 (2.2470) is not attainable here:</li>
+<p>the check-pair graph constrains 80 of 105 pairs and max clique is 8, so clique bounds give nothing past the single-check floor.</p>
+</ul>
+<h4>Tools</h4>
+<p>Claude Opus 5 (matches <code>provenance.model</code>), single-agent layout-optimization campaign of 2026-07-25; <code>verify/certify.py</code> for the MILP-exact distance; <code>verify/qldpc_verify.py</code> for the locality class. Compute: minutes per optimizer run at n = 15.</p>
+<h4>Reproduction</h4>
+<p>H_X = H_Z = the 4×15 parity-check matrix of the classical [15,11,3] Hamming code (self-orthogonal over GF(2)); supports in <code>codes/15-7-3.json</code>. The layout is the <code>locality.coordinates</code> field; verify with <code>uv run python verify/qldpc_verify.py codes/15-7-3.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/15-7-3.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/16-6-4.html">[[16,6,4]] — 16-6-4</a></h3><div class=kv style="color:var(--mut)">2026-07-25 &middot; submission note &middot; <a href="https://github.com/FarLab">@FarLab</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[16,6,4]] — CSS Reed–Muller RM(1,4), single-layer layout at r = 2.8586</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: the <code>weight-8 × local-2d-single</code> cell (empty before this and the sibling [[15,7,3]] submission). Same hypothesis as the sibling: under <code>g = 4kd²/(nρ²r⁴)</code>, a small textbook code with an optimized layout beats large qLDPC entries. The code is Steane&#x27;s [[16,6,4]]; only the layout is new.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Check basis first: H_X = H_Z = the RM(1,4) generator **with the all-ones</li>
+<p>row dropped**, halving check weight 16 → 8 while generating the same stabilizer group. Without this reduction no small-radius layout exists.</p>
+<li>Layout: minimize max check diameter subject to unit min site spacing over</li>
+<p>free point positions (lattice-constrained layouts were measurably worse). Multiple independent optimizer seeds; basin hopping from incumbents.</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Distance: MILP-certified exact via <code>verify/certify.py</code> (&quot;no logical &lt; 4</li>
+<p>exists&quot;); filed <code>upper_bound</code> per board policy. Independently re-verified exact (d_X = d_Z = 4) by exhaustive kernel enumeration on 2026-07-27.</p>
+<li>Radius: <b>not converged.</b> Independent seeds landed at 2.8586 / 2.8593 /</li>
+<p>2.8693 / 2.8773 / 2.8794 — a genuine spread, unlike the sibling&#x27;s clean convergence to √7. Read g = 0.3594 as a floor, not a limit.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Same multistart trap as [[15,7,3]]: random restarts return a consistent</li>
+<p>false optimum; only seeded basin hopping made progress.</p>
+<li>The weight-8 per-check packing floor (2.2470, worth g ≈ 0.944) was not</li>
+<p>approached; it may not be simultaneously satisfiable across overlapping checks.</p>
+</ul>
+<h4>Open leads</h4>
+<p>RM(1,4) has basis freedom: its stabilizer in GL(5,2) is only AGL(4,2), giving four check-basis classes with different check-pair graphs (90/90/93/93 constrained pairs). Edge count does not predict the winner, so all four need laying out — plausibly worth ~0.09 of radius.</p>
+<h4>Tools</h4>
+<p>Claude Opus 5 (matches <code>provenance.model</code>), layout-optimization campaign of 2026-07-25; <code>verify/certify.py</code>, <code>verify/qldpc_verify.py</code>. Minutes per optimizer run at n = 16.</p>
+<h4>Reproduction</h4>
+<p>H_X = H_Z = RM(1,4) generator minus the all-ones row; supports in <code>codes/16-6-4.json</code>, layout in <code>locality.coordinates</code>. Verify with <code>uv run python verify/qldpc_verify.py codes/16-6-4.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/16-6-4.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/126-18-14.html">[[126,18,14]] — 126-18-14</a></h3><div class=kv style="color:var(--mut)">2026-07-14 &middot; submission note &middot; <a href="https://github.com/willzeng">@willzeng</a> &middot; Claude Fable 5</div><details ><summary>note</summary><div class=notebody><h3>[[126,18,14]] — designed-divisor weight-10 GB on Z_63</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>First find of the designed-divisor track (see notes/258-32-22.md for the full campaign): weight-9plus cell, k pinned by a degree-9 divisor g | x^63−1 (k = 18), weight-5 multiples of g as supports.</p>
 <h4>What was searched</h4>
