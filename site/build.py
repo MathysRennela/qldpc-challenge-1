@@ -9,6 +9,7 @@ verifier confirmed). Detail pages expose the actual witness, certificate, and
 parity checks so the verification is transparent.
 """
 
+import collections
 import glob
 import html
 import json
@@ -754,6 +755,25 @@ padding:10px;overflow-x:auto}}
 .notebody code{{font-family:ui-monospace,monospace;font-size:12.5px;
 background:var(--soft);padding:1px 4px;border-radius:4px}}
 .notebody ul{{margin:6px 0 6px 20px}}
+.layoutfig svg{{width:100%;max-width:560px;height:auto;display:block;
+background:var(--soft);border:1px solid var(--ln);border-radius:10px}}
+.lo-chk{{fill-opacity:.15;stroke-width:1.3;stroke-linejoin:round}}
+.lo-x{{fill:{ACCENT};stroke:{ACCENT}}}
+.lo-z{{fill:{EXACT};stroke:{EXACT};stroke-dasharray:5 3}}
+.lo-q{{fill:var(--ink);stroke:#fff;stroke-width:1}}
+.lo-q2{{fill:none;stroke:var(--ink);stroke-width:1.4}}
+.lo-dense .lo-chk{{fill-opacity:.05;stroke-opacity:.35}}
+.lo-r{{stroke:var(--ink);stroke-width:1.6;stroke-dasharray:6 4;fill:none}}
+.lo-rt{{fill:var(--ink);font-size:13px;font-family:'Space Mono',monospace;
+paint-order:stroke;stroke:var(--soft);stroke-width:3.5px}}
+.lolegend{{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;
+color:var(--mut);margin-top:8px;align-items:center}}
+.lolegend .sw{{display:inline-block;width:11px;height:11px;border-radius:3px;
+margin-right:5px;vertical-align:-1px;opacity:.55}}
+.lolegend .dt{{display:inline-block;width:8px;height:8px;border-radius:50%;
+background:var(--ink);margin-right:5px}}
+.lolegend .rg{{display:inline-block;width:10px;height:10px;border-radius:50%;
+border:1.5px solid var(--ink);margin-right:5px;vertical-align:-1px}}
 details{{margin:8px 0}}summary{{cursor:pointer;color:var(--ac);font-size:14px}}
 .cert-ok{{color:var(--ex);font-weight:600}}.cert-no{{color:var(--mut)}}
 .ref{{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--ln);
@@ -1410,6 +1430,113 @@ def authors_compact(lst):
     return f'{surname} <span class=etal>et al.</span>'
 
 
+def layout_svg(doc):
+    """Inline SVG of a verified 2D layout (issue #289): qubit sites, one
+    translucent polygon per check, and the qubit pair attaining the measured
+    interaction radius. Returns figure+legend HTML, or None when the code has
+    no usable layout. Mirrors the verifier's reading of the layout (checks
+    drawn over `locality.coordinates`); it draws what the class was earned
+    from, never a prettified abstraction."""
+    loc = doc.get("locality")
+    if not loc or "coordinates" not in loc:
+        return None
+    try:
+        coords = [(float(c[0]), float(c[1])) for c in loc["coordinates"]]
+    except (TypeError, ValueError, IndexError):
+        return None
+    if len(coords) != doc["n"]:
+        return None
+    X, Z = doc["checks"]["X"], doc["checks"]["Z"]
+    selfdual = sorted(map(sorted, X)) == sorted(map(sorted, Z))
+    groups = [("lo-x", X)] + ([] if selfdual else [("lo-z", Z)])
+
+    # scale: coordinate units -> px, clamped so tiny codes don't balloon and
+    # large ones stay legible; y flipped (SVG y grows downward)
+    xs = [p[0] for p in coords]
+    ys = [p[1] for p in coords]
+    w_u = max(xs) - min(xs) or 1.0
+    h_u = max(ys) - min(ys) or 1.0
+    S = min(84.0, max(24.0, 560.0 / max(w_u, h_u)))
+    pad = 26.0
+    W = w_u * S + 2 * pad
+    H = h_u * S + 2 * pad
+
+    def T(p):
+        return (round((p[0] - min(xs)) * S + pad, 1),
+                round(H - ((p[1] - min(ys)) * S + pad), 1))
+
+    # the pair attaining the interaction radius (the verifier's r)
+    r_best, r_pair = 0.0, None
+    for sup in X + Z:
+        for i, a in enumerate(sup):
+            for b in sup[i + 1:]:
+                dd = math.dist(coords[a], coords[b])
+                if dd > r_best:
+                    r_best, r_pair = dd, (coords[a], coords[b])
+
+    # dense boards (many overlapping checks) drop the fill so structure stays
+    # readable; the class is on the root and CSS does the rest
+    dense = " lo-dense" if len(X) + len(Z) > 80 else ""
+    parts = [f'<svg viewBox="0 0 {round(W)} {round(H)}" role="img" '
+             f'class="lofig{dense}" '
+             f'aria-label="verified 2D layout: {doc["n"]} qubit sites and '
+             f'{len(X) + len(Z)} checks">']
+    for cls, checks in groups:
+        for sup in checks:
+            pts = [coords[q] for q in sup]
+            if len(pts) < 2:
+                continue
+            if len(pts) == 2:
+                (x1, y1), (x2, y2) = map(T, pts)
+                parts.append(f'<line class="lo-chk {cls}" x1="{x1}" y1="{y1}" '
+                             f'x2="{x2}" y2="{y2}"/>')
+                continue
+            cx = sum(p[0] for p in pts) / len(pts)
+            cy = sum(p[1] for p in pts) / len(pts)
+            ordered = sorted(pts, key=lambda p: math.atan2(p[1] - cy, p[0] - cx))
+            body = " ".join(f"{x},{y}" for x, y in map(T, ordered))
+            parts.append(f'<polygon class="lo-chk {cls}" points="{body}"/>')
+    # sites: a dot per site, a ring where layers stack more than one qubit
+    mult = collections.Counter(coords)
+    rq = round(min(6.0, max(2.6, S * 0.11)), 1)
+    stacked = False
+    for site, m in mult.items():
+        x, y = T(site)
+        if m > 1:
+            stacked = True
+            parts.append(f'<circle class=lo-q2 cx="{x}" cy="{y}" r="{rq + 3.2}"/>')
+        parts.append(f'<circle class=lo-q cx="{x}" cy="{y}" r="{rq}"/>')
+    # the radius pair goes on top: on dense boards it is the one thing the
+    # reader must still be able to find
+    if r_pair:
+        (x1, y1), (x2, y2) = map(T, r_pair)
+        parts.append(f'<line class=lo-r x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}"/>')
+        tx, ty = (x1 + x2) / 2, (y1 + y2) / 2
+        anchor = "start" if tx < W / 2 else "end"
+        dx = 10 if anchor == "start" else -10
+        parts.append(f'<text class=lo-rt x="{round(tx + dx, 1)}" '
+                     f'y="{round(ty - 8, 1)}" text-anchor="{anchor}">'
+                     f'r = {r_best:.4g}</text>')
+    parts.append('</svg>')
+
+    legend = ['<div class=lolegend>']
+    if selfdual:
+        legend.append(f'<span><span class=sw style="background:{ACCENT}">'
+                      '</span>check (X = Z, self-dual)</span>')
+    else:
+        legend.append(f'<span><span class=sw style="background:{ACCENT}">'
+                      '</span>X check</span>')
+        legend.append(f'<span><span class=sw style="background:{EXACT}">'
+                      '</span>Z check</span>')
+    legend.append(f'<span><span class=dt></span>qubit site ({len(mult)})</span>')
+    if stacked:
+        legend.append('<span><span class=rg></span>2 qubits stacked '
+                      f'({loc.get("layers", 2)} layers)</span>')
+    legend.append('<span>dashed: the pair setting the interaction radius</span>')
+    legend.append('</div>')
+    return '<div class=layoutfig>' + "".join(parts) + "".join(legend) + '</div>'
+
+
 def detail_page(e):
     doc, cert = e["doc"], e["cert"]
     n, k, d = e["n"], e["k"], e["d"]
@@ -1491,6 +1618,17 @@ def detail_page(e):
                  '<span class=cert-no>none yet &middot; distance stands as a '
                  'self-certified upper bound (d &le;)</span></div>')
     P.append('</section>')
+
+    # verified 2D layout (issue #289): draw the layout the locality class was
+    # earned from, not just its numbers
+    fig = layout_svg(doc)
+    if fig:
+        P.append('<section class=blk><h3>Verified 2D layout</h3>')
+        P.append('<div class=kv style="color:var(--mut)">as measured by the '
+                 'verifier: every check drawn over the submitted coordinates; '
+                 'the interaction radius is the longest dashed pair</div>')
+        P.append(fig)
+        P.append('</section>')
 
     # construction / provenance
     pr = doc["provenance"]
