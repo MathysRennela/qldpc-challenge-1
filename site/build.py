@@ -680,12 +680,13 @@ border:1px solid var(--ln);border-radius:12px}}
 @media(max-width:680px){{.board .date{{display:none}}}}
 /* phones: the board was cut off in a horizontal scroll with the scored columns
    (kd2/n, w) off-screen. n, k and d are already printed inside the [[n,k,d]]
-   code name, and type/authors live on each row's detail page, so drop those
-   columns here and let the four that matter (code, kd2/n, w, plus the record
-   star) fit the viewport with no sideways scroll. */
+   code name, type/authors live on each row's detail page, and g is undefined
+   (a dot) for most unrestricted codes, so drop those columns here and let the
+   four that matter (code, kd2/n, w, plus the record star) fit the viewport
+   with no sideways scroll. */
 @media(max-width:620px){{
 .board .col-type,.board .col-n,.board .col-k,.board .col-d,
-.board .col-auth{{display:none}}
+.board .col-auth,.board .col-geo{{display:none}}
 table.board{{min-width:0;font-size:13px}}
 .board th,.board td{{padding:.5rem .45rem;white-space:normal}}
 .board td.auth{{max-width:none}}}}
@@ -2796,7 +2797,7 @@ def board_table(entries, records):
             '<th data-c=d class="num col-d" title="distance">d</th>'
             '<th data-c=eff class=num title="operational efficiency '
             'k&middot;d&sup2;/n, higher is better">kd&sup2;/n</th>'
-            '<th data-c=geo class=num title="geometric efficiency '
+            '<th data-c=geo class="num col-geo" title="geometric efficiency '
             'g = 4kd&sup2;/(n&rho;&sup2;r&#8308;), priced by the verified '
             'layout&rsquo;s interaction radius r and layers &rho;; surface '
             'code = 1; &middot; = no verified layout">g</th>'
@@ -2861,13 +2862,13 @@ def board_table(entries, records):
             f'<td class="num col-k">{e["k"]}</td>'
             f'<td class="num col-d">{badge(e["tier"])} {e["d"]}</td>'
             f'<td class=num>{e["eff"]}</td>'
-            + (f'<td class=num title="r = {e["geo_r"]}, {e["geo_rho"]} '
+            + (f'<td class="num col-geo" title="r = {e["geo_r"]}, {e["geo_rho"]} '
                f'layer{"s" if e["geo_rho"] != 1 else ""}'
                f'{"; inherits the upper-bound distance tier" if e["tier"] != "exact" else ""}">'
                f'{e["geo"]:.3g}</td>'
                if e["geo"] is not None else
-               '<td class=num title="no verified layout; geometric efficiency '
-               'undefined (not necessarily an expander code)">&middot;</td>')
+               '<td class="num col-geo" title="no verified layout; geometric '
+               'efficiency undefined (not necessarily an expander code)">&middot;</td>')
             + f'<td class=num>{e["w"]}</td>'
             f'<td class="auth col-auth" title="{html.escape(e["authors"])}">'
             f'{authors_compact(e["authors_list"])}</td>'
