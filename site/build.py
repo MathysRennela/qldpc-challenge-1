@@ -805,6 +805,23 @@ border-radius:5px;padding:1px 6px;white-space:nowrap;text-decoration:none}}
 @media(max-width:680px){{.ref{{flex-direction:column;gap:4px}}
 .refkey{{width:auto}}}}
 @media(max-width:880px){{.how{{grid-template-columns:1fr}}}}
+.latest{{margin:40px 0 0}}
+.latestlist{{list-style:none;margin:10px 0 0;padding:0;
+border:1px solid var(--ln);border-radius:12px;overflow:hidden}}
+.latestlist li{{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+padding:9px 14px;border-top:1px solid var(--ln);font-size:13.5px}}
+.latestlist li:first-child{{border-top:0}}
+.latestlist .lnkd{{font-size:13.5px;white-space:nowrap}}
+.latestlist .lstar{{color:var(--ac);margin-left:-6px}}
+.latestlist .lfam{{color:var(--mut)}}
+.latestlist .lwho{{color:var(--fg);font-variant-numeric:tabular-nums}}
+.latestlist .lorig{{font-size:11px;padding:2px 7px;border-radius:999px;
+border:1px solid var(--ln);color:var(--mut)}}
+.latestlist .lorig.literature{{background:#eef2ff;color:#3730a3;
+border-color:#c7d2fe}}
+.latestlist .ldate{{margin-left:auto;color:var(--mut);
+font-variant-numeric:tabular-nums;white-space:nowrap}}
+@media(max-width:560px){{.latestlist .ldate{{margin-left:0}}}}
 """
 
 JS = """
@@ -2613,6 +2630,34 @@ def primary_tracks_grid(entries, records):
             f'{"".join(body)}</table></div></section>')
 
 
+def latest_codes_panel(entries, records, limit=10):
+    """A 'recently added' strip (issue #308): the newest codes by submission
+    date, newest first, so a visitor can see the board is live. Each row links
+    to the code page and is starred if it currently holds a cell record."""
+    rec_slugs = {entries[i]["slug"] for i in records}
+    dated = [e for e in entries if e.get("date")]
+    dated.sort(key=lambda e: (e["date"], e["slug"]), reverse=True)
+    rows = []
+    for e in dated[:limit]:
+        star = ('<span class=lstar title="holds a cell record">&#9733;</span>'
+                if e["slug"] in rec_slugs else '')
+        who = html.escape(e["authors"])
+        origin = ('literature' if e["origin"] == "literature" else 'submission')
+        rows.append(
+            f'<li><a class="mono lnkd" href="codes/{e["slug"]}.html">'
+            f'[[{e["n"]},{e["k"]},{e["d"]}]]</a>{star}'
+            f'<span class=lfam>{html.escape(family_label(e["family"]))}</span>'
+            f'<span class=lwho>{who}</span>'
+            f'<span class="lorig {origin}">{origin}</span>'
+            f'<span class=ldate>{html.escape(e["date"])}</span></li>')
+    if not rows:
+        return ""
+    return ('<section class=latest><h2 class=track>Recently added '
+            f'<span class=tcount>&middot; last {min(limit, len(dated))} by '
+            'submission date</span></h2>'
+            f'<ol class=latestlist>{"".join(rows)}</ol></section>')
+
+
 def board_controls(entries, records):
     """The board heading plus the search box, filter pills, and filter help. Lives
     above the charts so filtering and the landscape view stay together; the JS
@@ -2961,6 +3006,7 @@ def build():
              'Click any row for the witness, certificate, and checks. '
              '<span class=arrow>&rarr;</span></p>'
              '</a></div>')
+    P.append(latest_codes_panel(entries, records))
     P.append(board_controls(entries, records))
     P.append('<div class=explorer>')
     P.append(charts_block(entries, records))
