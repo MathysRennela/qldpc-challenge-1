@@ -675,21 +675,33 @@ vertical-align:middle}}
    narrow screens (where the table sets its own min-width). */
 .boardscroll{{max-height:64vh;overflow:auto;-webkit-overflow-scrolling:touch;
 border:1px solid var(--ln);border-radius:12px}}
-@media(max-width:880px){{table.board{{table-layout:auto;min-width:600px}}
-.board .model{{display:none}}}}
-@media(max-width:680px){{.board .date{{display:none}}}}
-/* phones: the board was cut off in a horizontal scroll with the scored columns
-   (kd2/n, w) off-screen. n, k and d are already printed inside the [[n,k,d]]
-   code name, type/authors live on each row's detail page, and g is undefined
-   (a dot) for most unrestricted codes, so drop those columns here and let the
-   four that matter (code, kd2/n, w, plus the record star) fit the viewport
-   with no sideways scroll. */
-@media(max-width:620px){{
-.board .col-type,.board .col-n,.board .col-k,.board .col-d,
-.board .col-auth,.board .col-geo{{display:none}}
-table.board{{min-width:0;font-size:13px}}
-.board th,.board td{{padding:.5rem .45rem;white-space:normal}}
-.board td.auth{{max-width:none}}}}
+@media(max-width:1000px){{table.board{{table-layout:auto;min-width:820px}}}}
+/* Narrow screens: rather than drop columns (and hide g, a headline metric)
+   into a horizontal scroll, each row becomes a card so every field stays
+   visible (issue #305, PR #312 review). The header is dropped; each cell
+   carries its own label via data-label. */
+@media(max-width:820px){{
+.boardscroll{{max-height:none;overflow:visible;border:0;border-radius:0}}
+table.board,.board tbody,.board tr,.board td{{display:block;width:auto}}
+table.board{{min-width:0;font-size:13px;margin:12px 0}}
+.board thead{{display:none}}
+.board tr{{border:1px solid var(--ln);border-radius:12px;margin:0 0 10px;
+padding:12px 14px 10px;background:var(--soft)}}
+.board tr.fr{{border-color:var(--ac)}}
+.board td{{display:flex;justify-content:space-between;align-items:baseline;
+gap:16px;padding:3px 0;border:0;white-space:normal;text-align:right}}
+.board td::before{{content:attr(data-label);color:var(--mut);flex:0 0 auto;
+font-family:'Space Mono',ui-monospace,monospace;font-size:11px;
+text-transform:uppercase;letter-spacing:.04em;text-align:left}}
+.board td.num{{text-align:right}}
+.board td.codecell{{justify-content:flex-start;padding:0 0 8px;margin:0 0 6px;
+border-bottom:1px solid var(--ln);font-size:15px}}
+.board td.codecell::before{{content:none}}
+.board tr.fr td.codecell::after{{content:"\\2605";color:var(--ac);
+margin-left:8px}}
+.board td.star{{display:none}}
+.board td.auth{{max-width:none}}
+.board td.typecell{{flex-wrap:wrap}}}}
 /* phones: reclaim horizontal space and shrink oversized headers */
 @media(max-width:560px){{.wrap{{padding:0 14px}}
 header.hero{{padding:34px 0 30px}}
@@ -2797,7 +2809,7 @@ def board_table(entries, records):
             '<th data-c=d class="num col-d" title="distance">d</th>'
             '<th data-c=eff class=num title="operational efficiency '
             'k&middot;d&sup2;/n, higher is better">kd&sup2;/n</th>'
-            '<th data-c=geo class="num col-geo" title="geometric efficiency '
+            '<th data-c=geo class=num title="geometric efficiency '
             'g = 4kd&sup2;/(n&rho;&sup2;r&#8308;), priced by the verified '
             'layout&rsquo;s interaction radius r and layers &rho;; surface '
             'code = 1; &middot; = no verified layout">g</th>'
@@ -2857,22 +2869,23 @@ def board_table(entries, records):
                f'not a novelty claim">{HEX_MARK}</span>'
                if e["origin"] != "baseline" else "")
             + novelty
-            + f'</td><td class="typecell col-type">{chips(e)}</td>'
-            f'<td class="num col-n">{e["n"]}</td>'
-            f'<td class="num col-k">{e["k"]}</td>'
-            f'<td class="num col-d">{badge(e["tier"])} {e["d"]}</td>'
-            f'<td class=num>{e["eff"]}</td>'
-            + (f'<td class="num col-geo" title="r = {e["geo_r"]}, {e["geo_rho"]} '
+            + f'</td><td class="typecell col-type" data-label="type">{chips(e)}</td>'
+            f'<td class="num col-n" data-label="n">{e["n"]}</td>'
+            f'<td class="num col-k" data-label="k">{e["k"]}</td>'
+            f'<td class="num col-d" data-label="d">{badge(e["tier"])} {e["d"]}</td>'
+            f'<td class=num data-label="kd&sup2;/n">{e["eff"]}</td>'
+            + (f'<td class=num data-label="g" title="r = {e["geo_r"]}, {e["geo_rho"]} '
                f'layer{"s" if e["geo_rho"] != 1 else ""}'
                f'{"; inherits the upper-bound distance tier" if e["tier"] != "exact" else ""}">'
                f'{e["geo"]:.3g}</td>'
                if e["geo"] is not None else
-               '<td class="num col-geo" title="no verified layout; geometric '
+               '<td class=num data-label="g" title="no verified layout; geometric '
                'efficiency undefined (not necessarily an expander code)">&middot;</td>')
-            + f'<td class=num>{e["w"]}</td>'
-            f'<td class="auth col-auth" title="{html.escape(e["authors"])}">'
+            + f'<td class=num data-label="w">{e["w"]}</td>'
+            f'<td class="auth col-auth" data-label="authors" '
+            f'title="{html.escape(e["authors"])}">'
             f'{authors_compact(e["authors_list"])}</td>'
-            '<td class=model>'
+            '<td class=model data-label="model">'
             + (f'<span class=modelmark title="{html.escape(e["model"])}">'
                f'{CLAUDE_MARK if e["model"].startswith("Claude") else ""}'
                f'<span class=modelname>{html.escape(e["model"])}</span></span>'
@@ -2880,7 +2893,7 @@ def board_table(entries, records):
                else f'<span class=nomodel title="classical construction, no AI '
                     f'model">{HUMAN_MARK}</span>')
             + '</td>'
-            f'<td class=date>{html.escape(e["date"]) if e["date"] else "&middot;"}</td></tr>')
+            f'<td class=date data-label="date">{html.escape(e["date"]) if e["date"] else "&middot;"}</td></tr>')
 
     return (f'<div class=boardscroll><table class=board id=mainboard>{cols}{head}'
             f'<tbody>{"".join(rows)}</tbody></table></div>')
