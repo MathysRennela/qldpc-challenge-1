@@ -502,7 +502,7 @@
   "construction": "Hypergraph product of two simplex [7,3,4] codes.",
   "origin": "submission",
   "date": "2026-07-18",
-  "model": "Tencent: Hy3"
+  "model": "Tencent Hy3"
  },
  "family": "hypergraph-product"
 }

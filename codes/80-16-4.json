@@ -651,7 +651,7 @@
   "references": [
    "arXiv:0903.0566"
   ],
-  "model": "hy3"
+  "model": "Tencent Hy3"
  },
  "family": "hypergraph-product"
 }
