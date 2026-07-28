@@ -184,7 +184,10 @@ font-size:13.5px}
 .lbname{min-width:96px}}
 .how{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:40px 0}
 .how .card{border:1px solid var(--ln);border-radius:12px;padding:20px;
-background:var(--soft)}
+background:var(--soft);display:block;color:inherit;text-decoration:none}
+a.card{transition:border-color .12s,transform .12s}
+a.card:hover{border-color:var(--ac);transform:translateY(-2px)}
+a.card .arrow{color:var(--ac);font-weight:700}
 .how .n{display:inline-flex;width:26px;height:26px;border-radius:50%;
 background:var(--ac);color:#fff;align-items:center;justify-content:center;
 font-size:14px;font-weight:700;margin-bottom:10px;
@@ -460,6 +463,14 @@ background:var(--soft);border:1px solid var(--ln);border-radius:10px}
 .lo-q{fill:var(--ink);stroke:#fff;stroke-width:1}
 .lo-q2{fill:none;stroke:var(--ink);stroke-width:1.4}
 .lo-dense .lo-chk{fill-opacity:.05;stroke-opacity:.35}
+.lofig .lo-chk{cursor:pointer}
+.lofig .lo-q,.lofig .lo-q2,.lofig .lo-r,.lofig .lo-rt{pointer-events:none}
+.lofig.lo-hover .lo-chk:not(.lo-cur){fill-opacity:.04;stroke-opacity:.12}
+.lofig.lo-hover .lo-r,.lofig.lo-hover .lo-rt{opacity:.15}
+.lofig .lo-chk.lo-cur{fill-opacity:.3;stroke-opacity:1;stroke-width:2.2}
+.lofig.lo-hover .lo-q:not(.lo-mem),
+.lofig.lo-hover .lo-q2:not(.lo-mem){opacity:.18}
+.lofig .lo-q.lo-mem{stroke:#36006c;stroke-width:2}
 .lo-r{stroke:var(--ink);stroke-width:1.6;stroke-dasharray:6 4;fill:none}
 .lo-rt{fill:var(--ink);font-size:13px;font-family:'Space Mono',monospace;
 paint-order:stroke;stroke:var(--soft);stroke-width:3.5px}
