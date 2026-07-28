@@ -716,7 +716,16 @@ font-size:11.5px;color:var(--mut)}}
 align-items:center;justify-content:flex-start;gap:3px;width:32.8%;
 padding:9px 0 5px;font-size:19px;font-weight:700;
 font-variant-numeric:tabular-nums;text-align:center}}
-.board td.m3::before{{font-size:10.5px}}}}
+.board td.m3::before{{font-size:10.5px}}
+/* unlabeled rows: chips and byline speak for themselves */
+.board td.typecell::before,.board td.auth::before,
+.board td.model::before{{content:none}}
+.board td.typecell{{justify-content:flex-start}}
+/* bottom line: authors on the left, model on the right, one row */
+.board td.auth{{display:inline-flex;width:57%;justify-content:flex-start;
+text-align:left}}
+.board td.model{{display:inline-flex;width:42%;justify-content:flex-end;
+text-align:right}}}}
 /* phones: reclaim horizontal space and shrink oversized headers */
 @media(max-width:560px){{.wrap{{padding:0 14px}}
 header.hero{{padding:34px 0 30px}}
