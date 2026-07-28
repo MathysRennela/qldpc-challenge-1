@@ -73,7 +73,7 @@ def screen(candidates, *, min_k=1, min_d=1, trials=400, seed=0,
         if fp in seen:
             continue
         n = int(HX.shape[1])
-        d = distance_rand(HX, HZ, trials=trials, seed=seed)
+        d = distance_rand(HX, HZ, trials=trials, seed=seed + int(fp, 16))
         if d == float("inf") or d < min_d:
             continue
         w = int(max((HX.shape[0] and max((int(r.sum()) for r in HX), default=0)),
