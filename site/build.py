@@ -1560,7 +1560,9 @@ def layout_svg(doc):
         legend.append('<span><span class=rg></span>2 qubits stacked '
                       f'({loc.get("layers", 2)} layers)</span>')
     legend.append('<span>dashed: the pair setting the interaction radius</span>')
-    legend.append('<span>hover a check to isolate its qubits; click to pin</span>')
+    legend.append('<span>hover a check to isolate its qubits; click to pin '
+                  '&mdash; repeated clicks cycle through overlapping checks; '
+                  'click empty space to release</span>')
     legend.append('</div>')
     return '<div class=layoutfig>' + "".join(parts) + "".join(legend) + '</div>'
 
@@ -1754,8 +1756,16 @@ def detail_page(e):
              "svg.querySelectorAll('.lo-chk').forEach(el=>{"
              "el.addEventListener('mouseenter',()=>{if(!pin)show(el);});"
              "el.addEventListener('mouseleave',()=>{if(!pin)clear();});"
+             # click cycles through ALL checks under the cursor (topmost
+             # first), so a polygon buried under later-drawn ones is still
+             # reachable; click empty space to release
              "el.addEventListener('click',e=>{e.stopPropagation();"
-             "if(pin===el){pin=null;clear();}else{pin=el;show(el);}});});"
+             "const stack=document.elementsFromPoint(e.clientX,e.clientY)"
+             ".filter(x=>x.classList&&x.classList.contains('lo-chk')"
+             "&&svg.contains(x));"
+             "if(!stack.length)return;"
+             "const i=pin?stack.indexOf(pin):-1;"
+             "pin=stack[(i+1)%stack.length];show(pin);});});"
              "svg.addEventListener('click',()=>{if(pin){pin=null;clear();}});"
              "});"
              "</script>")
