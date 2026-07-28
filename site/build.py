@@ -701,7 +701,22 @@ border-bottom:1px solid var(--ln);font-size:15px}}
 margin-left:8px}}
 .board td.star{{display:none}}
 .board td.auth{{max-width:none}}
-.board td.typecell{{flex-wrap:wrap}}}}
+.board td.typecell{{flex-wrap:wrap}}
+/* n, k, d are already printed inside the [[n,k,d]] name: drop their rows */
+.board td.col-n,.board td.col-k,.board td.col-d{{display:none}}
+/* date: small, in the card's top-right corner */
+.board tr{{position:relative}}
+.board td.date{{position:absolute;top:12px;right:14px;width:auto;padding:0;
+font-size:11.5px;color:var(--mut)}}
+.board td.date::before{{content:none}}
+.board td.codecell{{padding-right:92px}}
+/* kd2/n, g, w: a horizontal stat trio — big value, small label beneath
+   (column-reverse puts the ::before label under the number) */
+.board td.m3{{display:inline-flex;flex-direction:column-reverse;
+align-items:center;justify-content:flex-start;gap:3px;width:32.8%;
+padding:9px 0 5px;font-size:19px;font-weight:700;
+font-variant-numeric:tabular-nums;text-align:center}}
+.board td.m3::before{{font-size:10.5px}}}}
 /* phones: reclaim horizontal space and shrink oversized headers */
 @media(max-width:560px){{.wrap{{padding:0 14px}}
 header.hero{{padding:34px 0 30px}}
@@ -2873,15 +2888,15 @@ def board_table(entries, records):
             f'<td class="num col-n" data-label="n">{e["n"]}</td>'
             f'<td class="num col-k" data-label="k">{e["k"]}</td>'
             f'<td class="num col-d" data-label="d">{badge(e["tier"])} {e["d"]}</td>'
-            f'<td class=num data-label="kd&sup2;/n">{e["eff"]}</td>'
-            + (f'<td class=num data-label="g" title="r = {e["geo_r"]}, {e["geo_rho"]} '
+            f'<td class="num m3" data-label="kd&sup2;/n">{e["eff"]}</td>'
+            + (f'<td class="num m3" data-label="g" title="r = {e["geo_r"]}, {e["geo_rho"]} '
                f'layer{"s" if e["geo_rho"] != 1 else ""}'
                f'{"; inherits the upper-bound distance tier" if e["tier"] != "exact" else ""}">'
                f'{e["geo"]:.3g}</td>'
                if e["geo"] is not None else
-               '<td class=num data-label="g" title="no verified layout; geometric '
+               '<td class="num m3" data-label="g" title="no verified layout; geometric '
                'efficiency undefined (not necessarily an expander code)">&middot;</td>')
-            + f'<td class=num data-label="w">{e["w"]}</td>'
+            + f'<td class="num m3" data-label="w">{e["w"]}</td>'
             f'<td class="auth col-auth" data-label="authors" '
             f'title="{html.escape(e["authors"])}">'
             f'{authors_compact(e["authors_list"])}</td>'
