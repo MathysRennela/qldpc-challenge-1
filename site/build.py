@@ -763,6 +763,14 @@ background:var(--soft);border:1px solid var(--ln);border-radius:10px}}
 .lo-q{{fill:var(--ink);stroke:#fff;stroke-width:1}}
 .lo-q2{{fill:none;stroke:var(--ink);stroke-width:1.4}}
 .lo-dense .lo-chk{{fill-opacity:.05;stroke-opacity:.35}}
+.lofig .lo-chk{{cursor:pointer}}
+.lofig .lo-q,.lofig .lo-q2,.lofig .lo-r,.lofig .lo-rt{{pointer-events:none}}
+.lofig.lo-hover .lo-chk:not(.lo-cur){{fill-opacity:.04;stroke-opacity:.12}}
+.lofig.lo-hover .lo-r,.lofig.lo-hover .lo-rt{{opacity:.15}}
+.lofig .lo-chk.lo-cur{{fill-opacity:.3;stroke-opacity:1;stroke-width:2.2}}
+.lofig.lo-hover .lo-q:not(.lo-mem),
+.lofig.lo-hover .lo-q2:not(.lo-mem){{opacity:.18}}
+.lofig .lo-q.lo-mem{{stroke:{ACCENT};stroke-width:2}}
 .lo-r{{stroke:var(--ink);stroke-width:1.6;stroke-dasharray:6 4;fill:none}}
 .lo-rt{{fill:var(--ink);font-size:13px;font-family:'Space Mono',monospace;
 paint-order:stroke;stroke:var(--soft);stroke-width:3.5px}}
@@ -1481,31 +1489,44 @@ def layout_svg(doc):
              f'class="lofig{dense}" '
              f'aria-label="verified 2D layout: {doc["n"]} qubit sites and '
              f'{len(X) + len(Z)} checks">']
+    # site index for the hover interaction: a check names the sites its qubits
+    # occupy (data-sites) and every dot names its own site (data-s), so a
+    # click/hover can isolate one check's qubits without any geometry at
+    # runtime
+    site_ids = {}
+    for p in coords:
+        site_ids.setdefault(p, len(site_ids))
     for cls, checks in groups:
         for sup in checks:
             pts = [coords[q] for q in sup]
+            sids = " ".join(str(s) for s in
+                            sorted({site_ids[coords[q]] for q in sup}))
             if len(pts) < 2:
                 continue
             if len(pts) == 2:
                 (x1, y1), (x2, y2) = map(T, pts)
-                parts.append(f'<line class="lo-chk {cls}" x1="{x1}" y1="{y1}" '
-                             f'x2="{x2}" y2="{y2}"/>')
+                parts.append(f'<line class="lo-chk {cls}" data-sites="{sids}" '
+                             f'x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}"/>')
                 continue
             cx = sum(p[0] for p in pts) / len(pts)
             cy = sum(p[1] for p in pts) / len(pts)
             ordered = sorted(pts, key=lambda p: math.atan2(p[1] - cy, p[0] - cx))
             body = " ".join(f"{x},{y}" for x, y in map(T, ordered))
-            parts.append(f'<polygon class="lo-chk {cls}" points="{body}"/>')
+            parts.append(f'<polygon class="lo-chk {cls}" data-sites="{sids}" '
+                         f'points="{body}"/>')
     # sites: a dot per site, a ring where layers stack more than one qubit
     mult = collections.Counter(coords)
     rq = round(min(6.0, max(2.6, S * 0.11)), 1)
     stacked = False
     for site, m in mult.items():
         x, y = T(site)
+        sid = site_ids[site]
         if m > 1:
             stacked = True
-            parts.append(f'<circle class=lo-q2 cx="{x}" cy="{y}" r="{rq + 3.2}"/>')
-        parts.append(f'<circle class=lo-q cx="{x}" cy="{y}" r="{rq}"/>')
+            parts.append(f'<circle class=lo-q2 data-s="{sid}" '
+                         f'cx="{x}" cy="{y}" r="{rq + 3.2}"/>')
+        parts.append(f'<circle class=lo-q data-s="{sid}" '
+                     f'cx="{x}" cy="{y}" r="{rq}"/>')
     # the radius pair goes on top: on dense boards it is the one thing the
     # reader must still be able to find
     if r_pair:
@@ -1533,6 +1554,7 @@ def layout_svg(doc):
         legend.append('<span><span class=rg></span>2 qubits stacked '
                       f'({loc.get("layers", 2)} layers)</span>')
     legend.append('<span>dashed: the pair setting the interaction radius</span>')
+    legend.append('<span>hover a check to isolate its qubits; click to pin</span>')
     legend.append('</div>')
     return '<div class=layoutfig>' + "".join(parts) + "".join(legend) + '</div>'
 
@@ -1708,6 +1730,28 @@ def detail_page(e):
              ".writeText(b.dataset.copy);const o=b.innerHTML;"
              "b.innerHTML='\\u2713';b.title='link copied';"
              "setTimeout(()=>{b.innerHTML=o;b.title='Copy link';},1400);}));"
+             # layout figure: hover a check to isolate its member qubits
+             # (membership is corner-hood, which overlapping polygons obscure);
+             # click pins the selection for touch devices
+             "document.querySelectorAll('.lofig').forEach(svg=>{"
+             "const dots={};"
+             "svg.querySelectorAll('[data-s]').forEach(d=>{"
+             "(dots[d.dataset.s]=dots[d.dataset.s]||[]).push(d);});"
+             "let pin=null;"
+             "const clear=()=>{svg.classList.remove('lo-hover');"
+             "svg.querySelectorAll('.lo-cur,.lo-mem').forEach("
+             "e=>e.classList.remove('lo-cur','lo-mem'));};"
+             "const show=el=>{clear();svg.classList.add('lo-hover');"
+             "el.classList.add('lo-cur');"
+             "el.dataset.sites.split(' ').forEach(s=>"
+             "(dots[s]||[]).forEach(d=>d.classList.add('lo-mem')));};"
+             "svg.querySelectorAll('.lo-chk').forEach(el=>{"
+             "el.addEventListener('mouseenter',()=>{if(!pin)show(el);});"
+             "el.addEventListener('mouseleave',()=>{if(!pin)clear();});"
+             "el.addEventListener('click',e=>{e.stopPropagation();"
+             "if(pin===el){pin=null;clear();}else{pin=el;show(el);}});});"
+             "svg.addEventListener('click',()=>{if(pin){pin=null;clear();}});"
+             "});"
              "</script>")
     P.append('</div></body></html>')
     return "\n".join(P)
