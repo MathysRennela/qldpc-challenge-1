@@ -396,7 +396,7 @@ text-decoration:none;cursor:pointer;transition:background .15s}}
 .herocta{{padding:9px 16px;font-size:14px;
 box-shadow:0 4px 14px rgba(0,0,0,.35)}}
 .modal{{position:relative;border:none;border-radius:14px;padding:22px 24px;
-max-width:520px;width:92%;box-shadow:0 20px 60px rgba(17,17,17,.25)}}
+max-width:580px;width:92%;box-shadow:0 20px 60px rgba(17,17,17,.25)}}
 .modal::backdrop{{background:rgba(17,17,17,.45)}}
 .modalx{{position:absolute;top:10px;right:12px;border:none;background:none;
 font-size:24px;line-height:1;color:var(--mut);cursor:pointer}}
@@ -407,10 +407,9 @@ font-size:24px;line-height:1;color:var(--mut);cursor:pointer}}
 .cbbar{{display:flex;justify-content:flex-end;margin-bottom:6px}}
 /* the pre is the horizontal scroller; each command stays on its own line
    (no wrap) so a long clone URL can't bleed into the next command */
-.codeblock pre{{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}}
+.codeblock pre{{margin:0;white-space:pre;overflow-x:auto}}
 .codeblock code{{display:block;color:#e4e4e7;font-size:13px;line-height:1.7;
-white-space:pre-wrap;overflow-wrap:anywhere;background:none;padding:0;
-border:none}}
+white-space:pre;background:none;padding:0;border:none}}
 .codeblock ::selection{{background:#4f46e5;color:#fff}}
 .codeblock .cmt{{color:#8a8f98;background:none}}
 .copybtn{{border:1px solid #3a3f4a;
@@ -1946,23 +1945,10 @@ def progress_panel(entries, best_eff_e, best_geo_e):
         (str(n_base), "literature baselines",
          "published codes seeded as the bar to beat"),
         (f"{best_eff:g}" + by_line(best_eff_e), "best operational efficiency",
-         "Operational efficiency kd^2/n, the Bravyi-Poulin-Terhal saturation "
-         "ratio against the surface code baseline (surface = 1). It is bounded "
-         "and meaningful for 2D-local / bounded-weight codes at comparable n, "
-         "but grows with n for high-rate codes, so it is compared within "
-         "tracks, not as a global record. This is the best among the codes on "
-         "this board."),
+         "Best kd^2/n on the board (surface code = 1). Full definition below."),
         (geo_v + by_line(best_geo_e, geo=True), "best geometric efficiency",
-         "Geometric efficiency g = 4kd^2/(n rho^2 r^4): the kd^2/n ratio priced "
-         "by the layout the code ships with -- r is the measured interaction "
-         "radius (max check diameter, in units of the unit qubit spacing) and "
-         "rho the number of layers (the capacity charge). Normalized so the "
-         "planar surface code scores exactly 1; beating 1 at growing distance "
-         "would beat the surface code. Computed only for codes with a "
-         f"verifier-accepted 2D layout and shown here for distance d >= {GEO_MIN_D} "
-         "(constant-distance tilings exceed 1 trivially). A <= marks a value "
-         "inherited from an upper-bound distance. Codes without a layout have "
-         "no f; that is a certification status, not proof they are expanders."),
+         "Best geometric efficiency g among codes with a verified layout "
+         "(surface code = 1). Full definition below."),
     ]
     cards = "".join(f'<div class="stat-card"'
                     f'{f" title=\"{t}\"" if t else ""}>'
@@ -2468,8 +2454,7 @@ function draw(){
  endlist.forEach(function(e){var lab=e.lab.length>18?e.lab.slice(0,17)+'…':e.lab;
   ends+='<text x="'+(W-pr+8)+'" y="'+e.y+'" dy="4" font-size="12" fill="#334155">'+lab+' &#183; <tspan font-weight="700">'+e.eff+'</tspan></text>';});
  plot.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto">'+g+body+ends+'</svg>';
- var mlab=st.y==='geo'?'best g, ':'best kd&#178;/n, ';
- leg.innerHTML=series.map(function(s){return '<span class=ci><span class=cdot style="background:'+s.col+'"></span>'+(s.step?mlab:'')+s.lab+'</span>';}).join('')
+ leg.innerHTML=series.map(function(s){return '<span class=ci><span class=cdot style="background:'+s.col+'"></span>'+s.lab+'</span>';}).join('')
   +(st.y==='geo'?'<span class=ci title="the surface/toric reference codes sit at the conjectured f ceiling and are drawn as the dashed line, not raced">&#8213; surface code = 1</span>':'');
 }
 document.querySelectorAll('.rcbtn').forEach(function(b){
@@ -2574,7 +2559,7 @@ def record_chart(entries):
                     f'<tspan font-weight="700">{last_eff:g}</tspan></text>')
     legend = "".join(
         f'<span class=ci><span class=cdot style="background:{col}"></span>'
-        f'best kd&sup2;/n, {html.escape(lab)}</span>'
+        f'{html.escape(lab)}</span>'
         for lab, col, evs in series if evs)
     # Data + client-side renderer for the alternate views (all submissions,
     # per-model) and the scale/window controls; the server-rendered SVG above
