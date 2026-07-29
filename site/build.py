@@ -604,6 +604,7 @@ padding:3px 0;color:var(--ink)}}
 color:var(--ac);font-weight:700;flex:1 1 auto}}
 .gitem .geff{{font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}}
 .gitem.ghide{{display:none}}
+.pt-geo .gitem[data-ref]{{opacity:.45}}
 .ptbar{{display:flex;justify-content:flex-end;margin:0 0 8px}}
 .gempty{{background:repeating-linear-gradient(45deg,#fafafa 0 6px,#fff 6px 12px)}}
 .searchbar{{display:flex;align-items:center;gap:12px;margin:14px 0 8px}}
@@ -2639,7 +2640,10 @@ def primary_tracks_grid(entries, records):
             # metric, so emit exactly the union of both metrics' top 3 (some
             # frontiers run to 100+ co-leaders; emitting them all bloats the
             # page by ~20% for items that can never become visible)
-            by_geo = sorted((i for i in ranked if entries[i]["geo"] is not None),
+            by_geo = sorted((i for i in ranked
+                             if entries[i]["geo"] is not None
+                             and not (entries[i]["family"] == "topological"
+                                      and entries[i]["origin"] == "baseline")),
                             key=lambda i: -entries[i]["geo"])
             keep = set(ranked[:topn]) | set(by_geo[:topn])
             ranked = [i for i in ranked if i in keep]
@@ -2649,13 +2653,19 @@ def primary_tracks_grid(entries, records):
                 geod = ("" if geo is None else
                         ("" if e["tier"] == "exact" else "&le;")
                         + f"{geo:.3g}")
+                # the seeded surface/toric/Steane tilings ARE the g = 1
+                # ceiling (same convention as the record chart); in g mode
+                # they rank below every submission, dimmed, as the reference
+                ref = (e["family"] == "topological"
+                       and e["origin"] == "baseline")
                 return (
                     f'<a class="gitem{" ghide" if pos >= topn else ""}" '
                     f'href="codes/{e["slug"]}.html" '
-                    f'title="{html.escape(e["name"])}" '
+                    f'title="{html.escape(e["name"])}'
+                    f'{" — reference tiling: the ceiling g is normalized to, not raced" if ref else ""}" '
                     f'data-eff="{e["eff"]}" data-effd="{e["eff"]:g}" '
                     f'data-geo="{"" if geo is None else geo}" '
-                    f'data-geod="{geod}">'
+                    f'data-geod="{geod}"{" data-ref=1" if ref else ""}>'
                     f'{badge(e["tier"])}'
                     f'<span class=gcode>[[{e["n"]},{e["k"]},{e["d"]}]]</span>'
                     f'<span class=geff>{e["eff"]:g}</span></a>')
@@ -2681,8 +2691,10 @@ def primary_tracks_grid(entries, records):
             'title="rank cells by operational efficiency kd&sup2;/n">'
             'kd&sup2;/n</button>'
             '<button type=button class=ptbtn data-pt=geo '
-            'title="rank cells by geometric efficiency g (codes without a '
-            'verified layout show &middot; and sort last)">g</button>'
+            'title="rank cells by geometric efficiency g. The seeded '
+            'surface/toric tilings are the ceiling g is normalized to and are '
+            'shown dimmed below the race; codes without a verified layout '
+            'show &middot; and sort last">g</button>'
             '</span></div>'
             f'<div class=ptscroll><table class=grid>{head}'
             f'{"".join(body)}</table></div>'
@@ -2691,11 +2703,14 @@ def primary_tracks_grid(entries, records):
             '<script>(function(){'
             'var grid=document.querySelector(".ptgrid");if(!grid)return;'
             'function apply(m){'
+            'grid.classList.toggle("pt-geo",m==="geo");'
             'grid.querySelectorAll("td.gcell").forEach(function(td){'
             'var items=[].slice.call(td.querySelectorAll(".gitem"));'
-            'items.sort(function(a,b){'
-            'var av=parseFloat(a.dataset[m]),bv=parseFloat(b.dataset[m]);'
-            'av=isNaN(av)?-1:av;bv=isNaN(bv)?-1:bv;return bv-av;});'
+            'function sv(el){var v=parseFloat(el.dataset[m]);'
+            'if(isNaN(v))return -2e9;'
+            'if(m==="geo"&&el.dataset.ref)return v-1e9;'
+            'return v;}'
+            'items.sort(function(a,b){return sv(b)-sv(a);});'
             'items.forEach(function(el,i){'
             'el.classList.toggle("ghide",i>=3);'
             'el.querySelector(".geff").innerHTML='
