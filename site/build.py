@@ -453,10 +453,10 @@ color:var(--mut)}}
 .rcbar{{display:flex;gap:14px;flex-wrap:wrap;margin:2px 0 10px}}
 .rcgroup{{display:inline-flex;gap:4px;border:1px solid var(--ln);
 border-radius:999px;padding:3px}}
-.rcbtn{{border:0;background:none;font:inherit;font-size:12.5px;
+.rcbtn,.ptbtn{{border:0;background:none;font:inherit;font-size:12.5px;
 color:var(--mut);padding:4px 11px;border-radius:999px;cursor:pointer}}
-.rcbtn.active{{background:var(--ac);color:#fff}}
-.rcbtn:hover:not(.active){{background:var(--soft)}}
+.rcbtn.active,.ptbtn.active{{background:var(--ac);color:#fff}}
+.rcbtn:hover:not(.active),.ptbtn:hover:not(.active){{background:var(--soft)}}
 .cmodal{{border:none;border-radius:14px;padding:0;max-width:520px;width:92vw;
 box-shadow:0 24px 70px rgba(20,24,60,.35)}}
 .cmodal::backdrop{{background:rgba(18,20,34,.45)}}
@@ -603,6 +603,8 @@ padding:3px 0;color:var(--ink)}}
 .gcode{{font-family:'Space Mono',ui-monospace,monospace;font-size:12px;
 color:var(--ac);font-weight:700;flex:1 1 auto}}
 .gitem .geff{{font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}}
+.gitem.ghide{{display:none}}
+.ptbar{{display:flex;justify-content:flex-end;margin:0 0 8px}}
 .gempty{{background:repeating-linear-gradient(45deg,#fafafa 0 6px,#fff 6px 12px)}}
 .searchbar{{display:flex;align-items:center;gap:12px;margin:14px 0 8px}}
 #boardsearch{{flex:1 1 0;min-width:0;font-size:14px;padding:10px 13px;
@@ -2633,14 +2635,31 @@ def primary_tracks_grid(entries, records):
                 continue
             key = f"{L}~{W}"
             ranked = cell_frontier_ranked(entries, idxs)
-            items = "".join(
-                f'<a class=gitem href="codes/{entries[i]["slug"]}.html" '
-                f'title="{html.escape(entries[i]["name"])}">'
-                f'{badge(entries[i]["tier"])}'
-                f'<span class=gcode>[[{entries[i]["n"]},{entries[i]["k"]},'
-                f'{entries[i]["d"]}]]</span>'
-                f'<span class=geff>{entries[i]["eff"]:g}</span></a>'
-                for i in ranked[:topn])
+            # the kd^2/n <-> g toggle shows each cell's top 3 by the active
+            # metric, so emit exactly the union of both metrics' top 3 (some
+            # frontiers run to 100+ co-leaders; emitting them all bloats the
+            # page by ~20% for items that can never become visible)
+            by_geo = sorted((i for i in ranked if entries[i]["geo"] is not None),
+                            key=lambda i: -entries[i]["geo"])
+            keep = set(ranked[:topn]) | set(by_geo[:topn])
+            ranked = [i for i in ranked if i in keep]
+            def gitem(i, pos):
+                e = entries[i]
+                geo = e["geo"]
+                geod = ("" if geo is None else
+                        ("" if e["tier"] == "exact" else "&le;")
+                        + f"{geo:.3g}")
+                return (
+                    f'<a class="gitem{" ghide" if pos >= topn else ""}" '
+                    f'href="codes/{e["slug"]}.html" '
+                    f'title="{html.escape(e["name"])}" '
+                    f'data-eff="{e["eff"]}" data-effd="{e["eff"]:g}" '
+                    f'data-geo="{"" if geo is None else geo}" '
+                    f'data-geod="{geod}">'
+                    f'{badge(e["tier"])}'
+                    f'<span class=gcode>[[{e["n"]},{e["k"]},{e["d"]}]]</span>'
+                    f'<span class=geff>{e["eff"]:g}</span></a>')
+            items = "".join(gitem(i, pos) for pos, i in enumerate(ranked))
             n = len(idxs)
             count = (f'<button type=button class=gcount data-cell="{key}" '
                      f'title="filter the table below to this cell">'
@@ -2651,13 +2670,43 @@ def primary_tracks_grid(entries, records):
     return ('<section class=ptgrid><h2 class=track>Primary tracks</h2>'
             '<p class=ptsub>Computed grid of locality &times; check weight, '
             'derived from <code>H</code> and the layout, not self-declared. '
-            'Each cell lists its Pareto frontier, best kd&sup2;/n first; the '
-            'code count filters the table below to that cell, so the runner-up '
-            'and the rest of the ranking are one click away. '
-            'Membership nests: a tighter cell&rsquo;s codes also compete in the '
-            'looser ones.</p>'
+            'Each cell lists its Pareto frontier ranked by the selected score '
+            '(kd&sup2;/n, or the geometric efficiency g for codes with a '
+            'verified layout); the code count filters the table below to that '
+            'exact cell, so the runner-up and the rest of the ranking are one '
+            'click away. Membership nests: a tighter cell&rsquo;s codes also '
+            'compete in the looser ones.</p>'
+            '<div class=ptbar><span class=rcgroup>'
+            '<button type=button class="ptbtn active" data-pt=eff '
+            'title="rank cells by operational efficiency kd&sup2;/n">'
+            'kd&sup2;/n</button>'
+            '<button type=button class=ptbtn data-pt=geo '
+            'title="rank cells by geometric efficiency g (codes without a '
+            'verified layout show &middot; and sort last)">g</button>'
+            '</span></div>'
             f'<div class=ptscroll><table class=grid>{head}'
-            f'{"".join(body)}</table></div></section>')
+            f'{"".join(body)}</table></div>'
+            # the toggle re-ranks every cell by the chosen metric and shows its
+            # top 3; members without a g sort last and display a dot
+            '<script>(function(){'
+            'var grid=document.querySelector(".ptgrid");if(!grid)return;'
+            'function apply(m){'
+            'grid.querySelectorAll("td.gcell").forEach(function(td){'
+            'var items=[].slice.call(td.querySelectorAll(".gitem"));'
+            'items.sort(function(a,b){'
+            'var av=parseFloat(a.dataset[m]),bv=parseFloat(b.dataset[m]);'
+            'av=isNaN(av)?-1:av;bv=isNaN(bv)?-1:bv;return bv-av;});'
+            'items.forEach(function(el,i){'
+            'el.classList.toggle("ghide",i>=3);'
+            'el.querySelector(".geff").innerHTML='
+            'el.dataset[m+"d"]||"&middot;";'
+            'td.appendChild(el);});});}'
+            'grid.querySelectorAll(".ptbtn").forEach(function(b){'
+            'b.addEventListener("click",function(){'
+            'grid.querySelectorAll(".ptbtn").forEach('
+            'function(x){x.classList.remove("active");});'
+            'b.classList.add("active");apply(b.dataset.pt);});});'
+            '})();</script></section>')
 
 
 def board_controls(entries, records):
