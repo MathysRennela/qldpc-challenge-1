@@ -93,7 +93,15 @@ def ris_min_logical(HX, HZ, trials, seed, pair_depth=8, max_seconds=None):
 
 
 def estimate(doc, trials=20000, seed=0, fast_trials=400000, max_seconds=None):
-    """Heuristic distance verdict for a submission `doc`."""
+    """Heuristic distance verdict for a submission `doc`.
+
+    ``trials`` is the pure-Python RIS budget per side; ``fast_trials`` is the
+    gf2_fast accelerator's overall budget, used only when it exceeds ``trials``
+    (the fast path reports weights, not witnesses, so it must out-search the
+    Python pass to add anything). Pass ``fast_trials=0`` to disable the
+    accelerator explicitly (refute_check does: the CI gate is pure Python with
+    a fixed seed, so it stays deterministic). Any other skipped-accelerator
+    combination warns on stderr -- see issue #290."""
     n = doc["n"]
     HX = _matrix(doc["checks"]["X"], n)
     HZ = _matrix(doc["checks"]["Z"], n)
@@ -114,6 +122,11 @@ def estimate(doc, trials=20000, seed=0, fast_trials=400000, max_seconds=None):
     d_heur = min([w for w in (wX, wZ) if w is not None], default=None)
 
     method = "ris"
+    if _fast is not None and 0 < fast_trials <= trials:
+        print(f"warning: gf2_fast is available but skipped "
+              f"(fast_trials={fast_trials} <= trials={trials}); raise "
+              f"--fast-trials or lower --trials to use the accelerator "
+              f"(fast_trials=0 disables it deliberately)", file=sys.stderr)
     # Optional C++ accelerator: a larger overall search (min over both sides).
     if _fast is not None and fast_trials > trials:
         d_fast = int(_fast.distance_rand_parallel(HX, HZ, fast_trials, seed, 8, 8))
@@ -167,9 +180,14 @@ def refute_check(doc, seed=0, max_seconds=10.0, trials=None):
     return refuted, dh, witness, res["trials"]
 
 
-def main(path, trials, seed):
+def main(path, trials, seed, fast_trials=None):
     doc = json.load(open(path))
-    res = estimate(doc, trials=trials, seed=seed)
+    # A bigger --trials budget must never silently turn the accelerator off
+    # (issue #290): unless --fast-trials is given explicitly, scale the fast
+    # budget with the requested depth. --fast-trials 0 forces pure Python.
+    if fast_trials is None:
+        fast_trials = max(400000, 4 * trials)
+    res = estimate(doc, trials=trials, seed=seed, fast_trials=fast_trials)
     print(json.dumps(res, indent=2))
     return 2 if res["verdict"] == "refuted" else 0
 
@@ -177,7 +195,11 @@ def main(path, trials, seed):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("path")
-    ap.add_argument("--trials", type=int, default=20000)
+    ap.add_argument("--trials", type=int, default=20000,
+                    help="pure-Python RIS trials per side (default 20000)")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--fast-trials", type=int, default=None,
+                    help="gf2_fast overall trial budget (default: "
+                         "max(400000, 4*trials)); 0 disables the accelerator")
     args = ap.parse_args()
-    sys.exit(main(args.path, args.trials, args.seed))
+    sys.exit(main(args.path, args.trials, args.seed, args.fast_trials))
