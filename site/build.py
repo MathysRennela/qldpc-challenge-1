@@ -1925,6 +1925,13 @@ def progress_panel(entries, best_eff_e, best_geo_e):
          "codes submitted through the challenge; not necessarily novel parameter sets"),
         (str(n_base), "literature baselines",
          "published codes seeded as the bar to beat"),
+        (f"{best_eff:g}" + by_line(best_eff_e), "best operational efficiency",
+         "Operational efficiency kd^2/n, the Bravyi-Poulin-Terhal saturation "
+         "ratio against the surface code baseline (surface = 1). It is bounded "
+         "and meaningful for 2D-local / bounded-weight codes at comparable n, "
+         "but grows with n for high-rate codes, so it is compared within "
+         "tracks, not as a global record. This is the best among the codes on "
+         "this board."),
         (geo_v + by_line(best_geo_e, geo=True), "best geometric efficiency",
          "Geometric efficiency g = 4kd^2/(n rho^2 r^4): the kd^2/n ratio priced "
          "by the layout the code ships with -- r is the measured interaction "
@@ -1936,13 +1943,6 @@ def progress_panel(entries, best_eff_e, best_geo_e):
          "(constant-distance tilings exceed 1 trivially). A <= marks a value "
          "inherited from an upper-bound distance. Codes without a layout have "
          "no f; that is a certification status, not proof they are expanders."),
-        (f"{best_eff:g}" + by_line(best_eff_e), "best operational efficiency",
-         "Operational efficiency kd^2/n, the Bravyi-Poulin-Terhal saturation "
-         "ratio against the surface code baseline (surface = 1). It is bounded "
-         "and meaningful for 2D-local / bounded-weight codes at comparable n, "
-         "but grows with n for high-rate codes, so it is compared within "
-         "tracks, not as a global record. This is the best among the codes on "
-         "this board."),
     ]
     cards = "".join(f'<div class="stat-card"'
                     f'{f" title=\"{t}\"" if t else ""}>'
