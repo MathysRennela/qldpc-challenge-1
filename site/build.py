@@ -364,7 +364,7 @@ background:rgba(255,255,255,.06)}}
 font-family:'Space Mono',ui-monospace,monospace}}
 .stat .l{{color:#c7d2fe;font-size:13px;
 text-transform:uppercase;letter-spacing:.05em}}
-.scoredefs{{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+.scoredefs{{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));
 gap:14px;margin:12px 0 18px}}
 .sdef{{border:1px solid var(--ln);border-radius:14px;background:#fff;
 padding:16px 18px}}
