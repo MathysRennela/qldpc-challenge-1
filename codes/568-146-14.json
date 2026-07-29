@@ -4318,7 +4318,7 @@
     "authors": [
       "@MathysRennela"
     ],
-    "model": "hy3",
+    "model": "Tencent Hy3",
     "construction": "Pair-partition CPM CSS (arXiv:2607.14091v1 family): J=3, L=8, prime lift P=71, girth 6. M reused from paper instance qc_472_122_14; exponents sampled from paired-difference nullspace over F_71. Distance witness from randomized logical search (upper bound).",
     "references": [
       "arXiv:2607.14091"

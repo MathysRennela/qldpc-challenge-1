@@ -7065,7 +7065,7 @@
     ],
     "origin": "submission",
     "date": "2026-07-18",
-    "model": "Hy3",
+    "model": "Tencent Hy3",
     "notes": "Distance is an UPPER BOUND from randomized lightest-logical witness searches. The original d=100 claim (PR #224) was REFUTED by CI: the syndrome-decoder pass found a weight-97 X-logical and the accelerated RIS-fast pass (8M trials) found a weight-85 X-logical, both lighter than 100. This submission corrects the claim to the honest minimum found: d_X <= 85 (RIS-fast witness), d_Z <= 104 (original witness). d = min = 85. Both witnesses are validated against the pinned python stack (gf2.logical_basis / commutes / in_rowspace)."
   }
 }

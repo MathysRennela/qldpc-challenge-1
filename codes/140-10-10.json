@@ -1449,7 +1449,7 @@
     "authors": [
       "@mathysrennela"
     ],
-    "model": "hy3",
+    "model": "Tencent Hy3",
     "construction": "Two-block group-algebra code on metacyclic group Z_35 |x Z_2 (r=6), supports a=[7,33,54,66], b=[22,26,38,60].",
     "references": [
       "arXiv:2306.16400"

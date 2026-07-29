@@ -13370,7 +13370,7 @@
   "construction": "Generalized bicycle (2BGA on Z_195), circulant size 195, a(x) weight 16, b(x) weight 16, both multiples of degree-41 divisor g of x^195-1 (k=82). Symmetric high-distance variant of [[390,82,27]].",
   "origin": "submission",
   "date": "2026-07-19",
-  "model": "Tencent: Hy3 (free)",
+  "model": "Tencent Hy3",
   "notes": "Distance corrected 39 -> 38 (2026-07-20): an independent deep-refutation pass by @seunomonije's verification harness (Claude Fable 5) found a weight-38 Z logical (RIS, 24M trials, seed 31415, pair_depth 8; ~129M trials total across 7 fresh seeds and pair-depth 16/24 passes, readings 38-41). The original weight-39 X witness remains valid; the embedded Z witness is the new lightest known."
  },
  "family": "generalized-bicycle"

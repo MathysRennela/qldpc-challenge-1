@@ -2843,7 +2843,7 @@
     "authors": [
       "@mathysrennela"
     ],
-    "model": "Hy3",
+    "model": "Tencent Hy3",
     "construction": "Open-boundary planar bivariate-bicycle (Liang-Eberhardt-Chen / Liang-Yang-Iosue-Chen, arXiv:2504.08887) on a 14x14 grid; f = x + x^2 + y^2, g = 1 + x^2 y + x^2 y^2; built with the directional anyon-condensation truncation, corner-resolved, bilayer layout.",
     "references": [
       "arXiv:2504.08887",
