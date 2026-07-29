@@ -92,6 +92,42 @@ def main(argv):
     print("  refutation", "OK" if ok else "FAILED")
     failures += 0 if ok else 1
 
+    print("\n=== fast-path gating (issue #290) ===")
+    import contextlib
+    import io
+    doc = json.load(open(os.path.join(ROOT, "codes", "16-2-4.json")))
+    # explicit fast_trials=0 is the deterministic-gate opt-out: no accelerator,
+    # and no warning (refute_check relies on this staying silent in CI logs)
+    err = io.StringIO()
+    with contextlib.redirect_stderr(err):
+        res = H.estimate(doc, trials=200, seed=0, fast_trials=0)
+    ok = res["method"] == "ris" and err.getvalue() == ""
+    print(f"  fast_trials=0: method={res['method']} warned={bool(err.getvalue())}",
+          "OK" if ok else "  <<< explicit disable must stay silent")
+    failures += 0 if ok else 1
+    if H._fast is not None:
+        # accelerator importable but out-budgeted: must warn on stderr
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            res = H.estimate(doc, trials=200, seed=0, fast_trials=100)
+        ok = "gf2_fast is available but skipped" in err.getvalue()
+        print(f"  fast_trials<trials: warned={ok}",
+              "OK" if ok else "  <<< silent skip is issue #290")
+        failures += 0 if ok else 1
+        # CLI default must scale the fast budget with --trials instead of
+        # letting a deep --trials run silently drop to pure Python
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            H.main(os.path.join(ROOT, "codes", "16-2-4.json"),
+                   trials=200, seed=0)
+        method = json.loads(out.getvalue())["method"]
+        ok = method == "ris+gf2_fast"
+        print(f"  CLI default: method={method}",
+              "OK" if ok else "  <<< CLI no longer engages the accelerator")
+        failures += 0 if ok else 1
+    else:
+        print("  gf2_fast not importable here; accelerator cases skipped")
+
     print(f"\n{failures} failure(s)")
     sys.exit(1 if failures else 0)
 
