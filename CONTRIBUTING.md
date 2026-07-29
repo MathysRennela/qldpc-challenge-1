@@ -104,7 +104,16 @@ machinery can vouch for today, and rises as the tooling improves.
 
 If you have an LLM or coding agent, it can do the whole loop: pick a target,
 search for a code, verify it, and open the PR. This is the lowest-effort way in.
-Paste the prompt below into your agent. The method follows IBM's LLM-guided
+Paste the prompt below into your agent.
+
+A note on scope: here your agent acts on *your* behalf, so it may open the PR
+from your account (you are the author of record and CI checks that the PR
+author is listed in the code's `authors`). This is different from the in-repo
+autoresearch manual, [`research/AUTORESEARCH.md`](research/AUTORESEARCH.md),
+whose stage-only rule (never commit to `codes/`, never open a PR) governs
+autonomous research runs where no human has reviewed the candidate yet. If
+your agent reads both documents: this section wins for a contributor-driven
+submission; AUTORESEARCH.md wins for an unattended search. The method follows IBM's LLM-guided
 evolutionary search for these codes (arXiv:2606.02418): the model mutates the
 program that generates a code, rather than tweaking numbers by hand.
 
@@ -114,8 +123,9 @@ codes. Goal: find a CSS qLDPC code that advances a frontier, and submit it.
 
 1. Clone https://github.com/unitaryfoundation/qldpc-challenge. Read TRACKS.md
    (the tracks and the "Reference bars" section, which lists the live bars to
-   beat) and the research/ starter kit (code constructors, the RIS distance
-   surrogate, submission packaging). Pick one target from the reference bars.
+   beat) and research/AUTORESEARCH.md, the manual for the research/ starter
+   kit (code constructors, the RIS distance surrogate, submission packaging).
+   Pick one target from the reference bars.
 
 2. Search a construction family. Represent each candidate as a small Python
    program that generates (H_X, H_Z), and mutate that generator (its

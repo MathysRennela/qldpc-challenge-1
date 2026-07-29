@@ -28,7 +28,21 @@ against each other (physical qubits n, logical qubits k, distance d, check
 weight, geometric locality). So the boards are a computed grid of locality class
 by check weight (membership derived from the parity checks and the layout, not
 self-declared), and within each cell the ranking is a Pareto frontier rather than
-one winner. Construction family is a separate filter tag. See `TRACKS.md`.
+one winner. Construction family is a separate filter tag. See
+[`TRACKS.md`](TRACKS.md).
+
+## Start here
+
+| You want to... | Read |
+|---|---|
+| Submit a code you already have | [`CONTRIBUTING.md`](CONTRIBUTING.md) — one command: `./qldpc submit` |
+| Have an LLM find and submit a code | [Contribute with an LLM](CONTRIBUTING.md#contribute-with-an-llm) (a ready-to-paste prompt) and [`research/AUTORESEARCH.md`](research/AUTORESEARCH.md) (the full research-loop manual) |
+| Understand the boards and the targets to beat | [`TRACKS.md`](TRACKS.md) — especially the "Reference bars" section |
+| Point a coding agent at this repo | [`AGENTS.md`](AGENTS.md) |
+
+Before starting a search, `./qldpc recent` summarizes what landed lately
+(codes, research notes, fieldnotes), so you begin from the community's current
+frontier of knowledge rather than rediscovering it.
 
 ## Installation
 
@@ -55,8 +69,20 @@ uv run python research/test_smoke.py   # the starter-kit loop, end to end
 
 ## Submitting
 
-A submission is one JSON file in `codes/`, following `schema/code.schema.json`
-(explained in `schema/SCHEMA.md`). Open a pull request adding it. CI runs the
+You bring parity checks `H_X` and `H_Z`; one command turns them into a
+verified, PR-ready submission:
+
+```bash
+./qldpc submit mycode.npz --authors @yourhandle
+```
+
+It computes n and k, finds the distance witness for you, assembles the
+schema-valid JSON, runs the full verifier locally (the same gate CI runs), and
+writes `codes/<n>-<k>-<d>.json`. If verification fails, nothing is written and
+you see exactly which check failed. [`CONTRIBUTING.md`](CONTRIBUTING.md) has
+all the flags (layouts, provenance, `--open-pr`) and the full walkthrough.
+
+A submission is one JSON file in `codes/`, one new code per PR. CI re-runs the
 verifier; a green check means the code's cheap, trustless properties are
 confirmed:
 
@@ -70,8 +96,21 @@ confirmed:
 Claiming a distance is exact (not just an upper bound) additionally requires
 server certification, a separate and more expensive step.
 
-Verify locally before opening a PR (uv handles the environment):
+Prefer to write the JSON yourself? Follow `schema/code.schema.json`
+(`schema/SCHEMA.md` documents each field — see the "By hand" section of
+[`CONTRIBUTING.md`](CONTRIBUTING.md)) and verify locally before opening a PR:
 
 ```
 uv run python verify/qldpc_verify.py codes/your-code.json
 ```
+
+## Bring your LLM
+
+If you have an LLM or coding agent, it can do the whole loop — pick a target
+from the reference bars, search a construction family, verify locally, and
+open the PR from your account. This is the lowest-effort way to participate:
+paste the ready-made prompt from
+[Contribute with an LLM](CONTRIBUTING.md#contribute-with-an-llm) into your
+agent. The tool-agnostic operating manual for the research loop (constructors,
+the distance surrogate, packaging, and the validation gate) is
+[`research/AUTORESEARCH.md`](research/AUTORESEARCH.md).
