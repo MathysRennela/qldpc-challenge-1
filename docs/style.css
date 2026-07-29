@@ -372,20 +372,57 @@ vertical-align:middle}
    narrow screens (where the table sets its own min-width). */
 .boardscroll{max-height:64vh;overflow:auto;-webkit-overflow-scrolling:touch;
 border:1px solid var(--ln);border-radius:12px}
-@media(max-width:880px){table.board{table-layout:auto;min-width:600px}
-.board .model{display:none}}
-@media(max-width:680px){.board .date{display:none}}
-/* phones: the board was cut off in a horizontal scroll with the scored columns
-   (kd2/n, w) off-screen. n, k and d are already printed inside the [[n,k,d]]
-   code name, and type/authors live on each row's detail page, so drop those
-   columns here and let the four that matter (code, kd2/n, w, plus the record
-   star) fit the viewport with no sideways scroll. */
-@media(max-width:620px){
-.board .col-type,.board .col-n,.board .col-k,.board .col-d,
-.board .col-auth{display:none}
-table.board{min-width:0;font-size:13px}
-.board th,.board td{padding:.5rem .45rem;white-space:normal}
-.board td.auth{max-width:none}}
+@media(max-width:1000px){table.board{table-layout:auto;min-width:820px}}
+/* Narrow screens: rather than drop columns (and hide g, a headline metric)
+   into a horizontal scroll, each row becomes a card so every field stays
+   visible (issue #305, PR #312 review). The header is dropped; each cell
+   carries its own label via data-label. */
+@media(max-width:820px){
+.boardscroll{max-height:none;overflow:visible;border:0;border-radius:0}
+table.board,.board tbody,.board tr,.board td{display:block;width:auto}
+table.board{min-width:0;font-size:13px;margin:12px 0}
+.board thead{display:none}
+.board tr{border:1px solid var(--ln);border-radius:12px;margin:0 0 10px;
+padding:12px 14px 10px;background:var(--soft)}
+.board tr.fr{border-color:var(--ac)}
+.board td{display:flex;justify-content:space-between;align-items:baseline;
+gap:16px;padding:3px 0;border:0;white-space:normal;text-align:right}
+.board td::before{content:attr(data-label);color:var(--mut);flex:0 0 auto;
+font-family:'Space Mono',ui-monospace,monospace;font-size:11px;
+text-transform:uppercase;letter-spacing:.04em;text-align:left}
+.board td.num{text-align:right}
+.board td.codecell{justify-content:flex-start;padding:0 0 8px;margin:0 0 6px;
+border-bottom:1px solid var(--ln);font-size:15px}
+.board td.codecell::before{content:none}
+.board tr.fr td.codecell::after{content:"\2605";color:var(--ac);
+margin-left:8px}
+.board td.star{display:none}
+.board td.auth{max-width:none}
+.board td.typecell{flex-wrap:wrap}
+/* n, k, d are already printed inside the [[n,k,d]] name: drop their rows */
+.board td.col-n,.board td.col-k,.board td.col-d{display:none}
+/* date: small, in the card's top-right corner */
+.board tr{position:relative}
+.board td.date{position:absolute;top:12px;right:14px;width:auto;padding:0;
+font-size:11.5px;color:var(--mut)}
+.board td.date::before{content:none}
+.board td.codecell{padding-right:92px}
+/* kd2/n, g, w: a horizontal stat trio — big value, small label beneath
+   (column-reverse puts the ::before label under the number) */
+.board td.m3{display:inline-flex;flex-direction:column-reverse;
+align-items:center;justify-content:flex-start;gap:3px;width:32.8%;
+padding:9px 0 5px;font-size:19px;font-weight:700;
+font-variant-numeric:tabular-nums;text-align:center}
+.board td.m3::before{font-size:10.5px}
+/* unlabeled rows: chips and byline speak for themselves */
+.board td.typecell::before,.board td.auth::before,
+.board td.model::before{content:none}
+.board td.typecell{justify-content:flex-start}
+/* bottom line: authors on the left, model on the right, one row */
+.board td.auth{display:inline-flex;width:57%;justify-content:flex-start;
+text-align:left}
+.board td.model{display:inline-flex;width:42%;justify-content:flex-end;
+text-align:right}}
 /* phones: reclaim horizontal space and shrink oversized headers */
 @media(max-width:560px){.wrap{padding:0 14px}
 header.hero{padding:34px 0 30px}
