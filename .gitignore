@@ -16,3 +16,7 @@ research/board*.json
 # compiled gf2 accelerator
 *.so
 build/
+# macOS folder metadata
+.DS_Store
+# conference / paper material lives outside this repo (issue #325)
+talks/
