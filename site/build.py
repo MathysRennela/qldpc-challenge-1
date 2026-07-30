@@ -683,6 +683,9 @@ vertical-align:middle}}
    narrow screens (where the table sets its own min-width). */
 .boardscroll{{max-height:64vh;overflow:auto;-webkit-overflow-scrolling:touch;
 border:1px solid var(--ln);border-radius:12px}}
+/* "Show all" reveal for the collapsed mobile card list (issue #336);
+   desktop keeps the bounded scroll box and never needs it. */
+.showall{{display:none}}
 /* On screens tall enough to fit plots + legend + a useful slice of the table,
    size the explorer to exactly one viewport: plots and legend keep their
    natural height and the board's scroll box absorbs the remainder, so plots
@@ -708,6 +711,10 @@ table.board{{min-width:0;font-size:13px;margin:12px 0}}
 .board tr{{border:1px solid var(--ln);border-radius:12px;margin:0 0 10px;
 padding:12px 14px 10px;background:var(--soft)}}
 .board tr.fr{{border-color:var(--ac)}}
+.showall{{display:block;width:100%;margin:2px 0 14px;padding:11px;
+font:inherit;font-size:14px;font-weight:600;color:var(--ac);
+background:var(--soft);border:1px solid var(--ln);border-radius:12px;
+cursor:pointer}}
 .board td{{display:flex;justify-content:space-between;align-items:baseline;
 gap:16px;padding:3px 0;border:0;white-space:normal;text-align:right}}
 .board td::before{{content:attr(data-label);color:var(--mut);flex:0 0 auto;
@@ -962,6 +969,15 @@ document.addEventListener('click',e=>{
  if(!board||!q)return;
  const count=document.getElementById('boardcount');
  const rows=[...board.querySelectorAll('tbody tr')];
+ // Phones render the rows as cards in normal page flow (no bounded scroll
+ // box), so the full list buried the leaderboard below it (issue #336): show
+ // the first few and a "Show all" button. The cap lives inside apply(), not
+ // CSS, because filtering toggles inline display and sorting re-appends rows;
+ // a static nth-child cap would hide matches and survive reorders.
+ const showall=document.getElementById('showall');
+ const cardsmq=matchMedia('(max-width:820px)');
+ const CARDCAP=10;
+ let allcards=false;
  const wlo=document.getElementById('wlo'),whi=document.getElementById('whi');
  const wfill=document.getElementById('wffill'),wval=document.getElementById('wfval');
  const WMIN=wlo?+wlo.min:0,WMAX=wlo?+wlo.max:0,wspan=(WMAX-WMIN)||1;
@@ -1031,6 +1047,14 @@ document.addEventListener('click',e=>{
     &&(geoMode===''||(geoMode==='with')===(+r.dataset.geo>=0))
     &&(!litOn||r.dataset.origin==='literature')&&toks.every(t=>term(r,t));
    r.style.display=ok?'':'none';if(ok){shown++;vis.add(r.dataset.code);}});
+  // Collapse only the unfiltered mobile card list; any narrowing shows every
+  // match (some may sit past the cap). Walk current DOM order, not the static
+  // rows array, so a sorted board collapses to its first cards, not its
+  // original ones. Chart dots key off vis, so capped cards stay plotted.
+  const capped=showall&&cardsmq.matches&&!allcards&&shown===rows.length;
+  if(capped){let ci=0;board.querySelectorAll('tbody tr').forEach(r=>{
+   if(r.style.display===''&&++ci>CARDCAP)r.style.display='none';});}
+  if(showall)showall.style.display=capped?'':'none';
   if(count)count.textContent=shown+(shown===rows.length?'':' of '+rows.length)+' codes';
   var chip=document.getElementById('qchip');
   if(chip){var f=q.value.trim();
@@ -1101,6 +1125,10 @@ document.addEventListener('click',e=>{
    t.classList.toggle('active', t.dataset.q===uq));
   const bd=document.getElementById('board');
   if(bd)bd.scrollIntoView();}
+ if(showall)showall.addEventListener('click',()=>{allcards=true;apply();});
+ // Crossing the card-layout breakpoint must re-run the cap: rows hidden by it
+ // would otherwise stay hidden as desktop table rows (and vice versa).
+ if(cardsmq.addEventListener)cardsmq.addEventListener('change',apply);
  apply();
 })();
 
@@ -3069,7 +3097,9 @@ def board_table(entries, records):
             f'<td class=date data-label="date">{html.escape(e["date"]) if e["date"] else "&middot;"}</td></tr>')
 
     return (f'<div class=boardscroll><table class=board id=mainboard>{cols}{head}'
-            f'<tbody>{"".join(rows)}</tbody></table></div>')
+            f'<tbody>{"".join(rows)}</tbody></table></div>'
+            f'<button id=showall class=showall type=button>'
+            f'Show all {len(rows)} codes</button>')
 
 
 def build():
