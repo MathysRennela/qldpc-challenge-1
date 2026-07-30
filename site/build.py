@@ -364,13 +364,20 @@ background:rgba(255,255,255,.06)}}
 font-family:'Space Mono',ui-monospace,monospace}}
 .stat .l{{color:#c7d2fe;font-size:13px;
 text-transform:uppercase;letter-spacing:.05em}}
-.scoredefs{{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));
-gap:10px 22px;margin:12px 0 18px;padding:14px 18px;border:1px solid var(--ln);
-border-radius:14px;background:#fff;font-size:13.5px;color:var(--mut);
-line-height:1.5}}
-.scoredefs b{{color:var(--ink)}}
-.sgloss{{grid-column:1/-1;border-top:1px solid var(--ln);padding-top:10px;
-font-size:12.5px}}
+.scoredefs{{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));
+gap:14px;margin:12px 0 18px}}
+.sdef{{border:1px solid var(--ln);border-radius:14px;background:#fff;
+padding:16px 18px}}
+.sdefhead{{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+margin:0 0 9px}}
+.sdeftitle{{font-weight:700;color:var(--ink);font-size:14px}}
+.sdefformula{{font-size:15px;color:var(--ac);background:var(--soft);
+padding:2px 9px;border-radius:7px;white-space:nowrap}}
+.sdefbody{{margin:0;color:var(--mut);font-size:13.5px;line-height:1.6}}
+.sgloss{{grid-column:1/-1;border:1px solid var(--ln);border-radius:12px;
+background:var(--soft);padding:11px 16px;font-size:12.5px;color:var(--mut);
+line-height:1.8}}
+.sgloss b{{color:var(--ink)}}
 .statsbar{{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
 gap:14px;margin:28px 0 8px}}
 .stat-card{{border:1px solid var(--ln);border-radius:14px;padding:18px 20px;
@@ -830,7 +837,8 @@ details{{margin:8px 0}}summary{{cursor:pointer;color:var(--ac);font-size:14px}}
 font-size:15px;line-height:1.55;scroll-margin-top:16px}}
 .ref:target{{background:var(--soft);border-radius:8px;padding:16px 12px}}
 .refkey{{flex:0 0 auto;width:170px;font-family:ui-monospace,monospace;
-font-size:12px;color:var(--ac);word-break:break-all}}
+font-size:12px;color:var(--ac);word-break:break-all;text-decoration:none}}
+a.refkey:hover{{text-decoration:underline}}
 .refbody{{flex:1 1 0;min-width:0}}
 .refauth{{color:var(--mut)}}
 .reftitle{{font-style:italic}}
@@ -1829,6 +1837,26 @@ def detail_page(e):
     return "\n".join(P)
 
 
+def ref_target(e):
+    """Best canonical URL for a reference: the journal posting (a real DOI)
+    if there is one, else the arXiv abstract, else the arXiv DOI, else whatever
+    resource the entry points at (url). None if the entry links nowhere."""
+    doi = e.get("doi", "")
+    is_arxiv_doi = doi.lower().startswith("10.48550/arxiv")
+    if doi and not is_arxiv_doi:
+        return f'https://doi.org/{doi}'
+    if e.get("eprint"):
+        return f'https://arxiv.org/abs/{e["eprint"]}'
+    if doi:
+        return f'https://doi.org/{doi}'
+    if e.get("url"):
+        return e["url"]
+    m = re.search(r'https?://[^\s}]+', e.get("howpublished", ""))
+    if m:
+        return m.group(0)
+    return None
+
+
 def fmt_citation(e, extra=""):
     """One reference, formatted as HTML: bibtag, authors, title, venue/year,
     links, plus an optional trailing block (e.g. the citing codes)."""
@@ -1863,7 +1891,12 @@ def fmt_citation(e, extra=""):
         host = re.sub(r"^https?://(www\.)?|/.*$", "", e["url"]) or "link"
         links.append(f'<a href="{html.escape(e["url"])}">{html.escape(host)}</a>')
     out = [f'<div class=ref id="{html.escape(e["key"])}">']
-    out.append(f'<span class=refkey>{html.escape(e["key"])}</span>')
+    tgt = ref_target(e)
+    key_html = html.escape(e["key"])
+    if tgt:
+        out.append(f'<a class=refkey href="{html.escape(tgt)}">{key_html}</a>')
+    else:
+        out.append(f'<span class=refkey>{key_html}</span>')
     out.append('<div class=refbody>')
     if authors:
         sep = "" if authors.endswith(".") else "."
@@ -1897,7 +1930,7 @@ def references_page(entries):
              'id or DOI; verified codes that cite each one are listed beneath '
              'it. The machine-readable source is '
              f'<a href="{REPO}/refs.bib">refs.bib</a>.</p>')
-    for e in REFS:
+    for e in sorted(REFS, key=lambda e: e["key"].lower()):
         cs = citers.get(e["key"], [])
         extra = ""
         if cs:
@@ -2682,15 +2715,13 @@ def primary_tracks_grid(entries, records):
     return ('<section class=ptgrid><h2 class=track>Primary tracks</h2>'
             '<p class=ptsub>Computed grid of locality &times; check weight, '
             'derived from <code>H</code> and the layout, not self-declared. '
-            'Each cell lists its Pareto frontier ranked by the selected score '
-            '(kd&sup2;/n, or the geometric efficiency g for codes with a '
-            'verified layout); the code count filters the table below to that '
-            'exact cell, so the runner-up and the rest of the ranking are one '
-            'click away. Membership nests: a tighter cell&rsquo;s codes also '
-            'compete in the looser ones. In the g view the seeded '
-            'surface/toric tilings are not raced &mdash; they are the ceiling '
-            'g is normalized to (surface code = 1) and appear dimmed below '
-            'the ranking.</p>'
+            'Each cell lists its Pareto frontier, ranked by the selected score '
+            '(kd&sup2;/n, or geometric efficiency g for codes with a verified '
+            'layout). The code count filters the table below to that cell. '
+            'Membership nests: a tighter cell&rsquo;s codes also compete in the '
+            'looser ones. In the g view, the seeded surface/toric tilings are '
+            'not raced; they set the ceiling g is normalized to '
+            '(surface code = 1) and appear dimmed below the ranking.</p>'
             '<div class=ptbar><span class=rcgroup>'
             '<button type=button class="ptbtn active" data-pt=eff '
             'title="rank cells by operational efficiency kd&sup2;/n">'
@@ -3068,17 +3099,22 @@ def build():
     # tooltips are invisible on mobile and undiscoverable in general)
     P.append(
         '<section class=scoredefs>'
-        '<div class=sdef><b>Operational efficiency</b> '
-        '<span class=mono>kd&sup2;/n</span> &mdash; the Bravyi&ndash;Poulin&ndash;'
-        'Terhal ratio, normalized so the surface code sits at 1. Bounded for '
-        '2D-local and bounded-weight codes; grows with n for high-rate codes, '
-        'so it is compared within tracks, not as a global record.</div>'
-        '<div class=sdef><b>Geometric efficiency</b> '
-        '<span class=mono>g = 4kd&sup2;/(n&rho;&sup2;r&#8308;)</span> &mdash; '
-        'the same ratio priced by the layout the code ships with, normalized '
-        'so the planar surface code scores exactly 1. Computed only for codes '
-        'with a verifier-accepted layout; an upper-bound distance makes g an '
-        f'upper bound, and the headline requires d &ge; {GEO_MIN_D}.</div>'
+        '<div class=sdef><div class=sdefhead>'
+        '<span class=sdeftitle>Operational efficiency</span>'
+        '<span class="mono sdefformula">kd&sup2;/n</span></div>'
+        '<p class=sdefbody>The Bravyi&ndash;Poulin&ndash;Terhal ratio, '
+        'normalized so the surface code sits at 1. Bounded for 2D-local and '
+        'bounded-weight codes; grows with n for high-rate codes, so it is '
+        'compared within tracks, not as a global record.</p></div>'
+        '<div class=sdef><div class=sdefhead>'
+        '<span class=sdeftitle>Geometric efficiency</span>'
+        '<span class="mono sdefformula">g = 4kd&sup2;/(n&rho;&sup2;r&#8308;)</span>'
+        '</div>'
+        '<p class=sdefbody>The same ratio priced by the layout the code ships '
+        'with, normalized so the planar surface code scores exactly 1. Computed '
+        'only for codes with a verifier-accepted layout; an upper-bound distance '
+        f'makes g an upper bound, and the headline requires d &ge; {GEO_MIN_D}.'
+        '</p></div>'
         '<div class=sgloss><b>n</b> physical qubits &middot; '
         '<b>k</b> logical qubits &middot; <b>d</b> code distance (smallest '
         'undetectable error) &middot; <b>w</b> max check weight &middot; '
