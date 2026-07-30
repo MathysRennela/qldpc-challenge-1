@@ -525,12 +525,11 @@ border-top:1px solid var(--ln);scroll-margin-top:16px}}
 .plots{{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
 gap:16px;margin:14px 0 4px;position:relative}}
 .geotabs{{position:absolute;top:2px;right:2px;z-index:6;display:flex;gap:6px}}
-/* Pin the scatters to the top while the table scrolls beneath, so the
-   point<->row hover highlight stays visible. The table header sticks within
-   its own scroll box (a separate scroll context), so no header offset needed.
-   Desktop only; on phones the plots scroll away to save vertical space. */
-@media(min-width:760px){{.explorer .plots{{position:sticky;top:0;z-index:5;
-background:var(--bg);padding:8px 0 6px;margin-top:0}}}}
+/* The plots were position:sticky here (#273) so the point<->row hover
+   highlight stayed visible while the table scrolled. But the opaque pinned
+   plots covered the table and leaderboard whenever plots + legend + table
+   outgrew the viewport (issue #302). The both-on-screen effect now comes from
+   fitting the explorer to one viewport instead; see .explorer by .boardscroll. */
 .plot{{min-width:0;border:1px solid var(--ln);border-radius:12px;
 background:#fff;padding:8px}}
 .chartlegend{{display:flex;flex-wrap:wrap;gap:10px 20px;margin:10px 0 4px;
@@ -684,6 +683,18 @@ vertical-align:middle}}
    narrow screens (where the table sets its own min-width). */
 .boardscroll{{max-height:64vh;overflow:auto;-webkit-overflow-scrolling:touch;
 border:1px solid var(--ln);border-radius:12px}}
+/* On screens tall enough to fit plots + legend + a useful slice of the table,
+   size the explorer to exactly one viewport: plots and legend keep their
+   natural height and the board's scroll box absorbs the remainder, so plots
+   and table are on screen together (the row-hover -> point highlight from
+   #273) without anything sliding underneath anything (issue #302). Shorter
+   screens keep normal flow -- the plots scroll away and the 64vh box above
+   applies -- so the flex column is never over-constrained into overlapping
+   the leaderboard below. Width gate matches the card-layout breakpoint. */
+@media(min-width:821px) and (min-height:800px){{
+.explorer{{display:flex;flex-direction:column;max-height:100vh}}
+.explorer>*{{flex:0 0 auto}}
+.explorer .boardscroll{{flex:1 1 auto;min-height:240px;max-height:none}}}}
 @media(max-width:1000px){{table.board{{table-layout:auto;min-width:820px}}}}
 /* Narrow screens: rather than drop columns (and hide g, a headline metric)
    into a horizontal scroll, each row becomes a card so every field stays
@@ -3173,7 +3184,7 @@ def build():
              '&middot; <b>w</b> max check weight</span>'
              '</div>')
     P.append(board_table(entries, records))
-    P.append('</div>')  # close explorer (bounds the sticky plots)
+    P.append('</div>')  # close explorer (the viewport-fitted plots+table column)
     P.append(contributors_panel(entries))  # leaderboard sits below the table
     P.append('</div>')  # close the main content wrap; footer is full-width
     P.append(
