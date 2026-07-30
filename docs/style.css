@@ -61,13 +61,20 @@ background:rgba(255,255,255,.06)}
 font-family:'Space Mono',ui-monospace,monospace}
 .stat .l{color:#c7d2fe;font-size:13px;
 text-transform:uppercase;letter-spacing:.05em}
-.scoredefs{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));
-gap:10px 22px;margin:12px 0 18px;padding:14px 18px;border:1px solid var(--ln);
-border-radius:14px;background:#fff;font-size:13.5px;color:var(--mut);
-line-height:1.5}
-.scoredefs b{color:var(--ink)}
-.sgloss{grid-column:1/-1;border-top:1px solid var(--ln);padding-top:10px;
-font-size:12.5px}
+.scoredefs{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));
+gap:14px;margin:12px 0 18px}
+.sdef{border:1px solid var(--ln);border-radius:14px;background:#fff;
+padding:16px 18px}
+.sdefhead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+margin:0 0 9px}
+.sdeftitle{font-weight:700;color:var(--ink);font-size:14px}
+.sdefformula{font-size:15px;color:var(--ac);background:var(--soft);
+padding:2px 9px;border-radius:7px;white-space:nowrap}
+.sdefbody{margin:0;color:var(--mut);font-size:13.5px;line-height:1.6}
+.sgloss{grid-column:1/-1;border:1px solid var(--ln);border-radius:12px;
+background:var(--soft);padding:11px 16px;font-size:12.5px;color:var(--mut);
+line-height:1.8}
+.sgloss b{color:var(--ink)}
 .statsbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
 gap:14px;margin:28px 0 8px}
 .stat-card{border:1px solid var(--ln);border-radius:14px;padding:18px 20px;
@@ -93,7 +100,7 @@ text-decoration:none;cursor:pointer;transition:background .15s}
 .herocta{padding:9px 16px;font-size:14px;
 box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .modal{position:relative;border:none;border-radius:14px;padding:22px 24px;
-max-width:520px;width:92%;box-shadow:0 20px 60px rgba(17,17,17,.25)}
+max-width:580px;width:92%;box-shadow:0 20px 60px rgba(17,17,17,.25)}
 .modal::backdrop{background:rgba(17,17,17,.45)}
 .modalx{position:absolute;top:10px;right:12px;border:none;background:none;
 font-size:24px;line-height:1;color:var(--mut);cursor:pointer}
@@ -104,10 +111,9 @@ font-size:24px;line-height:1;color:var(--mut);cursor:pointer}
 .cbbar{display:flex;justify-content:flex-end;margin-bottom:6px}
 /* the pre is the horizontal scroller; each command stays on its own line
    (no wrap) so a long clone URL can't bleed into the next command */
-.codeblock pre{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.codeblock pre{margin:0;white-space:pre;overflow-x:auto}
 .codeblock code{display:block;color:#e4e4e7;font-size:13px;line-height:1.7;
-white-space:pre-wrap;overflow-wrap:anywhere;background:none;padding:0;
-border:none}
+white-space:pre;background:none;padding:0;border:none}
 .codeblock ::selection{background:#4f46e5;color:#fff}
 .codeblock .cmt{color:#8a8f98;background:none}
 .copybtn{border:1px solid #3a3f4a;
@@ -216,12 +222,11 @@ border-top:1px solid var(--ln);scroll-margin-top:16px}
 .plots{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
 gap:16px;margin:14px 0 4px;position:relative}
 .geotabs{position:absolute;top:2px;right:2px;z-index:6;display:flex;gap:6px}
-/* Pin the scatters to the top while the table scrolls beneath, so the
-   point<->row hover highlight stays visible. The table header sticks within
-   its own scroll box (a separate scroll context), so no header offset needed.
-   Desktop only; on phones the plots scroll away to save vertical space. */
-@media(min-width:760px){.explorer .plots{position:sticky;top:0;z-index:5;
-background:var(--bg);padding:8px 0 6px;margin-top:0}}
+/* The plots were position:sticky here (#273) so the point<->row hover
+   highlight stayed visible while the table scrolled. But the opaque pinned
+   plots covered the table and leaderboard whenever plots + legend + table
+   outgrew the viewport (issue #302). The both-on-screen effect now comes from
+   fitting the explorer to one viewport instead; see .explorer by .boardscroll. */
 .plot{min-width:0;border:1px solid var(--ln);border-radius:12px;
 background:#fff;padding:8px}
 .chartlegend{display:flex;flex-wrap:wrap;gap:10px 20px;margin:10px 0 4px;
@@ -375,6 +380,18 @@ vertical-align:middle}
    narrow screens (where the table sets its own min-width). */
 .boardscroll{max-height:64vh;overflow:auto;-webkit-overflow-scrolling:touch;
 border:1px solid var(--ln);border-radius:12px}
+/* On screens tall enough to fit plots + legend + a useful slice of the table,
+   size the explorer to exactly one viewport: plots and legend keep their
+   natural height and the board's scroll box absorbs the remainder, so plots
+   and table are on screen together (the row-hover -> point highlight from
+   #273) without anything sliding underneath anything (issue #302). Shorter
+   screens keep normal flow -- the plots scroll away and the 64vh box above
+   applies -- so the flex column is never over-constrained into overlapping
+   the leaderboard below. Width gate matches the card-layout breakpoint. */
+@media(min-width:821px) and (min-height:800px){
+.explorer{display:flex;flex-direction:column;max-height:100vh}
+.explorer>*{flex:0 0 auto}
+.explorer .boardscroll{flex:1 1 auto;min-height:240px;max-height:none}}
 @media(max-width:1000px){table.board{table-layout:auto;min-width:820px}}
 /* Narrow screens: rather than drop columns (and hide g, a headline metric)
    into a horizontal scroll, each row becomes a card so every field stays
@@ -528,7 +545,8 @@ details{margin:8px 0}summary{cursor:pointer;color:var(--ac);font-size:14px}
 font-size:15px;line-height:1.55;scroll-margin-top:16px}
 .ref:target{background:var(--soft);border-radius:8px;padding:16px 12px}
 .refkey{flex:0 0 auto;width:170px;font-family:ui-monospace,monospace;
-font-size:12px;color:var(--ac);word-break:break-all}
+font-size:12px;color:var(--ac);word-break:break-all;text-decoration:none}
+a.refkey:hover{text-decoration:underline}
 .refbody{flex:1 1 0;min-width:0}
 .refauth{color:var(--mut)}
 .reftitle{font-style:italic}

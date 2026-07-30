@@ -364,13 +364,20 @@ background:rgba(255,255,255,.06)}}
 font-family:'Space Mono',ui-monospace,monospace}}
 .stat .l{{color:#c7d2fe;font-size:13px;
 text-transform:uppercase;letter-spacing:.05em}}
-.scoredefs{{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));
-gap:10px 22px;margin:12px 0 18px;padding:14px 18px;border:1px solid var(--ln);
-border-radius:14px;background:#fff;font-size:13.5px;color:var(--mut);
-line-height:1.5}}
-.scoredefs b{{color:var(--ink)}}
-.sgloss{{grid-column:1/-1;border-top:1px solid var(--ln);padding-top:10px;
-font-size:12.5px}}
+.scoredefs{{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));
+gap:14px;margin:12px 0 18px}}
+.sdef{{border:1px solid var(--ln);border-radius:14px;background:#fff;
+padding:16px 18px}}
+.sdefhead{{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+margin:0 0 9px}}
+.sdeftitle{{font-weight:700;color:var(--ink);font-size:14px}}
+.sdefformula{{font-size:15px;color:var(--ac);background:var(--soft);
+padding:2px 9px;border-radius:7px;white-space:nowrap}}
+.sdefbody{{margin:0;color:var(--mut);font-size:13.5px;line-height:1.6}}
+.sgloss{{grid-column:1/-1;border:1px solid var(--ln);border-radius:12px;
+background:var(--soft);padding:11px 16px;font-size:12.5px;color:var(--mut);
+line-height:1.8}}
+.sgloss b{{color:var(--ink)}}
 .statsbar{{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
 gap:14px;margin:28px 0 8px}}
 .stat-card{{border:1px solid var(--ln);border-radius:14px;padding:18px 20px;
@@ -396,7 +403,7 @@ text-decoration:none;cursor:pointer;transition:background .15s}}
 .herocta{{padding:9px 16px;font-size:14px;
 box-shadow:0 4px 14px rgba(0,0,0,.35)}}
 .modal{{position:relative;border:none;border-radius:14px;padding:22px 24px;
-max-width:520px;width:92%;box-shadow:0 20px 60px rgba(17,17,17,.25)}}
+max-width:580px;width:92%;box-shadow:0 20px 60px rgba(17,17,17,.25)}}
 .modal::backdrop{{background:rgba(17,17,17,.45)}}
 .modalx{{position:absolute;top:10px;right:12px;border:none;background:none;
 font-size:24px;line-height:1;color:var(--mut);cursor:pointer}}
@@ -407,10 +414,9 @@ font-size:24px;line-height:1;color:var(--mut);cursor:pointer}}
 .cbbar{{display:flex;justify-content:flex-end;margin-bottom:6px}}
 /* the pre is the horizontal scroller; each command stays on its own line
    (no wrap) so a long clone URL can't bleed into the next command */
-.codeblock pre{{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}}
+.codeblock pre{{margin:0;white-space:pre;overflow-x:auto}}
 .codeblock code{{display:block;color:#e4e4e7;font-size:13px;line-height:1.7;
-white-space:pre-wrap;overflow-wrap:anywhere;background:none;padding:0;
-border:none}}
+white-space:pre;background:none;padding:0;border:none}}
 .codeblock ::selection{{background:#4f46e5;color:#fff}}
 .codeblock .cmt{{color:#8a8f98;background:none}}
 .copybtn{{border:1px solid #3a3f4a;
@@ -519,12 +525,11 @@ border-top:1px solid var(--ln);scroll-margin-top:16px}}
 .plots{{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
 gap:16px;margin:14px 0 4px;position:relative}}
 .geotabs{{position:absolute;top:2px;right:2px;z-index:6;display:flex;gap:6px}}
-/* Pin the scatters to the top while the table scrolls beneath, so the
-   point<->row hover highlight stays visible. The table header sticks within
-   its own scroll box (a separate scroll context), so no header offset needed.
-   Desktop only; on phones the plots scroll away to save vertical space. */
-@media(min-width:760px){{.explorer .plots{{position:sticky;top:0;z-index:5;
-background:var(--bg);padding:8px 0 6px;margin-top:0}}}}
+/* The plots were position:sticky here (#273) so the point<->row hover
+   highlight stayed visible while the table scrolled. But the opaque pinned
+   plots covered the table and leaderboard whenever plots + legend + table
+   outgrew the viewport (issue #302). The both-on-screen effect now comes from
+   fitting the explorer to one viewport instead; see .explorer by .boardscroll. */
 .plot{{min-width:0;border:1px solid var(--ln);border-radius:12px;
 background:#fff;padding:8px}}
 .chartlegend{{display:flex;flex-wrap:wrap;gap:10px 20px;margin:10px 0 4px;
@@ -681,6 +686,18 @@ border:1px solid var(--ln);border-radius:12px}}
 /* "Show all" reveal for the collapsed mobile card list (issue #336);
    desktop keeps the bounded scroll box and never needs it. */
 .showall{{display:none}}
+/* On screens tall enough to fit plots + legend + a useful slice of the table,
+   size the explorer to exactly one viewport: plots and legend keep their
+   natural height and the board's scroll box absorbs the remainder, so plots
+   and table are on screen together (the row-hover -> point highlight from
+   #273) without anything sliding underneath anything (issue #302). Shorter
+   screens keep normal flow -- the plots scroll away and the 64vh box above
+   applies -- so the flex column is never over-constrained into overlapping
+   the leaderboard below. Width gate matches the card-layout breakpoint. */
+@media(min-width:821px) and (min-height:800px){{
+.explorer{{display:flex;flex-direction:column;max-height:100vh}}
+.explorer>*{{flex:0 0 auto}}
+.explorer .boardscroll{{flex:1 1 auto;min-height:240px;max-height:none}}}}
 @media(max-width:1000px){{table.board{{table-layout:auto;min-width:820px}}}}
 /* Narrow screens: rather than drop columns (and hide g, a headline metric)
    into a horizontal scroll, each row becomes a card so every field stays
@@ -838,7 +855,8 @@ details{{margin:8px 0}}summary{{cursor:pointer;color:var(--ac);font-size:14px}}
 font-size:15px;line-height:1.55;scroll-margin-top:16px}}
 .ref:target{{background:var(--soft);border-radius:8px;padding:16px 12px}}
 .refkey{{flex:0 0 auto;width:170px;font-family:ui-monospace,monospace;
-font-size:12px;color:var(--ac);word-break:break-all}}
+font-size:12px;color:var(--ac);word-break:break-all;text-decoration:none}}
+a.refkey:hover{{text-decoration:underline}}
 .refbody{{flex:1 1 0;min-width:0}}
 .refauth{{color:var(--mut)}}
 .reftitle{{font-style:italic}}
@@ -1858,6 +1876,26 @@ def detail_page(e):
     return "\n".join(P)
 
 
+def ref_target(e):
+    """Best canonical URL for a reference: the journal posting (a real DOI)
+    if there is one, else the arXiv abstract, else the arXiv DOI, else whatever
+    resource the entry points at (url). None if the entry links nowhere."""
+    doi = e.get("doi", "")
+    is_arxiv_doi = doi.lower().startswith("10.48550/arxiv")
+    if doi and not is_arxiv_doi:
+        return f'https://doi.org/{doi}'
+    if e.get("eprint"):
+        return f'https://arxiv.org/abs/{e["eprint"]}'
+    if doi:
+        return f'https://doi.org/{doi}'
+    if e.get("url"):
+        return e["url"]
+    m = re.search(r'https?://[^\s}]+', e.get("howpublished", ""))
+    if m:
+        return m.group(0)
+    return None
+
+
 def fmt_citation(e, extra=""):
     """One reference, formatted as HTML: bibtag, authors, title, venue/year,
     links, plus an optional trailing block (e.g. the citing codes)."""
@@ -1892,7 +1930,12 @@ def fmt_citation(e, extra=""):
         host = re.sub(r"^https?://(www\.)?|/.*$", "", e["url"]) or "link"
         links.append(f'<a href="{html.escape(e["url"])}">{html.escape(host)}</a>')
     out = [f'<div class=ref id="{html.escape(e["key"])}">']
-    out.append(f'<span class=refkey>{html.escape(e["key"])}</span>')
+    tgt = ref_target(e)
+    key_html = html.escape(e["key"])
+    if tgt:
+        out.append(f'<a class=refkey href="{html.escape(tgt)}">{key_html}</a>')
+    else:
+        out.append(f'<span class=refkey>{key_html}</span>')
     out.append('<div class=refbody>')
     if authors:
         sep = "" if authors.endswith(".") else "."
@@ -1926,7 +1969,7 @@ def references_page(entries):
              'id or DOI; verified codes that cite each one are listed beneath '
              'it. The machine-readable source is '
              f'<a href="{REPO}/refs.bib">refs.bib</a>.</p>')
-    for e in REFS:
+    for e in sorted(REFS, key=lambda e: e["key"].lower()):
         cs = citers.get(e["key"], [])
         extra = ""
         if cs:
@@ -1974,23 +2017,10 @@ def progress_panel(entries, best_eff_e, best_geo_e):
         (str(n_base), "literature baselines",
          "published codes seeded as the bar to beat"),
         (f"{best_eff:g}" + by_line(best_eff_e), "best operational efficiency",
-         "Operational efficiency kd^2/n, the Bravyi-Poulin-Terhal saturation "
-         "ratio against the surface code baseline (surface = 1). It is bounded "
-         "and meaningful for 2D-local / bounded-weight codes at comparable n, "
-         "but grows with n for high-rate codes, so it is compared within "
-         "tracks, not as a global record. This is the best among the codes on "
-         "this board."),
+         "Best kd^2/n on the board (surface code = 1). Full definition below."),
         (geo_v + by_line(best_geo_e, geo=True), "best geometric efficiency",
-         "Geometric efficiency g = 4kd^2/(n rho^2 r^4): the kd^2/n ratio priced "
-         "by the layout the code ships with -- r is the measured interaction "
-         "radius (max check diameter, in units of the unit qubit spacing) and "
-         "rho the number of layers (the capacity charge). Normalized so the "
-         "planar surface code scores exactly 1; beating 1 at growing distance "
-         "would beat the surface code. Computed only for codes with a "
-         f"verifier-accepted 2D layout and shown here for distance d >= {GEO_MIN_D} "
-         "(constant-distance tilings exceed 1 trivially). A <= marks a value "
-         "inherited from an upper-bound distance. Codes without a layout have "
-         "no f; that is a certification status, not proof they are expanders."),
+         "Best geometric efficiency g among codes with a verified layout "
+         "(surface code = 1). Full definition below."),
     ]
     cards = "".join(f'<div class="stat-card"'
                     f'{f" title=\"{t}\"" if t else ""}>'
@@ -2496,8 +2526,7 @@ function draw(){
  endlist.forEach(function(e){var lab=e.lab.length>18?e.lab.slice(0,17)+'…':e.lab;
   ends+='<text x="'+(W-pr+8)+'" y="'+e.y+'" dy="4" font-size="12" fill="#334155">'+lab+' &#183; <tspan font-weight="700">'+e.eff+'</tspan></text>';});
  plot.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto">'+g+body+ends+'</svg>';
- var mlab=st.y==='geo'?'best g, ':'best kd&#178;/n, ';
- leg.innerHTML=series.map(function(s){return '<span class=ci><span class=cdot style="background:'+s.col+'"></span>'+(s.step?mlab:'')+s.lab+'</span>';}).join('')
+ leg.innerHTML=series.map(function(s){return '<span class=ci><span class=cdot style="background:'+s.col+'"></span>'+s.lab+'</span>';}).join('')
   +(st.y==='geo'?'<span class=ci title="the surface/toric reference codes sit at the conjectured f ceiling and are drawn as the dashed line, not raced">&#8213; surface code = 1</span>':'');
 }
 document.querySelectorAll('.rcbtn').forEach(function(b){
@@ -2602,7 +2631,7 @@ def record_chart(entries):
                     f'<tspan font-weight="700">{last_eff:g}</tspan></text>')
     legend = "".join(
         f'<span class=ci><span class=cdot style="background:{col}"></span>'
-        f'best kd&sup2;/n, {html.escape(lab)}</span>'
+        f'{html.escape(lab)}</span>'
         for lab, col, evs in series if evs)
     # Data + client-side renderer for the alternate views (all submissions,
     # per-model) and the scale/window controls; the server-rendered SVG above
@@ -2725,15 +2754,13 @@ def primary_tracks_grid(entries, records):
     return ('<section class=ptgrid><h2 class=track>Primary tracks</h2>'
             '<p class=ptsub>Computed grid of locality &times; check weight, '
             'derived from <code>H</code> and the layout, not self-declared. '
-            'Each cell lists its Pareto frontier ranked by the selected score '
-            '(kd&sup2;/n, or the geometric efficiency g for codes with a '
-            'verified layout); the code count filters the table below to that '
-            'exact cell, so the runner-up and the rest of the ranking are one '
-            'click away. Membership nests: a tighter cell&rsquo;s codes also '
-            'compete in the looser ones. In the g view the seeded '
-            'surface/toric tilings are not raced &mdash; they are the ceiling '
-            'g is normalized to (surface code = 1) and appear dimmed below '
-            'the ranking.</p>'
+            'Each cell lists its Pareto frontier, ranked by the selected score '
+            '(kd&sup2;/n, or geometric efficiency g for codes with a verified '
+            'layout). The code count filters the table below to that cell. '
+            'Membership nests: a tighter cell&rsquo;s codes also compete in the '
+            'looser ones. In the g view, the seeded surface/toric tilings are '
+            'not raced; they set the ceiling g is normalized to '
+            '(surface code = 1) and appear dimmed below the ranking.</p>'
             '<div class=ptbar><span class=rcgroup>'
             '<button type=button class="ptbtn active" data-pt=eff '
             'title="rank cells by operational efficiency kd&sup2;/n">'
@@ -3113,17 +3140,22 @@ def build():
     # tooltips are invisible on mobile and undiscoverable in general)
     P.append(
         '<section class=scoredefs>'
-        '<div class=sdef><b>Operational efficiency</b> '
-        '<span class=mono>kd&sup2;/n</span> &mdash; the Bravyi&ndash;Poulin&ndash;'
-        'Terhal ratio, normalized so the surface code sits at 1. Bounded for '
-        '2D-local and bounded-weight codes; grows with n for high-rate codes, '
-        'so it is compared within tracks, not as a global record.</div>'
-        '<div class=sdef><b>Geometric efficiency</b> '
-        '<span class=mono>g = 4kd&sup2;/(n&rho;&sup2;r&#8308;)</span> &mdash; '
-        'the same ratio priced by the layout the code ships with, normalized '
-        'so the planar surface code scores exactly 1. Computed only for codes '
-        'with a verifier-accepted layout; an upper-bound distance makes g an '
-        f'upper bound, and the headline requires d &ge; {GEO_MIN_D}.</div>'
+        '<div class=sdef><div class=sdefhead>'
+        '<span class=sdeftitle>Operational efficiency</span>'
+        '<span class="mono sdefformula">kd&sup2;/n</span></div>'
+        '<p class=sdefbody>The Bravyi&ndash;Poulin&ndash;Terhal ratio, '
+        'normalized so the surface code sits at 1. Bounded for 2D-local and '
+        'bounded-weight codes; grows with n for high-rate codes, so it is '
+        'compared within tracks, not as a global record.</p></div>'
+        '<div class=sdef><div class=sdefhead>'
+        '<span class=sdeftitle>Geometric efficiency</span>'
+        '<span class="mono sdefformula">g = 4kd&sup2;/(n&rho;&sup2;r&#8308;)</span>'
+        '</div>'
+        '<p class=sdefbody>The same ratio priced by the layout the code ships '
+        'with, normalized so the planar surface code scores exactly 1. Computed '
+        'only for codes with a verifier-accepted layout; an upper-bound distance '
+        f'makes g an upper bound, and the headline requires d &ge; {GEO_MIN_D}.'
+        '</p></div>'
         '<div class=sgloss><b>n</b> physical qubits &middot; '
         '<b>k</b> logical qubits &middot; <b>d</b> code distance (smallest '
         'undetectable error) &middot; <b>w</b> max check weight &middot; '
@@ -3182,7 +3214,7 @@ def build():
              '&middot; <b>w</b> max check weight</span>'
              '</div>')
     P.append(board_table(entries, records))
-    P.append('</div>')  # close explorer (bounds the sticky plots)
+    P.append('</div>')  # close explorer (the viewport-fitted plots+table column)
     P.append(contributors_panel(entries))  # leaderboard sits below the table
     P.append('</div>')  # close the main content wrap; footer is full-width
     P.append(

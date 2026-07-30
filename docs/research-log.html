@@ -265,6 +265,34 @@ Hₓ = [L(a) | R(b)]   H_z = [R(b)ᵀ | L(a)ᵀ]
 <p>Search and confirmation by Claude Opus 4.8 driving a bit-packed GF(2) RIS engine (gf2_fast). Novelty vs the literature is unverified (board-only dedup).</p>
 <h4>Reproduction</h4>
 <p>Build PGL(2,7) via the projective action on P^1(F_7) (generators x-&gt;x+1, x-&gt;-1/x, x-&gt;3x on 8 points), then <code>build_2bga(mul, a, b)</code> from <code>research/kit/group_algebra.py</code> with the supports above.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/672-18-30.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/390-82-38.html">[[390,82,38]] — 390-82-38</a></h3><div class=kv style="color:var(--mut)">2026-07-19 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> and <a href="https://github.com/seunomonije">@seunomonije</a> &middot; Tencent Hy3</div><details ><summary>note</summary><div class=notebody><h3>[[390,82,38]] — designed-divisor weight-32 GB on Z_195</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>The designed-divisor GB track (fix k by choosing both circulants as multiples of a common divisor g | x^N−1, then search for distance among weight-w multiples of g) produced [[126,18,14]], [[210,24,20]], and [[258,32,22]] from a 13,200-candidate sweep at N = 63–147 (see notes/126-18-14.md, notes/258-32-22.md). The method scales: larger N gives more room for high-distance circulants. Z_195 was the natural next target — n = 390 is large enough to hold high d, and deg-41 divisors give k = 82 (the highest k the method can reach at this N while keeping d above 30).</p>
+<p>The weight-32 entry is the &quot;symmetric high-distance variant&quot; of the earlier [[390,82,27]]: same degree-41 divisor, but the reciprocal divisor&#x27;s weight-16 circulants yield a distinct stabilizer group with substantially higher distance.</p>
+<h4>What was searched</h4>
+<p><b>Pool enumeration.</b> The degree-41 divisor g | x^195−1 generates a cyclic code ⟨g⟩ whose weight-8 codewords form exactly 12 cyclic-shift classes (saturated at 60k+ RIS mining trials across 3 seeds). The 66 unordered class-pairs from this pool produce weight-16 check rows — the &quot;weight-8 × 2&quot; family that includes [[390,82,30]], [[390,82,31]], and [[390,82,32]].</p>
+<p><b>This entry&#x27;s polynomials</b> come from a *different* divisor vein: the reciprocal of g, whose weight-16 codeword pool is larger and less exhaustively explored. The specific a(x), b(x) were found by screening weight-16 multiples of the reciprocal divisor via randomized RREF, with initial RIS at 12k trials per pair and progressive deepening.</p>
+<p><b>Screening sweep.</b> Hundreds of candidate pairs were screened at 12k RIS trials per side; those reading d ≥ 35 were promoted to the 2M rung. The reciprocal-divisor pool yielded fewer high-distance pairs than the original pool — most collapsed to d ≤ 30 at 8M — but the ones that survived did so convincingly.</p>
+<h4>Evidence trail</h4>
+<p>The distance was corrected through three rounds:</p>
+<p>| Round | Claim | Refutation | Result | |---|---|---|---| | Initial submission | d = 49 | CLI <code>build_submission</code> used adjacent-pair-only RIS — missed lighter logicals | Corrected to d = 40 | | CI refutation gate | d = 40 | Weight-39 X-logical found (seed 210810570) | Corrected to d = 39 | | Deep refutation (PR #269) | d = 39 | Weight-38 Z-logical found (seed 31415, 24M pd8) | <b>d = 38</b> |</p>
+<p>Deep refutation effort (PR #269): ~129M RIS trials across 7 fresh seeds and pair-depth 16/24 passes. Readings: 38–41, flat at the floor. The weight-38 Z witness is embedded; the original weight-39 X witness remains valid. Both machine-verified in ker/opposite-checks, outside rowspace.</p>
+<p><b>Weight floor.</b> Exhaustive pool-pair testing + 2.3M-trial span searches with positive controls confirmed w = 32 is this code&#x27;s floor: no lighter presentation of this stabilizer group exists (see PR #270 discussion).</p>
+<h4>Dead ends</h4>
+<ul>
+<li><b>d = 49 over-claim.</b> The submission CLI&#x27;s adjacent-pair-only RIS</li>
+<p>missed logicals the deeper CI gate catches — a systematic issue documented in the PR #260 correction note.</p>
+<li><b>66 weight-8 class pairs.</b> All but two collapsed to d ≤ 30 at 80M</li>
+<p>× 3 fresh seeds (PRs #258, #259). The surviving pair reached d = 31 (PR #258), confirming the pool&#x27;s distance ceiling is tight.</p>
+<li><b>Nearby N values.</b> Z_165 (n = 330) and Z_175 (n = 350) were</li>
+<p>spot-checked with degree-33 and degree-35 divisors — lower k, and the distance ceiling was lower too (d ≤ 25 at k = 66). Z_195 at k = 82 is the sweet spot.</p>
+<li><b>Weight-4/6/8 checks impossible at k = 82.</b> The divisor&#x27;s</li>
+<p>min-distance is 8 (exhaustively verified: zero weight-2 multiples of g exist).</p>
+</ul>
+<h4>Tools</h4>
+<p>Search by @mathysrennela (Tencent Hy3). Deep refutation by @seunomonije&#x27;s harness (Claude Fable 5). RIS engine: gf2_fast (bit-packed GF(2)).</p>
+<h4>Reproduction</h4>
+<p>GB on Z_195 with the polynomials in <code>codes/390-82-38.json</code> (provenance section). The weight-32 check rows are <code>circ(a) | circ(b)</code> with a(x) and b(x) weight-16 multiples of the reciprocal degree-41 divisor of x^195−1. The weight-20 variant (PR #270, same parameters at 5/8 the check weight) uses weight-10 polynomials from the same divisor pool, found by sweeping 339,893 light codeword classes and 1,403 intermediate-band pairs.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/390-82-38.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/126-18-14.html">[[126,18,14]] — 126-18-14</a></h3><div class=kv style="color:var(--mut)">2026-07-14 &middot; submission note &middot; <a href="https://github.com/willzeng">@willzeng</a> &middot; Claude Fable 5</div><details ><summary>note</summary><div class=notebody><h3>[[126,18,14]] — designed-divisor weight-10 GB on Z_63</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>First find of the designed-divisor track (see notes/258-32-22.md for the full campaign): weight-9plus cell, k pinned by a degree-9 divisor g | x^63−1 (k = 18), weight-5 multiples of g as supports.</p>
