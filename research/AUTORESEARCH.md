@@ -242,7 +242,10 @@ should not have to re-learn.
 - Labeled honestly: `confidence: upper_bound`; novelty vs literature flagged unverified;
   "advances this board cell," not "discovery."
 - **Staged for review — never committed to `codes/`, never a PR.** The human decides what lands
-  (and opens any PR — see `../CONTRIBUTING.md`).
+  (and opens any PR — see `../CONTRIBUTING.md`). This stage-only rule governs unattended
+  autoresearch runs; a contributor driving their own agent interactively submits under
+  `../CONTRIBUTING.md` instead ("Contribute with an LLM"), where the agent may open the PR
+  from the contributor's account.
 
 ## Output & housekeeping
 
