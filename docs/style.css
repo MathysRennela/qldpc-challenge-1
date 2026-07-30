@@ -380,6 +380,9 @@ vertical-align:middle}
    narrow screens (where the table sets its own min-width). */
 .boardscroll{max-height:64vh;overflow:auto;-webkit-overflow-scrolling:touch;
 border:1px solid var(--ln);border-radius:12px}
+/* "Show all" reveal for the collapsed mobile card list (issue #336);
+   desktop keeps the bounded scroll box and never needs it. */
+.showall{display:none}
 /* On screens tall enough to fit plots + legend + a useful slice of the table,
    size the explorer to exactly one viewport: plots and legend keep their
    natural height and the board's scroll box absorbs the remainder, so plots
@@ -405,6 +408,10 @@ table.board{min-width:0;font-size:13px;margin:12px 0}
 .board tr{border:1px solid var(--ln);border-radius:12px;margin:0 0 10px;
 padding:12px 14px 10px;background:var(--soft)}
 .board tr.fr{border-color:var(--ac)}
+.showall{display:block;width:100%;margin:2px 0 14px;padding:11px;
+font:inherit;font-size:14px;font-weight:600;color:var(--ac);
+background:var(--soft);border:1px solid var(--ln);border-radius:12px;
+cursor:pointer}
 .board td{display:flex;justify-content:space-between;align-items:baseline;
 gap:16px;padding:3px 0;border:0;white-space:normal;text-align:right}
 .board td::before{content:attr(data-label);color:var(--mut);flex:0 0 auto;
