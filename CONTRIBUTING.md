@@ -113,7 +113,8 @@ autoresearch manual, [`research/AUTORESEARCH.md`](research/AUTORESEARCH.md),
 whose stage-only rule (never commit to `codes/`, never open a PR) governs
 autonomous research runs where no human has reviewed the candidate yet. If
 your agent reads both documents: this section wins for a contributor-driven
-submission; AUTORESEARCH.md wins for an unattended search. The method follows IBM's LLM-guided
+submission; AUTORESEARCH.md wins for an unattended search. 
+The method follows IBM's LLM-guided
 evolutionary search for these codes (arXiv:2606.02418): the model mutates the
 program that generates a code, rather than tweaking numbers by hand.
 
