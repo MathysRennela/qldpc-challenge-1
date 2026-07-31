@@ -3,6 +3,32 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/128-12-16.html">[[128,12,16]] — 128-12-16</a></h3><div class=kv style="color:var(--mut)">2026-07-29 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Xiaomi MiMo-V2.5</div><details open><summary>note</summary><div class=notebody><h3>Note for [[128,12,16]]</h3>
+<h4>Direction and hypothesis</h4>
+<p>This run targeted the weight-9plus / unrestricted board cell with GAP-based 2BGA search over small-order groups, using the same screening funnel that had already produced several other candidate families. The hypothesis was that weight-8 supports on non-abelian groups could produce a code that beats the current frontier in this cell without requiring a more structured local layout.</p>
+<h4>What was searched</h4>
+<p>The candidate was generated from the GAP-based 2BGA sweep over orders 60-120 with support weight 8, using random supports and the repo&#x27;s screening pipeline. The sweep used the updated checkpoint/resume path so previously processed fingerprints were skipped, and the candidate was filtered through the standard surrogate-distance screening with the usual minimum thresholds for k and d.</p>
+<h4>Evidence trail</h4>
+<p>The candidate was screened as a promising hit and then validated with the repository&#x27;s trusted gate. The validator reported:</p>
+<ul>
+<li>verify: passed</li>
+<li>refute: no lighter logical found in 7620 RIS trials</li>
+<li>novelty: advances the weight-9plus × unrestricted board</li>
+</ul>
+<h4>Dead ends</h4>
+<p>The search also surfaced nearby weight-8 candidates that did not advance the board. In particular, the closely related [[128,20,14]] candidate was rejected by the validator as an exact duplicate of the existing board entry and did not advance its board cell. This is a useful reminder that strong-looking surrogate scores are not sufficient on their own.</p>
+<h4>Tools</h4>
+<ul>
+<li>GAP-based search pipeline</li>
+<li><code>gf2_fast</code> screening path</li>
+<li><code>verify/validate_candidate.py</code> for the trusted gate</li>
+</ul>
+<h4>Reproduction</h4>
+<p>The packaged code is stored at <code>codes/128-12-16.json</code>.</p>
+<h4>References</h4>
+<ul>
+<li>GAP4: The GAP Group, GAP – Groups, Algorithms, and Programming, Version 4.12.2; 2023. (https://www.gap-system.org)</li>
+</ul></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/128-12-16.md">raw markdown</a></div></details></section>
 <section class=blk><h3>GAP-enhanced 2BGA enumeration: 8 board-advancing codes from orders 60-120</h3><div class=kv style="color:var(--mut)">2026-07-29 &middot; fieldnote &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; MiMo-V2.5</div><details open><summary>note</summary><div class=notebody><h4>Summary</h4>
 <p>Systematic enumeration of all finite groups of orders 60–120 via GAP [GAP4], construction of two-block group-algebra (2BGA) codes [arXiv:2306.16400] with weight-4/5/6 random supports, and screening with the gf2_fast surrogate (~10ms/candidate). Two sweeps totalling ~56 orders, 1000+ groups, and ~10k candidates. 8 codes pass the gate and advance the weight-9plus × unrestricted board. All confirmed flat across 400 → 1M RIS trials.</p>
 <h5>Board-advancing codes</h5>
@@ -73,7 +99,7 @@ Hₓ = [Σ L(a) | Σ R(b)]   H_z = [Σ R(b)ᵀ | Σ L(a)ᵀ]   (mod 2)
 <p>Claude Opus 5 (matches <code>provenance.model</code>), layout campaign of 2026-07-25/26; basin-hopping optimizer over free positions; <code>verify/qldpc_verify.py</code> for locality verification.</p>
 <h4>Reproduction</h4>
 <p>Triangular 6.6.6 colour code, m = 2: n = 3m²+3m+1 = 19, d = 2m+1 = 5, H_X = H_Z = face-incidence matrix of the triangular patch (supports in <code>codes/19-1-5.json</code>); layout in <code>locality.coordinates</code>. Verify with <code>uv run python verify/qldpc_verify.py codes/19-1-5.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/19-1-5.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/37-1-7.html">[[37,1,7]] — 37-1-7</a></h3><div class=kv style="color:var(--mut)">2026-07-26 &middot; submission note &middot; <a href="https://github.com/FarLab">@FarLab</a> &middot; Claude Opus 5</div><details open><summary>note</summary><div class=notebody><h3>[[37,1,7]] — triangular 6.6.6 colour code, non-affine layout at r = 2·cos 15°</h3>
+<section class=blk><h3><a href="codes/37-1-7.html">[[37,1,7]] — 37-1-7</a></h3><div class=kv style="color:var(--mut)">2026-07-26 &middot; submission note &middot; <a href="https://github.com/FarLab">@FarLab</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[37,1,7]] — triangular 6.6.6 colour code, non-affine layout at r = 2·cos 15°</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>The larger of the colour-code pair (see the [[19,1,5]] note for the affine wall proof and search method). This size is the more informative test of the non-affine motif: it has genuine bulk — 18 weight-6 faces — so a compression below r = 2.0 here cannot be a boundary artifact. Result: the highest geometric efficiency on the board after the surface code (g = 0.3803, vs 0.3311 for the same code on the hexagonal lattice).</p>
 <h4>What was searched</h4>
