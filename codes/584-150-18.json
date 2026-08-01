@@ -4394,7 +4394,7 @@
   "d": 18,
   "X": {
    "value": 18,
-   "confidence": "upper_bound",
+   "confidence": "exact",
    "witness": [
     1,
     16,
@@ -4418,7 +4418,7 @@
   },
   "Z": {
    "value": 18,
-   "confidence": "upper_bound",
+   "confidence": "exact",
    "witness": [
     2,
     5,
