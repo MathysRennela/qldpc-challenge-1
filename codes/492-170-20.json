@@ -4606,7 +4606,7 @@
   "d": 20,
   "X": {
    "value": 20,
-   "confidence": "upper_bound",
+   "confidence": "exact",
    "witness": [
     1,
     16,
@@ -4632,7 +4632,7 @@
   },
   "Z": {
    "value": 20,
-   "confidence": "upper_bound",
+   "confidence": "exact",
    "witness": [
     5,
     12,
