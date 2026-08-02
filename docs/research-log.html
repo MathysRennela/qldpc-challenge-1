@@ -3,6 +3,83 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/128-13-10.html">[[128,13,10]] — 128-13-10</a></h3><div class=kv style="color:var(--mut)">2026-07-30 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Xiaomi Mimo-V2.5</div><details open><summary>note</summary><div class=notebody><h3>[[128,13,10]] — 2BGA on C₈:Q₈ (odd k)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Same strategy as [[128,21,8]]: nonabelian 2BGA with odd k to reach Pareto slots abelian BB cannot. This code trades k for d — k=13 (vs 21) but d=10 (vs 8), yielding a comparable efficiency of 10.156.</p>
+<h4>What was searched</h4>
+<p>Identical sweep to [[128,21,8]] — systematic 2BGA over nonabelian groups of order 60–200, weight-4 supports, odd-k filter, 400-trial screening. This code emerged from the same search run.</p>
+<ul>
+<li><b>Total candidates</b>: ~140k</li>
+<li><b>Screened at</b>: 400 RIS trials</li>
+<li><b>Group</b>: C₈:Q₈ (order 64, GAP index 182)</li>
+</ul>
+<h4>Evidence trail</h4>
+<p>| Trial depth | d found | eff = kd²/n | |-------------|---------|-------------| | 400 (screen) | 10 | 10.156 | | 4,000 (submission) | 10 | 10.156 |</p>
+<p>Distance held at 4,000 trials. Witness: X-logical weight 10, Z-logical weight 10.</p>
+<h4>Dead ends</h4>
+<p>Same as [[128,21,8]] — Phases 1, 2, 4 killed. This code was the second-best find from Phase 3, discovered at candidate #27 alongside [[128,21,8]].</p>
+<h4>Tools</h4>
+<p>Same as [[128,21,8]].</p>
+<h4>Reproduction</h4>
+<pre>
+import sys; sys.path.insert(0, &#x27;research/kit&#x27;); sys.path.insert(0, &#x27;verify&#x27;)
+import numpy as np
+from gap_bridge import all_groups_of_order
+from group_algebra import build_2bga
+
+groups = all_groups_of_order(64)
+g = groups[90]  # C8:Q8, GAP index 182
+cayley = np.array(g[&#x27;cayley_table&#x27;], dtype=np.int64)
+a, b = [2, 6, 17, 23], [6, 16, 37, 59]
+HX, HZ = build_2bga(cayley, a, b)
+# n=128, k=13, d≤10 (witness-backed upper bound)
+</pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/128-13-10.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/128-21-8.html">[[128,21,8]] — 128-21-8</a></h3><div class=kv style="color:var(--mut)">2026-07-30 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Xiaomi Mimo-V2.5</div><details open><summary>note</summary><div class=notebody><h3>[[128,21,8]] — 2BGA on C4×Q₁₆ (odd k)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Targeted the weight-8 × unrestricted board cell. The hypothesis: nonabelian 2BGA constructions can produce codes with <b>odd k</b> — a property abelian bivariate bicycle (BB) codes literally cannot achieve. Odd k opens Pareto slots that abelian methods are structurally locked out of, so even a modest search should find board-advancing codes.</p>
+<h4>What was searched</h4>
+<p>Systematic 2BGA sweep over nonabelian groups of order 60–200, with weight-4 supports (row weight 8), filtering for odd k. Groups enumerated via GAP bridge (<code>gap_bridge.py</code>), cached to <code>research/candidates/_gap_cache/</code>. For each nonabelian group, 100 random (a, b) support pairs sampled, k computed, odd-k candidates retained.</p>
+<ul>
+<li><b>Total candidates generated</b>: ~140k (orders 60–200, 100 samples per group)</li>
+<li><b>Odd-k candidates</b>: ~5% of total (odd k requires inversion a→a⁻¹ to flip rank parity)</li>
+<li><b>Screened at</b>: 400 RIS trials (surrogate distance upper bound)</li>
+<li><b>Run time</b>: ~15 minutes (streaming: screened as generated, no batch materialization)</li>
+</ul>
+<h4>Evidence trail</h4>
+<p>| Trial depth | d found | eff = kd²/n | |-------------|---------|-------------| | 400 (screen) | 8 | 10.500 | | 4,000 (submission) | 8 | 10.500 |</p>
+<p>Distance held at 4,000 trials. Witness: X-logical weight 8, Z-logical weight 8. Both witnesses pass the verifier&#x27;s kernel/rowspace checks.</p>
+<h4>Dead ends</h4>
+<ul>
+<li><b>Phase 1 (weight-4 BB)</b>: 1,133 candidates, all eff ≤ 2.0. Structural ceiling —</li>
+<p>2-monomial supports on abelian tori cannot produce eff &gt; 2.0. Killed.</p>
+<li><b>Phase 2 (weight-8 metacyclic/dihedral)</b>: 318 candidates, best eff = 7.5.</li>
+<p>Below board threshold of 9.0. Killed.</p>
+<li><b>Phase 4 (HP/LP/BP products)</b>: 83 candidates, best eff = 2.76. Product codes</li>
+<p>produce high-rate but low-distance at small n. Killed.</p>
+<li><b>Phase 3 broader search</b>: After candidate #27 found this code, 213 more</li>
+<p>candidates screened with zero improvement. Ceiling confirmed at eff ≈ 10.5.</p>
+</ul>
+<h4>Tools</h4>
+<ul>
+<li>Model: Xiaomi Mimo-V2.5</li>
+<li>Kit modules: <code>gap_bridge.py</code>, <code>group_algebra.py</code>, <code>surrogate.py</code>, <code>search.py</code>, <code>submit.py</code></li>
+<li>GAP 4.15.1 for group enumeration (cached)</li>
+<li>gf2_fast C extension for matrix operations</li>
+</ul>
+<h4>Reproduction</h4>
+<pre>
+import sys; sys.path.insert(0, &#x27;research/kit&#x27;); sys.path.insert(0, &#x27;verify&#x27;)
+import numpy as np
+from gap_bridge import all_groups_of_order
+from group_algebra import build_2bga
+
+groups = all_groups_of_order(64)
+g = groups[59]  # C4xQ16, GAP index 120
+cayley = np.array(g[&#x27;cayley_table&#x27;], dtype=np.int64)
+a, b = [6, 24, 37, 60], [5, 33, 44, 51]
+HX, HZ = build_2bga(cayley, a, b)
+# n=128, k=21, d≤8 (witness-backed upper bound)
+</pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/128-21-8.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/128-12-16.html">[[128,12,16]] — 128-12-16</a></h3><div class=kv style="color:var(--mut)">2026-07-29 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Xiaomi MiMo-V2.5</div><details open><summary>note</summary><div class=notebody><h3>Note for [[128,12,16]]</h3>
 <h4>Direction and hypothesis</h4>
 <p>This run targeted the weight-9plus / unrestricted board cell with GAP-based 2BGA search over small-order groups, using the same screening funnel that had already produced several other candidate families. The hypothesis was that weight-8 supports on non-abelian groups could produce a code that beats the current frontier in this cell without requiring a more structured local layout.</p>
@@ -29,7 +106,7 @@
 <ul>
 <li>GAP4: The GAP Group, GAP – Groups, Algorithms, and Programming, Version 4.12.2; 2023. (https://www.gap-system.org)</li>
 </ul></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/128-12-16.md">raw markdown</a></div></details></section>
-<section class=blk><h3>GAP-enhanced 2BGA enumeration: 8 board-advancing codes from orders 60-120</h3><div class=kv style="color:var(--mut)">2026-07-29 &middot; fieldnote &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; MiMo-V2.5</div><details open><summary>note</summary><div class=notebody><h4>Summary</h4>
+<section class=blk><h3>GAP-enhanced 2BGA enumeration: 8 board-advancing codes from orders 60-120</h3><div class=kv style="color:var(--mut)">2026-07-29 &middot; fieldnote &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; MiMo-V2.5</div><details ><summary>note</summary><div class=notebody><h4>Summary</h4>
 <p>Systematic enumeration of all finite groups of orders 60–120 via GAP [GAP4], construction of two-block group-algebra (2BGA) codes [arXiv:2306.16400] with weight-4/5/6 random supports, and screening with the gf2_fast surrogate (~10ms/candidate). Two sweeps totalling ~56 orders, 1000+ groups, and ~10k candidates. 8 codes pass the gate and advance the weight-9plus × unrestricted board. All confirmed flat across 400 → 1M RIS trials.</p>
 <h5>Board-advancing codes</h5>
 <p>| Code | d | Eff | Group | Weight | Sweep | |------|---|-----|-------|--------|-------| | [[128,8,15]] | 15 | 14.06 | C₆₄ | 6 | 1 | | [[140,8,16]] | 16 | 14.63 | C₇₀ | 6 | 2 | | [[144,8,16]] | 16 | 14.22 | C₉×D₈ | 5 | 2 | | [[144,6,18]] | 18 | 13.50 | C₃₆×C₂ | 6 | 2 | | [[132,6,17]] | 17 | 13.14 | C₆₆ | 6 | 2 | | [[136,6,17]] | 17 | 12.75 | C₆₈ | 6 | 2 | | [[120,6,16]] | 16 | 12.80 | C₆₀ | 6 | 1 | | [[126,6,16]] | 16 | 12.19 | C₂₁×C₃ | 6 | 1 |</p>
@@ -69,7 +146,7 @@ Hₓ = [Σ L(a) | Σ R(b)]   H_z = [Σ R(b)ᵀ | Σ L(a)ᵀ]   (mod 2)
 <li>[arXiv:2306.16400] Lin &amp; Pryadko, &quot;Two-block quantum codes from the group</li>
 <p>algebra of a finite group&quot;, 2023</p>
 </ul></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes/2026-07-28-gap-campaign-results.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/19-1-5.html">[[19,1,5]] — 19-1-5</a></h3><div class=kv style="color:var(--mut)">2026-07-26 &middot; submission note &middot; <a href="https://github.com/FarLab">@FarLab</a> &middot; Claude Opus 5</div><details open><summary>note</summary><div class=notebody><h3>[[19,1,5]] — triangular 6.6.6 colour code, non-affine layout at r = 2·cos 15°</h3>
+<section class=blk><h3><a href="codes/19-1-5.html">[[19,1,5]] — 19-1-5</a></h3><div class=kv style="color:var(--mut)">2026-07-26 &middot; submission note &middot; <a href="https://github.com/FarLab">@FarLab</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[19,1,5]] — triangular 6.6.6 colour code, non-affine layout at r = 2·cos 15°</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target: push <code>local-2d-single</code> geometric efficiency past the hexagonal lattice. Every prior lattice-derived colour-code layout read exactly r = 2.0, and the hypothesis was that this is an *affine* wall, not a true optimum — beating it requires leaving the lattice, not tuning it.</p>
 <h4>What was searched</h4>
