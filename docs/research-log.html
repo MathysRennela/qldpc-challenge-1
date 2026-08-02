@@ -3,6 +3,19 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/420-10-30.html">[[420,10,30]] — 420-10-30</a></h3><div class=kv style="color:var(--mut)">2026-08-02 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details open><summary>note</summary><div class=notebody><h3>[[420,10,30]] — 2BGA on the dihedral group D_105</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Advance the any-weight frontier at moderate block length with a two-block group-algebra code over a non-abelian group not yet on the board. The dihedral group D_105 (order 210, so n = 420) gives a large, structured, low-mined 2BGA family. Kept to moderate distance where the RIS surrogate is reliable.</p>
+<h4>What was searched</h4>
+<p>2BGA H_X = [L(a) | R(b)], H_Z = [R(b)^T | L(a)^T] over a roster of non-abelian groups (dicyclic, dihedral, metacyclic), random a, b with max check weight |a|+|b| &lt;= 12, screened by RIS distance and kept only when the code strictly dominates a board entry. This code: D_105, a weight 3, b weight 5, max check weight 8, k = 10.</p>
+<h4>Evidence trail</h4>
+<p>Witness-backed upper bound d &lt;= 30 (weight-30 logical on the Z side, weight-32 on the X side, so d = 30). Confirmed on the search machine at its heavy budget (80M x 3 fresh seeds, pair-depth 20) and re-confirmed here: a fresh 600k-trial RIS search independently returns d &lt;= 30. The verifier accepts the code.</p>
+<h4>Dead ends</h4>
+<p>High-distance / large-n variants of this construction over-estimate distance under light search and collapse under deeper search, so the search is confined to the moderate-distance regime where the bound is trustworthy.</p>
+<h4>Model &amp; harness</h4>
+<p>Found by a continual non-abelian 2BGA search (Claude Opus 4.8) on the repo&#x27;s gf2_fast RIS core; distance re-verified and the code re-run through verify/qldpc_verify.py during packaging.</p>
+<h4>Reproduction</h4>
+<p>Dihedral D_105 (order 210): rotation r of order 105, reflection s, elements r^i and r^i s. Build the 2BGA via research/kit/group_algebra.build_2bga(mul, a, b) with a = [52, 111, 36], b = [96, 147, 41, 97, 24] (element indices in the kit&#x27;s dihedral(105) enumeration) to obtain [[420,10,30]].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/420-10-30.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/240-12-12.html">[[240,12,12]] — 240-12-12</a></h3><div class=kv style="color:var(--mut)">2026-07-31 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details open><summary>note</summary><div class=notebody><h3>[[240,12,12]] — 2BGA on the dicyclic group Dic_30</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Advance the unrestricted, weight-6 frontier with two-block group-algebra codes over non-abelian dicyclic (generalized-quaternion) groups Dic_m of order 4m, a family not represented on the board. Kept to moderate distance, where the RIS distance surrogate is reliable and the claim is verifiable.</p>
@@ -31,7 +44,7 @@
 <p>Found by Claude Opus 4.8 driving a dicyclic-2BGA cell-dominance search on the repo&#x27;s gf2_fast RIS core; distances re-verified at 1M trials, then re-run through verify/qldpc_verify.py during packaging.</p>
 <h4>Reproduction</h4>
 <p>Group Dic_30 (order 120): a^{60} = 1, b^2 = a^{30}, b a b^-1 = a^-1; element (a^i b^j) at index 2i + j. Take a = [29, 95], b = [11, 27, 32, 58] as element indices and build the 2BGA via research/kit/products.lifted_product(mul, a, b) to obtain [[240,8,14]].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/240-8-14.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/240-8-20.html">[[240,8,20]] — 240-8-20</a></h3><div class=kv style="color:var(--mut)">2026-07-31 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details open><summary>note</summary><div class=notebody><h3>[[240,8,20]] — 2BGA on the dicyclic group Dic_30</h3>
+<section class=blk><h3><a href="codes/240-8-20.html">[[240,8,20]] — 240-8-20</a></h3><div class=kv style="color:var(--mut)">2026-07-31 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details ><summary>note</summary><div class=notebody><h3>[[240,8,20]] — 2BGA on the dicyclic group Dic_30</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target: advance the unrestricted, weight-8 frontier at moderate block length. The abelian and bivariate-bicycle families are heavily mined there, so I aimed at two-block group-algebra codes over non-abelian groups, and specifically the dicyclic (generalized-quaternion) groups Dic_m of order 4m, which are not represented on the board. The bet: at moderate distance (d in the teens-to-20 band) these reach efficiencies that dominate existing board entries, and, being low distance, the RIS surrogate is reliable enough to stand behind the claim.</p>
 <h4>What was searched</h4>
