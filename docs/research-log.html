@@ -625,4 +625,32 @@ Hₓ = [Σ L(a) | Σ R(b)]   H_z = [Σ R(b)ᵀ | Σ L(a)ᵀ]   (mod 2)
 </ul>
 <p>See also: the 2026-07-14 large-n calibration fieldnote — at n≈1000 even &quot;flat across 4k→16k&quot; is not convergence, and the CI refuter&#x27;s depth cannot catch inflation there.</p>
 <p>*Ported 2026-07-23 from <code>research/AUTORESEARCH.md</code>, &quot;Field notes from past campaigns (2026-06 → 2026-07)&quot;, where this experience was originally accumulated.*</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes/2026-07-01-trial-depth-floors.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/516-178-20.html">[[516,178,20]] — 516-178-20</a></h3><div class=kv style="color:var(--mut)">2026 &middot; submission note &middot; Okada and Koki and Kasai and Kenta</div><details ><summary>note</summary><div class=notebody><h3>[[516,178,20]] — pair-partition CPM CSS (Okada-Kasai arXiv:2607.14091)</h3>
+<p><b>Author:</b> @mathysrennela <b>Date:</b> 2026-08-02 <b>Status:</b> Literature baseline — exact distance certified</p>
+<h4>Source</h4>
+<p>Exact-distance CPM-based pair-partition CSS code from the paper&#x27;s catalogue, published on Kasai&#x27;s supplementary page (updated 2026-08-01):</p>
+<p>https://kasai.ict.eng.isct.ac.jp/pair_partition_cpm_css_codes_20260714.html</p>
+<p><b>Parameters:</b> J=4, L=12, P=43, girth 6, rate 0.345.</p>
+<h4>Distance certification (per Kasai)</h4>
+<ul>
+<li><b>X side:</b> 14,148 independently verified branch certificates completely</li>
+<p>exclude logical vectors through weight 18 (third-branch search).</p>
+<li><b>X weight-20 witness:</b> Published at</li>
+<p><code>distance_records/qc_516_178_20/distance_X_witness_w20.json</code>.</p>
+<li><b>Z side:</b> A verified CPM-affine X/Z coordinate isomorphism transfers</li>
+<p>the complete exclusion from X to Z. Published at <code>distance_records/qc_516_178_20/xz_affine_isomorphism.json</code>.</p>
+<li><b>Conclusion per paper:</b> d = 20 exactly on both CSS sides.</li>
+</ul>
+<h4>Reconstruction</h4>
+<p>CPM exponent files downloaded from Kasai&#x27;s website were expanded to binary H_X, H_Z using the CPM construction: H_X = (C(e_jl)), H_Z = (C(d_jl)) where C(s) is a P×P circulant permutation matrix with 1 at row i, column ((i - s) mod P). Row blocks follow the J×L CPM array convention.</p>
+<p><b>Verifier confirmation:</b></p>
+<ul>
+<li>CSS orthogonality H_X H_Z^T = 0: PASS</li>
+<li>Rank H_X = 169, rank H_Z = 169, k = 516 - 169 - 169 = 178: PASS</li>
+<li>X weight-20 witness in ker(H_Z), outside rowspace(H_X): PASS</li>
+<li>Z weight-20 witness in ker(H_X), outside rowspace(H_Z): PASS</li>
+<li>Refutation (8000 RIS trials): no lighter logical found: PASS</li>
+</ul>
+<h4>Other exact-distance PP codes in the paper&#x27;s catalogue</h4>
+<p>The same paper reports exact distances (certified via exhaustive lower-bound search) for: [[492,170,20]] (eff 117.5), [[584,150,18]] girth-8 (eff 84.1), [[472,122,16]] girth-8 (eff 64.2), [[970,392,16]] (eff 125.9), and others. Their witness data is in tar.gz archives on Kasai&#x27;s site; only [[516,178,20]] has a cleanly published witness JSON.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/516-178-20.md">raw markdown</a></div></details></section>
 </div></body></html>
