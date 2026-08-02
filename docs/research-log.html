@@ -104,6 +104,20 @@
 <li>Larger n gives more room for distance to grow, but costs more</li>
 <p>computation per code</p>
 </ul></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/270-54-10.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/88-8-7.html">[[88,8,7]] — 88-8-7</a></h3><div class=kv style="color:var(--mut)">2026-07-31 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details ><summary>note</summary><div class=notebody><h3>[[88,8,7]] — 2BGA on the dicyclic group Dic_11</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Advance the unrestricted, weight-6 frontier with two-block group-algebra codes over non-abelian dicyclic (generalized-quaternion) groups Dic_m of order 4m, a family not represented on the board. Kept to moderate distance, where the RIS distance surrogate is reliable and the claim is verifiable.</p>
+<h4>What was searched</h4>
+<p>2BGA H_X = [L(a) | R(b)], H_Z = [R(b)^T | L(a)^T] over small dicyclic and dihedral groups, random a, b with max check weight |a|+|b| &lt;= 12, screened at 40k RIS trials, keeping only codes that strictly dominate a board entry on (n, k, d, w). This code: Dic_11 (order 44, so n = 88), a weight 4, b weight 2, giving max check weight 6 and k = 8.</p>
+<h4>Evidence trail</h4>
+<p>Witness-backed upper bound d &lt;= 7, held under escalating RIS search rather than accepted at the screening budget: 40k trials -&gt; 7, 300k -&gt; 7, 1,000,000 (pair-depth 20) -&gt; 7, no lighter logical found. The value is stable across the range, so 7 is a tight bound at this scale. The verifier accepts the code at kd^2/n = 4.455.</p>
+<p>It strictly dominates these board codes (lower n, and/or higher k, and/or higher d, at no higher check weight): 128-8-6, 91-5-7, 112-6-7, 88-6-6.</p>
+<h4>Dead ends</h4>
+<p>High-distance variants of the same construction are not trustworthy on commodity hardware: at d ~ 30-40 the RIS surrogate over-estimates and collapses only under ~10^8-scale search. The search is confined to the low-to-moderate distance regime where the surrogate converges.</p>
+<h4>Model &amp; harness</h4>
+<p>Found by Claude Opus 4.8 driving a dicyclic-2BGA cell-dominance search on the repo&#x27;s gf2_fast RIS core; distances re-verified at 1M trials, then re-run through verify/qldpc_verify.py during packaging.</p>
+<h4>Reproduction</h4>
+<p>Group Dic_11 (order 44): a^{22} = 1, b^2 = a^{11}, b a b^-1 = a^-1; element (a^i b^j) at index 2i + j. Take a = [3, 5, 13, 43], b = [1, 21] as element indices and build the 2BGA via research/kit/products.lifted_product(mul, a, b) to obtain [[88,8,7]].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/88-8-7.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/128-13-10.html">[[128,13,10]] — 128-13-10</a></h3><div class=kv style="color:var(--mut)">2026-07-30 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Xiaomi Mimo-V2.5</div><details ><summary>note</summary><div class=notebody><h3>[[128,13,10]] — 2BGA on C₈:Q₈ (odd k)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Same strategy as [[128,21,8]]: nonabelian 2BGA with odd k to reach Pareto slots abelian BB cannot. This code trades k for d — k=13 (vs 21) but d=10 (vs 8), yielding a comparable efficiency of 10.156.</p>
