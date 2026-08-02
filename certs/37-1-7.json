@@ -1,0 +1,18 @@
+{
+ "name": "[[37,1,7]] triangular 6.6.6 colour code, single-layer 2D-local layout",
+ "d": 7,
+ "solver": "scipy/HiGHS MILP",
+ "sides": {
+  "X": {
+   "value": 7,
+   "exact": true,
+   "note": "no logical < 7 exists"
+  },
+  "Z": {
+   "value": 7,
+   "exact": true,
+   "note": "no logical < 7 exists"
+  }
+ },
+ "d_exact": true
+}

@@ -1,0 +1,18 @@
+{
+ "name": "[[15,7,3]] quantum Hamming code, single-layer 2D-local layout",
+ "d": 3,
+ "solver": "scipy/HiGHS MILP",
+ "sides": {
+  "X": {
+   "value": 3,
+   "exact": true,
+   "note": "no logical < 3 exists"
+  },
+  "Z": {
+   "value": 3,
+   "exact": true,
+   "note": "no logical < 3 exists"
+  }
+ },
+ "d_exact": true
+}
