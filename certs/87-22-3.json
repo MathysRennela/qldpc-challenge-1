@@ -1,0 +1,17 @@
+{
+ "d_exact": true,
+ "solver": "scipy/HiGHS MILP",
+ "sides": {
+  "X": {
+   "value": 3,
+   "exact": true,
+   "note": "no logical < 3 exists"
+  },
+  "Z": {
+   "value": 3,
+   "exact": true,
+   "note": "no logical < 3 exists"
+  }
+ },
+ "d": 3
+}
