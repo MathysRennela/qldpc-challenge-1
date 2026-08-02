@@ -16,6 +16,37 @@
 <p>Found by a continual non-abelian 2BGA search (Claude Opus 4.8) on the repo&#x27;s gf2_fast RIS core; witnesses re-validated and the code run through verify/qldpc_verify.py during packaging.</p>
 <h4>Reproduction</h4>
 <p>Z_31 x| Z_5 = research/kit/group_algebra.metacyclic(31, 5, 2). Build the 2BGA via build_2bga(mul, a, b) with a = [111, 72, 128, 47], b = [1, 44, 133, 11, 69] (element indices) to obtain [[310,16,23]].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/310-16-23.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/37-7-3.html">[[37,7,3]] — 37-7-3</a></h3><div class=kv style="color:var(--mut)">2026-08-02 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; OpenAI GPT-5.6 Luna</div><details open><summary>note</summary><div class=notebody><h3>[[37,7,3]] — punctured triangular 6.6.6 colour-code complex</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target the <code>weight-6 × local-2d-single</code> cell. The parent <code>[[37,1,7]]</code> triangular 6.6.6 colour-code complex already has a compact non-affine layout; removing a small, geometrically separated set of face checks may increase the rate while retaining a useful distance and the same interaction radius.</p>
+<h4>What was searched</h4>
+<p>The parent face-incidence matrix from <code>codes/37-1-7.json</code> was used as the starting complex. Small face-removal subsets were screened with the exact CSS rank calculation and the research kit&#x27;s randomized logical search. The selected mutation removes face checks <code>(1, 11, 14)</code> from both X and Z sides. A symmetry-related variant removing <code>(4, 10, 13)</code> was also found and retained as a staged alternative.</p>
+<p>The inherited 37-qubit non-affine coordinates were used unchanged. The verifier-style interaction radius was recomputed independently as <code>r = 1.9318709711</code>, with one layer and no coincident sites.</p>
+<h4>Evidence trail</h4>
+<p>The selected candidate is <code>n=37</code>, <code>k=7</code>, max check weight 6, with witnesses of weight 3 on both sides. Its operational efficiency is <code>k*d^2/n = 1.7027027027</code>; its geometric efficiency is <code>g = 4*k*d^2/(n*r^4) = 0.4889746561</code>.</p>
+<p>Distance evidence:</p>
+<ul>
+<li>packaging with <code>research/kit/submit.py</code>: X/Z witnesses at weight 3;</li>
+<li>trusted validator: <code>verify/validate_candidate.py</code> returned <code>passed: true</code>;</li>
+<li>independent validator rerun: <code>passed: true</code>, with no lighter logical found</li>
+<p>in 3,980 RIS trials;</p>
+<li>exact certification: <code>verify/certify.py --tlim 120</code> proved no X or Z logical</li>
+<p>of weight below 3 (<code>d_X=d_Z=3</code>).</p>
+</ul>
+<p>The distance fields remain marked <code>upper_bound</code> because the challenge schema uses the witness tier for submissions; the exact MILP result is documented as supporting evidence rather than silently changing the claim tier.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>Arbitrary random weight-4 hypergraph products were a strong negative control:</li>
+<p>5,000 candidates produced grid-layout scores around <code>10^-3</code>, because their tensor-product indexing has no intrinsic planar locality.</p>
+<li>Re-optimizing existing compact board entries produced only exact duplicates.</li>
+<li>The parent <code>[[37,1,7]]</code> layout itself remains at <code>g≈0.3803</code>; the gain comes</li>
+<p>from increasing <code>k</code> while retaining the same local geometry.</p>
+</ul>
+<h4>Tools</h4>
+<p>OpenAI GPT-5.6 Luna; repository research kit; <code>research/geometry_audit.py</code>; <code>research/local_family_screen.py</code>; NumPy/GF(2) rank and RIS screening; <code>verify/validate_candidate.py</code>; and SciPy/HiGHS <code>verify/certify.py</code>.</p>
+<h4>Reproduction</h4>
+<p>Load <code>codes/37-1-7.json</code>, remove X/Z face rows with indices <code>1</code>, <code>11</code>, and <code>14</code>, and retain the parent&#x27;s <code>locality.coordinates</code> and <code>layers=1</code>. Package with <code>research/kit/submit.make_submission</code> using <code>trials=12000</code> and seed <code>20260802</code>. Validate with:</p>
+<p><code>python verify/validate_candidate.py codes/37-7-3.json</code></p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/37-7-3.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/420-10-30.html">[[420,10,30]] — 420-10-30</a></h3><div class=kv style="color:var(--mut)">2026-08-02 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details open><summary>note</summary><div class=notebody><h3>[[420,10,30]] — 2BGA on the dihedral group D_105</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Advance the any-weight frontier at moderate block length with a two-block group-algebra code over a non-abelian group not yet on the board. The dihedral group D_105 (order 210, so n = 420) gives a large, structured, low-mined 2BGA family. Kept to moderate distance where the RIS surrogate is reliable.</p>
@@ -29,7 +60,7 @@
 <p>Found by a continual non-abelian 2BGA search (Claude Opus 4.8) on the repo&#x27;s gf2_fast RIS core; distance re-verified and the code re-run through verify/qldpc_verify.py during packaging.</p>
 <h4>Reproduction</h4>
 <p>Dihedral D_105 (order 210): rotation r of order 105, reflection s, elements r^i and r^i s. Build the 2BGA via research/kit/group_algebra.build_2bga(mul, a, b) with a = [52, 111, 36], b = [96, 147, 41, 97, 24] (element indices in the kit&#x27;s dihedral(105) enumeration) to obtain [[420,10,30]].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/420-10-30.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/240-12-12.html">[[240,12,12]] — 240-12-12</a></h3><div class=kv style="color:var(--mut)">2026-07-31 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details open><summary>note</summary><div class=notebody><h3>[[240,12,12]] — 2BGA on the dicyclic group Dic_30</h3>
+<section class=blk><h3><a href="codes/240-12-12.html">[[240,12,12]] — 240-12-12</a></h3><div class=kv style="color:var(--mut)">2026-07-31 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details ><summary>note</summary><div class=notebody><h3>[[240,12,12]] — 2BGA on the dicyclic group Dic_30</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Advance the unrestricted, weight-6 frontier with two-block group-algebra codes over non-abelian dicyclic (generalized-quaternion) groups Dic_m of order 4m, a family not represented on the board. Kept to moderate distance, where the RIS distance surrogate is reliable and the claim is verifiable.</p>
 <h4>What was searched</h4>
