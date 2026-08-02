@@ -306,7 +306,9 @@ padding:3px 0;color:var(--ink)}
 color:var(--ac);font-weight:700;flex:1 1 auto}
 .gitem .geff{font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}
 .gitem.ghide{display:none}
-.pt-geo .gitem[data-ref]{opacity:.45}
+/* Reference surface/toric tilings render with the same shading in both the
+   kd^2/n and g views; in the g view they are distinguished by sorting last
+   (JS) and by their tooltip, not by a colour change, so the two views match. */
 .ptbar{display:flex;justify-content:flex-end;margin:0 0 8px}
 .gempty{background:repeating-linear-gradient(45deg,#fafafa 0 6px,#fff 6px 12px)}
 .searchbar{display:flex;align-items:center;gap:12px;margin:14px 0 8px}
