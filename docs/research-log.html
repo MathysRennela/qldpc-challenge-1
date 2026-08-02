@@ -3,6 +3,72 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/270-54-10.html">[[270,54,10]] — 270-54-10</a></h3><div class=kv style="color:var(--mut)">2026-07-31 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Xiaomi Mimo-V2.5</div><details open><summary>note</summary><div class=notebody><h3>ZSZ-LP Filtered Search — Scaling Notes</h3>
+<p><b>Date:</b> 2026-07-31 <b>Author:</b> @mathysrennela <b>Model:</b> Xiaomi MiMo-V2.5 (via GitHub Copilot) <b>Status:</b> Pipeline works, but distance gap to board remains large <b>Related:</b> arXiv:2607.27644v1</p>
+<h4>What we built</h4>
+<p>A filtered search pipeline for ZSZ-LP codes (balanced product of classical ZSZ-2BGA codes over metacyclic groups), matching the paper&#x27;s Section 2.5 approach:</p>
+<p>1. <b>Enumerate ZSZ groups</b> ZSZ(ℓ1, ℓ2, q) with heuristic filters (not dihedral, ℓ1 ≫ ℓ2, q small). 2. <b>Classical pre-filter:</b> Generate random weight-3 trinomial pairs for left (a,b) and right (c,d) codes. Filter by Tanner girth ≥ 6 and estimated classical distance ≥ 4. 3. <b>Quantum filter:</b> Take pairwise balanced products, filter by quantum girth ≥ 4 and quantum distance ≥ 4. 4. <b>Rank</b> by efficiency k·d²/n.</p>
+<h4>Results (small run)</h4>
+<p>224 quantum survivors from 16 groups, 53 unique (n,k,d) combos.</p>
+<p><b>Best:</b> <code>[[270,54,12]]</code> from ZSZ(18,3,13), eff=28.80. <b>Board leaders</b> at n=270+: eff=89-304 (e.g. <code>[[390,82,38]]</code> eff=304).</p>
+<h4>The gap</h4>
+<p>Our quantum distance estimates (d=6-12) are much lower than the board&#x27;s best codes (d=14-38). The classical seed codes have high distance (d≥12-20), but the balanced product doesn&#x27;t preserve it. This is the fundamental challenge the paper addresses with its massive GPU-accelerated search.</p>
+<h4>Merits of this construction</h4>
+<ul>
+<li>Proving non-abelian group algebras produce constant-rate qLDPC at rate 1/5</li>
+<li>An example of filtered code search by trinomial sampling, girth filter,</li>
+<p>and cascading distance estimation.</p>
+</ul>
+<h4>How to scale further</h4>
+<h5>1. More candidates per group</h5>
+<ul>
+<li>Current: 30 left × 30 right = 900 pairs per group</li>
+<li>Paper: thousands of trinomial pairs per group</li>
+<li><b>Fix:</b> Increase <code>n_left</code> and <code>n_right</code> to 500-1000</li>
+</ul>
+<h5>2. Higher trial counts for distance estimation</h5>
+<ul>
+<li>Current: 50 classical, 100 quantum trials</li>
+<li>Paper: 10,000+ iterations of QDistEvol</li>
+<li><b>Fix:</b> Use <code>distance.py</code> (<code>exact_distance</code> via MILP or</li>
+<p><code>decoder_distance</code> via BP+OSD) for final candidates</p>
+<li>The <code>surrogate.distance_rand</code> is a cheap Monte Carlo upper bound —</li>
+<p>not a proof</p>
+</ul>
+<h5>3. Extend parameter ranges</h5>
+<ul>
+<li>Current: ℓ1 ∈ [10,20], ℓ2 ∈ [2,3]</li>
+<li>Paper: ℓ1 up to 31, ℓ2 up to 5, group orders up to 155</li>
+<li><b>Fix:</b> Widen ranges but skip groups with n &gt; 1000 (paper&#x27;s cutoff)</li>
+</ul>
+<h5>4. Better group selection heuristics</h5>
+<ul>
+<li>Paper favors groups with order coprime to 6 (eliminates order-2/3</li>
+<p>elements → better girth)</p>
+<li>Paper uses ℓ1 ≫ ℓ2 to keep the commutator-subgroup distance bound large</li>
+<li><b>Fix:</b> Add the coprime-to-6 heuristic to <code>_is_good_group()</code></li>
+</ul>
+<h5>5. Two-stage distance refinement</h5>
+<ul>
+<li>Stage 1: Cheap <code>distance_rand</code> with 200 trials (what we do now)</li>
+<li>Stage 2: For top candidates, run <code>decoder_distance</code> (BP+OSD) or</li>
+<p><code>exact_distance</code> (MILP) to confirm or improve the estimate</p>
+<li>This is what the paper does: QDistEvol for screening, pySATDist for</li>
+<p>confirmation</p>
+</ul>
+<h5>6. Parallelize the search</h5>
+<ul>
+<li>Each group is independent → embarrassingly parallel</li>
+<li>Use <code>multiprocessing</code> or run separate searches per group</li>
+<li>The <code>verbose=False</code> flag suppresses output for batch runs</li>
+</ul>
+<h5>7. Consider larger block lengths</h5>
+<ul>
+<li>The paper&#x27;s best codes are n=320-775</li>
+<li>Our search caps at n=5*ℓ1*ℓ2 ≤ 2000</li>
+<li>Larger n gives more room for distance to grow, but costs more</li>
+<p>computation per code</p>
+</ul></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/270-54-10.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/128-13-10.html">[[128,13,10]] — 128-13-10</a></h3><div class=kv style="color:var(--mut)">2026-07-30 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Xiaomi Mimo-V2.5</div><details open><summary>note</summary><div class=notebody><h3>[[128,13,10]] — 2BGA on C₈:Q₈ (odd k)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Same strategy as [[128,21,8]]: nonabelian 2BGA with odd k to reach Pareto slots abelian BB cannot. This code trades k for d — k=13 (vs 21) but d=10 (vs 8), yielding a comparable efficiency of 10.156.</p>
@@ -80,7 +146,7 @@ a, b = [6, 24, 37, 60], [5, 33, 44, 51]
 HX, HZ = build_2bga(cayley, a, b)
 # n=128, k=21, d≤8 (witness-backed upper bound)
 </pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/128-21-8.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/128-12-16.html">[[128,12,16]] — 128-12-16</a></h3><div class=kv style="color:var(--mut)">2026-07-29 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Xiaomi MiMo-V2.5</div><details open><summary>note</summary><div class=notebody><h3>Note for [[128,12,16]]</h3>
+<section class=blk><h3><a href="codes/128-12-16.html">[[128,12,16]] — 128-12-16</a></h3><div class=kv style="color:var(--mut)">2026-07-29 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Xiaomi MiMo-V2.5</div><details ><summary>note</summary><div class=notebody><h3>Note for [[128,12,16]]</h3>
 <h4>Direction and hypothesis</h4>
 <p>This run targeted the weight-9plus / unrestricted board cell with GAP-based 2BGA search over small-order groups, using the same screening funnel that had already produced several other candidate families. The hypothesis was that weight-8 supports on non-abelian groups could produce a code that beats the current frontier in this cell without requiring a more structured local layout.</p>
 <h4>What was searched</h4>
