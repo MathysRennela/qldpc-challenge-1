@@ -3,6 +3,29 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/100-20-8.html">[[100,20,8]] — 100-20-8</a></h3><div class=kv style="color:var(--mut)">2026-08-02 &middot; submission note &middot; <a href="https://github.com/yifanhong">@yifanhong</a> &middot; GPT 5.6 Sol</div><details open><summary>note</summary><div class=notebody><h3>[[100,20,8]] ZSZ-LP balanced-product code</h3>
+<p>Primary reference: <a href="https://arxiv.org/abs/2607.27644">arXiv:2607.27644v1</a>, Table 8 (Appendix A).</p>
+<h4>Direction &amp; hypothesis</h4>
+<p>The paper targets constant-rate, weight-9 qLDPC codes at block lengths below 1000. It builds a balanced product from two rate-1/2 classical ZSZ-2BGA codes over a non-abelian semidirect-product group. Non-abelian lifts avoid the constant-distance obstruction proved in the paper for abelian group algebras.</p>
+<h4>What was searched</h4>
+<p>This is a reproduction of a published candidate, not a new parameter search. The paper&#x27;s search pipeline was:</p>
+<ul>
+<li><b>Group selection:</b> fix a metacyclic group ZSZ(ℓ₁,ℓ₂,q) with q^ℓ₂ ≡ 1 (mod ℓ₁). Favor ℓ₁ ≫ ℓ₂ so the commutator-subgroup distance bound is not too small, and avoid group actions rich in low-order elements.</li>
+<li><b>Classical seed generation:</b> independently sample weight-3 group-algebra pairs (a,b) and (c,d), defining the rate-1/2 classical seed checks H_left=(L[a] L[b]) and H_right=(R[c] R[d]).</li>
+<li><b>Classical filtering:</b> apply the cheap filters first. Compute each seed&#x27;s Tanner girth, retain seeds meeting the chosen girth-6 or girth-8 threshold, then estimate classical distance with QDistEvol and retain seeds meeting the distance threshold. The search sometimes relaxed girth when the next-girth ensemble had substantially worse distance.</li>
+<li><b>Balanced product:</b> form pairwise products of surviving left and right seeds. Use different pairs on the two sides because the symmetric choice a=c and b=d forces quantum Tanner girth 4.</li>
+<li><b>Quantum filtering:</b> filter by both X- and Z-Tanner girth and count minimum-length cycles. Order survivors by short-cycle count, then run progressively deeper QDistEvol X/Z distance searches until candidates clear the target.</li>
+<li><b>Final confirmation:</b> recheck finalists with 1,000,000 QDistEvol iterations distributed over multiple CPUs, or use the pySATDist SAT solver for exact distance.</li>
+</ul>
+<p>The Appendix A candidate comes from the broader efficiency–length ensemble. That sweep enumerated ZSZ groups of order 12 through 200 (code lengths 60 through 1000), exhaustively considered presentations for n&lt;100, omitted the girth filters to favor distance, ranked the classical seeds by estimated distance, and formed every balanced product of the best 16 left and best 16 right seeds—at most 256 products per length. Quantum distances were screened with 20,000 QDistEvol iterations and near-frontier points were independently refined with at least 100,000 iterations.</p>
+<h4>Evidence trail</h4>
+<p>The parity checks were regenerated from the four published trinomials. GF(2) ranks reproduce k=20, and <code>H_X H_Z^T</code> has zero nonzero entries. Fresh QDistEvol runs found and independently checked a weight-8 X logical after 5000 iterations (seed 233684047) and a weight-8 Z logical after 5000 iterations (seed 2743683050). Each witness has zero commuting-check syndrome and increases the corresponding stabilizer rank by one. The submitted distance status is exact (pySATDist in the paper); exact claims remain upper bounds on the public board until challenge maintainers run server certification.</p>
+<h4>Dead ends</h4>
+<p>The reference reports three structural failure modes used to prune the search: abelian lifts have constant-distance logicals, choosing identical left/right trinomials forces Tanner girth 4, and small commutator subgroups bound constituent distance. The broad search also found that aggressive short-cycle minimization generally reduced distance, motivating separate efficiency-length and cycle-length ensembles.</p>
+<h4>Tools</h4>
+<p>Model/harness: GPT 5.6 Sol via OpenAI Codex. The reproduction used the paper&#x27;s Python ZSZ regular-representation/lifted-product implementation, <code>binar</code> for independent GF(2) ranks, and <code>codedistance</code> QDistEvol for fresh witnesses. The audit and packaging ran locally in the paper repository and a clean checkout of the qLDPC Challenge verifier.</p>
+<h4>Reproduction</h4>
+<p>Use ZSZ parameters (ell1, ell2, q)=(5, 4, 4) and group relation yx=x^4y. Set a=1+x^2y+y^3, b=1+x^2+xy^3, c=1+y^3+x^4y^3, d=1+x^4y^2+xy^3. Form H_left=(L[a] L[b]) and H_right=(R[c] R[d]), then use the five-block balanced-product matrices in arXiv:2607.27644v1. The submitted JSON contains the resulting sparse checks and logical witnesses.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/100-20-8.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/160-32-10.html">[[160,32,10]] — 160-32-10</a></h3><div class=kv style="color:var(--mut)">2026-08-02 &middot; submission note &middot; <a href="https://github.com/yifanhong">@yifanhong</a> &middot; GPT 5.6 Sol</div><details open><summary>note</summary><div class=notebody><h3>[[160,32,10]] ZSZ-LP balanced-product code</h3>
 <p>Primary reference: <a href="https://arxiv.org/abs/2607.27644">arXiv:2607.27644v1</a>, Table 1.</p>
 <h4>Direction &amp; hypothesis</h4>
@@ -39,7 +62,7 @@
 <p>Found by a continual non-abelian 2BGA search (Claude Opus 4.8) on the repo&#x27;s gf2_fast RIS core; witnesses re-validated and the code run through verify/qldpc_verify.py during packaging.</p>
 <h4>Reproduction</h4>
 <p>Z_31 x| Z_5 = research/kit/group_algebra.metacyclic(31, 5, 2). Build the 2BGA via build_2bga(mul, a, b) with a = [111, 72, 128, 47], b = [1, 44, 133, 11, 69] (element indices) to obtain [[310,16,23]].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/310-16-23.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/37-7-3.html">[[37,7,3]] — 37-7-3</a></h3><div class=kv style="color:var(--mut)">2026-08-02 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; OpenAI GPT-5.6 Luna</div><details open><summary>note</summary><div class=notebody><h3>[[37,7,3]] — punctured triangular 6.6.6 colour-code complex</h3>
+<section class=blk><h3><a href="codes/37-7-3.html">[[37,7,3]] — 37-7-3</a></h3><div class=kv style="color:var(--mut)">2026-08-02 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; OpenAI GPT-5.6 Luna</div><details ><summary>note</summary><div class=notebody><h3>[[37,7,3]] — punctured triangular 6.6.6 colour-code complex</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target the <code>weight-6 × local-2d-single</code> cell. The parent <code>[[37,1,7]]</code> triangular 6.6.6 colour-code complex already has a compact non-affine layout; removing a small, geometrically separated set of face checks may increase the rate while retaining a useful distance and the same interaction radius.</p>
 <h4>What was searched</h4>
