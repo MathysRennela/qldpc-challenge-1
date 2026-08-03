@@ -391,6 +391,7 @@ color:var(--ink)}}
 .lb{{margin:18px 0 8px;border:1px solid var(--ln);border-radius:14px;
 background:#fff;overflow:hidden}}
 .lbhead{{display:flex;justify-content:space-between;align-items:center;gap:16px;
+flex-wrap:wrap;
 padding:16px 20px;background:var(--soft);border-bottom:1px solid var(--ln)}}
 .lbh{{font-size:16px;margin:0;font-family:'Space Mono',ui-monospace,monospace;
 text-transform:uppercase;letter-spacing:.03em}}
@@ -443,6 +444,15 @@ a.lbm:hover b{{text-decoration:underline;color:var(--ac)}}
 .lbm b{{font-size:17px;font-variant-numeric:tabular-nums}}
 .lbml{{font-size:11px;color:var(--mut);margin-top:1px;white-space:nowrap}}
 .lbrow{{cursor:pointer}}
+/* Leaderboard metric toggle (issue #356): each row and the hero carry both
+   scores; the mode on the section picks which one is on show, and the crown
+   follows whoever is rank 1 in the active ranking. */
+.lb[data-mode=eff] .lbmgeo,.lb[data-mode=eff] .lbhgeo,
+.lb[data-mode=eff] .lbsgeo,.lb[data-mode=geo] .lbmeff,
+.lb[data-mode=geo] .lbheff,.lb[data-mode=geo] .lbseff{{display:none}}
+.lbmnone b{{color:var(--mut);font-weight:400}}
+.lbcrown{{display:none}}
+.lbrow.lbtop .lbcrown{{display:inline}}
 .qchip{{margin-left:12px;font:inherit;font-size:12.5px;border:1px solid #f59e0b;
 background:#fef3c7;color:#92400e;border-radius:999px;padding:3px 11px;
 cursor:pointer;vertical-align:3px}}
@@ -459,10 +469,12 @@ color:var(--mut)}}
 .rcbar{{display:flex;gap:14px;flex-wrap:wrap;margin:2px 0 10px}}
 .rcgroup{{display:inline-flex;gap:4px;border:1px solid var(--ln);
 border-radius:999px;padding:3px}}
-.rcbtn,.ptbtn{{border:0;background:none;font:inherit;font-size:12.5px;
+.rcbtn,.ptbtn,.lbbtn{{border:0;background:none;font:inherit;font-size:12.5px;
 color:var(--mut);padding:4px 11px;border-radius:999px;cursor:pointer}}
-.rcbtn.active,.ptbtn.active{{background:var(--ac);color:#fff}}
+.rcbtn.active,.ptbtn.active,.lbbtn.active{{background:var(--ac);color:#fff}}
 .rcbtn:hover:not(.active),.ptbtn:hover:not(.active){{background:var(--soft)}}
+/* the leaderboard header already sits on --soft, so its pills lift to white */
+.lbbtn:hover:not(.active){{background:#fff}}
 .cmodal{{border:none;border-radius:14px;padding:0;max-width:520px;width:92vw;
 box-shadow:0 24px 70px rgba(20,24,60,.35)}}
 .cmodal::backdrop{{background:rgba(18,20,34,.45)}}
@@ -472,8 +484,9 @@ border-bottom:1px solid var(--ln)}}
 .cmhead .cmh{{flex:1;font-weight:700}}
 .cmhead a{{color:var(--ac);text-decoration:none}}
 .cmhead a:hover{{text-decoration:underline}}
-.cmstats{{display:flex;gap:10px;padding:14px 20px}}
-.cmstat{{flex:1;border:1px solid var(--ln);border-radius:9px;padding:9px 11px}}
+.cmstats{{display:flex;flex-wrap:wrap;gap:10px;padding:14px 20px}}
+.cmstat{{flex:1 1 84px;border:1px solid var(--ln);border-radius:9px;
+padding:9px 11px}}
 .cmstat b{{display:block;font-size:18px;font-variant-numeric:tabular-nums}}
 .cmstat span{{font-size:10.5px;color:var(--mut);letter-spacing:.06em;
 text-transform:uppercase}}
@@ -1194,6 +1207,15 @@ GEO_MIN_D = 3   # headline eligibility: d = 2 tilings (a [[4,2,2]] block on
                 # codes with honest layouts sit far below 1 (Steane 0.32), but
                 # no theorem caps that band; raise this (or implement the
                 # d_min(w, rho) rule) if a small-d packing exploit shows up.
+
+
+def geo_reference(e):
+    """True for the seeded surface/toric/Steane tilings: the codes g is
+    normalized against. They are shown as the g = 1 ceiling rather than raced,
+    since a race that includes them freezes at their 1997 publication date.
+    Origin matters as much as family here: a topological code SUBMITTED to the
+    challenge is a contender, not the reference (issue #376)."""
+    return e["family"] == "topological" and e["origin"] == "baseline"
 
 
 def geo_score(doc, n, k, d, locality_class):
@@ -2037,7 +2059,23 @@ def contributors_panel(entries):
     authors of contributed (non-baseline) codes by the best kd2/n among their
     codes, then by how many sit on a track frontier, then by how many they have
     on the board. The seeded literature authors are not contributors and are
-    excluded."""
+    excluded.
+
+    A toggle re-ranks the same contributors by best geometric efficiency g
+    (issue #356). Both orderings are computed here and carried on each row as
+    data-erank / data-grank, so the client only has to reorder -- the two
+    comparators cannot drift apart. g eligibility matches the headline card
+    (verified layout, d >= GEO_MIN_D); contributors without an eligible code
+    show a dot and sort last, which is the honest reading: no layout shipped,
+    so no geometric claim."""
+
+    def geo_disp(g, tier):
+        """g inherited from an upper-bound distance is itself an upper bound.
+        Same 3-significant-digit display as the headline card and the board."""
+        if g is None:
+            return "&middot;"
+        return ("" if tier == "exact" else "&le;") + f"{g:.3g}"
+
     front_slugs = {entries[i]["slug"] for i in compute_records(entries)}
     stats = {}
     for e in entries:
@@ -2050,54 +2088,81 @@ def contributors_panel(entries):
             s = stats.setdefault(h.casefold(),
                                  {"codes": 0, "front": 0, "exact": 0,
                                   "eff": 0.0, "slug": None, "handle": h,
-                                  "list": []})
+                                  "geo": None, "geo_slug": None,
+                                  "geo_tier": None, "list": []})
             s["codes"] += 1
             s["front"] += e["slug"] in front_slugs
             s["exact"] += e["tier"] == "exact"
             s["list"].append({"name": f'[[{e["n"]},{e["k"]},{e["d"]}]]',
                               "slug": e["slug"], "eff": e["eff"],
+                              "geo": (geo_disp(e["geo"], e["tier"])
+                                      if e["geo"] is not None else None),
                               "w": e["w"], "date": e["date"],
                               "front": e["slug"] in front_slugs})
             if e["eff"] > s["eff"]:
                 s["eff"] = e["eff"]
                 s["slug"] = e["slug"]    # the code achieving the best kd^2/n
+            if (e["geo"] is not None and e["d"] >= GEO_MIN_D
+                    and (s["geo"] is None or e["geo"] > s["geo"])):
+                s["geo"] = e["geo"]
+                s["geo_slug"] = e["slug"]
+                s["geo_tier"] = e["tier"]
     if not stats:
         return ""
     order = sorted(stats.items(),
                    key=lambda kv: (-kv[1]["eff"], -kv[1]["front"],
                                    -kv[1]["codes"], kv[1]["handle"]))
+    # the g ordering: contributors with no eligible g fall to the bottom
+    geo_order = sorted(stats.items(),
+                       key=lambda kv: (kv[1]["geo"] is None,
+                                       -(kv[1]["geo"] or 0.0),
+                                       -kv[1]["front"], -kv[1]["codes"],
+                                       kv[1]["handle"]))
+    grank = {k: i for i, (k, _) in enumerate(geo_order, 1)}
+    n_geo = sum(1 for s in stats.values() if s["geo"] is not None)
     n_codes = sum(1 for e in entries if e["origin"] != "baseline")
 
-    def metric(v, lab, href=None, tip=""):
+    def metric(v, lab, href=None, tip="", cls=""):
         body = f'<b>{v}</b><span class=lbml>{lab}</span>'
+        k = f"lbm {cls}".strip()
         if href:
-            return (f'<a class=lbm href="{href}" title="{html.escape(tip)}">'
+            return (f'<a class="{k}" href="{href}" title="{html.escape(tip)}">'
                     f'{body}</a>')
-        return f'<span class=lbm>{body}</span>'
+        return f'<span class="{k}">{body}</span>'
 
     rows = []
-    for r, (_, s) in enumerate(order, 1):
+    for r, (key, s) in enumerate(order, 1):
         h = s["handle"]
-        crown = ' <span class=lbcrown title="top contributor">&#128081;</span>' \
-            if r == 1 else ''
         # identity links to the GitHub profile; the counts deep-link the board
-        # filtered to this handle; the best-kd^2/n number links to that code.
+        # filtered to this handle; the best-score numbers link to that code.
         qh = html.escape(f"?q={h}")
+        gtip = (f"{h}'s best geometric efficiency; the code achieving it"
+                if s["geo"] is not None else
+                f"{h} has no code with a verifier-accepted layout and "
+                f"d >= {GEO_MIN_D}, so no g")
         rows.append(
-            f'<div class=lbrow data-h="{html.escape(h)}">'
+            f'<div class="lbrow{" lbtop" if r == 1 else ""}" '
+            f'data-h="{html.escape(h)}" '
+            f'data-erank="{r}" data-grank="{grank[key]}">'
             f'<span class=lbrank>{r}</span>'
             f'<img class=lbav loading=lazy alt="" '
             f'src="https://github.com/{h[1:]}.png?size=64">'
             f'<span class=lbnamewrap><a class=lbname '
             f'href="https://github.com/{h[1:]}" title="GitHub profile">'
-            f'{html.escape(h)}</a>{crown}</span>'
+            f'{html.escape(h)}</a>'
+            ' <span class=lbcrown title="top contributor">&#128081;</span>'
+            '</span>'
             + metric(s["codes"], "codes", qh, f"all {h} codes on the board")
             + metric(s["front"], "on frontier",
                      html.escape(f"?q={h} record"), f"{h} frontier codes")
             + metric(s["exact"], "exact", qh, f"all {h} codes on the board")
             + metric(f'{s["eff"]:g}', "best kd&sup2;/n",
                      f'codes/{s["slug"]}.html' if s["slug"] else None,
-                     "the code achieving this")
+                     "the code achieving this", cls="lbmeff")
+            + metric(geo_disp(s["geo"], s["geo_tier"]), "best g",
+                     f'codes/{s["geo_slug"]}.html' if s["geo_slug"] else None,
+                     gtip, cls="lbmgeo" + ("" if s["geo"] is not None
+                                           else " lbmnone"))
             + '</div>')
     cmd = (f"git clone {REPO_ROOT}\n"
            "cd qldpc-challenge\n"
@@ -2132,24 +2197,40 @@ def contributors_panel(entries):
         'setTimeout(function(){c.textContent=o;},1200);});})();</script>'
         '</dialog>')
     # ecdsa.fail-style headline: the best score among contributed codes, with
-    # the code and holder it belongs to.
+    # the code and holder it belongs to. One per metric; the toggle shows the
+    # one matching the active ranking.
+    by_slug = {e["slug"]: e for e in entries}
+
+    def hero_card(holder, slug, value, extra, label, cls):
+        be = by_slug.get(slug)
+        if be is None:
+            return ""
+        dmark = "d=" if be["tier"] == "exact" else "d&le;"
+        return (f'<div class="lbscore {cls}"><div class=lbsl>{label}</div>'
+                f'<div class=lbsv>{value}</div>'
+                f'<div class=lbsd><a href="codes/{be["slug"]}.html">'
+                f'[[{be["n"]},{be["k"]},{be["d"]}]]</a> &middot; '
+                f'{dmark}{be["d"]} &middot; {extra} &middot; '
+                f'{html.escape(holder)}</div></div>')
+
     best = order[0][1]
-    best_entry = next((e for e in entries if e["slug"] == best["slug"]), None)
-    hero = ""
-    if best_entry:
-        be = best_entry
-        hero = (
-            '<div class=lbscore><div class=lbsl>best kd&sup2;/n</div>'
-            f'<div class=lbsv>{be["eff"]:g}</div>'
-            f'<div class=lbsd><a href="codes/{be["slug"]}.html">'
-            f'[[{be["n"]},{be["k"]},{be["d"]}]]</a> &middot; d&le;{be["d"]} '
-            f'&middot; w={be["w"]} &middot; {html.escape(best["handle"])}'
-            '</div></div>')
+    be = by_slug.get(best["slug"])
+    hero = hero_card(best["handle"], best["slug"], f'{best["eff"]:g}',
+                     f'w={be["w"]}' if be else "",
+                     "best kd&sup2;/n", "lbheff")
+    gbest = geo_order[0][1]
+    if gbest["geo"] is not None:
+        ge = by_slug.get(gbest["geo_slug"])
+        hero += hero_card(
+            gbest["handle"], gbest["geo_slug"],
+            geo_disp(gbest["geo"], gbest["geo_tier"]),
+            f'r={ge["geo_r"]:g} &middot; &rho;={ge["geo_rho"]}' if ge else "",
+            "best g", "lbhgeo")
     # Contributor modal: row click opens a summary card; inner links still
     # navigate (profile, filtered board, code pages).
     cdata = json.dumps({s["handle"]: {
         "codes": s["codes"], "front": s["front"], "exact": s["exact"],
-        "eff": s["eff"],
+        "eff": s["eff"], "geo": geo_disp(s["geo"], s["geo_tier"]),
         "list": sorted(s["list"], key=lambda c: -c["eff"])}
         for _, s in order})
     cmodal = (
@@ -2176,24 +2257,59 @@ def contributors_panel(entries):
         'var g=document.getElementById("cmgh");g.href="https://github.com/"+h.slice(1);'
         'document.getElementById("cmstats").innerHTML='
         '[["codes",s.codes],["on frontier",s.front],["exact",s.exact],'
-        '["best kd\\u00b2/n",s.eff]].map(function(p){'
+        '["best kd\\u00b2/n",s.eff],["best g",s.geo]].map(function(p){'
         'return "<div class=cmstat><b>"+p[1]+"</b><span>"+p[0]+"</span></div>";'
         '}).join("");'
         'document.getElementById("cmlist").innerHTML=s.list.map(function(c){'
         'return "<a class=cmrow href=\\"codes/"+c.slug+".html\\">"'
         '+"<span class=cmname>"+c.name+(c.front?" \\u2605":"")+"</span>"'
-        '+"<span class=cmeff>"+c.eff+" \\u00b7 w="+c.w+" \\u00b7 "+c.date+"</span></a>";'
+        '+"<span class=cmeff>"+c.eff+" \\u00b7 w="+c.w'
+        '+(c.geo!=null?" \\u00b7 g="+c.geo:"")+" \\u00b7 "+c.date+"</span></a>";'
         '}).join("");'
         'dlg.showModal();});});})();</script>')
-    return ('<section class=lb id=leaderboard><div class=lbhead>'
-            '<div><h2 class=lbh>Leaderboard</h2>'
-            f'<p class=lbsub>{len(order)} contributor'
-            f'{"" if len(order) == 1 else "s"} &middot; {n_codes} codes submitted '
-            'through the challenge</p></div>'
-            + hero +
+    # metric toggle (issue #356): same contributors, ranked by the other score.
+    toggle = ('<span class=rcgroup>'
+              '<button type=button class="lbbtn active" data-lb=eff '
+              'title="rank contributors by their best operational efficiency '
+              'kd&sup2;/n">kd&sup2;/n</button>'
+              '<button type=button class=lbbtn data-lb=geo '
+              'title="rank contributors by their best geometric efficiency g. '
+              'Needs a code with a verifier-accepted layout and d &ge; '
+              f'{GEO_MIN_D}">g</button></span>')
+    subs = (f'<p class=lbsub><span class=lbseff>{len(order)} contributor'
+            f'{"" if len(order) == 1 else "s"} &middot; {n_codes} codes '
+            'submitted through the challenge</span>'
+            f'<span class=lbsgeo>{n_geo} of {len(order)} contributor'
+            f'{"" if len(order) == 1 else "s"} have a code with a verified '
+            f'layout and d &ge; {GEO_MIN_D}</span></p>')
+    # Reordering only: both rankings are server-computed (data-erank /
+    # data-grank), so this cannot disagree with the Python comparators.
+    lbjs = ('<script>(function(){'
+            'var sec=document.getElementById("leaderboard");if(!sec)return;'
+            'var list=sec.querySelector(".lblist");'
+            'var rows=[].slice.call(list.querySelectorAll(".lbrow"));'
+            'function apply(m){'
+            'sec.dataset.mode=m;'
+            'var key=m==="geo"?"grank":"erank";'
+            'rows.slice().sort(function(a,b){'
+            'return (+a.dataset[key])-(+b.dataset[key]);})'
+            '.forEach(function(r,i){'
+            'r.querySelector(".lbrank").textContent=i+1;'
+            'r.classList.toggle("lbtop",i===0);'
+            'list.appendChild(r);});}'
+            'sec.querySelectorAll(".lbbtn").forEach(function(b){'
+            'b.addEventListener("click",function(){'
+            'sec.querySelectorAll(".lbbtn").forEach(function(x){'
+            'x.classList.remove("active");});'
+            'b.classList.add("active");apply(b.dataset.lb);});});'
+            '})();</script>')
+    return ('<section class=lb id=leaderboard data-mode=eff>'
+            '<div class=lbhead>'
+            f'<div><h2 class=lbh>Leaderboard</h2>{subs}</div>'
+            + toggle + hero +
             '</div>'
             f'<div class=lblist>{"".join(rows)}</div>'
-            + modal + cmodal +
+            + modal + cmodal + lbjs +
             '</section>')
 
 
@@ -2446,10 +2562,12 @@ function draw(){
  if(st.m==='record'&&st.s==='log'&&st.w==='all'&&st.y==='eff'){plot.innerHTML=init;leg.innerHTML=legInit;return;}
  var W=1040,H=300,pl=64,pr=(st.m==='model'?182:118),pb=30,pt=14;
  var data=windowed(); if(st.m!=='record')data=data.filter(function(r){return r.sub;});
- // f view: the surface/toric reference codes ARE the f=1 ceiling; keeping
- // them in the record race would freeze it at 1997. They become a dashed
- // reference line instead, and the series show everyone else's climb.
- if(st.y==='geo')data=data.filter(function(r){return r.geo!=null&&!r.topo;});
+ // f view: the seeded surface/toric reference tilings ARE the f=1 ceiling;
+ // keeping them in the record race would freeze it at 1997. They become a
+ // dashed reference line instead, and the series show everyone else's climb.
+ // r.ref is set by geo_reference() -- family AND baseline origin, so a
+ // submitted topological code still races (issue #376).
+ if(st.y==='geo')data=data.filter(function(r){return r.geo!=null&&!r.ref;});
  var series=[];
  if(st.m==='record'){
   S.forEach(function(s){series.push({lab:s[0],col:s[2],step:true,
@@ -2641,7 +2759,7 @@ def record_chart(entries):
     data = [{"t": e["date"], "eff": e["eff"], "geo": e["geo"], "n": e["n"],
              "k": e["k"], "d": e["d"], "w": e["w"], "slug": e["slug"],
              "model": (e["model"] or "human"),
-             "topo": e["family"] == "topological",
+             "ref": geo_reference(e),
              "sub": e["origin"] != "baseline"}
             for e in entries if e["date"]]
     rcjson = json.dumps(data)
@@ -2718,8 +2836,7 @@ def primary_tracks_grid(entries, records):
             # page by ~20% for items that can never become visible)
             by_geo = sorted((i for i in ranked
                              if entries[i]["geo"] is not None
-                             and not (entries[i]["family"] == "topological"
-                                      and entries[i]["origin"] == "baseline")),
+                             and not geo_reference(entries[i])),
                             key=lambda i: -entries[i]["geo"])
             keep = set(ranked[:topn]) | set(by_geo[:topn])
             ranked = [i for i in ranked if i in keep]
@@ -2732,8 +2849,7 @@ def primary_tracks_grid(entries, records):
                 # the seeded surface/toric/Steane tilings ARE the g = 1
                 # ceiling (same convention as the record chart); in g mode
                 # they rank below every submission, dimmed, as the reference
-                ref = (e["family"] == "topological"
-                       and e["origin"] == "baseline")
+                ref = geo_reference(e)
                 return (
                     f'<a class="gitem{" ghide" if pos >= topn else ""}" '
                     f'href="codes/{e["slug"]}.html" '
