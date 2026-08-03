@@ -88,6 +88,7 @@ color:var(--ink)}
 .lb{margin:18px 0 8px;border:1px solid var(--ln);border-radius:14px;
 background:#fff;overflow:hidden}
 .lbhead{display:flex;justify-content:space-between;align-items:center;gap:16px;
+flex-wrap:wrap;
 padding:16px 20px;background:var(--soft);border-bottom:1px solid var(--ln)}
 .lbh{font-size:16px;margin:0;font-family:'Space Mono',ui-monospace,monospace;
 text-transform:uppercase;letter-spacing:.03em}
@@ -140,6 +141,15 @@ a.lbm:hover b{text-decoration:underline;color:var(--ac)}
 .lbm b{font-size:17px;font-variant-numeric:tabular-nums}
 .lbml{font-size:11px;color:var(--mut);margin-top:1px;white-space:nowrap}
 .lbrow{cursor:pointer}
+/* Leaderboard metric toggle (issue #356): each row and the hero carry both
+   scores; the mode on the section picks which one is on show, and the crown
+   follows whoever is rank 1 in the active ranking. */
+.lb[data-mode=eff] .lbmgeo,.lb[data-mode=eff] .lbhgeo,
+.lb[data-mode=eff] .lbsgeo,.lb[data-mode=geo] .lbmeff,
+.lb[data-mode=geo] .lbheff,.lb[data-mode=geo] .lbseff{display:none}
+.lbmnone b{color:var(--mut);font-weight:400}
+.lbcrown{display:none}
+.lbrow.lbtop .lbcrown{display:inline}
 .qchip{margin-left:12px;font:inherit;font-size:12.5px;border:1px solid #f59e0b;
 background:#fef3c7;color:#92400e;border-radius:999px;padding:3px 11px;
 cursor:pointer;vertical-align:3px}
@@ -156,10 +166,12 @@ color:var(--mut)}
 .rcbar{display:flex;gap:14px;flex-wrap:wrap;margin:2px 0 10px}
 .rcgroup{display:inline-flex;gap:4px;border:1px solid var(--ln);
 border-radius:999px;padding:3px}
-.rcbtn,.ptbtn{border:0;background:none;font:inherit;font-size:12.5px;
+.rcbtn,.ptbtn,.lbbtn{border:0;background:none;font:inherit;font-size:12.5px;
 color:var(--mut);padding:4px 11px;border-radius:999px;cursor:pointer}
-.rcbtn.active,.ptbtn.active{background:var(--ac);color:#fff}
+.rcbtn.active,.ptbtn.active,.lbbtn.active{background:var(--ac);color:#fff}
 .rcbtn:hover:not(.active),.ptbtn:hover:not(.active){background:var(--soft)}
+/* the leaderboard header already sits on --soft, so its pills lift to white */
+.lbbtn:hover:not(.active){background:#fff}
 .cmodal{border:none;border-radius:14px;padding:0;max-width:520px;width:92vw;
 box-shadow:0 24px 70px rgba(20,24,60,.35)}
 .cmodal::backdrop{background:rgba(18,20,34,.45)}
@@ -169,8 +181,9 @@ border-bottom:1px solid var(--ln)}
 .cmhead .cmh{flex:1;font-weight:700}
 .cmhead a{color:var(--ac);text-decoration:none}
 .cmhead a:hover{text-decoration:underline}
-.cmstats{display:flex;gap:10px;padding:14px 20px}
-.cmstat{flex:1;border:1px solid var(--ln);border-radius:9px;padding:9px 11px}
+.cmstats{display:flex;flex-wrap:wrap;gap:10px;padding:14px 20px}
+.cmstat{flex:1 1 84px;border:1px solid var(--ln);border-radius:9px;
+padding:9px 11px}
 .cmstat b{display:block;font-size:18px;font-variant-numeric:tabular-nums}
 .cmstat span{font-size:10.5px;color:var(--mut);letter-spacing:.06em;
 text-transform:uppercase}
