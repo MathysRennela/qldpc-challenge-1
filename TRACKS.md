@@ -157,6 +157,16 @@ surface code to 1, but they answer different questions.
   rather than seeded (their distance witnesses are not published and the verifier
   does not certify distance at these sizes). The challenge is to land a code in
   this regime with a checkable distance witness.
+- High-rate, weight-9 (any connectivity): the mitten codes of Bhardwaj et al
+  (arXiv:2607.28795), non-abelian lifted-product codes at 20% rate, reach
+  [[300,60,14]] (kd^2/n ~ 39.2) and [[540,108,18]] (kd^2/n ~ 64.8) at n <= 700,
+  and [[975,195,<=24]] beyond the cap. Cited as bars for now rather than seeded:
+  the construction is fully specified (a 1x2 base matrix over F_2[G] for a
+  non-abelian group G, per their Definition 4), and the per-code group and
+  generators are published in the paper's tables and open-source toolkit, so a
+  faithful reconstruction with a checkable witness is possible and is tracked as
+  follow-up (#377). The paper evaluates these at the circuit level (logical error
+  rate under noise), not by kd^2/n.
 
 ## Baselines and provenance
 
