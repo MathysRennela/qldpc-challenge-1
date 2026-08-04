@@ -3283,9 +3283,9 @@
  },
  "provenance": {
   "authors": [
-   "Claude-autoresearch",
    "@FarLab"
   ],
+  "model": "Claude Opus 4.8",
   "construction": "2BGA on metacyclic group (n=16, k=10, r=7), a=[56, 72, 46, 104], b=[54, 60, 152, 11]",
   "references": [
    "autoresearch sweep 2026-07-02"
