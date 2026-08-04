@@ -158,15 +158,17 @@ surface code to 1, but they answer different questions.
   does not certify distance at these sizes). The challenge is to land a code in
   this regime with a checkable distance witness.
 - High-rate, weight-9 (any connectivity): the mitten codes of Bhardwaj et al
-  (arXiv:2607.28795), non-abelian lifted-product codes at 20% rate, reach
-  [[300,60,14]] (kd^2/n ~ 39.2) and [[540,108,18]] (kd^2/n ~ 64.8) at n <= 700,
-  and [[975,195,<=24]] beyond the cap. Cited as bars for now rather than seeded:
-  the construction is fully specified (a 1x2 base matrix over F_2[G] for a
-  non-abelian group G, per their Definition 4), and the per-code group and
-  generators are published in the paper's tables and open-source toolkit, so a
-  faithful reconstruction with a checkable witness is possible and is tracked as
-  follow-up (#377). The paper evaluates these at the circuit level (logical error
-  rate under noise), not by kd^2/n.
+  (arXiv:2607.28795), non-abelian lifted-product codes at 20% rate. Six of the
+  paper's eight processor codes fit under the n <= 700 cap and are seeded as
+  baselines (#377): [[150,30,10]], [[200,40,12]], [[300,60,14]],
+  [[500,100,16]], [[540,108,18]] and [[630,126,<=20]], reaching kd^2/n ~ 20 to
+  80. The remaining two exceed the cap and stay bars only: [[780,156,<=22]]
+  (kd^2/n ~ 96.8) and [[975,195,<=24]] (~115.2). The construction is fully
+  specified (a 1x2 base matrix over F_2[G] for a non-abelian G, their
+  Definition 4) and the authors publish their check matrices, so the seeded
+  entries are reconstructions checked against the authors' own matrices rather
+  than parameter claims. Note the paper evaluates these at the circuit level
+  (logical error rate under noise), not by kd^2/n.
 
 ## Baselines and provenance
 
