@@ -3,6 +3,19 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/128-12-8.html">[[128,12,8]] — 128-12-8</a></h3><div class=kv style="color:var(--mut)">2026-08-04 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details open><summary>note</summary><div class=notebody><h3>[[128,12,8]] — 2BGA on the metacyclic Z_16 x| Z_4 group</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Advance the low-blocklength frontier with a two-block group-algebra code over a non-abelian group. Small n and modest distance were chosen deliberately: this is the regime where the RIS distance surrogate converges, so the claim is verifiable rather than an optimistic upper bound.</p>
+<h4>What was searched</h4>
+<p>2BGA H_X = [L(a) | R(b)], H_Z = [R(b)^T | L(a)^T] over a roster of dicyclic, dihedral and metacyclic groups, sampling a, b with bounded check weight and keeping only codes that strictly dominate an existing board entry in their (locality, weight) cell. This code sits on the metacyclic Z_16 x| Z_4 group with max check weight 6.</p>
+<h4>Evidence trail</h4>
+<p>Witness-backed upper bound d &lt;= 8, with an explicit weight-8 logical on each side. The code was rebuilt from its group data and re-witnessed independently of the search, and a deeper RIS pass returned the same distance rather than a lower one. verify/qldpc_verify.py accepts it at kd^2/n = 6.0. It strictly dominates 4 existing board entries.</p>
+<h4>Dead ends</h4>
+<p>The same search at high distance is not trustworthy: candidates screening near d ~ 40 collapsed under deeper search (one [[390,82,41]] screen resolved to 38 at 20M reads, matching the incumbent rather than beating it). Everything submitted here is confined to the low-distance regime where repeated deeper passes agree.</p>
+<h4>Model &amp; harness</h4>
+<p>Found by a continual non-abelian 2BGA dominance search (Claude Opus 4.8) built on the repo&#x27;s own research/kit group-algebra constructors and the gf2_fast RIS core; rebuilt, re-witnessed, and run through verify/qldpc_verify.py during packaging.</p>
+<h4>Reproduction</h4>
+<p>Build the group with research/kit/group_algebra (dicyclic presentation a^{2m}=1, b^2=a^m, bab^-1=a^-1 for Dic_m; metacyclic(p,k,r) otherwise), then build the 2BGA via build_2bga(mul, a, b) with the a, b element-index lists recorded in the code file to obtain [[128,12,8]].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/128-12-8.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/240-14-18.html">[[240,14,18]] — 240-14-18</a></h3><div class=kv style="color:var(--mut)">2026-08-04 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details open><summary>note</summary><div class=notebody><h3>[[240,14,18]] — 2BGA on the dicyclic group Dic_30</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Advance the weight-8 frontier with a two-block group-algebra code over the dicyclic (generalized-quaternion) group Dic_30, a low-mined non-abelian family. Moderate distance, where the RIS surrogate is reliable and the claim verifiable.</p>
@@ -16,7 +29,33 @@
 <p>Found by a continual dicyclic-2BGA dominance search (Claude Opus 4.8) on the repo&#x27;s gf2_fast RIS core; distance re-verified, rebuilt and re-witnessed, and run through verify/qldpc_verify.py during packaging.</p>
 <h4>Reproduction</h4>
 <p>Dic_30 (order 120): a^{60}=1, b^2=a^{30}, b a b^-1 = a^-1. Build the 2BGA via research/kit/group_algebra.build_2bga(mul, a, b) with the a, b element-index lists in the code file to obtain [[240,14,18]].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/240-14-18.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/192-12-16.html">[[192,12,16]] — 192-12-16</a></h3><div class=kv style="color:var(--mut)">2026-08-03 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details open><summary>note</summary><div class=notebody><h3>[[192,12,16]] — 2BGA on the dicyclic group Dic_24</h3>
+<section class=blk><h3><a href="codes/64-16-6.html">[[64,16,6]] — 64-16-6</a></h3><div class=kv style="color:var(--mut)">2026-08-04 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details open><summary>note</summary><div class=notebody><h3>[[64,16,6]] — 2BGA on the metacyclic Z_16 x| Z_2 group</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Advance the low-blocklength frontier with a two-block group-algebra code over a non-abelian group. Small n and modest distance were chosen deliberately: this is the regime where the RIS distance surrogate converges, so the claim is verifiable rather than an optimistic upper bound.</p>
+<h4>What was searched</h4>
+<p>2BGA H_X = [L(a) | R(b)], H_Z = [R(b)^T | L(a)^T] over a roster of dicyclic, dihedral and metacyclic groups, sampling a, b with bounded check weight and keeping only codes that strictly dominate an existing board entry in their (locality, weight) cell. This code sits on the metacyclic Z_16 x| Z_2 group with max check weight 10.</p>
+<h4>Evidence trail</h4>
+<p>Witness-backed upper bound d &lt;= 6, with an explicit weight-6 logical on each side. The code was rebuilt from its group data and re-witnessed independently of the search, and a deeper RIS pass returned the same distance rather than a lower one. verify/qldpc_verify.py accepts it at kd^2/n = 9.0. It strictly dominates 1 existing board entries.</p>
+<h4>Dead ends</h4>
+<p>The same search at high distance is not trustworthy: candidates screening near d ~ 40 collapsed under deeper search (one [[390,82,41]] screen resolved to 38 at 20M reads, matching the incumbent rather than beating it). Everything submitted here is confined to the low-distance regime where repeated deeper passes agree.</p>
+<h4>Model &amp; harness</h4>
+<p>Found by a continual non-abelian 2BGA dominance search (Claude Opus 4.8) built on the repo&#x27;s own research/kit group-algebra constructors and the gf2_fast RIS core; rebuilt, re-witnessed, and run through verify/qldpc_verify.py during packaging.</p>
+<h4>Reproduction</h4>
+<p>Build the group with research/kit/group_algebra (dicyclic presentation a^{2m}=1, b^2=a^m, bab^-1=a^-1 for Dic_m; metacyclic(p,k,r) otherwise), then build the 2BGA via build_2bga(mul, a, b) with the a, b element-index lists recorded in the code file to obtain [[64,16,6]].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/64-16-6.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/72-8-7.html">[[72,8,7]] — 72-8-7</a></h3><div class=kv style="color:var(--mut)">2026-08-04 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details ><summary>note</summary><div class=notebody><h3>[[72,8,7]] — 2BGA on the dicyclic Dic_9 group</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Advance the low-blocklength frontier with a two-block group-algebra code over a non-abelian group. Small n and modest distance were chosen deliberately: this is the regime where the RIS distance surrogate converges, so the claim is verifiable rather than an optimistic upper bound.</p>
+<h4>What was searched</h4>
+<p>2BGA H_X = [L(a) | R(b)], H_Z = [R(b)^T | L(a)^T] over a roster of dicyclic, dihedral and metacyclic groups, sampling a, b with bounded check weight and keeping only codes that strictly dominate an existing board entry in their (locality, weight) cell. This code sits on the dicyclic Dic_9 group with max check weight 6.</p>
+<h4>Evidence trail</h4>
+<p>Witness-backed upper bound d &lt;= 7, with an explicit weight-7 logical on each side. The code was rebuilt from its group data and re-witnessed independently of the search, and a deeper RIS pass returned the same distance rather than a lower one. verify/qldpc_verify.py accepts it at kd^2/n = 5.4. It strictly dominates 6 existing board entries.</p>
+<h4>Dead ends</h4>
+<p>The same search at high distance is not trustworthy: candidates screening near d ~ 40 collapsed under deeper search (one [[390,82,41]] screen resolved to 38 at 20M reads, matching the incumbent rather than beating it). Everything submitted here is confined to the low-distance regime where repeated deeper passes agree.</p>
+<h4>Model &amp; harness</h4>
+<p>Found by a continual non-abelian 2BGA dominance search (Claude Opus 4.8) built on the repo&#x27;s own research/kit group-algebra constructors and the gf2_fast RIS core; rebuilt, re-witnessed, and run through verify/qldpc_verify.py during packaging.</p>
+<h4>Reproduction</h4>
+<p>Build the group with research/kit/group_algebra (dicyclic presentation a^{2m}=1, b^2=a^m, bab^-1=a^-1 for Dic_m; metacyclic(p,k,r) otherwise), then build the 2BGA via build_2bga(mul, a, b) with the a, b element-index lists recorded in the code file to obtain [[72,8,7]].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/72-8-7.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/192-12-16.html">[[192,12,16]] — 192-12-16</a></h3><div class=kv style="color:var(--mut)">2026-08-03 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details ><summary>note</summary><div class=notebody><h3>[[192,12,16]] — 2BGA on the dicyclic group Dic_24</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Advance the weight-8 frontier with a two-block group-algebra code over the non-abelian dicyclic (generalized-quaternion) group Dic_24, a low-mined family. Moderate distance, where the RIS surrogate is reliable and the claim verifiable.</p>
 <h4>What was searched</h4>
@@ -29,7 +68,7 @@
 <p>Found by a continual dicyclic-2BGA dominance search (Claude Opus 4.8) on the repo&#x27;s gf2_fast RIS core; rebuilt, re-witnessed, and run through verify/qldpc_verify.py during packaging.</p>
 <h4>Reproduction</h4>
 <p>Dic_24 (order 96): a^{96}=1, b^2=a^{48}, b a b^-1 = a^-1. Build the 2BGA via research/kit/group_algebra.build_2bga(mul, a, b) with the a, b element-index lists in the code file to obtain [[192,12,16]].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/192-12-16.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/280-10-20.html">[[280,10,20]] — 280-10-20</a></h3><div class=kv style="color:var(--mut)">2026-08-03 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details open><summary>note</summary><div class=notebody><h3>[[280,10,20]] — 2BGA on the dicyclic group Dic_35</h3>
+<section class=blk><h3><a href="codes/280-10-20.html">[[280,10,20]] — 280-10-20</a></h3><div class=kv style="color:var(--mut)">2026-08-03 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details ><summary>note</summary><div class=notebody><h3>[[280,10,20]] — 2BGA on the dicyclic group Dic_35</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Advance the weight-8 frontier with a two-block group-algebra code over the non-abelian dicyclic (generalized-quaternion) group Dic_35, a low-mined family. Moderate distance, where the RIS surrogate is reliable and the claim verifiable.</p>
 <h4>What was searched</h4>
@@ -87,7 +126,13 @@
 <h4>Tools</h4>
 <p>Model/harness: GPT 5.6 Sol via OpenAI Codex. The reproduction used the paper&#x27;s Python ZSZ regular-representation/lifted-product implementation, <code>binar</code> for independent GF(2) ranks, and <code>codedistance</code> QDistEvol for fresh witnesses. The audit and packaging ran locally in the paper repository and a clean checkout of the qLDPC Challenge verifier.</p>
 <h4>Reproduction</h4>
-<p>Use ZSZ parameters (ell1, ell2, q)=(15, 2, 11) and group relation yx=x^11y. Set a=1+x^11+x^12y, b=1+y+x^6y, c=1+x^3+x^11, d=1+x^6+x^14y. Form H_left=(L[a] L[b]) and H_right=(R[c] R[d]), then use the five-block balanced-product matrices in arXiv:2607.27644v1. The submitted JSON contains the resulting sparse checks and logical witnesses.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/150-30-10.md">raw markdown</a></div></details></section>
+<p>Use ZSZ parameters (ell1, ell2, q)=(15, 2, 11) and group relation yx=x^11y. Set a=1+x^11+x^12y, b=1+y+x^6y, c=1+x^3+x^11, d=1+x^6+x^14y. Form H_left=(L[a] L[b]) and H_right=(R[c] R[d]), then use the five-block balanced-product matrices in arXiv:2607.27644v1. The submitted JSON contains the resulting sparse checks and logical witnesses.</p>
+<h4>Independently rediscovered as a mitten code</h4>
+<p>The mitten codes of <a href="https://arxiv.org/abs/2607.28795">arXiv:2607.28795</a> (Bhardwaj et al., Table I) include a [[150,30,10]] weight-9 instance built as a lifted product over C5 x S3. The challenge verifier&#x27;s Weisfeiler-Leman dedup gate flags it as equivalent to this entry, so the two papers, published within days of each other in July 2026, arrived at the same code up to relabeling.</p>
+<p>The reason is that the two groups are the same. Writing Z15 = Z3 x Z5 by CRT, the action x -&gt; 11x of this entry&#x27;s ZSZ(15,2,11) splits across the factors: 11 = -1 (mod 3) inverts the 3-part, and 11 = 1 (mod 5) fixes the 5-part (with 11^2 = 1 mod 15, so the order-2 action is valid). Hence</p>
+<p>Z15 x|_11 Z2  =  (Z3 x|_-1 Z2) x Z5  =  S3 x C5,</p>
+<p>which is the mitten group. Independently: both tables have order 30, are non-abelian, and share the element-order profile (1:1, 2:3, 3:2, 5:4, 10:12, 15:8); the three involutions alone identify C5 x S3 among the four groups of order 30 (D30 has 15, C3 x D10 has 5, C30 is abelian).</p>
+<p>So the balanced/lifted product over ZSZ(15,2,11) and the mitten lifted product over C5 x S3 are the same construction in different notation. This entry keeps priority; the mitten seeding of arXiv:2607.28795 therefore contributes five codes to the board rather than six (issue #377).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/150-30-10.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/160-32-10.html">[[160,32,10]] — 160-32-10</a></h3><div class=kv style="color:var(--mut)">2026-08-02 &middot; submission note &middot; <a href="https://github.com/yifanhong">@yifanhong</a> &middot; GPT 5.6 Sol</div><details ><summary>note</summary><div class=notebody><h3>[[160,32,10]] ZSZ-LP balanced-product code</h3>
 <p>Primary reference: <a href="https://arxiv.org/abs/2607.27644">arXiv:2607.27644v1</a>, Table 1.</p>
 <h4>Direction &amp; hypothesis</h4>

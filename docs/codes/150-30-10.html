@@ -52,7 +52,13 @@
 <h4>Tools</h4>
 <p>Model/harness: GPT 5.6 Sol via OpenAI Codex. The reproduction used the paper&#x27;s Python ZSZ regular-representation/lifted-product implementation, <code>binar</code> for independent GF(2) ranks, and <code>codedistance</code> QDistEvol for fresh witnesses. The audit and packaging ran locally in the paper repository and a clean checkout of the qLDPC Challenge verifier.</p>
 <h4>Reproduction</h4>
-<p>Use ZSZ parameters (ell1, ell2, q)=(15, 2, 11) and group relation yx=x^11y. Set a=1+x^11+x^12y, b=1+y+x^6y, c=1+x^3+x^11, d=1+x^6+x^14y. Form H_left=(L[a] L[b]) and H_right=(R[c] R[d]), then use the five-block balanced-product matrices in arXiv:2607.27644v1. The submitted JSON contains the resulting sparse checks and logical witnesses.</p></div></section>
+<p>Use ZSZ parameters (ell1, ell2, q)=(15, 2, 11) and group relation yx=x^11y. Set a=1+x^11+x^12y, b=1+y+x^6y, c=1+x^3+x^11, d=1+x^6+x^14y. Form H_left=(L[a] L[b]) and H_right=(R[c] R[d]), then use the five-block balanced-product matrices in arXiv:2607.27644v1. The submitted JSON contains the resulting sparse checks and logical witnesses.</p>
+<h4>Independently rediscovered as a mitten code</h4>
+<p>The mitten codes of <a href="https://arxiv.org/abs/2607.28795">arXiv:2607.28795</a> (Bhardwaj et al., Table I) include a [[150,30,10]] weight-9 instance built as a lifted product over C5 x S3. The challenge verifier&#x27;s Weisfeiler-Leman dedup gate flags it as equivalent to this entry, so the two papers, published within days of each other in July 2026, arrived at the same code up to relabeling.</p>
+<p>The reason is that the two groups are the same. Writing Z15 = Z3 x Z5 by CRT, the action x -&gt; 11x of this entry&#x27;s ZSZ(15,2,11) splits across the factors: 11 = -1 (mod 3) inverts the 3-part, and 11 = 1 (mod 5) fixes the 5-part (with 11^2 = 1 mod 15, so the order-2 action is valid). Hence</p>
+<p>Z15 x|_11 Z2  =  (Z3 x|_-1 Z2) x Z5  =  S3 x C5,</p>
+<p>which is the mitten group. Independently: both tables have order 30, are non-abelian, and share the element-order profile (1:1, 2:3, 3:2, 5:4, 10:12, 15:8); the three involutions alone identify C5 x S3 among the four groups of order 30 (D30 has 15, C3 x D10 has 5, C30 is abelian).</p>
+<p>So the balanced/lifted product over ZSZ(15,2,11) and the mitten lifted product over C5 x S3 are the same construction in different notation. This entry keeps priority; the mitten seeding of arXiv:2607.28795 therefore contributes five codes to the board rather than six (issue #377).</p></div></section>
 <section class=blk><h3>Parity checks</h3>
 <div class=kv><b>X-checks</b> 60 &middot; <b style="min-width:auto">Z-checks</b> 60</div>
 <details><summary>H_X (60 checks, sparse supports)</summary><div class=wit>[0, 7, 8, 60, 61, 79, 120, 126, 142]
