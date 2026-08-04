@@ -1039,6 +1039,22 @@ Hₓ = [Σ L(a) | Σ R(b)]   H_z = [Σ R(b)ᵀ | Σ L(a)ᵀ]   (mod 2)
 </ul>
 <h4>Verifier confirmation</h4>
 <p>CSS orthogonality, rank (161+161), witness validity, refutation all pass.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/492-170-20.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/500-100-16.html">[[500,100,16]] — 500-100-16</a></h3><div class=kv style="color:var(--mut)">2026 &middot; submission note &middot; Bhardwaj and Aditya and Ma and Muzhou and Meister and Nadine and King and Robbie and Bluvstein and Dolev and Preskill and John and Cain and Madelyn and Xu and Qian and Huang and Hsin-Yuan</div><details ><summary>note</summary><div class=notebody><h3>[[500,100,16]] — literature baseline (mitten code, Bhardwaj–Ma et al.)</h3>
+<h4>Why this entry exists</h4>
+<p>Baseline seeding per issue #377: arXiv:2607.28795 introduces mitten codes, a family of non-abelian lifted product codes with guaranteed 20% encoding rate and check weight 9. This is the fourth of the paper&#x27;s eight processor codes (Table I). None of the family was on the board.</p>
+<h4>Reproduction (the actual work)</h4>
+<p>Mitten code = LP(A,B) per the paper&#x27;s Definition 4: G a non-abelian group, A = [a0|a1], B = [b0|b1] over F2[G] with a1, b1 containing the identity; H_X = [[L(a0),0,L(a1),0,R(b0*)],[0,L(a0),0,L(a1),R(b1*)]], H_Z = [[R(b0),R(b1),0,0,L(a0*)],[0,0,R(b0),R(b1),L(a1*)]], where L(g)b(h)=b(gh), R(g)b(h)=b(hg⁻¹) (Definition 8) and * inverts each group element. n = 5|G|, k = |G|.</p>
+<p>For this code G = SmallGroup(100,9) = C5⋊C20 and Table XIII lists a0={19,84,87}, a1={0,75,78}, b0={39,45,71}, b1={0,7,77} as 0-based indices into Elements(G). Rebuilding from these generators under the GAP <code>Elements(SmallGroup(100,9))</code> ordering (libgap/GAP 4.x) reproduces the authors&#x27; published check matrices <b>bit-for-bit</b> (github.com/a7b/yarn @ 82fb695, <code>processor_codes/mitten/[[500,100,16]]/</code>), which are the matrices used here.</p>
+<p><b>Cross-checks:</b> CSS holds, k = 100, max check weight 9, and the repo&#x27;s shipped canonical logical basis Lx/Lz commutes with the checks with row weights exactly Table I&#x27;s wt(Lx)/wt(Lz) = 28/24.</p>
+<h4>Evidence trail</h4>
+<p>Witnesses at weight 16 both sides (kit RIS via <code>make_submission</code>, 20000 trials/side), matching the paper&#x27;s exact d = 16 (their sQetch + BP+OSD estimator stack; not MILP-certified here — claim is upper_bound). Independent BP+OSD decoder pass (60k trials): nothing lighter. validate_candidate: passed, refutation found nothing lighter.</p>
+<h4>Dead ends / tips</h4>
+<ul>
+<li>pdftotext garbles Table XIII&#x27;s ‖ separators; the numbers themselves are</li>
+<p>clean (page 92 of the v1 PDF).</p>
+<li>The yarn repo also ships the five surgery gadgets per code</li>
+<p>(<code>gadgets/*.npz</code>) — not used here, but useful for future circuit-level verification (the issue&#x27;s Level-II discussion).</p>
+</ul></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/500-100-16.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/516-178-20.html">[[516,178,20]] — 516-178-20</a></h3><div class=kv style="color:var(--mut)">2026 &middot; submission note &middot; Okada and Koki and Kasai and Kenta</div><details ><summary>note</summary><div class=notebody><h3>[[516,178,20]] — pair-partition CPM CSS (Okada-Kasai arXiv:2607.14091)</h3>
 <p><b>Author:</b> @mathysrennela <b>Date:</b> 2026-08-02 <b>Status:</b> Literature baseline — exact distance certified</p>
 <h4>Source</h4>
