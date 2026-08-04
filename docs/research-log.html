@@ -3,6 +3,19 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/144-16-8.html">[[144,16,8]] — 144-16-8</a></h3><div class=kv style="color:var(--mut)">2026-08-05 &middot; submission note &middot; <a href="https://github.com/cbjuan">@cbjuan</a> &middot; Claude Opus 4.6 + GPT-5.3-Codex + Gemini 3.1 Pro Preview</div><details open><summary>note</summary><div class=notebody><h3>[[144,16,8]] — mixed-monomial BB, MILP-exact d=8</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Campaign 4 extended our search from weight-3 trinomials to 4-6 term mixed-monomial polynomials (terms x^a y^b combining both variables in one factor, not just pure-x or pure-y), aiming to escape the d&lt;=8 ceiling that weight-6 trinomial families showed at small (ell,m). Found by our LLM-guided evolutionary search (<a href="https://arxiv.org/abs/2606.02418">arXiv:2606.02418</a>, Campaign 4 ensemble: Claude Opus 4.6 + GPT-5.3-Codex + Gemini 3.1 Pro Preview).</p>
+<h4>What was searched</h4>
+<p>300 iterations x 750 population (server run, 64-core), mixed-monomial ansatz seed allowing 4-6 term A/B pairs at (ell,m) up to (15,12); screened via BP-OSD_0 then promoted to exact MILP. This code: A(x,y) = 1 + xy + x^5y^5, B(x,y) = 1 + xy^11 + x^5y^7 over F_2[x,y]/(x^6-1, y^12-1) — a weight-3/3 mixed-monomial pair (6 terms total, within the ansatz&#x27;s 4-6 term budget).</p>
+<h4>Evidence trail</h4>
+<p>MILP-exact (<code>evaluation/distance_milp.py</code>) proved d=8 exactly: all 32 logical operators checked, 0 left as unproven incumbents, ~129s wall-clock. Claim: <b>exact, d=8</b>.</p>
+<h4>Dead ends</h4>
+<p>Many mixed-monomial candidates at this (ell,m) that screened well under BP-OSD_0 turned out to have d=2 once run through MILP (the A=B trap extends qualitatively to near-uniform mixed-monomial pairs, though the formal proof in our paper is for exact A=B trinomials). Several higher-k variants at the same lattice collapsed to d=4-6.</p>
+<h4>Tools</h4>
+<p>Claude Opus 4.6 + GPT-5.3-Codex + Gemini 3.1 Pro Preview ensemble, openevolve harness, <code>evaluation/bb_code.py</code> + <code>evaluation/distance_milp.py</code> from <a href="https://github.com/qiskit-community/qcode-discovery">qcode-discovery</a>. 64-core server.</p>
+<h4>Reproduction</h4>
+<p>Bivariate bicycle at (ell,m)=(6,12): A = {(0,0),(1,1),(5,5)}, B = {(0,0),(1,11),(5,7)}. Construction string matches <code>codes/144-16-8.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/144-16-8.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/360-16-14.html">[[360,16,14]] — 360-16-14</a></h3><div class=kv style="color:var(--mut)">2026-08-05 &middot; submission note &middot; <a href="https://github.com/cbjuan">@cbjuan</a> &middot; Claude Opus 4.6 + GPT-5.2 + Gemini 3 Pro Preview</div><details open><summary>note</summary><div class=notebody><h3>[[360,16,14]] — x/y-swap trinomial BB, MILP-exact d=14</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Bivariate bicycle (BB) codes at (ell,m)=(15,12) targeting the x/y-swap trinomial family (A = x^a + y^b + y^c, B = y^d + x^e + x^f), the only weight-6 trinomial family in our search that reaches d &gt;= 6. This code was found by our LLM-guided evolutionary search described in <a href="https://arxiv.org/abs/2606.02418">arXiv:2606.02418</a> (ensemble Campaign 2-3 run: Claude Opus 4.6 + GPT-5.2 + Gemini 3 Pro Preview mutating a Python program that generates (A, B) exponent-tuple pairs).</p>
@@ -29,7 +42,7 @@
 <p>Found by a continual non-abelian 2BGA dominance search (Claude Opus 4.8) built on the repo&#x27;s own research/kit group-algebra constructors and the gf2_fast RIS core; rebuilt, re-witnessed, and run through verify/qldpc_verify.py during packaging.</p>
 <h4>Reproduction</h4>
 <p>Build the group with research/kit/group_algebra (dicyclic presentation a^{2m}=1, b^2=a^m, bab^-1=a^-1 for Dic_m; metacyclic(p,k,r) otherwise), then build the 2BGA via build_2bga(mul, a, b) with the a, b element-index lists recorded in the code file to obtain [[128,12,8]].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/128-12-8.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/240-14-18.html">[[240,14,18]] — 240-14-18</a></h3><div class=kv style="color:var(--mut)">2026-08-04 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details open><summary>note</summary><div class=notebody><h3>[[240,14,18]] — 2BGA on the dicyclic group Dic_30</h3>
+<section class=blk><h3><a href="codes/240-14-18.html">[[240,14,18]] — 240-14-18</a></h3><div class=kv style="color:var(--mut)">2026-08-04 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details ><summary>note</summary><div class=notebody><h3>[[240,14,18]] — 2BGA on the dicyclic group Dic_30</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Advance the weight-8 frontier with a two-block group-algebra code over the dicyclic (generalized-quaternion) group Dic_30, a low-mined non-abelian family. Moderate distance, where the RIS surrogate is reliable and the claim verifiable.</p>
 <h4>What was searched</h4>
