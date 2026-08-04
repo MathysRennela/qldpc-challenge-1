@@ -3,6 +3,32 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/192-12-16.html">[[192,12,16]] — 192-12-16</a></h3><div class=kv style="color:var(--mut)">2026-08-03 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details open><summary>note</summary><div class=notebody><h3>[[192,12,16]] — 2BGA on the dicyclic group Dic_24</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Advance the weight-8 frontier with a two-block group-algebra code over the non-abelian dicyclic (generalized-quaternion) group Dic_24, a low-mined family. Moderate distance, where the RIS surrogate is reliable and the claim verifiable.</p>
+<h4>What was searched</h4>
+<p>2BGA H_X = [L(a) | R(b)], H_Z = [R(b)^T | L(a)^T] over a roster of dicyclic, dihedral and metacyclic groups, random a, b with bounded check weight, kept only when the code strictly dominates a board entry in its cell. This code: Dic_24, max check weight 8, k = 12.</p>
+<h4>Evidence trail</h4>
+<p>Witness-backed upper bound d &lt;= 16 (weight-16 witness on each side). Found on the search machine at its heavy budget and rebuilt + re-witnessed here; the verifier accepts it at kd^2/n = 16.0.</p>
+<h4>Dead ends</h4>
+<p>High-distance variants of this construction over-estimate distance under light search and collapse under deeper search (a sibling [[310,16,29]] screen fell to &lt;= 25 under 2M trials), so the search is confined to the moderate-distance regime where the bound is trustworthy.</p>
+<h4>Model &amp; harness</h4>
+<p>Found by a continual dicyclic-2BGA dominance search (Claude Opus 4.8) on the repo&#x27;s gf2_fast RIS core; rebuilt, re-witnessed, and run through verify/qldpc_verify.py during packaging.</p>
+<h4>Reproduction</h4>
+<p>Dic_24 (order 96): a^{96}=1, b^2=a^{48}, b a b^-1 = a^-1. Build the 2BGA via research/kit/group_algebra.build_2bga(mul, a, b) with the a, b element-index lists in the code file to obtain [[192,12,16]].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/192-12-16.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/280-10-20.html">[[280,10,20]] — 280-10-20</a></h3><div class=kv style="color:var(--mut)">2026-08-03 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details open><summary>note</summary><div class=notebody><h3>[[280,10,20]] — 2BGA on the dicyclic group Dic_35</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Advance the weight-8 frontier with a two-block group-algebra code over the non-abelian dicyclic (generalized-quaternion) group Dic_35, a low-mined family. Moderate distance, where the RIS surrogate is reliable and the claim verifiable.</p>
+<h4>What was searched</h4>
+<p>2BGA H_X = [L(a) | R(b)], H_Z = [R(b)^T | L(a)^T] over a roster of dicyclic, dihedral and metacyclic groups, random a, b with bounded check weight, kept only when the code strictly dominates a board entry in its cell. This code: Dic_35, max check weight 8, k = 10.</p>
+<h4>Evidence trail</h4>
+<p>Witness-backed upper bound d &lt;= 20 (weight-20 witness on each side). Found on the search machine at its heavy budget and rebuilt + re-witnessed here; the verifier accepts it at kd^2/n = 14.3.</p>
+<h4>Dead ends</h4>
+<p>High-distance variants of this construction over-estimate distance under light search and collapse under deeper search (a sibling [[310,16,29]] screen fell to &lt;= 25 under 2M trials), so the search is confined to the moderate-distance regime where the bound is trustworthy.</p>
+<h4>Model &amp; harness</h4>
+<p>Found by a continual dicyclic-2BGA dominance search (Claude Opus 4.8) on the repo&#x27;s gf2_fast RIS core; rebuilt, re-witnessed, and run through verify/qldpc_verify.py during packaging.</p>
+<h4>Reproduction</h4>
+<p>Dic_35 (order 140): a^{140}=1, b^2=a^{70}, b a b^-1 = a^-1. Build the 2BGA via research/kit/group_algebra.build_2bga(mul, a, b) with the a, b element-index lists in the code file to obtain [[280,10,20]].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/280-10-20.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/100-20-8.html">[[100,20,8]] — 100-20-8</a></h3><div class=kv style="color:var(--mut)">2026-08-02 &middot; submission note &middot; <a href="https://github.com/yifanhong">@yifanhong</a> &middot; GPT 5.6 Sol</div><details open><summary>note</summary><div class=notebody><h3>[[100,20,8]] ZSZ-LP balanced-product code</h3>
 <p>Primary reference: <a href="https://arxiv.org/abs/2607.27644">arXiv:2607.27644v1</a>, Table 8 (Appendix A).</p>
 <h4>Direction &amp; hypothesis</h4>
@@ -26,7 +52,7 @@
 <p>Model/harness: GPT 5.6 Sol via OpenAI Codex. The reproduction used the paper&#x27;s Python ZSZ regular-representation/lifted-product implementation, <code>binar</code> for independent GF(2) ranks, and <code>codedistance</code> QDistEvol for fresh witnesses. The audit and packaging ran locally in the paper repository and a clean checkout of the qLDPC Challenge verifier.</p>
 <h4>Reproduction</h4>
 <p>Use ZSZ parameters (ell1, ell2, q)=(5, 4, 4) and group relation yx=x^4y. Set a=1+x^2y+y^3, b=1+x^2+xy^3, c=1+y^3+x^4y^3, d=1+x^4y^2+xy^3. Form H_left=(L[a] L[b]) and H_right=(R[c] R[d]), then use the five-block balanced-product matrices in arXiv:2607.27644v1. The submitted JSON contains the resulting sparse checks and logical witnesses.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/100-20-8.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/150-30-10.html">[[150,30,10]] — 150-30-10</a></h3><div class=kv style="color:var(--mut)">2026-08-02 &middot; submission note &middot; <a href="https://github.com/yifanhong">@yifanhong</a> &middot; GPT 5.6 Sol</div><details open><summary>note</summary><div class=notebody><h3>[[150,30,10]] ZSZ-LP balanced-product code</h3>
+<section class=blk><h3><a href="codes/150-30-10.html">[[150,30,10]] — 150-30-10</a></h3><div class=kv style="color:var(--mut)">2026-08-02 &middot; submission note &middot; <a href="https://github.com/yifanhong">@yifanhong</a> &middot; GPT 5.6 Sol</div><details ><summary>note</summary><div class=notebody><h3>[[150,30,10]] ZSZ-LP balanced-product code</h3>
 <p>Primary reference: <a href="https://arxiv.org/abs/2607.27644">arXiv:2607.27644v1</a>, Table 8 (Appendix A).</p>
 <h4>Direction &amp; hypothesis</h4>
 <p>The paper targets constant-rate, weight-9 qLDPC codes at block lengths below 1000. It builds a balanced product from two rate-1/2 classical ZSZ-2BGA codes over a non-abelian semidirect-product group. Non-abelian lifts avoid the constant-distance obstruction proved in the paper for abelian group algebras.</p>
@@ -49,7 +75,7 @@
 <p>Model/harness: GPT 5.6 Sol via OpenAI Codex. The reproduction used the paper&#x27;s Python ZSZ regular-representation/lifted-product implementation, <code>binar</code> for independent GF(2) ranks, and <code>codedistance</code> QDistEvol for fresh witnesses. The audit and packaging ran locally in the paper repository and a clean checkout of the qLDPC Challenge verifier.</p>
 <h4>Reproduction</h4>
 <p>Use ZSZ parameters (ell1, ell2, q)=(15, 2, 11) and group relation yx=x^11y. Set a=1+x^11+x^12y, b=1+y+x^6y, c=1+x^3+x^11, d=1+x^6+x^14y. Form H_left=(L[a] L[b]) and H_right=(R[c] R[d]), then use the five-block balanced-product matrices in arXiv:2607.27644v1. The submitted JSON contains the resulting sparse checks and logical witnesses.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/150-30-10.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/160-32-10.html">[[160,32,10]] — 160-32-10</a></h3><div class=kv style="color:var(--mut)">2026-08-02 &middot; submission note &middot; <a href="https://github.com/yifanhong">@yifanhong</a> &middot; GPT 5.6 Sol</div><details open><summary>note</summary><div class=notebody><h3>[[160,32,10]] ZSZ-LP balanced-product code</h3>
+<section class=blk><h3><a href="codes/160-32-10.html">[[160,32,10]] — 160-32-10</a></h3><div class=kv style="color:var(--mut)">2026-08-02 &middot; submission note &middot; <a href="https://github.com/yifanhong">@yifanhong</a> &middot; GPT 5.6 Sol</div><details ><summary>note</summary><div class=notebody><h3>[[160,32,10]] ZSZ-LP balanced-product code</h3>
 <p>Primary reference: <a href="https://arxiv.org/abs/2607.27644">arXiv:2607.27644v1</a>, Table 1.</p>
 <h4>Direction &amp; hypothesis</h4>
 <p>The paper targets constant-rate, weight-9 qLDPC codes at block lengths below 1000. It builds a balanced product from two rate-1/2 classical ZSZ-2BGA codes over a non-abelian semidirect-product group. Non-abelian lifts avoid the constant-distance obstruction proved in the paper for abelian group algebras.</p>
