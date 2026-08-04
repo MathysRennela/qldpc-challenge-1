@@ -1037,6 +1037,22 @@ Hₓ = [Σ L(a) | Σ R(b)]   H_z = [Σ R(b)ᵀ | Σ L(a)ᵀ]   (mod 2)
 </ul>
 <p>See also: the 2026-07-14 large-n calibration fieldnote — at n≈1000 even &quot;flat across 4k→16k&quot; is not convergence, and the CI refuter&#x27;s depth cannot catch inflation there.</p>
 <p>*Ported 2026-07-23 from <code>research/AUTORESEARCH.md</code>, &quot;Field notes from past campaigns (2026-06 → 2026-07)&quot;, where this experience was originally accumulated.*</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes/2026-07-01-trial-depth-floors.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/200-40-12.html">[[200,40,12]] — 200-40-12</a></h3><div class=kv style="color:var(--mut)">2026 &middot; submission note &middot; Bhardwaj and Aditya and Ma and Muzhou and Meister and Nadine and King and Robbie and Bluvstein and Dolev and Preskill and John and Cain and Madelyn and Xu and Qian and Huang and Hsin-Yuan</div><details ><summary>note</summary><div class=notebody><h3>[[200,40,12]] — literature baseline (mitten code, Bhardwaj–Ma et al.)</h3>
+<h4>Why this entry exists</h4>
+<p>Baseline seeding per issue #377: arXiv:2607.28795 introduces mitten codes, a family of non-abelian lifted product codes with guaranteed 20% encoding rate and check weight 9. This is the second-smallest of the paper&#x27;s eight processor codes (Table I). None of the family was on the board.</p>
+<h4>Reproduction (the actual work)</h4>
+<p>Mitten code = LP(A,B) per the paper&#x27;s Definition 4: G a non-abelian group, A = [a0|a1], B = [b0|b1] over F2[G] with a1, b1 containing the identity; H_X = [[L(a0),0,L(a1),0,R(b0*)],[0,L(a0),0,L(a1),R(b1*)]], H_Z = [[R(b0),R(b1),0,0,L(a0*)],[0,0,R(b0),R(b1),L(a1*)]], where L(g)b(h)=b(gh), R(g)b(h)=b(hg⁻¹) (Definition 8) and * inverts each group element. n = 5|G|, k = |G|.</p>
+<p>For this code G = SmallGroup(40,5) = C4×D10 and Table XIII lists a0={10,21,29}, a1={0,17,18}, b0={2,27,38}, b1={0,19,21} as 0-based indices into Elements(G). <b>Caveat:</b> for the three direct-product-group codes of Table I ([[150,30,10]], [[200,40,12]], [[300,60,14]]) these indices follow a different (undocumented) element ordering than current GAP SmallGroup output — rebuilding under <code>Elements(SmallGroup(40,5))</code> (libgap/GAP 4.x, also tested DirectProduct and Kronecker-over-factors orderings, and dagger/swap/opposite-group convention variants) yields a *different member of the same family*. The check matrices here are therefore taken verbatim from the authors&#x27; own published artifact: github.com/a7b/yarn @ 82fb695, <code>processor_codes/mitten/[[200,40,12]]/Hx.npy</code>, <code>Hz.npy</code>.</p>
+<p><b>Cross-checks:</b> CSS holds, k = 40, max check weight 9, and the repo&#x27;s shipped canonical logical basis Lx/Lz commutes with the checks with row weights exactly Table I&#x27;s wt(Lx)/wt(Lz) = 20/18. The other five Table I codes rebuilt from Table XIII + GAP SmallGroup ordering DO reproduce the published matrices bit-for-bit, validating the construction conventions above.</p>
+<h4>Evidence trail</h4>
+<p>Witnesses at weight 12 both sides (kit RIS via <code>make_submission</code>, 4000 trials), matching the paper&#x27;s exact d = 12 (their sQetch + BP+OSD estimator stack; not MILP-certified here — claim is upper_bound). validate_candidate: passed, refutation found nothing lighter; WL-dedup clean against the board as of 2026-08-04. Fresh-seed ladders: 3 seeds x 100k RIS trials/side, flat at X=12 / Z=12 everywhere.</p>
+<h4>Dead ends / tips</h4>
+<ul>
+<li>pdftotext garbles Table XIII&#x27;s ‖ separators; the numbers themselves are</li>
+<p>clean (page 92 of the v1 PDF).</p>
+<li>The yarn repo also ships the five surgery gadgets per code</li>
+<p>(<code>gadgets/*.npz</code>) — not used here, but useful for future circuit-level verification (the issue&#x27;s Level-II discussion).</p>
+</ul></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/200-40-12.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/492-170-20.html">[[492,170,20]] — 492-170-20</a></h3><div class=kv style="color:var(--mut)">2026 &middot; submission note &middot; Okada and Koki and Kasai and Kenta</div><details ><summary>note</summary><div class=notebody><h3>[[492,170,20]] — pair-partition CPM CSS (Okada-Kasai arXiv:2607.14091)</h3>
 <p><b>Author:</b> @mathysrennela <b>Date:</b> 2026-08-02 <b>Status:</b> Literature baseline — exact distance certified</p>
 <h4>Source</h4>
@@ -1126,4 +1142,20 @@ Hₓ = [Σ L(a) | Σ R(b)]   H_z = [Σ R(b)ᵀ | Σ L(a)ᵀ]   (mod 2)
 </ul>
 <h4>Verifier confirmation</h4>
 <p>CSS orthogonality, rank (219+219), witness validity, refutation all pass.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/584-150-18.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/630-126-20.html">[[630,126,20]] — 630-126-20</a></h3><div class=kv style="color:var(--mut)">2026 &middot; submission note &middot; Bhardwaj and Aditya and Ma and Muzhou and Meister and Nadine and King and Robbie and Bluvstein and Dolev and Preskill and John and Cain and Madelyn and Xu and Qian and Huang and Hsin-Yuan</div><details ><summary>note</summary><div class=notebody><h3>[[630,126,≤20]] — literature baseline (mitten code, Bhardwaj–Ma et al.)</h3>
+<h4>Why this entry exists</h4>
+<p>Baseline seeding per issue #377: arXiv:2607.28795 introduces mitten codes, a family of non-abelian lifted product codes with guaranteed 20% encoding rate and check weight 9. This is the sixth of the paper&#x27;s eight processor codes (Table I). None of the family was on the board.</p>
+<h4>Reproduction (the actual work)</h4>
+<p>Mitten code = LP(A,B) per the paper&#x27;s Definition 4: G a non-abelian group, A = [a0|a1], B = [b0|b1] over F2[G] with a1, b1 containing the identity; H_X = [[L(a0),0,L(a1),0,R(b0*)],[0,L(a0),0,L(a1),R(b1*)]], H_Z = [[R(b0),R(b1),0,0,L(a0*)],[0,0,R(b0),R(b1),L(a1*)]], where L(g)b(h)=b(gh), R(g)b(h)=b(hg⁻¹) (Definition 8) and * inverts each group element. n = 5|G|, k = |G|.</p>
+<p>For this code G = SmallGroup(126,1) = C7⋊C18 and Table XIII lists a0={50,117,123}, a1={0,62,104}, b0={4,39,82}, b1={0,67,87} as 0-based indices into Elements(G). Rebuilding from these generators under the GAP <code>Elements(SmallGroup(126,1))</code> ordering (libgap/GAP 4.x) reproduces the authors&#x27; published check matrices <b>bit-for-bit</b> (github.com/a7b/yarn @ 82fb695, <code>processor_codes/mitten/[[630,126,20]]/</code>), which are the matrices used here.</p>
+<p><b>Cross-checks:</b> CSS holds, k = 126, max check weight 9, and the repo&#x27;s shipped canonical logical basis Lx/Lz commutes with the checks with row weights exactly Table I&#x27;s wt(Lx)/wt(Lz) = 28/44.</p>
+<h4>Evidence trail</h4>
+<p>Paper claims d &lt;= 20 (estimate tier: &gt;50M sQetch + &gt;50k BP+OSD iterations; the paper does not certify this code&#x27;s distance). Local witnesses land at exactly weight 20 both sides (kit RIS via <code>make_submission</code>, 12000 trials/side); independent BP+OSD decoder pass (80k trials): nothing lighter. validate_candidate: passed, refutation found nothing lighter. Board entry carries the witness-backed d &lt;= 20.</p>
+<h4>Dead ends / tips</h4>
+<ul>
+<li>pdftotext garbles Table XIII&#x27;s ‖ separators; the numbers themselves are</li>
+<p>clean (page 92 of the v1 PDF).</p>
+<li>The yarn repo also ships the five surgery gadgets per code</li>
+<p>(<code>gadgets/*.npz</code>) — not used here, but useful for future circuit-level verification (the issue&#x27;s Level-II discussion).</p>
+</ul></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/630-126-20.md">raw markdown</a></div></details></section>
 </div></body></html>
