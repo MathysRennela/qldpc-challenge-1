@@ -1235,6 +1235,14 @@ def geo_score(doc, n, k, d, locality_class):
     return 4.0 * k * d * d / (n * rho * rho * r ** 4), r, rho
 
 
+def _model_str(m):
+    """provenance.model may be a single name or a list (an ensemble of models);
+    the rest of the site treats it as one display string."""
+    if isinstance(m, (list, tuple)):
+        return ", ".join(str(x) for x in m)
+    return m or ""
+
+
 def load_entries():
     entries = []
     for p in sorted(glob.glob(os.path.join(ROOT, "codes", "*.json"))):
@@ -1279,7 +1287,7 @@ def load_entries():
             "novelty": doc["provenance"].get("novelty", "unknown"),
             "authors": ", ".join(doc["provenance"]["authors"]),
             "authors_list": doc["provenance"]["authors"],
-            "model": doc["provenance"].get("model", ""),
+            "model": _model_str(doc["provenance"].get("model", "")),
             "date": doc["provenance"].get("date", ""),
             "construction": doc["provenance"].get("construction", ""),
             "note_md": load_note(slug),
