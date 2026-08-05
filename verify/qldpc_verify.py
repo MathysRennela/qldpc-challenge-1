@@ -27,6 +27,7 @@ What "verified" means per field:
 """
 
 import json
+import re
 import math
 import os
 import secrets
@@ -297,8 +298,12 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
     # nothing reproducible, "Claude Opus 4.8" does. Omitting it (a human or unknown
     # author) is fine; "human" is the explicit non-model sentinel.
     model = (doc.get("provenance") or {}).get("model")
+    if isinstance(model, (list, tuple)):
+        # an ensemble of models: every named member must carry a version
+        model = ", ".join(str(x) for x in model)
     if model and model.strip() and model.strip().lower() != "human":
-        specific = any(ch.isdigit() for ch in model)
+        specific = all(any(ch.isdigit() for ch in part)
+                       for part in model.split(",") if part.strip())
         record("model_version_specified", specific,
                model if specific else
                f"'{model}' names no version; give the exact model, e.g. "
@@ -307,10 +312,19 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
     # Layer-2 family tag: optional, but if present must be from the vocabulary.
     family = doc.get("family")
     if family is not None:
-        record("family_in_vocabulary", family in _FAMILIES,
-               family if family in _FAMILIES
-               else f"'{family}' is not a known family; use one of "
-               f"{sorted(_FAMILIES)}")
+        known = family in _FAMILIES
+        # A genuinely new construction should not be forced into "other" just
+        # because the vocabulary has not caught up. Accept a well-formed new tag
+        # and flag it for review; the family is a filter, never a ranking input.
+        wellformed = bool(re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", str(family)))
+        record("family_in_vocabulary", known or wellformed,
+               family if known
+               else f"'{family}' is a new family tag, accepted but not yet in "
+                    "the vocabulary; please open an issue so the tracks and the "
+                    "site labels can follow"
+               if wellformed
+               else f"'{family}' is malformed; use a lowercase-hyphenated tag, "
+                    f"e.g. one of {sorted(_FAMILIES)}")
 
     novelty = (doc.get("provenance") or {}).get("novelty")
     if novelty is not None:
