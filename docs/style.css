@@ -378,11 +378,18 @@ color:var(--ink);min-width:2.4em;text-align:right}
 .star{color:var(--ac);width:18px}
 .auth{color:var(--mut);font-size:13px}
 .board td.date{color:var(--mut);font-size:13px;white-space:nowrap}
-.board td.model{color:var(--mut);font-size:13px;white-space:nowrap}
+/* nowrap keeps the row one line; the table is table-layout:fixed, so without
+   the clip a name wider than the column paints over the date cell (#407).
+   models_compact() already shortens ensembles -- this bounds the single-name
+   case too, at any font size. */
+.board td.model{color:var(--mut);font-size:13px;white-space:nowrap;
+overflow:hidden;text-overflow:ellipsis}
 .nomodel{color:#94a3b8;display:inline-flex;vertical-align:middle}
 .modelmark,.modelicon{display:inline-flex;align-items:center;gap:5px;
 vertical-align:middle}
-.board td.model .modelname{font-size:13px;color:var(--ink)}
+.board td.model .modelname{font-size:13px;color:var(--ink);
+overflow:hidden;text-overflow:ellipsis;min-width:0}
+.board td.model .modelmark{max-width:100%}
 /* Let the wide board scroll instead of crushing columns, and progressively
    drop the secondary metadata columns (model, then date) on smaller screens.
    Under the breakpoints the table sizes to content so freed space redistributes
