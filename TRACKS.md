@@ -175,22 +175,24 @@ surface code to 1, but they answer different questions.
 - High-rate, weight-9, second construction: the ZSZ-LP codes of
   arXiv:2607.27644, balanced products of rate-1/2 classical LDPC codes sharing a
   non-abelian Z_l1 semidirect_q Z_l2 symmetry, also at 20% rate and check weight
-  9. Twelve of the paper's fourteen instances fit under the n <= 700 cap and are
-  seeded as baselines, from [[60,12,6]] up to [[700,140,22]]. The paper's
-  distances are SAT-exact through [[320,64,14]] and upper bounds above it,
-  which the board's per-side confidence fields mirror. The remaining two
-  exceed the cap and stay bars only: [[775,155,<=22]] (kd^2/n ~ 96.8) and
-  [[840,168,<=24]] (~115.2). Its Table 3 lists the group parameters
-  (l1, l2, q) and the trinomials a, b, c, d for every instance, so the seeded
-  entries are reconstructions rather than parameter claims.
+  9. Twelve of the paper's fourteen instances fit under the n <= 700 cap, from
+  [[60,12,6]] up to [[700,140,22]]. Unlike the mitten entries above these are
+  not baselines: the paper's author submitted them directly (#357 to #368), so
+  they carry origin `submission`. The paper's distances are SAT-exact through
+  [[320,64,14]] and upper bounds above it, which the board's per-side
+  confidence fields mirror. The remaining two exceed the cap and stay bars
+  only: [[775,155,<=22]] (kd^2/n ~ 96.8) and [[840,168,<=24]] (~115.2). Its
+  Table 3 lists the group parameters (l1, l2, q) and the trinomials a, b, c, d
+  for every instance, and each submission repeats its own generators in its
+  construction string, so every entry is checkable against the paper rather
+  than a bare parameter claim.
   This family and the mitten codes above reach the same design point by
   different routes: both sit at rate 1/5 with weight-9 checks, and since
   kd^2/n = rate * d^2, their over-cap bars coincide numerically at any shared
   distance (96.8 at d = 22, 115.2 at d = 24). [[150,30,10]] is not merely
   comparable but the same code in both papers.
-  Codes built with this construction but not taken from the paper are board
-  submissions in their own right rather than baselines, such as [[270,54,10]]
-  over ZSZ(18,3,13).
+  [[270,54,10]] over ZSZ(18,3,13) uses this construction without being a paper
+  instance, so it is an independent submission rather than a reproduction.
 
 ## Baselines and provenance
 
