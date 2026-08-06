@@ -681,11 +681,18 @@ color:var(--ink);min-width:2.4em;text-align:right}}
 .star{{color:var(--ac);width:18px}}
 .auth{{color:var(--mut);font-size:13px}}
 .board td.date{{color:var(--mut);font-size:13px;white-space:nowrap}}
-.board td.model{{color:var(--mut);font-size:13px;white-space:nowrap}}
+/* nowrap keeps the row one line; the table is table-layout:fixed, so without
+   the clip a name wider than the column paints over the date cell (#407).
+   models_compact() already shortens ensembles -- this bounds the single-name
+   case too, at any font size. */
+.board td.model{{color:var(--mut);font-size:13px;white-space:nowrap;
+overflow:hidden;text-overflow:ellipsis}}
 .nomodel{{color:#94a3b8;display:inline-flex;vertical-align:middle}}
 .modelmark,.modelicon{{display:inline-flex;align-items:center;gap:5px;
 vertical-align:middle}}
-.board td.model .modelname{{font-size:13px;color:var(--ink)}}
+.board td.model .modelname{{font-size:13px;color:var(--ink);
+overflow:hidden;text-overflow:ellipsis;min-width:0}}
+.board td.model .modelmark{{max-width:100%}}
 /* Let the wide board scroll instead of crushing columns, and progressively
    drop the secondary metadata columns (model, then date) on smaller screens.
    Under the breakpoints the table sizes to content so freed space redistributes
@@ -1577,6 +1584,29 @@ def authors_compact(lst):
         return authors_html(lst)
     surname = html.escape(lst[0].split(",")[0].strip())
     return f'{surname} <span class=etal>et al.</span>'
+
+
+def model_parts(model):
+    """The individual models behind a display string. An ensemble reaches the
+    site either as a JSON list (joined with ', ' by _model_str) or, for the
+    older free-text entries, as one string with ' + ' between the names."""
+    parts = [p.strip() for p in re.split(r"\s*\+\s*|\s*,\s*", model or "")]
+    return [p for p in parts if p]
+
+
+def models_compact(model):
+    """Compact model display for the board, the same bargain authors_compact
+    strikes: one line per row. A single model renders in full; an ensemble
+    shows the first name and a '+N' badge. The full list is on the detail page
+    and in the cell's hover title. Without this an ensemble overruns the fixed
+    column width and paints over the date column (issue #407)."""
+    parts = model_parts(model)
+    if not parts:
+        return ""
+    if len(parts) == 1:
+        return html.escape(parts[0])
+    return (f'{html.escape(parts[0])} '
+            f'<span class=etal>+{len(parts) - 1}</span>')
 
 
 def layout_svg(doc):
@@ -3215,7 +3245,8 @@ def board_table(entries, records):
             '<td class=model data-label="model">'
             + (f'<span class=modelmark title="{html.escape(e["model"])}">'
                f'{CLAUDE_MARK if e["model"].startswith("Claude") else ""}'
-               f'<span class=modelname>{html.escape(e["model"])}</span></span>'
+               f'<span class=modelname>{models_compact(e["model"])}</span>'
+               f'</span>'
                if e["model"]
                else f'<span class=nomodel title="classical construction, no AI '
                     f'model">{HUMAN_MARK}</span>')
