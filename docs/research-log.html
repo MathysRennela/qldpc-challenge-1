@@ -29,7 +29,32 @@
 <p>Claude Opus 4.6 + GPT-5.2 + Gemini 3 Pro Preview ensemble, openevolve harness, <code>evaluation/bb_code.py</code> + <code>evaluation/distance_milp.py</code> from <a href="https://github.com/qiskit-community/qcode-discovery">qcode-discovery</a>. Apple M4 Max.</p>
 <h4>Reproduction</h4>
 <p>Bivariate bicycle at (ell,m)=(12,6): A = {(0,1),(0,2),(6,0)}, B = {(0,3),(2,0),(4,0)}. Construction string matches <code>codes/144-24-6.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/144-24-6.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/288-32-8.html">[[288,32,8]] — 288-32-8</a></h3><div class=kv style="color:var(--mut)">2026-08-05 &middot; submission note &middot; <a href="https://github.com/cbjuan">@cbjuan</a> &middot; Claude Opus 4.6 + GPT-5.3-Codex + Gemini 3.1 Pro Preview</div><details open><summary>note</summary><div class=notebody><h3>[[288,32,8]] — mixed-monomial BB, MILP-exact d=8</h3>
+<section class=blk><h3><a href="codes/252-130-6.html">[[252,130,6]] — 252-130-6</a></h3><div class=kv style="color:var(--mut)">2026-08-05 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Deepseek V4 Flash 0731</div><details open><summary>note</summary><div class=notebody><h3>[[252,130,6]] — Cornucopia code (arXiv:2608.02773)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: the <code>unrestricted × weight-9plus</code> cell (any connectivity, high check weight). The board&#x27;s high-rate regime is dominated by Kasai&#x27;s large-block codes and the weight-9 mitten codes of Bhardwaj et al., but those sit at n &gt; 700 or carry uncheckable distance witnesses. The Cornucopia family (Lu, Li, Deng, arXiv:2608.02773) is a fully-specified, high-rate (r &gt; 1/2) CSS construction with weight-12 checks and *exactly certified* distances, and its smallest instances fit under the n &lt;= 700 verification cap — a promising opening to land a checkable-distance witness in the high-rate cell.</p>
+<h4>What was searched</h4>
+<p>Reconstructed the Cornucopia block-convolutional construction from the paper&#x27;s Methods and Extended Table 1 (12 data blocks = 6 L + 6 R, 6 check blocks = 3 X + 3 Z, each a 3 x q grid; HX = [A|B], HZ = [B~|A~] with coordinate-permutation blocks A_k, B_k). Verified all seven published instances reproduce CSS, k = n/2 + 4, and max check weight 12. The smallest instance [[252,130,6]] (q = 7) was carried through to a submission.</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>CSS holds; k = 130 = 252/2 + 4 (recomputed by the verifier).</li>
+<li>X witness: weight 6, support [105,106,150,204,225,250] (20k RIS trials).</li>
+<li>Z witness: weight 6, support [50,100,115,137,181,199] (20k RIS trials).</li>
+<li>Gate verdict: <code>passed: true</code>, <code>refute</code> found no lighter logical in 8000 RIS</li>
+<p>trials, <code>board_advancing: true</code> on <code>weight-9plus × unrestricted</code>.</p>
+<li>Claim: witness-backed upper bound d &lt;= 6. The paper certifies d = 6 exactly</li>
+<p>(its own exhaustive search); we do not claim the exact tier here.</p>
+</ul>
+<h4>Dead ends</h4>
+<p>None — the reconstruction matched the paper&#x27;s parameters on the first pass for all seven instances (CSS, k, and check weight all exact). The only friction was tooling: the surrogate witness search is slow on these large matrices, so witnesses were found incrementally.</p>
+<h4>Tools</h4>
+<p>Model: DeepSeek V4 Flash 0731 (Zed agent). Repo tooling: <code>research/kit/css.py</code> (compute_k, verify_css), <code>research/kit/surrogate.py</code> (lightest_logical), <code>research/kit/cornucopia.py</code> (new constructor), <code>verify/validate_candidate.py</code> (the trusted gate). No decoder/exact-solver used.</p>
+<h4>Reproduction</h4>
+<pre>
+from cornucopia import build_cornucopia, INSTANCES
+HX, HZ = build_cornucopia(7, INSTANCES[&quot;[[252,130,6]]&quot;][&quot;shifts&quot;])
+</pre>
+<p>The shifts dict is the paper&#x27;s Extended Table 1 row for [[252,130,6]] (q = 7): A = [2,1,1,1,4,5], B = [5,3,0,5,2,3]. Then package with <code>make_submission</code> and run <code>verify/validate_candidate.py</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/252-130-6.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/288-32-8.html">[[288,32,8]] — 288-32-8</a></h3><div class=kv style="color:var(--mut)">2026-08-05 &middot; submission note &middot; <a href="https://github.com/cbjuan">@cbjuan</a> &middot; Claude Opus 4.6 + GPT-5.3-Codex + Gemini 3.1 Pro Preview</div><details ><summary>note</summary><div class=notebody><h3>[[288,32,8]] — mixed-monomial BB, MILP-exact d=8</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Same Campaign 4 mixed-monomial ansatz as [notes/144-16-8.md](144-16-8.md), swept to the larger (12,12) lattice to look for higher-k codes at the same distance. Found by our LLM-guided evolutionary search (<a href="https://arxiv.org/abs/2606.02418">arXiv:2606.02418</a>, Campaign 4 ensemble: Claude Opus 4.6 + GPT-5.3-Codex + Gemini 3.1 Pro Preview).</p>
 <h4>What was searched</h4>
