@@ -33,6 +33,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 
 import numpy as np
 
@@ -172,6 +173,103 @@ def build_submission(HX, HZ, args):
 
 
 # ----------------------------------------------------------------------------
+# the pull request
+# ----------------------------------------------------------------------------
+# `gh pr create --fill` copies the commit message, so a one-line commit gives a
+# PR with an empty body and the reviewer learns nothing about the code (#404).
+# We build the title and body ourselves from what submit() already knows: the
+# computed track membership, the distance confidence, the construction, and the
+# note pointer. Everything stated here is data the verifier just produced or
+# text the contributor supplied; the one thing the tool cannot know — which
+# board entry this beats — is left as an explicit TODO rather than invented.
+def _descriptor(args):
+    """Short human tag for the PR title, e.g. 'bivariate-bicycle code'."""
+    con = (args.construction or "").strip()
+    if con:
+        head = con.split("(")[0].split(";")[0].strip(" ,.")
+        if 0 < len(head) <= 60:
+            return head
+    if args.family:
+        return f"{args.family} code"
+    return ""
+
+
+def _repo_path(path):
+    """Repo-relative path when the file is inside the repo, else absolute.
+    Keeps the body readable when --out points somewhere else entirely."""
+    rel = os.path.relpath(path, _ROOT)
+    return os.path.abspath(path) if rel.startswith(os.pardir) else rel
+
+
+def pr_title(n, k, d, descriptor):
+    head = f"Add [[{n},{k},{d}]]"
+    return f"{head} {descriptor}" if descriptor else head
+
+
+def pr_body(doc, report, args, out, note_out=None):
+    n, k, d = doc["n"], doc["k"], doc["distance"]["d"]
+    comp = report.get("computed", {})
+    wmax = comp.get("max_check_weight")
+    track = " / ".join(x for x in (comp.get("locality_class"),
+                                   comp.get("weight_class")) if x)
+    conf = {side: doc["distance"][side]["confidence"]
+            for side in ("X", "Z") if side in doc["distance"]}
+    conf_line = ", ".join(f"{s}: {c}" for s, c in conf.items())
+    rel_out = _repo_path(out)
+
+    def box(checked, text):
+        return f"- [{'x' if checked else ' '}] {text}"
+
+    lines = [
+        "## Code submission",
+        "",
+        f"- Parameters: [[n, k, d]] = [[{n},{k},{d}]]",
+        f"- Tracks: {track} (computed by the verifier from H and the layout)",
+        f"- Distance confidence: {conf_line}",
+        "",
+    ]
+    if args.family:
+        lines += [f"Family tag: {args.family} (a self-declared filter, never "
+                  f"used for ranking).", ""]
+    lines += [
+        "### Checklist",
+        box(True, "One JSON file under `codes/`, conforming to "
+                  "`schema/code.schema.json`"),
+        box(True, "Distance witness(es) included for each reported side"),
+        box(True, f"`python verify/qldpc_verify.py {rel_out}` passes locally"),
+        box(bool((args.construction or "").strip()),
+            "Construction and references filled in under `provenance`"),
+        box(False, "If this may be equivalent to an existing entry, noted in "
+                   "`provenance.notes`"),
+        "",
+        "### What frontier does this advance?",
+        "<!-- TODO: name the track and the existing entry this beats or "
+        "extends, and on which axis. -->",
+        f"Score kd^2/n = {round(k * d * d / n, 3)}, max check weight {wmax}, "
+        f"locality class {comp.get('locality_class', 'unknown')}.",
+        "",
+    ]
+    if (args.construction or "").strip():
+        lines += [f"Construction: {args.construction.strip()}", ""]
+    if note_out:
+        lines += [f"Research note: `{_repo_path(note_out)}`", ""]
+    else:
+        lines += ["<!-- TODO: add a research note (notes/{}.md, see "
+                  "notes/TEMPLATE.md). -->".format(f"{n}-{k}-{d}"), ""]
+    lines += ["---",
+              "Drafted by `qldpc submit`; edit before requesting review."]
+    return "\n".join(lines)
+
+
+def write_pr_body(slug, body):
+    """Stage the body where --open-pr and the manual path can both use it."""
+    fd, path = tempfile.mkstemp(prefix=f"qldpc-pr-{slug}-", suffix=".md")
+    with os.fdopen(fd, "w") as f:
+        f.write(body + "\n")
+    return path
+
+
+# ----------------------------------------------------------------------------
 # submit command
 # ----------------------------------------------------------------------------
 def cmd_submit(args):
@@ -233,28 +331,40 @@ def cmd_submit(args):
               "sizes, ladder, dead ends.\n  See notes/TEMPLATE.md; the site "
               "renders it beside your code.".format(slug))
 
+    title = pr_title(n, k, d, _descriptor(args))
+    body_file = write_pr_body(slug, pr_body(doc, report, args, out, note_out))
+
     if args.open_pr:
-        return open_pr(slug, out, note_out)
+        return open_pr(slug, out, note_out, title, body_file)
     print("\nnext: open a PR with this file")
     print(f"  git checkout -b submit-{slug}")
     print(f"  git add {out}" + (f" {note_out}" if note_out else ""))
-    print(f"  git commit -m 'Add [[{n},{k},{d}]]'")
+    print(f"  git commit -m {title!r}")
     print(f"  git push -u origin submit-{slug}")
-    print("  gh pr create --fill        (or use the link git push prints)")
+    print(f"  gh pr create --title {title!r} --body-file {body_file}")
+    print(f"\nthe PR body was drafted for you from the verified submission:"
+          f"\n  {body_file}"
+          f"\nit follows .github/PULL_REQUEST_TEMPLATE.md — read it and fill"
+          f"\nin the 'what frontier does this advance?' section before review.")
     print("\nor re-run with --open-pr to do this automatically.")
     return 0
 
 
-def open_pr(slug, out, note_out=None):
+def open_pr(slug, out, note_out=None, title=None, body_file=None):
     n_k_d = slug.replace("-", ",")
     branch = f"submit-{slug}"
+    title = title or f"Add [[{n_k_d}]]"
     add = ["git", "add", out] + ([note_out] if note_out else [])
+    # --title/--body-file rather than --fill: the body is the filled-in
+    # PULL_REQUEST_TEMPLATE, which the commit message does not carry (#404).
+    create = ["gh", "pr", "create", "--title", title]
+    create += ["--body-file", body_file] if body_file else ["--fill"]
     cmds = [
         ["git", "checkout", "-b", branch],
         add,
-        ["git", "commit", "-m", f"Add [[{n_k_d}]]"],
+        ["git", "commit", "-m", title],
         ["git", "push", "-u", "origin", branch],
-        ["gh", "pr", "create", "--fill"],
+        create,
     ]
     for c in cmds:
         print(f"  $ {' '.join(c)}", flush=True)
@@ -262,7 +372,12 @@ def open_pr(slug, out, note_out=None):
         if r.returncode != 0:
             print(f"  command failed ({r.returncode}); finish the remaining "
                   f"steps by hand.")
+            if body_file:
+                print(f"  the drafted PR body is at {body_file}")
             return r.returncode
+    print("\nthe PR body was drafted from the verified submission; fill in the"
+          "\n'what frontier does this advance?' section before review "
+          "(gh pr edit).")
     return 0
 
 
