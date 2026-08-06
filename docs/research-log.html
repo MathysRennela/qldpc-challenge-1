@@ -119,6 +119,33 @@ HX, HZ = build_cornucopia(7, INSTANCES[&quot;[[252,130,6]]&quot;][&quot;shifts&q
 <p>Claude Opus 4.6 + GPT-5.3-Codex + Gemini 3.1 Pro Preview ensemble, openevolve harness, <code>evaluation/bb_code.py</code> + <code>evaluation/distance_milp.py</code> from <a href="https://github.com/qiskit-community/qcode-discovery">qcode-discovery</a>. 64-core server.</p>
 <h4>Reproduction</h4>
 <p>Bivariate bicycle at (ell,m)=(15,12): A = {(0,0),(4,0),(0,2),(4,2)}, B = {(0,0),(8,0),(0,4),(2,4)}. Construction string matches <code>codes/360-32-6.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/360-32-6.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/576-292-8.html">[[576,292,8]] — 576-292-8</a></h3><div class=kv style="color:var(--mut)">2026-08-05 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Deepseek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[576,292,8]] — Cornucopia code (arXiv:2608.02773)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: the <code>unrestricted × weight-9plus</code> cell. Same rationale as the [[252,130,6]] Cornucopia submission — a fully-specified high-rate (r &gt; 1/2) CSS family with weight-12 checks and exactly certified distances, whose instances fit under the n &lt;= 700 verification cap. [[576,292,8]] (q = 16) is the largest Cornucopia instance still under the cap.</p>
+<h4>What was searched</h4>
+<p>Reconstructed the Cornucopia block-convolutional construction from the paper&#x27;s Methods and Extended Table 1. Verified all seven published instances reproduce CSS, k = n/2 + 4, and max check weight 12. This instance (q = 16) was carried through to a submission.</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>CSS holds; k = 292 = 576/2 + 4 (recomputed by the verifier).</li>
+<li>X witness: weight 8, support [70,121,122,166,261,364,499,544].</li>
+<li>Z witness: weight 8, support [20,72,173,209,411,463,550,551].</li>
+<li>Witnesses found incrementally (400 -&gt; 1k -&gt; 2k -&gt; 5k -&gt; 20k RIS trials);</li>
+<p>weight 8 appeared at just 400 trials on both sides.</p>
+<li>Gate verdict: <code>passed: true</code>, <code>refute</code> found no lighter logical in 8000 RIS</li>
+<p>trials, <code>board_advancing: true</code> on <code>weight-9plus × unrestricted</code>.</p>
+<li>Claim: witness-backed upper bound d &lt;= 8. The paper certifies d = 8 exactly;</li>
+<p>we do not claim the exact tier here.</p>
+</ul>
+<h4>Dead ends</h4>
+<p>None — the reconstruction matched the paper&#x27;s parameters on the first pass. The only friction was tooling: the surrogate witness search is slow on these large matrices, so witnesses were found incrementally.</p>
+<h4>Tools</h4>
+<p>Model: DeepSeek V4 Flash 0731 (Zed agent). Repo tooling: <code>research/kit/css.py</code>, <code>research/kit/surrogate.py</code> (lightest_logical), <code>research/kit/cornucopia.py</code> (new constructor), <code>verify/validate_candidate.py</code> (the trusted gate). No decoder/exact-solver used.</p>
+<h4>Reproduction</h4>
+<pre>
+from cornucopia import build_cornucopia, INSTANCES
+HX, HZ = build_cornucopia(16, INSTANCES[&quot;[[576,292,8]]&quot;][&quot;shifts&quot;])
+</pre>
+<p>The shifts dict is the paper&#x27;s Extended Table 1 row for [[576,292,8]] (q = 16): A = [1,5,10,12,12,8], B = [6,12,10,11,6,3]. Then package with <code>make_submission</code> and run <code>verify/validate_candidate.py</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/576-292-8.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/128-12-8.html">[[128,12,8]] — 128-12-8</a></h3><div class=kv style="color:var(--mut)">2026-08-04 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details ><summary>note</summary><div class=notebody><h3>[[128,12,8]] — 2BGA on the metacyclic Z_16 x| Z_4 group</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Advance the low-blocklength frontier with a two-block group-algebra code over a non-abelian group. Small n and modest distance were chosen deliberately: this is the regime where the RIS distance surrogate converges, so the claim is verifiable rather than an optimistic upper bound.</p>
