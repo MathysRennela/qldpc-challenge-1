@@ -65,7 +65,35 @@
 <p>Autoresearch agent (DeepSeek V4 Flash 0731, matches <code>provenance.model</code>; author @MathysRennela), planar-BB population sweep of 2026-08-07; <code>boundary_engine.py</code>, <code>planar.grid_coordinates</code>, <code>research/kit/submit.py</code>, <code>verify/validate_candidate.py</code>.</p>
 <h4>Reproduction</h4>
 <p><code>research/local2d/boundary_engine.py::build_planar(8, 19, S_f, S_g)</code> with S_f = [(0,0),(1,0),(2,3),(2,-2)], S_g = [(0,0),(0,1),(-1,-1),(-1,3)], then <code>reduce_weights</code>; layout via <code>planar.grid_coordinates(8, 19, kept=...)</code>, layers=2. Supports and layout in <code>codes/242-12-12.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/242-12-12.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/144-16-8.html">[[144,16,8]] — 144-16-8</a></h3><div class=kv style="color:var(--mut)">2026-08-05 &middot; submission note &middot; <a href="https://github.com/cbjuan">@cbjuan</a> &middot; Claude Opus 4.6 + GPT-5.3-Codex + Gemini 3.1 Pro Preview</div><details open><summary>note</summary><div class=notebody><h3>[[144,16,8]] — mixed-monomial BB, MILP-exact d=8</h3>
+<section class=blk><h3><a href="codes/625-50-3.html">[[625,50,3]] — 625-50-3</a></h3><div class=kv style="color:var(--mut)">2026-08-07 &middot; submission note &middot; <a href="https://github.com/aarontrowbridge">@aarontrowbridge</a> &middot; Kimi K3 (Amicode)</div><details open><summary>note</summary><div class=notebody><h3>[[625,50,3]] — holey rotated surface code at the d=3 hole-spacing floor, geometric efficiency 0.72</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: the geometric-efficiency score <code>g = 4kd²/(nρ²r⁴)</code>, where the board&#x27;s only entry at the top was the surface code itself (g = 1.0 by normalization) and the best non-surface entry was 0.489 ([[37,7,3]] punctured color-code complex, r = 1.932). The r⁻⁴ pricing makes the game geometric: at d = 3 and weight-4 square checks (packing floor r = √2), g &gt; 1 needs k/n &gt; 1/9 — the hypothesis was that a hole lattice at the tightest spacing the d ≥ 3 constraint allows would come closest.</p>
+<h4>What was searched</h4>
+<p>Two families, both with honest layouts:</p>
+<p>1. <b>Punctured triangular 6.6.6 color codes</b> (the incumbent family). We reverse-engineered the board&#x27;s [[37,1,7]] parent complex from its JSON (unique under disc + CSS + k = 1 + d = 7 constraints), built a validated generator for t = 1..5 ([[7,1,3]] … [[91,1,11]]), and ran puncture search with MILP proven necessary bounds on the d ≥ 3 conflict structure (a puncture set kills the distance iff some qubit pair&#x27;s face-set symmetric difference is fully removed — size-1 differences included, which naive hard-core spacing misses). Proven/empirical maxima: t = 3: 3 punctures (matches the board&#x27;s tuning — exhaustive over C(18,4)); t = 4: 5; t = 5: 9 → k/n saturates at ~0.21, capped by conflicts, while hexagon checks have a hard packing floor r ≥ 1.90 (needing k/n &gt; 0.362). **Ceiling ≈ 0.58 — the family cannot reach 1.** 2. <b>Holey rotated surface codes</b> (this submission). Rotated surface code on an L×L integer vertex grid (the board&#x27;s [[25,1,5]] pattern generalized); plaquette holes of both parities punched on the parity-matched period-3 cell sublattice, margin 3 cells from the boundary. Square checks sit at their packing floor r = √2 with no layout optimization needed. L = 13, 19, 25 → g = 0.533, 0.648, 0.720 (L ≤ 25 odd under the n ≤ 700 schema cap).</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>d = 3: a weight-3 witness (shortest hole-to-boundary string), screened with</li>
+<p>gf2_fast RIS at 20k trials, confirmed at 200k, packaged with witnesses re-verified against the verifier&#x27;s own commutation/rowspace/weight criteria, then <code>verify/validate_candidate.py</code> → <code>passed: true</code> on the staged JSON. The claim is a witness-backed upper bound, tier <code>upper_bound</code>.</p>
+<li>r = √2 exactly: integer vertex grid, unit min spacing; plaquette checks are</li>
+<p>unit squares (diameter √2) or boundary pairs (diameter 1).</p>
+<li>Collapses: an edge-midpoint surface-code layout variant is geometrically</li>
+<p>infeasible (adjacent edge sites sit 1/√2 &lt; 1 apart) — built, measured, deleted. The 6.6.6 lane&#x27;s champions are reported in the campaign log but fall below this code.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li><b>Punctured 6.6.6 color codes cap at g ≈ 0.58</b> (above), and random</li>
+<p>puncture without the symmetric-difference condition mostly produces d = 2.</p>
+<li><b>The g = 1 asymptote is real but unreachable in this family</b>: d = 3</li>
+<p>forces string gap ≥ 3 between holes/boundaries, hence hole period ≥ 3, hence k/n &lt; 1/9 for every finite patch — g approaches 1 from below. Beating 1.0 needs a weight-4 planar complex with logical density beyond the hole-spacing bound — a genuinely new 2D cellulation, not a puncturing of a known one.</p>
+<li>Plain L-BFGS/SLSQP layout optimization stalls at r ≈ 1.97 on color-code</li>
+<p>complexes; only an anisotropically pre-scaled feasibility pump reached the jammed 1.933 basin (matching the board incumbent&#x27;s 1.9319).</p>
+</ul>
+<h4>Tools</h4>
+<p>Kimi K3 (matches <code>provenance.model</code>), Amicode harness; repo kit (<code>css.py</code>, <code>surrogate.py</code>, <code>submit.py</code>), <code>verify/gf2_fast</code> RIS, <code>verify/validate_candidate.py</code> as the gate; scipy MILP for the puncture bounds. Compute: ~2 CPU-hours on an M-series MacBook.</p>
+<h4>Reproduction</h4>
+<p><code>research/campaigns/rotated_holey.py</code> (in our working clone): odd L; qubits at integer points of [0, L)²; X-plaquettes on even cells + top/bottom boundary pairs, Z on odd + left/right pairs; holes = period-3 parity-matched cell sublattice, margin 3. This code: L = 25.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/625-50-3.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/144-16-8.html">[[144,16,8]] — 144-16-8</a></h3><div class=kv style="color:var(--mut)">2026-08-05 &middot; submission note &middot; <a href="https://github.com/cbjuan">@cbjuan</a> &middot; Claude Opus 4.6 + GPT-5.3-Codex + Gemini 3.1 Pro Preview</div><details ><summary>note</summary><div class=notebody><h3>[[144,16,8]] — mixed-monomial BB, MILP-exact d=8</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Campaign 4 extended our search from weight-3 trinomials to 4-6 term mixed-monomial polynomials (terms x^a y^b combining both variables in one factor, not just pure-x or pure-y), aiming to escape the d&lt;=8 ceiling that weight-6 trinomial families showed at small (ell,m). Found by our LLM-guided evolutionary search (<a href="https://arxiv.org/abs/2606.02418">arXiv:2606.02418</a>, Campaign 4 ensemble: Claude Opus 4.6 + GPT-5.3-Codex + Gemini 3.1 Pro Preview).</p>
 <h4>What was searched</h4>
