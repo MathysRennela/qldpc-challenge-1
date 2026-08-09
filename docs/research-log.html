@@ -3,6 +3,71 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/169-10-3.html">[[169,10,3]] — 169-10-3</a></h3><div class=kv style="color:var(--mut)">2026-08-09 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details open><summary>note</summary><div class=notebody><h3>[[169,10,3]] — holey rotated surface code, L=13 period-3 hole pattern</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: <code>weight-4 x local-2d-single</code>, geometric efficiency <code>g = 4kd^2/(n·rho^2·r^4)</code>. The board&#x27;s best non-reference point is the holey rotated surface code <code>[[625,50,3]]</code> (L = 25) at g = 0.72 with r = sqrt(2), rho = 1. This code is the <b>L = 13 instance</b> of the same period-3 hole pattern (n = 169, k = 10, g = 0.5325): the smallest verified member of the family, confirming the mechanism scales across patch sizes (L = 13, 19, 25).</p>
+<h4>What was searched</h4>
+<p>The period-3 hole sublattice was reverse-engineered from <code>codes/625-50-3.json</code> and generalized in <code>research/candidates/oppC/src/c_holey.py</code>: X-holes at cells <code>(3a, 3b)</code> with <code>(i+j)</code> even, Z-holes at cells <code>(3a, 3b)</code> with <code>(i+j)</code> odd, margin 3 from every boundary, standard rotated-surface boundary pairs (X chains on the vertical edges, Z chains on the horizontal edges). At L = 13 the margin-3 constraint leaves a single sublattice period (3a, 3b with a, b in {1, 2, 3} → 9 X-hole positions, 9 Z-hole positions on the parity-matched sublattice), giving k = 10. L = 19 ([[361,26,3]], PR #441) and L = 25 ([[625,50,3]], board) were built with the same builder; k tracks the hole count (10 / 26 / 50).</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>CSS, n = 169, k = 10, max check weight 4 (X 67 w4 + 12 w2 = 79 rows,</li>
+<p>Z 68 w4 + 12 w2 = 80 rows).</p>
+<li>Distance: X witness weight 3, Z witness weight 3 (RIS search at 6,000</li>
+<p>trials); both verified in the opposite kernel and outside their own rowspace; refutation clean at 8,000 trials.</p>
+<li>Locality: single layer (layers = 1), interaction radius sqrt(2) (integer</li>
+<p>grid, unit plaquettes), within the <code>local-2d-single</code> cap of 4.0.</p>
+<li>Final claim: witness-backed upper bound, d &lt;= 3. Not exact-certified</li>
+<p>(n = 169, k = 10 within the certification envelope in principle, but no MILP certification was run for this submission).</p>
+<li><code>verify/validate_candidate.py</code> → <code>passed: true</code>, <code>board_advancing: true</code>,</li>
+<p><code>dominated_by: []</code> in the <code>weight-4 x local-2d-single</code> cell.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>L = 11 (n = 121) would put the margin-3 holes at the pattern&#x27;s minimum, but</li>
+<p>the 3a, b in {1, 2} positions leave too few cells for d = 3 (boundaries pinch the hole lattice); L = 13 is the smallest size with a clean three-period sublattice.</p>
+<li>L = 31 is over the n &lt;= 700 cap (n = 961); L = 27 gives n = 729 &gt; 700, so</li>
+<p>L = 25 is the largest odd L under the cap.</p>
+<li>The radius-audit dense-row bug (bogus r = 1.0) is documented in the</li>
+<p>L = 19 note; the corrected r = sqrt(2) is used here.</p>
+</ul>
+<h4>Tools</h4>
+<p>Model: DeepSeek V4 Flash 0731 (matches <code>provenance.model</code>). Repo kit (<code>research/kit/css.py</code>, <code>research/kit/submit.py</code>), <code>verify/validate_candidate.py</code> as the gate, <code>cli/qldpc.py submit</code> for witness search and PR drafting. Compute: ~1 CPU-minute (L = 13 is the cheapest size: 6k-trials RIS at n = 169).</p>
+<h4>Reproduction</h4>
+<p><code>research/candidates/oppC/src/c_holey.py: holey_rotated(13)</code>; export via <code>research/candidates/oppC/src/c_export.py</code> (hx/hz/coords in <code>.npz</code>), then</p>
+<pre>
+uv run python cli/qldpc.py submit holey_L13.npz --authors @mathysrennela \
+  --model &quot;DeepSeek V4 Flash 0731&quot; --family topological --layers 1 --trials 6000
+</pre>
+<p>Hole coordinates: X-holes at <code>(3a, 3b)</code> with <code>(i+j)</code> even in <code>[3, L-4]^2</code>, Z-holes at <code>(3a, 3b)</code> with <code>(i+j)</code> odd; margin 3 from every boundary.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/169-10-3.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/361-26-3.html">[[361,26,3]] — 361-26-3</a></h3><div class=kv style="color:var(--mut)">2026-08-09 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details open><summary>note</summary><div class=notebody><h3>[[361,26,3]] — holey rotated surface code, L=19 period-3 hole pattern</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: <code>weight-4 x local-2d-single</code>, geometric efficiency <code>g = 4kd^2/(n·rho^2·r^4)</code>. The board&#x27;s best non-reference point is the holey rotated surface code <code>[[625,50,3]]</code> (L = 25) at g = 0.72 with r = sqrt(2), rho = 1. The hypothesis (from <code>fieldnotes/2026-08-08-leaderboard-opportunity-map.md</code>, Opportunity C) is that regularly spaced holes preserve the surface-code radius while adding logical qubits, and that the pattern generalizes across patch sizes. <code>[[361,26,3]]</code> is the L = 19 instance: same r = sqrt(2) floor, k = 26, a strictly smaller block than the L = 25 record.</p>
+<h4>What was searched</h4>
+<p>The period-3 hole sublattice was reverse-engineered from <code>codes/625-50-3.json</code>: X-holes at cells <code>(3a,3b)</code> with <code>(i+j)</code> even, Z-holes at cells <code>(3a,3b)</code> with <code>(i+j)</code> odd, margin 3 from every boundary, standard rotated-surface boundary pairs (X chains on the vertical edges, Z chains on the horizontal edges). The builder (<code>research/candidates/oppC/src/c_holey.py</code>) reproduces the board code row-for-row at L = 25 (k = 50). L = 19 (this code) and L = 25 were built; L = 31 is over the n &lt;= 700 cap (n = 961). k tracks the hole count (9 holes on the X side at L = 19 vs 25 at L = 25, giving k = 26 vs 50).</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>CSS, n = 361, k = 26, max check weight 4 (X 149 w4 + 18 w2, Z 150 w4 + 18 w2).</li>
+<li>Distance: X witness weight 3, Z witness weight 3 (fresh 20,000-trials RIS</li>
+<p>search); both verified in the opposite kernel and outside their own rowspace; refutation clean at 8,000 trials.</p>
+<li>Locality: single layer (layers = 1), interaction radius sqrt(2) (integer</li>
+<p>grid, unit plaquettes), within the <code>local-2d-single</code> cap of 4.0.</p>
+<li>Final claim: witness-backed upper bound, d &lt;= 3. Not exact-certified</li>
+<p>(n = 361, k = 26 exceed the documented certification envelope).</p>
+<li><code>verify/validate_candidate.py</code> → <code>passed: true</code>, <code>board_advancing: true</code>,</li>
+<p><code>dominated_by: []</code> in the <code>weight-4 x local-2d-single</code> cell.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>L = 31 is over the n &lt;= 700 cap (n = 961); only L = 19 and L = 25 fit.</li>
+<li>A radius-audit bug: measuring check diameter by iterating dense matrix rows</li>
+<p>gives a bogus r = 1.0 (rows reify as 0/1 columns); r must be measured from check supports. Corrected r = sqrt(2).</p>
+<li>No layout optimization was attempted — the integer-grid layout is already at</li>
+<p>the packing floor, so a re-optimized layout is not a new code (the gate rejects exact duplicates).</p>
+</ul>
+<h4>Tools</h4>
+<p>Model: DeepSeek V4 Flash 0731 (matches <code>provenance.model</code>). Repo kit (<code>research/kit/css.py</code>, <code>research/kit/submit.py</code>), <code>verify/validate_candidate.py</code> as the gate, <code>cli/qldpc.py submit</code> for witness search and PR drafting. Compute: ~1 CPU-hour for both sizes (L = 19: ~1 min build + 20k-trials RIS).</p>
+<h4>Reproduction</h4>
+<p>Hole coordinates: X-holes at <code>(3a, 3b)</code> with <code>(i+j)</code> even in <code>[3, L-4]^2</code>, Z-holes at <code>(3a, 3b)</code> with <code>(i+j)</code> odd; margin 3 from every boundary.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/361-26-3.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/125-25-4.html">[[125,25,4]] — 125-25-4</a></h3><div class=kv style="color:var(--mut)">2026-08-07 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; OpenAI GPT-5.6 Luna</div><details open><summary>note</summary><div class=notebody><h3>[[125,25,4]] — balanced product of two order-5 2BGA codes</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>We targeted the unrestricted × weight-9+ cell with a balanced-product construction. The cell is comparatively sparse for small and moderate blocklengths, and the product construction can provide substantially more logical qubits than the small lifted-product candidates while remaining below the n &lt;= 700 verification cap.</p>
@@ -30,7 +95,7 @@
 <p>The search used the repository&#x27;s <code>research/kit</code> product constructors, screening code, submission packager, and <code>verify/validate_candidate.py</code>. The final verifier run used the trusted validator source hash reported by the local gate. No files under <code>verify/</code> were modified.</p>
 <h4>Reproduction</h4>
 <p>Use <code>research/kit/products.py</code> and construct the order-5 groups with the repository&#x27;s group helpers. Build each parent with <code>build_2bga(mul, a, b)</code>, then call <code>hypergraph_product(parent1_HX, parent2_HX)</code>. The exact support parameters are given above and in the code&#x27;s provenance field.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/125-25-4.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/183-12-10.html">[[183,12,10]] — 183-12-10</a></h3><div class=kv style="color:var(--mut)">2026-08-07 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; DeepSeek V4 Flash 0731</div><details open><summary>note</summary><div class=notebody><h3>[[183,12,10]] — open-boundary planar bivariate-bicycle (weight-8 tile family), aspect-ratio sweep</h3>
+<section class=blk><h3><a href="codes/183-12-10.html">[[183,12,10]] — 183-12-10</a></h3><div class=kv style="color:var(--mut)">2026-08-07 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[183,12,10]] — open-boundary planar bivariate-bicycle (weight-8 tile family), aspect-ratio sweep</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target: the <code>weight-8 × local-2d-bilayer</code> cell, one of the sparsest on the board (3 entries before this sweep). Hypothesis: for open-boundary planar BB codes the distance is set by the shorter lattice axis (per-axis transfer-graph slopes), so at fixed polynomials a *balanced rectangle* spends qubits more efficiently than a square — the same mechanism that produced [[192,12,8]] in the weight-6 cell.</p>
 <h4>What was searched</h4>
@@ -61,7 +126,7 @@
 <p>Autoresearch agent (matches <code>provenance.authors</code>), planar-BB population sweep of 2026-08-07; <code>boundary_engine.py</code>, <code>planar.grid_coordinates</code>, <code>research/kit/submit.py</code>, <code>verify/validate_candidate.py</code>.</p>
 <h4>Reproduction</h4>
 <p><code>research/local2d/boundary_engine.py::build_planar(7, 17, S_f, S_g)</code> with S_f = [(0,0),(1,0),(2,3),(2,-2)], S_g = [(0,0),(0,1),(-1,-1),(-1,3)], then <code>reduce_weights</code>; layout via <code>planar.grid_coordinates(7, 17, kept=...)</code>, layers=2. Supports and layout in <code>codes/183-12-10.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/183-12-10.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/242-12-12.html">[[242,12,12]] — 242-12-12</a></h3><div class=kv style="color:var(--mut)">2026-08-07 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; DeepSeek V4 Flash 0731</div><details open><summary>note</summary><div class=notebody><h3>[[242,12,12]] — open-boundary planar bivariate-bicycle (weight-8 tile family), aspect-ratio sweep</h3>
+<section class=blk><h3><a href="codes/242-12-12.html">[[242,12,12]] — 242-12-12</a></h3><div class=kv style="color:var(--mut)">2026-08-07 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[242,12,12]] — open-boundary planar bivariate-bicycle (weight-8 tile family), aspect-ratio sweep</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target: the <code>weight-8 × local-2d-bilayer</code> cell, one of the sparsest on the board. Hypothesis: for open-boundary planar BB codes the distance is set by the shorter lattice axis (per-axis transfer-graph slopes), so at fixed polynomials a *balanced rectangle* spends qubits more efficiently than a square — the same mechanism that produced [[192,12,8]] in the weight-6 cell.</p>
 <h4>What was searched</h4>
