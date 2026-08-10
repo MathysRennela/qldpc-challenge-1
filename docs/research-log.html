@@ -1617,4 +1617,40 @@ Hₓ = [Σ L(a) | Σ R(b)]   H_z = [Σ R(b)ᵀ | Σ L(a)ᵀ]   (mod 2)
 <li>The yarn repo also ships the five surgery gadgets per code</li>
 <p>(<code>gadgets/*.npz</code>) — not used here, but useful for future circuit-level verification (the issue&#x27;s Level-II discussion).</p>
 </ul></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/630-126-20.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/48-4-8.html">[[48,4,8]] — 48-4-8</a></h3><div class=kv style="color:var(--mut)">2025 &middot; submission note &middot; Zijian Liang and Ke Liu and Hao Song and Yu-An Chen</div><details ><summary>note</summary><div class=notebody><h3>[[48,4,8]] — layout certification for the twisted-torus bivariate-bicycle baseline</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p><code>[[48,4,8]]</code> (twisted-torus bivariate-bicycle, Liang–Liu–Song–Chen, PRX Quantum 6 020357 / arXiv:2503.03827) was seeded as a literature baseline without a layout, so it competed only in the <code>unrestricted</code> cells even though it comes from a family that is geometrically local on a torus. The goal was to certify a 2D-local layout: find an honest bilayer embedding (spacing &gt;= 1, at most 2 qubits per site, every check diameter &lt;= 7.0) so the code earns the <code>local-2d-bilayer</code> class and the site&#x27;s geometric efficiency <code>g</code> becomes computable.</p>
+<h4>What was searched</h4>
+<p>Screened all 46 on-board codes that currently ship no accepted layout by constructing family-appropriate honest embeddings (stacked q x q grids, block-ring, and city-path) and judging each with the trusted verifier. Among the candidates that reach a plausible radius, <code>[[48,4,8]]</code> was the smallest: <code>n/2 = 24</code> sites, so the stacked-grid pattern used by the accepted w-4 bivariate-bicycle siblings (<code>[[72,6,6]]</code>, <code>[[112,6,7]]</code>, <code>[[128,6,8]]</code>, all at r ≈ 4.123) generalizes directly.</p>
+<p>Layout chosen: qubits <code>i</code> and <code>i+24</code> share a site on a 4 x 6 unit grid, <code>layers = 2</code>. The verifier&#x27;s exact measurement:</p>
+<ul>
+<li>interaction radius <code>r = 5.831</code> (&lt;= 7.0 bilayer cap)</li>
+<li>max qubits per site <code>2</code> (&lt;= layers)</li>
+<li>min site spacing <code>1.0</code></li>
+<li>bounding box <code>[3.0, 5.0]</code></li>
+</ul>
+<p>No <code>locality.interaction_radius</code> claim is stored beyond the measured value (none was asserted). The verifier also checked honesty of the layout; all checks pass, <code>locality_class = local-2d-bilayer</code>.</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>Before: <code>unrestricted</code> (no locality block), no <code>g</code>.</li>
+<li>After: <code>local-2d-bilayer</code>, `g = 4*k*d^2/(n*rho^2*r^4) = 4*4*8^2/(48*4*5.831^4)</li>
+<p>= 0.0046`.</p>
+<li>Operational efficiency unchanged: <code>k*d^2/n = 5.333</code>.</li>
+<li>Distance unchanged and intact: upper bound <code>d = 8</code> both sides, witnesses</li>
+<p>preserved exactly from the original entry (this edit only adds <code>locality</code> and a provenance note; no checks or distance fields were touched).</p>
+</ul>
+<p>The <code>g</code> value is small by design: the <code>rho^2 = 4</code> capacity charge for the two layers and the w-8 check span (r ~ 5.8) price most of the surface-code-normalized score away. The value of this change is the certification status, not the score: <code>[[48,4,8]]</code> now competes in the 2D-local cell, where it is an <code>(n,k,d,w)</code> Pareto co-leader near <code>[[45,5,4]]</code> and <code>[[49,1,7]]</code>.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>The city-path embedding reaches r ~ 5.5 but piles 3+ qubits on single sites,</li>
+<p>failing the per-site cap; only the stacked two-layer grid pattern keeps per-site &lt;= 2 while staying under the radius cap.</p>
+<li>The same stacked pattern does NOT work for the sibling [[98,6,12]]: its</li>
+<p>twist basis <code>a_2 = [7, 0]</code> makes the w-6 checks span the full torus diagonal (pairwise torus wrap-distance 24), so no honest flat layout exists within the bilayer radius cap; it stays <code>unrestricted</code>.</p>
+</ul>
+<h4>Tools</h4>
+<p>Reproducible via the repository research kit: the layout is a stacked grid constructed independently and judged by <code>verify/qldpc_verify.py</code> (the trusted verifier used by the site build), then packaged with <code>research/kit/submit.save_submission</code> (schema-validated). No distance search, no SLSQP, no model.</p>
+<h4>Reproduction</h4>
+<p>Load <code>codes/48-4-8.json</code>, set `locality = {&quot;coordinates&quot;: [[float((i % 24) % 4), float((i % 24) // 4)] for i in range(48)], &quot;layers&quot;: 2}<code> (qubits </code>i<code> and </code>i+24` share a site), and validate:</p>
+<p><code>uv run python verify/qldpc_verify.py codes/48-4-8.json</code></p>
+<p>Expected: <code>ok</code>, <code>earned_distance</code> with <code>d = 8</code> both sides, and computed <code>locality_class = local-2d-bilayer</code> with <code>interaction_radius = 5.831</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/48-4-8.md">raw markdown</a></div></details></section>
 </div></body></html>
