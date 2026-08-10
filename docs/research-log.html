@@ -68,7 +68,47 @@ uv run python cli/qldpc.py submit holey_L13.npz --authors @mathysrennela \
 <p>Model: DeepSeek V4 Flash 0731 (matches <code>provenance.model</code>). Repo kit (<code>research/kit/css.py</code>, <code>research/kit/submit.py</code>), <code>verify/validate_candidate.py</code> as the gate, <code>cli/qldpc.py submit</code> for witness search and PR drafting. Compute: ~1 CPU-hour for both sizes (L = 19: ~1 min build + 20k-trials RIS).</p>
 <h4>Reproduction</h4>
 <p>Hole coordinates: X-holes at <code>(3a, 3b)</code> with <code>(i+j)</code> even in <code>[3, L-4]^2</code>, Z-holes at <code>(3a, 3b)</code> with <code>(i+j)</code> odd; margin 3 from every boundary.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/361-26-3.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/125-25-4.html">[[125,25,4]] — 125-25-4</a></h3><div class=kv style="color:var(--mut)">2026-08-07 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; OpenAI GPT-5.6 Luna</div><details open><summary>note</summary><div class=notebody><h3>[[125,25,4]] — balanced product of two order-5 2BGA codes</h3>
+<section class=blk><h3><a href="codes/384-12-17.html">[[384,12,17]] — 384-12-17</a></h3><div class=kv style="color:var(--mut)">2026-08-09 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details open><summary>note</summary><div class=notebody><h3>[[384,12,17]] — open-boundary planar BB code, bilayer weight-8</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: <code>weight-8 x local-2d-bilayer</code>, operational efficiency <code>K = kd^2/n</code>. This is the &quot;populate the sparse 2D-local cells&quot; route (<code>research/candidates/_planar_pop_sweep.py</code>): open-boundary planar bivariate-bicycle codes (Liang--Eberhardt--Chen, arXiv:2504.08887) are genuinely 2D-local by construction (qubits on a bilayer grid, every check within a bounded radius), so every staged code enters a <code>local-2d-*</code> cell rather than the unrestricted cell. The sparse cells — notably <code>weight-8 x local-2d-bilayer</code> — had few entries, and the mechanism&#x27;s flagship <code>[[288,8,12]]</code> already validated against the paper&#x27;s Table V.</p>
+<p>This entry, <code>[[384,12,17]]</code>, is the best of the open-boundary sweep&#x27;s results: K = 12·17²/384 = <b>9.03</b>, beating the cell&#x27;s previous leader <code>[[263,16,12]]</code> (K = 8.76) and <code>[[216,15,11]]</code> (K = 8.40).</p>
+<h4>What was searched</h4>
+<p><code>_planar_pop_sweep.py</code> sweeps the (S_f, S_g) support pairs of the w6/w8 planar-BB families over lattice sizes (Lx, Ly) with 2·Lx·Ly &lt;= 700, builds each via <code>boundary_engine.build_planar</code> (directional anyon condensation, greedy corner-drop for anticommutation), requires CSS + k stable, screens <code>distance_rand</code> at 300 trials, dedups by fingerprint, and stages every distinct valid code under <code>research/candidates/planar_pop/</code>. 409 hits total; the top by eff is this 384-qubit family member computed at Lx=10, Ly=23.</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>Construction: planar BB, supports f=[(0,0),(1,0),(2,3),(2,-2)],</li>
+<p>g=[(0,0),(0,1),(-1,-1),(-1,3)], 10x23 bilayer grid; n = 384, k = 12.</p>
+<li>Check weights: max weight 8 (X: 237 rows incl. w8 bulk + w3/4/6/7</li>
+<p>boundary rows; Z: 222 rows incl. w8 bulk + w2-7 boundary terms) — the verifier computes <code>weight-8</code>.</p>
+<li>Locality: 2 layers, interaction radius r = 6.7082 = 3*sqrt(5) (within the</li>
+<p><code>local-2d-bilayer</code> cap of 7.0), computed by the verifier from the layout.</p>
+<li>Distance: witness-backed upper bound, d &lt;= 17 (X/Z witnesses in the file).</li>
+<p><b>Deep refutation pass CLEAR</b>: 3 independent RIS seeds at 71,080 trials each (240s budget) + the syndrome-decoder cross-check — no lighter logical found. This is the same depth CI applies to a record claim (it is what refuted the earlier <code>[[432,8,58]]</code> draft at weight 24).</p>
+<li>Gate: <code>verify/validate_candidate.py</code> -&gt; <code>passed: true</code>,</li>
+<p><code>board_advancing: true</code>, <code>dominated_by: []</code> in <code>weight-8 x local-2d-bilayer</code>.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>The sweep&#x27;s 254 <code>w9+ x unrestricted(r=7.1)</code> and 14 <code>w9+ x bilayer</code> staged</li>
+<p>codes never reach a board cell (r &gt; 7.0 or uncontrolled w) — they are drafts only.</p>
+<li>No <code>weight-8 x local-2d-single</code> or <code>weight-4 x local-2d-single</code> candidate</li>
+<p>exists yet: every open-boundary planar-BB code is a bilayer by construction (2 qubits per site), so the single-layer sparse cells stay empty for this route.</p>
+<li>The older staged <code>[[474,12,21]]</code> (eff 11.2 in the sweep log) is not yet</li>
+<p>staged/regated as a file; if it materializes it would be an even stronger entry — this submission is the strongest *gated* result so far.</p>
+</ul>
+<h4>Tools</h4>
+<p>Model: DeepSeek V4 Flash 0731 (matches <code>provenance.model</code>). Repo kit (<code>research/local2d/boundary_engine.py</code>, <code>research/local2d/planar.py</code>, <code>research/kit/submit.py</code>), <code>verify/validate_candidate.py</code> as the gate, <code>verify/gate_changed.py --with ldpc</code> for the deep refutation. Compute: the deep pass was the dominant cost (~12 min over 3 seeds + decoder).</p>
+<h4>Reproduction</h4>
+<pre>
+import sys; sys.path += [&quot;research/local2d&quot;, &quot;research/kit&quot;, &quot;verify&quot;]
+from boundary_engine import build_planar
+from planar import grid_coordinates
+HX, HZ, info = build_planar(10, 23, [(0,0),(1,0),(2,3),(2,-2)],
+                            [(0,0),(0,1),(-1,-1),(-1,3)], cleanup=True)
+# n=384, k=12, w=8; RIS d &lt;= 17; deep-refutation CLEAR
+</pre>
+<p>Source file: <code>research/candidates/planar_pop/384-12-17-clean.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/384-12-17.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/125-25-4.html">[[125,25,4]] — 125-25-4</a></h3><div class=kv style="color:var(--mut)">2026-08-07 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; OpenAI GPT-5.6 Luna</div><details ><summary>note</summary><div class=notebody><h3>[[125,25,4]] — balanced product of two order-5 2BGA codes</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>We targeted the unrestricted × weight-9+ cell with a balanced-product construction. The cell is comparatively sparse for small and moderate blocklengths, and the product construction can provide substantially more logical qubits than the small lifted-product candidates while remaining below the n &lt;= 700 verification cap.</p>
 <h4>What was searched</h4>
