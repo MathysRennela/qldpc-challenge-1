@@ -2810,16 +2810,34 @@ def record_chart(entries):
                     f'y2="{y:.0f}" stroke="#eef2f7"/>'
                     f'<text x="{pad_l-7}" y="{y:.0f}" font-size="12" '
                     f'fill="#475569" text-anchor="end" dy="4">{tick}</text>')
-    year_seen = set()
+    # Year labels sit at the first record EVENT of each year, and the x axis is
+    # indexed by event rather than by time. Early years contribute one or two
+    # events each, so their labels land a few pixels apart and overprint each
+    # other ("1996 1997 2019 2022 2023" ran together). Emit a label only when it
+    # clears the previous one, and drop the tick with it so a suppressed year
+    # leaves no orphan mark. The most recent year is forced: it is the one a
+    # reader looks for, and it is the likeliest to be crowded out by the year
+    # before it once entries start landing weekly.
+    YEAR_GAP = 34          # ~4 digits at 12px plus breathing room
+    year_first = {}
     for i, (date, _, _) in enumerate(union):
-        yr = date[:4]
-        if yr not in year_seen:
-            year_seen.add(yr)
-            grid.append(f'<text x="{sx(i):.0f}" y="{H-pad_b+19}" '
-                        f'font-size="12" fill="#475569" '
-                        f'text-anchor="middle">{yr}</text>'
-                        f'<line x1="{sx(i):.0f}" y1="{H-pad_b}" '
-                        f'x2="{sx(i):.0f}" y2="{H-pad_b+5}" stroke="#cbd5e1"/>')
+        year_first.setdefault(date[:4], i)
+    picks, last_x = [], -1e9
+    for yr, i in sorted(year_first.items()):
+        if sx(i) - last_x >= YEAR_GAP:
+            picks.append((yr, i))
+            last_x = sx(i)
+    if year_first:
+        newest = max(year_first)
+        if newest not in dict(picks):
+            picks = [p for p in picks if sx(p[1]) < sx(year_first[newest]) - YEAR_GAP]
+            picks.append((newest, year_first[newest]))
+    for yr, i in picks:
+        grid.append(f'<text x="{sx(i):.0f}" y="{H-pad_b+19}" '
+                    f'font-size="12" fill="#475569" '
+                    f'text-anchor="middle">{yr}</text>'
+                    f'<line x1="{sx(i):.0f}" y1="{H-pad_b}" '
+                    f'x2="{sx(i):.0f}" y2="{H-pad_b+5}" stroke="#cbd5e1"/>')
     paths, dots, ends = [], [], []
     for lab, col, evs in series:
         if not evs:
