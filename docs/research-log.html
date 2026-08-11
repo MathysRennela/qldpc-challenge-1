@@ -3,6 +3,33 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/80-8-8.html">[[80,8,8]] — 80-8-8</a></h3><div class=kv style="color:var(--mut)">2026-08-10 &middot; submission note &middot; <a href="https://github.com/aarontrowbridge">@aarontrowbridge</a> &middot; Muse Spark 1.2</div><details open><summary>note</summary><div class=notebody><h3>[[80,8,8]] — first quantum Tanner code on the board (family quantum-tanner)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>The board has 0 <code>quantum-tanner</code> codes (8 families total, <code>bivariate-bicycle</code> 80, <code>generalized-bicycle</code> 42, <code>2bga-coset</code> 26, <code>lifted-product</code> 20, etc). The family tag is filter-only (Layer 2, never ranked), so any valid Tanner is automatically novel in provenance even if it doesn&#x27;t dominate its <code>weight × locality</code> cell. The hypothesis is that a small lifted-product Tanner with Ramanujan-like expansion can land <code>k=8, d=8</code> at <code>n=80</code> with <code>w=8</code> — a first for the family and a seed for larger Tanner hunts.</p>
+<h4>Construction</h4>
+<p>Lifted product (LP) on cyclic group order 40, <code>a=[9,12,17,25]</code>, <code>b=[14,19,36,37]</code> (weight 4+4 → quantum <code>w=8</code>). Classical parity checks are 20×40 (rate 0.5) with row weight 4, expanded via the group algebra <code>F2[C40]</code> — the standard Panteleev-Kalachev LP construction, labeled <code>family=&quot;quantum-tanner&quot;</code> (allowed vocabulary, lowercase hyphen). No honest layout (unrestricted), so <code>locality_class=unrestricted</code>.</p>
+<pre>
+H_X = [A | B] , H_Z = [B^T | A^T]  with A,B ∈ F2[C40] as above
+</pre>
+<p>References: Leverrier-Zemor 2022 (quantum Tanner), Panteleev-Kalachev 2021 (lifted product).</p>
+<h4>Evidence</h4>
+<ul>
+<li><code>n=80, k=8, d=8, w=8</code> — <code>verify/qldpc_verify.py</code> → <code>ok true</code>, <code>weight-8</code>, <code>unrestricted</code>, <code>css true</code>, <code>k</code> via <code>GF(2) rank</code>, <code>distance</code> witnesses weight 8 both sides (<code>in_ker</code> + <code>not in_rowspace</code>), <code>not refuted</code> (5700 RIS trials).</li>
+<li><code>validate_candidate</code> → <code>passed:true</code>, <code>exact_duplicate null</code>, <code>wl_equivalent null</code>, <code>board_advancing:false</code> (dominated by <code>[[80,9,8]]</code> in <code>weight-8 × unrestricted</code> — expected, the cell is dense), <code>literature novelty unverified</code>. Family first-mover is the novelty, not Pareto.</li>
+</ul>
+<h4>Reproduction</h4>
+<p><code>research/candidates/tanner_hunt.py</code> (and <code>tanner_quick.py</code> reproducer) on erlich <code>~/qldpc-challenge</code> + mini <code>~/armonia/repos/qldpc-challenge</code>:</p>
+<pre>
+from products import hypergraph_product, lifted_product
+# here: lifted_product with group C40, a/b as above, w=8
+doc = make_submission(HX,HZ, name=&quot;[[80,8,8]] quantum-tanner&quot;, construction=&quot;quantum-tanner LP order 40 a=[9,12,17,25] b=[14,19,36,37]&quot;, authors=[&quot;aarontrowbridge&quot;], family=&quot;quantum-tanner&quot;, confidence=&quot;upper_bound&quot;)
+validate_candidate(doc) → passed
+</pre>
+<p>Staged: <code>research/candidates/tanner-80-8-8.json</code> (also <code>tanner-80-8-8-1.json</code> duplicate with different <code>a/b</code>).</p>
+<h4>Relation to board</h4>
+<p>First <code>quantum-tanner</code> entry — filter <code>family=quantum-tanner</code> now has 1 code (was 0). Not Pareto-advancing in <code>weight-8 × unrestricted</code> (dense, needs <code>k≥9</code> or <code>d≥9</code> at <code>n=80</code> to advance), but opens the family for larger Tanner hunts (<code>n=200-600</code> with same LP).</p>
+<h4>Tools</h4>
+<p>Built with <b>Amicode</b> harness (model: Muse Spark 1.2) — <code>research/kit</code> + <code>verify</code> on <code>erlich</code> (24c) / <code>mini</code> (10c).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/80-8-8.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/169-10-3.html">[[169,10,3]] — 169-10-3</a></h3><div class=kv style="color:var(--mut)">2026-08-09 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details open><summary>note</summary><div class=notebody><h3>[[169,10,3]] — holey rotated surface code, L=13 period-3 hole pattern</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: <code>weight-4 x local-2d-single</code>, geometric efficiency <code>g = 4kd^2/(n·rho^2·r^4)</code>. The board&#x27;s best non-reference point is the holey rotated surface code <code>[[625,50,3]]</code> (L = 25) at g = 0.72 with r = sqrt(2), rho = 1. This code is the <b>L = 13 instance</b> of the same period-3 hole pattern (n = 169, k = 10, g = 0.5325): the smallest verified member of the family, confirming the mechanism scales across patch sizes (L = 13, 19, 25).</p>
@@ -68,7 +95,7 @@ uv run python cli/qldpc.py submit holey_L13.npz --authors @mathysrennela \
 <p>Model: DeepSeek V4 Flash 0731 (matches <code>provenance.model</code>). Repo kit (<code>research/kit/css.py</code>, <code>research/kit/submit.py</code>), <code>verify/validate_candidate.py</code> as the gate, <code>cli/qldpc.py submit</code> for witness search and PR drafting. Compute: ~1 CPU-hour for both sizes (L = 19: ~1 min build + 20k-trials RIS).</p>
 <h4>Reproduction</h4>
 <p>Hole coordinates: X-holes at <code>(3a, 3b)</code> with <code>(i+j)</code> even in <code>[3, L-4]^2</code>, Z-holes at <code>(3a, 3b)</code> with <code>(i+j)</code> odd; margin 3 from every boundary.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/361-26-3.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/384-12-17.html">[[384,12,17]] — 384-12-17</a></h3><div class=kv style="color:var(--mut)">2026-08-09 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details open><summary>note</summary><div class=notebody><h3>[[384,12,17]] — open-boundary planar BB code, bilayer weight-8</h3>
+<section class=blk><h3><a href="codes/384-12-17.html">[[384,12,17]] — 384-12-17</a></h3><div class=kv style="color:var(--mut)">2026-08-09 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[384,12,17]] — open-boundary planar BB code, bilayer weight-8</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: <code>weight-8 x local-2d-bilayer</code>, operational efficiency <code>K = kd^2/n</code>. This is the &quot;populate the sparse 2D-local cells&quot; route (<code>research/candidates/_planar_pop_sweep.py</code>): open-boundary planar bivariate-bicycle codes (Liang--Eberhardt--Chen, arXiv:2504.08887) are genuinely 2D-local by construction (qubits on a bilayer grid, every check within a bounded radius), so every staged code enters a <code>local-2d-*</code> cell rather than the unrestricted cell. The sparse cells — notably <code>weight-8 x local-2d-bilayer</code> — had few entries, and the mechanism&#x27;s flagship <code>[[288,8,12]]</code> already validated against the paper&#x27;s Table V.</p>
 <p>This entry, <code>[[384,12,17]]</code>, is the best of the open-boundary sweep&#x27;s results: K = 12·17²/384 = <b>9.03</b>, beating the cell&#x27;s previous leader <code>[[263,16,12]]</code> (K = 8.76) and <code>[[216,15,11]]</code> (K = 8.40).</p>
