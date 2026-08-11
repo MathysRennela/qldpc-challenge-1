@@ -2966,7 +2966,11 @@ def latest_codes_panel(entries, records, limit=10):
     for e in dated[:limit]:
         star = ('<span class=lstar title="holds a cell record">&#9733;</span>'
                 if e["slug"] in rec_slugs else '')
-        who = html.escape(e["authors"])
+        # authors_compact, not html.escape on the joined string: this panel was
+        # the one place a handle rendered as inert text while the same handle
+        # linked to its profile everywhere else. It also collapses a long
+        # literature author list to "Surname et al." so the row stays one line.
+        who = authors_compact(e["authors_list"])
         origin = ('literature' if e["origin"] == "literature" else 'submission')
         rows.append(
             f'<li><a class="mono lnkd" href="codes/{e["slug"]}.html">'
