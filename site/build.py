@@ -124,6 +124,12 @@ REPO = REPO_ROOT + "/blob/main"
 # Update this to the real domain once the board is hosted.
 SITE_URL = "https://unitaryfoundation.github.io/qldpc-challenge"
 
+# Plausible's per-site script URL is public configuration, not a secret.  Keep
+# it here (rather than in a CI variable) so local and CI builds produce exactly
+# the same committed pages.  The Plausible site ID is the path-qualified
+# ``unitaryfoundation.github.io/qldpc-challenge`` project site.
+PLAUSIBLE_SCRIPT_SRC = "https://plausible.io/js/pa-BZqEmTRv5VBwv3HYwVpoB.js"
+
 # Palette (single source of truth; the CSS :root and the inline SVGs all draw
 # from these). Adopts the Unitary Foundation brand: deep purple as the readable
 # primary accent, signature bright yellow as the highlight (records, hero glow,
@@ -1157,7 +1163,42 @@ document.addEventListener('click',e=>{
 """
 
 
-def head(title, rel=""):
+def plausible_snippet(custom_properties=None):
+    """Plausible's cookie-free tracker plus conservative site-wide options.
+
+    The properties describe public page content, never a visitor.  Encoding the
+    options as JSON and escaping ``<`` keeps values safe inside an inline script
+    even if a future submission-controlled label contains HTML-like text.
+    """
+    options = {"outboundLinks": True, "fileDownloads": True}
+    if custom_properties:
+        options["customProperties"] = custom_properties
+    encoded = json.dumps(options, sort_keys=True, separators=(",", ":"))
+    encoded = encoded.replace("<", "\\u003c")
+    return (
+        '<!-- Privacy-friendly analytics by Plausible -->'
+        f'<script async src="{html.escape(PLAUSIBLE_SCRIPT_SRC, quote=True)}">'
+        '</script><script>'
+        'window.plausible=window.plausible||function(){'
+        '(plausible.q=plausible.q||[]).push(arguments)},'
+        'plausible.init=plausible.init||function(i){plausible.o=i||{}};'
+        f'plausible.init({encoded})</script>')
+
+
+def check_analytics_coverage():
+    """Fail the build if a generated HTML page omits or duplicates tracking."""
+    marker = PLAUSIBLE_SCRIPT_SRC
+    failures = []
+    for path in glob.glob(os.path.join(DOCS, "**", "*.html"), recursive=True):
+        with open(path) as f:
+            count = f.read().count(marker)
+        if count != 1:
+            failures.append(f"{os.path.relpath(path, ROOT)} ({count} snippets)")
+    if failures:
+        raise RuntimeError("invalid Plausible coverage: " + ", ".join(failures))
+
+
+def head(title, rel="", page_properties=None):
     return ("".join([
         "<!doctype html><html lang=en><head><meta charset=utf-8>",
         '<meta name=viewport content="width=device-width,initial-scale=1">',
@@ -1168,7 +1209,9 @@ def head(title, rel=""):
         '<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;'
         '600;700&family=Space+Grotesk:wght@500;700&family=Space+Mono:wght@400;'
         '700&display=swap" rel=stylesheet>',
-        f'<link rel=stylesheet href="{rel}style.css"></head><body>']))
+        f'<link rel=stylesheet href="{rel}style.css">',
+        plausible_snippet(page_properties),
+        '</head><body>']))
 
 
 def cert_info(slug):
@@ -1530,7 +1573,8 @@ def research_log_page(entries, fieldnotes):
             "author": fn["author"], "model": fn["model"], "md": fn["md"]})
     items.sort(key=lambda i: i["date"], reverse=True)
 
-    P = [head("Research log · QEC Challenge")]
+    P = [head("Research log · QEC Challenge",
+              page_properties={"page_type": "research_log"})]
     P.append('<div class=wrap>')
     P.append('<a class=back href="index.html">&larr; back to the board</a>')
     P.append('<h1>Research log</h1>')
@@ -1735,7 +1779,16 @@ def layout_svg(doc):
 def detail_page(e):
     doc, cert = e["doc"], e["cert"]
     n, k, d = e["n"], e["k"], e["d"]
-    P = [head(f"[[{n},{k},{d}]] · QEC Challenge", rel="../")]
+    P = [head(
+        f"[[{n},{k},{d}]] · QEC Challenge", rel="../",
+        page_properties={
+            "page_type": "code_detail",
+            "code_tier": e["tier"],
+            "code_origin": e["origin"],
+            "code_family": e["family"],
+            "locality_class": e["locality_class"],
+            "weight_class": e["weight_class"],
+        })]
     P.append('<div class=wrap>')
     P.append('<a class=back href="../index.html">&larr; back to the board</a>')
     P.append(f'<div class=codehead><span class="mono big">[[{n},{k},{d}]]</span> '
@@ -1901,6 +1954,7 @@ def detail_page(e):
     P.append("<script>document.querySelectorAll('[data-copy]').forEach("
              "b=>b.addEventListener('click',()=>{navigator.clipboard"
              ".writeText(b.dataset.copy);const o=b.innerHTML;"
+             "plausible('Result Link Copied');"
              "b.innerHTML='\\u2713';b.title='link copied';"
              "setTimeout(()=>{b.innerHTML=o;b.title='Copy link';},1400);}));"
              # layout figure: hover a check to isolate its member qubits
@@ -2022,7 +2076,8 @@ def references_page(entries):
             if k and ent["slug"] not in [c[0] for c in citers.get(k, [])]:
                 citers.setdefault(k, []).append(
                     (ent["slug"], ent["n"], ent["k"], ent["d"]))
-    P = [head("References | QEC Challenge", rel="")]
+    P = [head("References | QEC Challenge", rel="",
+              page_properties={"page_type": "references"})]
     P.append('<div class=wrap>')
     P.append('<a class=back href="index.html">&larr; back to the board</a>')
     P.append('<h1 style="margin:.4rem 0 0">References</h1>')
@@ -2231,6 +2286,7 @@ def contributors_panel(entries):
         'd.addEventListener("click",function(e){if(e.target===d)d.close();});'
         'var c=d.querySelector(".copybtn");if(c)c.addEventListener("click",'
         'function(){navigator.clipboard.writeText(c.dataset.copy);'
+        'plausible("Submission Command Copied");'
         'var o=c.textContent;c.textContent="copied";'
         'setTimeout(function(){c.textContent=o;},1200);});})();</script>'
         '</dialog>')
@@ -2448,7 +2504,8 @@ FAQ = [
 
 
 def faq_page():
-    P = [head("FAQ | QEC Challenge", rel="")]
+    P = [head("FAQ | QEC Challenge", rel="",
+              page_properties={"page_type": "faq"})]
     P.append('<div class=wrap>')
     P.append('<a class=back href="index.html">&larr; back to the board</a>')
     P.append('<h1 style="margin:.4rem 0 0">FAQ</h1>')
@@ -3263,6 +3320,24 @@ def board_table(entries, records):
             f'Show all {len(rows)} codes</button>')
 
 
+def not_found_page():
+    """Project-aware GitHub Pages 404, including Plausible's special event."""
+    base_path = urllib.parse.urlparse(SITE_URL).path.rstrip("/") + "/"
+    P = [head("Page not found · QEC Challenge", rel=base_path,
+              page_properties={"page_type": "not_found"})]
+    P.append('<div class=wrap style="padding-top:64px">'
+             '<div class="mono big">404</div>'
+             '<h1>Page not found</h1>'
+             '<p>The requested QEC Challenge page does not exist.</p>'
+             f'<a class=back href="{base_path}">&larr; back to the board</a>'
+             '</div>')
+    # A 404 is diagnostic rather than visitor engagement, so it must not turn
+    # an otherwise bounced visit into an engaged one.
+    P.append('<script>plausible("404",{interactive:false})</script>'
+             '</body></html>')
+    return "\n".join(P)
+
+
 def build():
     entries = load_entries()
     n_exact = sum(1 for e in entries if e["tier"] == "exact")
@@ -3274,7 +3349,8 @@ def build():
                      default=None)
     records = compute_records(entries)
 
-    P = [head("QEC Challenge")]
+    P = [head("QEC Challenge",
+              page_properties={"page_type": "leaderboard"})]
     P.append('<header class=hero>' + HERO_FLOW + '<div class=wrap>'
              '<div class=brand>'
              '<span class=brandmark>'
@@ -3283,7 +3359,9 @@ def build():
              '</span>'
              '<button class="lbcta herocta" type=button '
              'onclick="(function(){var d=document.getElementById('
-             '&quot;participate&quot;);if(d&&d.showModal)d.showModal();})()">Participate</button>'
+             '&quot;participate&quot;);if(d&&d.showModal){d.showModal();'
+             'plausible(&quot;Participate Opened&quot;,{props:{location:'
+             '&quot;hero&quot;}});}})()">Participate</button>'
              '</div>'
              '<h1>QEC Challenge</h1>'
              '<p>Find better quantum LDPC codes. '
@@ -3397,7 +3475,9 @@ def build():
         '</nav></div>'
         '<div class=footbar>&copy; 2026 &middot; Built by '
         '<a href="https://unitary.foundation">Unitary Foundation</a> '
-        f'&middot; <a href="{REPO}/LICENSE">Apache 2.0</a></div></footer>')
+        f'&middot; <a href="{REPO}/LICENSE">Apache 2.0</a> '
+        '&middot; Cookie-free analytics by '
+        '<a href="https://plausible.io">Plausible</a></div></footer>')
     P.append('<div id=tip></div>')
     P.append(f'<script>{JS}</script></body></html>')
 
@@ -3416,6 +3496,8 @@ def build():
         f.write(faq_page())
     with open(os.path.join(DOCS, "research-log.html"), "w") as f:
         f.write(research_log_page(entries, load_fieldnotes()))
+    with open(os.path.join(DOCS, "404.html"), "w") as f:
+        f.write(not_found_page())
     # Wrapper so the whitepaper opens with the site favicon and a proper tab
     # title (a raw PDF tab shows the browser's PDF-viewer icon instead).
     with open(os.path.join(DOCS, "whitepaper.html"), "w") as f:
@@ -3424,6 +3506,7 @@ def build():
             '<meta name=viewport content="width=device-width,initial-scale=1">'
             '<title>The QEC Challenge whitepaper</title>'
             '<link rel=icon type="image/svg+xml" href="favicon.svg">'
+            + plausible_snippet({"page_type": "whitepaper"}) +
             '<style>html,body{margin:0;height:100%}'
             'embed{width:100%;height:100%}</style></head><body>'
             '<embed src="qec_challenge.pdf" type="application/pdf">'
@@ -3436,6 +3519,7 @@ def build():
     for f in glob.glob(os.path.join(DOCS, "codes", "*.html")):
         if os.path.splitext(os.path.basename(f))[0] not in slugs:
             os.remove(f)
+    check_analytics_coverage()
 
     # machine-readable stats; the README badges (shields.io dynamic JSON) read
     # this file from the live site, so there is no committed badge image to fall
