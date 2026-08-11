@@ -542,7 +542,7 @@ HX, HZ = build_cornucopia(16, INSTANCES[&quot;[[576,292,8]]&quot;][&quot;shifts&
 <p>Found by a continual non-abelian 2BGA dominance search (Claude Opus 4.8) built on this repository&#x27;s own research/kit group-algebra constructors and the gf2_fast RIS core. Rebuilt, re-witnessed, and re-verified through verify/qldpc_verify.py during packaging.</p>
 <h4>Reproduction</h4>
 <p>Build dicyclic Dic_33 with research/kit/group_algebra (dicyclic presentation a^{2m} = 1, b^2 = a^m, b a b^-1 = a^-1), then form the 2BGA via build_2bga(mul, a, b) using the a, b element-index lists recorded in the code file to obtain [[264,8,22]].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/264-8-22.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/56-6-7.html">[[56,6,7]] — 56-6-7</a></h3><div class=kv style="color:var(--mut)">2026-08-04 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details ><summary>note</summary><div class=notebody><h3>[[56,6,7]] — 2BGA on the dicyclic Dic_7 group</h3>
+<section class=blk><h3><a href="codes/56-6-7.html">[[56,6,7]] — 56-6-7</a></h3><div class=kv style="color:var(--mut)">2026-08-04 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> and <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Claude Opus 4.8</div><details ><summary>note</summary><div class=notebody><h3>[[56,6,7]] — 2BGA on the dicyclic Dic_7 group</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Advance the frontier with a two-block group-algebra code over a non-abelian dicyclic (generalized-quaternion) group, a family that was not represented on the board when this search began. The distance was deliberately kept in the range where the RIS surrogate converges, so the claim is verifiable rather than an optimistic screen.</p>
 <h4>What was searched</h4>
@@ -554,7 +554,21 @@ HX, HZ = build_cornucopia(16, INSTANCES[&quot;[[576,292,8]]&quot;][&quot;shifts&
 <h4>Model &amp; harness</h4>
 <p>Found by a continual non-abelian 2BGA dominance search (Claude Opus 4.8) built on this repository&#x27;s own research/kit group-algebra constructors and the gf2_fast RIS core. Rebuilt, re-witnessed, and re-verified through verify/qldpc_verify.py during packaging.</p>
 <h4>Reproduction</h4>
-<p>Build dicyclic Dic_7 with research/kit/group_algebra (dicyclic presentation a^{2m} = 1, b^2 = a^m, b a b^-1 = a^-1), then form the 2BGA via build_2bga(mul, a, b) using the a, b element-index lists recorded in the code file to obtain [[56,6,7]].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/56-6-7.md">raw markdown</a></div></details></section>
+<p>Build dicyclic Dic_7 with research/kit/group_algebra (dicyclic presentation a^{2m} = 1, b^2 = a^m, b a b^-1 = a^-1), then form the 2BGA via build_2bga(mul, a, b) using the a, b element-index lists recorded in the code file to obtain [[56,6,7]].</p>
+<p>---</p>
+<h4>Layout certification (co-authored)</h4>
+<p>Subsequent to submission, an honest bilayer layout was found and certified:</p>
+<ul>
+<li><b>Layout</b>: stacked 4x7 unit grid, <code>layers = 2</code>; qubits <code>i</code> and <code>i+28</code> share a</li>
+<p>site. Verified interaction radius <code>r = 6.7082</code> (&lt;= 7.0 bilayer cap), 2 qubits per site, min site spacing 1.0.</p>
+<li><b>Effect</b>: the trusted verifier now computes `locality_class =</li>
+<p>local-2d-bilayer<code> (the code was previously </code>unrestricted` for lack of a layout), so it competes in the 2D-local cell and the site&#x27;s geometric efficiency <code>g = 4kd^2/(n rho^2 r^4)</code> becomes defined: <code>g ~ 0.0026</code> (upper-bound distance tier inherited), <code>kd^2/n = 5.25</code>.</p>
+<li><b>Distance unchanged</b>: <code>d = 7</code> upper bound, witnesses intact (this edit only</li>
+<p>adds <code>locality</code> and provenance — no checks or distance fields touched).</p>
+<li><b>Authorship</b>: @mathysrennela co-authored this layout contribution; the code</li>
+<p>remains jointly credited with @vprusso. Layout found Aug 2026.</p>
+</ul>
+<p>Reproduce the layout: `locality = {&quot;coordinates&quot;: [[float((i % 28) % 4), float((i % 28) // 4)] for i in range(56)], &quot;layers&quot;: 2}` and validate with <code>uv run python verify/qldpc_verify.py codes/56-6-7.json</code> (expect <code>locality_class = local-2d-bilayer</code>, <code>interaction_radius = 6.7082</code>).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/56-6-7.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/64-16-6.html">[[64,16,6]] — 64-16-6</a></h3><div class=kv style="color:var(--mut)">2026-08-04 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 4.8</div><details ><summary>note</summary><div class=notebody><h3>[[64,16,6]] — 2BGA on the metacyclic Z_16 x| Z_2 group</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Advance the low-blocklength frontier with a two-block group-algebra code over a non-abelian group. Small n and modest distance were chosen deliberately: this is the regime where the RIS distance surrogate converges, so the claim is verifiable rather than an optimistic upper bound.</p>
