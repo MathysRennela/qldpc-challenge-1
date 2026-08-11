@@ -108,6 +108,36 @@ HX, HZ, info = build_planar(10, 23, [(0,0),(1,0),(2,3),(2,-2)],
 # n=384, k=12, w=8; RIS d &lt;= 17; deep-refutation CLEAR
 </pre>
 <p>Source file: <code>research/candidates/planar_pop/384-12-17-clean.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/384-12-17.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/700-57-3.html">[[700,57,3]] — 700-57-3</a></h3><div class=kv style="color:var(--mut)">2026-08-09 &middot; submission note &middot; <a href="https://github.com/aarontrowbridge">@aarontrowbridge</a> &middot; Muse Spark 1.2</div><details ><summary>note</summary><div class=notebody><h3>[[700,57,3]] — rectangular holey rotated surface code — g=0.73 (r=√2)</h3>
+<h4>Construction</h4>
+<p>Rectangular 28×25 extension of the holey rotated surface code [[625,50,3]] (PR #433).</p>
+<ul>
+<li><b>Grid:</b> 28×25 vertex grid, n=700 qubits at integer points (x,y)∈[0,28)×[0,25), min spacing 1.</li>
+<li><b>Checks:</b> Rotated surface code plaquettes (weight ≤4, diameter √2) + boundary pairs (weight 2, diameter 1). X on even cells (i+j even), Z on odd cells.</li>
+<li><b>Holes:</b> Period-3 parity-matched sublattice, margin 3 cells from boundary: cells (i,j) with i%3==0, j%3==0, parity (i+j)%2==0→X-hole, ==1→Z-hole. For 28×25: 8×7=56 hole positions → 28 X-holes + 28 Z-holes. Parent k=1 + 56 holes = 57. Boundary parity adjusted for even Lx: right Z edge start flipped (0 vs 1) to preserve CSS (H_X H_Z^T=0); otherwise X bottom (1), X top (0), Z left (0) as in square case.</li>
+<li><b>Layout:</b> Integer grid, r=√2 exactly (unit squares √2, boundary pairs 1), layers=1, class local-2d-single, weight class weight-4.</li>
+</ul>
+<h4>Parameters</h4>
+<ul>
+<li>n=700, k=57, d=3 (hole-to-boundary weight-3 string), w=4, r=√2≈1.4142, layers=1</li>
+<li>g = 4kd²/(n r⁴) = 9k/n (at d=3, r=√2) = 9×57/700 = 0.732857... vs 0.72 for 625-50-3.</li>
+<li>Comparison: 625-50-3 (25×25) → g=0.72 (k=50); 675-50-3 (27×25) → g=0.666 (no extra hole row). 28×25 is maximal n≤700 odd/even rectangular that adds a hole row (Nx 7→8).</li>
+</ul>
+<h4>Verification</h4>
+<pre>
+uv run python verify/qldpc_verify.py codes/700-57-3.json
+→ css_commutation ok, k=57 matches, max_check_weight 4, distance_X/Z_witness weight=3 in_ker &amp; nontrivial, interaction_radius 1.4142, locality_class local-2d-single, ok true
+
+uv run python verify/validate_candidate.py research/candidates/700-57-3-rect-holey.json (pre-board)
+→ passed: true, verify ok, refute false (no lighter logical in 8000 RIS trials), dedup null, novelty board_advancing true, advances weight-4 x local-2d-single board
+</pre>
+<p>Claim tier <code>upper_bound</code> (witness-backed d≤3, distance 3 is minimal hole spacing so d=3 tight).</p>
+<h4>Reproduction</h4>
+<p><code>research/candidates/build_rect_holey.py</code>: build_rect(Lx=28,Ly=25, margin=3, period=3) with CSS boundary search (brute 16 combos, picks 1,0,0,0 for 28×25). Then <code>submit.make_submission(..., coordinates, layers=1)</code> and <code>validate_candidate</code>.</p>
+<h4>Provenance</h4>
+<p>Rectangular generalization of research/campaigns/rotated_holey.py (square L×L, margin 3, period 3). Even-L CSS fix derived from boundary parity scan. No external references beyond surface-code base.</p>
+<h4>Tools</h4>
+<p>Built with <b>Amicode</b> harness (model: Muse Spark 1.2) — <code>research/kit</code> + <code>verify/gf2_fast</code> + <code>validate_candidate</code> gate on <code>mini</code>/<code>erlich</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/700-57-3.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/125-25-4.html">[[125,25,4]] — 125-25-4</a></h3><div class=kv style="color:var(--mut)">2026-08-07 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; OpenAI GPT-5.6 Luna</div><details ><summary>note</summary><div class=notebody><h3>[[125,25,4]] — balanced product of two order-5 2BGA codes</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>We targeted the unrestricted × weight-9+ cell with a balanced-product construction. The cell is comparatively sparse for small and moderate blocklengths, and the product construction can provide substantially more logical qubits than the small lifted-product candidates while remaining below the n &lt;= 700 verification cap.</p>
