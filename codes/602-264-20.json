@@ -5575,12 +5575,16 @@
  },
  "provenance": {
   "authors": [
-   "Magic State Labs"
+   "@npdeep"
   ],
   "construction": "Pair-partition CPM CSS code (J=4, L=14, P=43; arXiv:2607.14091)",
   "origin": "submission",
+  "references": [
+   "arXiv:2607.14091"
+  ],
   "date": "2026-08-12",
-  "notes": "Witness-backed upper bound; no lower-bound or exact-distance claim."
+  "notes": "Witness-backed upper bound; no lower-bound or exact-distance claim.",
+  "model": "Magic State Labs (Custom) v0.1"
  },
  "family": "lifted-product"
 }
