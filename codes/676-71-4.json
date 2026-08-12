@@ -4405,13 +4405,12 @@
   "authors": [
    "@npdeep"
   ],
-  "construction": "Generic nonabelian group lifted product over D52 (order 52), with 2 x 3 base matrices.",
+  "construction": "Generic group lifted-product CSS code over the nonabelian dihedral group D52 of order 52. In group-element index notation, the monomial 2 x 3 base matrices are A = [[{0}, {14}, {43}], [{23}, {13}, {44}]] and B = [[{0}, {14}, {19}], [{12}, {35}, {18}]]. Checks use H_X = [L(A ⊗ I_3) | R(I_2 ⊗ B*)] and H_Z = [R(I_3 ⊗ B) | L(A* ⊗ I_2)], with * denoting group-algebra conjugate transpose. The binary lift has n=676, k=71, and maximum check weight 5.",
   "references": [
    "arXiv:2607.28795"
   ],
-  "origin": "submission",
   "date": "2026-08-12",
-  "notes": "Witness-backed upper bound; no exact-distance claim.",
+  "notes": "CSS code in the unrestricted weight-6 class (maximum check weight 5). Validated weight-4 X and Z logical witnesses establish d <= 4; the distance is a witness-backed upper bound, not exact. Relative to [[696,76,3]], it uses 20 fewer physical qubits and raises d from 3 to 4, with k=71 rather than 76 and maximum check weight 5 rather than 4.",
   "model": "Magic State Labs (Custom) v0.1"
  },
  "family": "lifted-product"
