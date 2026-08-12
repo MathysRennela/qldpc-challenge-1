@@ -146,7 +146,10 @@
   "construction": "Doubling construction (arXiv:2608.11160, Thm III.6 / Cor III.2): Steane [[7,1,3]] doubled with the all-even code of size 5 gives the [[17,1,5]] 2D color code. HX=HZ (self-dual CSS).",
   "origin": "submission",
   "date": "2026-08-12",
-  "model": "DeepSeek V4 Flash 0731"
+  "model": "DeepSeek V4 Flash 0731",
+  "references": [
+   "arXiv:2608.11160"
+  ]
  },
  "family": "topological",
  "locality": {
