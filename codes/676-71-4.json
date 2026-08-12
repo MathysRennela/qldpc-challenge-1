@@ -4403,12 +4403,16 @@
  },
  "provenance": {
   "authors": [
-   "Magic State Labs"
+   "@npdeep"
   ],
   "construction": "Generic nonabelian group lifted product over D52 (order 52), with 2 x 3 base matrices.",
+  "references": [
+   "arXiv:2607.28795"
+  ],
   "origin": "submission",
   "date": "2026-08-12",
-  "notes": "Witness-backed upper bound; no exact-distance claim."
+  "notes": "Witness-backed upper bound; no exact-distance claim.",
+  "model": "Magic State Labs (Custom) v0.1"
  },
  "family": "lifted-product"
 }
