@@ -4996,12 +4996,16 @@
  },
  "provenance": {
   "authors": [
-   "Magic State Labs"
+   "@npdeep"
   ],
   "construction": "Open-boundary weight-8 Tile code (B=4, 14 x 14 bulk), with one support swap from the published B=4 tile (arXiv:2504.09171).",
   "origin": "submission",
   "date": "2026-08-12",
-  "notes": "Witness-backed upper bound; no exact-distance claim."
+  "notes": "Witness-backed upper bound; no exact-distance claim.",
+  "model": "Magic State Labs (Custom) v0.1",
+  "references": [
+   "arXiv:2504.09171"
+  ]
  },
  "family": "tile",
  "locality": {
