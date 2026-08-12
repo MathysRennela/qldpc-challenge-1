@@ -3,6 +3,44 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/700-85-3.html">[[700,85,3]] — 700-85-3</a></h3><div class=kv style="color:var(--mut)">2026-08-12 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details open><summary>note</summary><div class=notebody><h3>[[700,85,3]] — holey rotated surface code at exact max-hole packing, g=1.093 (r=√2)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: weight-4 × local-2d-single at the r=√2 packing floor. Family: the board&#x27;s holey rotated surface codes (<code>[[625,50,3]]</code> g=0.720, <code>[[700,57,3]]</code> g=0.733, <code>[[700,75,3]]</code> g=0.964). With d=3 and r=√2, <code>g = 9k/n = 9(1+holes)/n</code>, and the family notes argued g stays below 1 because d=3 was thought to force a period-3 / 1/9 hole-density ceiling. But the d=3 constraint is local (same-parity Chebyshev ≥ 3, any-parity Manhattan ≥ 3), so the true ceiling per grid is an **irregular maximum independent set**, not a uniform sublattice. Hypothesis: an exact maximum-hole search over grid shape and placement jointly breaks the 1/9 ceiling.</p>
+<h4>What was found</h4>
+<p>| grid | n | holes | k | g = 9k/n | |---|---|---|---|---| | <b>25×28</b> | <b>700</b> | <b>84</b> | <b>85</b> | <b>1.0929</b> | | 24×29 | 696 | 83 | 84 | 1.0862 | | 24×28 | 672 | 80 | 81 | 1.0848 | | 23×30 | 690 | 82 | 83 | 1.0826 | | 26×26 | 676 | 80 | 81 | 1.0784 | | 20×35 | 700 | 82 | 83 | 1.0671 |</p>
+<p>Submitted: <b>25×28 → [[700,85,3]]</b>, g = 9·85/700 = <b>1.0929</b>, above the surface-code normalization (1.0) and the previous best non-surface board entry (≈0.964).</p>
+<h4>What was searched</h4>
+<p>1. <b>Calibration.</b> Reconstructed the rectangular constructor from the board&#x27;s merged rectangular holey rotated surface codes (X on even cells, Z on odd, 4-corner supports; boundary pairs: X vertical at columns 0 and Ly−1, Z horizontal at rows 0 and Lx−1, each with a parity bit; boundary bits by 16-combo scan). Recovered hole sets satisfy the spacing rule pairwise; the constructor reproduces the reference code&#x27;s checks exactly with matching k and CSS. 2. <b>Exact hole max.</b> Per shape, MILP max independent set on the interior cells (margin 3), conflict = the calibrated rule. Every shape with interior ≥ 360 and n ≤ 700 solved to optimality (no unproven shapes). 3. <b>Validity.</b> The 84-hole set on 25×28 builds to CSS with <code>k = 85 = 1 + 84</code>, verified by <code>verify/validate_candidate.py</code>: <code>verify ok</code>, weight-4, local-2d-single, interaction radius √2, layers 1; witnesses weight 3 both sides, refute gate finds no lighter logical in 8000 RIS trials; <code>board_advancing: true</code>, no exact/WL duplicate.</p>
+<h4>Exact distance certificate</h4>
+<p>d=3 is <b>exact on both sides</b>:</p>
+<ul>
+<li><code>verify/certify.py</code> (scipy/HiGHS MILP, per-side &quot;no logical &lt; d exists&quot;):</li>
+<p>reports <code>no logical &lt; 3 exists</code> for X and Z, <code>d_exact: true</code>.</p>
+<li>Independent exhaustive enumeration: zero weight-1 logicals and zero</li>
+<p>weight-2 logicals on either side (a weight-2 X-logical {a,b} exists iff H_Z columns a,b are identical and K_X columns a,b differ; checked completely). The same exhaustive check passes on the merged board reference code (control).</p>
+</ul>
+<p>Certificate artifact: <code>research/candidates/700-85-3-cert.json</code>.</p>
+<h4>Why this beats the g&lt;1 ceiling</h4>
+<p>The 1/9 bound is specific to <b>uniform period-3 sublattices</b>; the d=3 rule is local, so irregular exact max independent sets on finite patches exceed it (84/484 ≈ 0.174 interior density on 25×28 vs 1/9 ≈ 0.111). Heuristic packers undercount badly (a greedy finds ~66 holes on 25×28 vs the exact 84), so prior &quot;g &lt; 1 for this family&quot; reasoning was an artifact of search strength, not a property of the family.</p>
+<h4>Caveats</h4>
+<ul>
+<li>The d=3 spacing rule is here both necessary and sufficient (all built</li>
+<p>packings pass the gate; distance exact as certified above).</p>
+<li>g &gt; 1 is admissible for this cell: the score is 9k/n, and the holey</li>
+<p>packing legitimately exceeds uniform density.</p>
+<li>Several packings above g=1 exist (see table); all built so far pass the</li>
+<p>gate. The submitted 25×28 is the strongest at n = 700.</p>
+</ul>
+<h4>Tools</h4>
+<p>Author: @mathysrennela. Model: DeepSeek V4 Flash 0731. Repo kit (<code>css.py</code>, <code>submit.py</code>, <code>surrogate.py</code>), <code>verify/certify.py</code> for the exact tier, <code>verify/validate_candidate.py</code> as the gate, scipy MILP for the exact max independent set. Reference codes fetched from the board.</p>
+<h4>Reproduction</h4>
+<pre>
+uv run python research/candidates/_build_700_85_3.py
+# -&gt; research/candidates/700-85-3-holey.json (witnesses at 2000 trials)
+uv run python verify/certify.py research/candidates/700-85-3-holey.json --tlim 120
+uv run python verify/validate_candidate.py research/candidates/700-85-3-holey.json
+</pre>
+<p>The exact hole set, boundary bits, and constructor are in <code>research/candidates/_build_700_85_3.py</code>; the MILP scan script and its checkpoint are <code>research/candidates/_hmax_exact_scan.py</code> + <code>research/candidates/_hmax_milp.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/700-85-3.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/700-75-3.html">[[700,75,3]] — 700-75-3</a></h3><div class=kv style="color:var(--mut)">2026-08-10 &middot; submission note &middot; <a href="https://github.com/aarontrowbridge">@aarontrowbridge</a> &middot; Muse Spark 1.2</div><details open><summary>note</summary><div class=notebody><h3>[[700,75,3]] — irregular holey rotated surface code, g=0.964 (r=√2)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>PR #433 ([[625,50,3]] g=0.72) and PR #449 ([[700,57,3]] g=0.733) showed the holey rotated surface code is capped by the period-3 hole spacing: uniform 3×3 lattice gives <code>k = 1 + holes</code>, <code>holes ≈ (L-7)²/9</code>, <code>g=9k/n&lt;1</code>. The hypothesis for this submission is that <b>uniformity is not optimal</b> — the <code>d=3</code> constraint is local (hole-to-hole Chebyshev ≥3 for same parity, Manhattan ≥3 any pair, margin 3 from boundary), so an *irregular* max independent set on the 28×25 grid can pack 1–2 extra holes per row and break the <code>1/9</code> average, pushing <code>g</code> toward 1 from below without needing a new cellulation.</p>
@@ -61,7 +99,7 @@ validate_candidate(doc) → passed
 <p>First <code>quantum-tanner</code> entry — filter <code>family=quantum-tanner</code> now has 1 code (was 0). Not Pareto-advancing in <code>weight-8 × unrestricted</code> (dense, needs <code>k≥9</code> or <code>d≥9</code> at <code>n=80</code> to advance), but opens the family for larger Tanner hunts (<code>n=200-600</code> with same LP).</p>
 <h4>Tools</h4>
 <p>Built with <b>Amicode</b> harness (model: Muse Spark 1.2) — <code>research/kit</code> + <code>verify</code> on <code>erlich</code> (24c) / <code>mini</code> (10c).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/80-8-8.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/169-10-3.html">[[169,10,3]] — 169-10-3</a></h3><div class=kv style="color:var(--mut)">2026-08-09 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details open><summary>note</summary><div class=notebody><h3>[[169,10,3]] — holey rotated surface code, L=13 period-3 hole pattern</h3>
+<section class=blk><h3><a href="codes/169-10-3.html">[[169,10,3]] — 169-10-3</a></h3><div class=kv style="color:var(--mut)">2026-08-09 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[169,10,3]] — holey rotated surface code, L=13 period-3 hole pattern</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: <code>weight-4 x local-2d-single</code>, geometric efficiency <code>g = 4kd^2/(n·rho^2·r^4)</code>. The board&#x27;s best non-reference point is the holey rotated surface code <code>[[625,50,3]]</code> (L = 25) at g = 0.72 with r = sqrt(2), rho = 1. This code is the <b>L = 13 instance</b> of the same period-3 hole pattern (n = 169, k = 10, g = 0.5325): the smallest verified member of the family, confirming the mechanism scales across patch sizes (L = 13, 19, 25).</p>
 <h4>What was searched</h4>
