@@ -1,0 +1,19 @@
+{
+ "name": "[[700,85,3]] holey rotated surface code (exact max-hole packing)",
+ "d": 3,
+ "solver": "scipy/HiGHS cutoff IP",
+ "sides": {
+  "X": {
+   "value": 3,
+   "exact": true,
+   "note": "no logical < 3 exists"
+  },
+  "Z": {
+   "value": 3,
+   "exact": true,
+   "note": "no logical < 3 exists"
+  }
+ },
+ "d_exact": true,
+ "tlim_per_solve": 120
+}
