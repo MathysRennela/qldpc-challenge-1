@@ -1,0 +1,18 @@
+{
+ "name": "[[232,104,3]] HP ham31xham7",
+ "d": 3,
+ "solver": "scipy/HiGHS MILP",
+ "sides": {
+  "X": {
+   "value": 3,
+   "exact": true,
+   "note": "no logical < 3 exists"
+  },
+  "Z": {
+   "value": 3,
+   "exact": true,
+   "note": "no logical < 3 exists"
+  }
+ },
+ "d_exact": true
+}
