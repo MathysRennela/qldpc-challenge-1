@@ -4998,14 +4998,13 @@
   "authors": [
    "@npdeep"
   ],
-  "construction": "Open-boundary weight-8 Tile code (B=4, 14 x 14 bulk), with one support swap from the published B=4 tile (arXiv:2504.09171).",
-  "origin": "submission",
-  "date": "2026-08-12",
-  "notes": "Witness-backed upper bound; no exact-distance claim.",
-  "model": "Magic State Labs (Custom) v0.1",
+  "construction": "Open-boundary weight-8 Tile CSS code with B=4 on a 14 x 14 bulk, obtained by one support swap from the published B=4 tile. The X-tile support is {h00,h03,h22,h30,v01,v11,v20,v33}; boundary truncation gives n=578 and k=18. The submitted single-layer planar layout has one qubit per site, interaction radius sqrt(37) (approximately 6.0828), and maximum stabilizer weight 8.",
   "references": [
    "arXiv:2504.09171"
-  ]
+  ],
+  "date": "2026-08-12",
+  "notes": "Pareto point in the weight-8 x local-2d-bilayer track: relative to [[512,18,19]], it retains k=18 and maximum check weight 8 while trading 66 additional qubits for a one-step larger witnessed distance bound. Explicit valid X- and Z-logical witnesses have weights 20 and 21, establishing d <= 20 only; no exact-distance claim is made.",
+  "model": "Magic State Labs (Custom) v0.1"
  },
  "family": "tile",
  "locality": {
