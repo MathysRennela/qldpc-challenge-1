@@ -4389,13 +4389,12 @@
   "authors": [
    "@npdeep"
   ],
-  "construction": "Generic nonabelian group lifted product over Dic34 (order 136), with 1 x 2 base matrices.",
+  "construction": "Generic group lifted-product CSS code over the nonabelian dicyclic group Dic34 of order 136. In group-element index notation, the 1 x 2 base matrices are A = [[{0,28}, {11,19}]] and B = [[{0,51}, {32,109}]]. Checks use H_X = [L(A ⊗ I_2) | R(I_1 ⊗ B*)] and H_Z = [R(I_2 ⊗ B) | L(A* ⊗ I_1)], with * denoting group-algebra conjugate transpose. The binary lift has n=680, k=163, and maximum check weight 6.",
   "references": [
    "arXiv:2607.28795"
   ],
-  "origin": "submission",
   "date": "2026-08-12",
-  "notes": "Witness-backed upper bound; no exact-distance claim.",
+  "notes": "CSS code in the unrestricted weight-6 class (maximum check weight 6). Validated weight-4 X and Z logical witnesses establish d <= 4; the distance is a witness-backed upper bound, not exact. Relative to [[700,85,3]], it uses 20 fewer physical qubits, encodes 78 more logical qubits, and raises d from 3 to 4, with maximum check weight 6 rather than 4.",
   "model": "Magic State Labs (Custom) v0.1"
  },
  "family": "lifted-product"
