@@ -21,6 +21,31 @@
 </ul>
 <h4>Context</h4>
 <p>The [[23h²m², 2m², 4h]] family and its calibration (loop/string/lasso laws, measured exactly at h = 2,3,4) are documented in <code>research/holes/NOTE.md</code> on branch <code>research/hole-packing-constant</code>, with constructors and both distance engines. Defect encoding itself is standard (e.g. Raussendorf–Harrington, Fowler et al., arXiv:1208.0928); the contribution here is the two-type dual-grid packing at density 2/R² and the resulting constant 2/23 &gt; 1/16, which bears on the sharp-constant question for the BPT tradeoff at fixed capacity.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/368-8-8.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/672-85-3.html">[[672,85,3]] — 672-85-3</a></h3><div class=kv style="color:var(--mut)">2026-08-13 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details open><summary>note</summary><div class=notebody><h3>[[672,85,3]] — holey rotated surface code, corrected d=3 rule, g=1.138 (r=√2)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: weight-4 × local-2d-single at the r=√2 packing floor. The board&#x27;s holey rotated surface codes (<code>[[625,50,3]]</code> g=0.720, <code>[[700,57,3]]</code> g=0.733, <code>[[700,75,3]]</code> g=0.964, <code>[[700,85,3]]</code> g=1.093) were all built under a hole-spacing rule that required <b>any</b> pair of holes (same or different parity) to keep Manhattan distance ≥ 3, with margin 3 from the boundary.</p>
+<p>Hypothesis: that rule is stricter than the d ≥ 3 constraint actually needs. The d=3 killer is a *same-parity* pair at Chebyshev distance &lt; 3 (a weight-2 logical). Different-parity holes are free to sit edge-adjacent. Relaxing only the different-parity condition should pack more holes at the same d=3.</p>
+<h4>What was found</h4>
+<p>Exact MILP max independent set under the corrected rule (same-parity Chebyshev ≥ 3; different-parity unconstrained; margin 3) over shapes with n ≤ 700:</p>
+<p>| grid | n | holes | k | g = 9k/n | |---|---|---|---|---| | <b>24×28</b> | <b>672</b> | <b>84</b> | <b>85</b> | <b>1.1384</b> | | 26×26 | 676 | 84 | 85 | 1.1317 | | 24×29 | 696 | 86 | 87 | 1.1250 | | 25×28 | 700 | 86 | 87 | 1.1186 | | 27×24 | 648 | 80 | 81 | 1.1250 |</p>
+<p>Submitted: <b>24×28 → [[672,85,3]]</b>, g = 9·85/672 = <b>1.1384</b>, above the prior board best [[700,85,3]] (g=1.093).</p>
+<h4>Evidence trail</h4>
+<ul>
+<li><b>Trusted gate</b> <code>verify/validate_candidate.py</code> on the staged submission →</li>
+<p><code>passed: true</code>, weight-4, local-2d-single, interaction radius √2, layers 1; witnesses weight 3 both sides; refute gate finds no lighter logical in 8000 RIS trials; <code>board_advancing: true</code>, <code>dominated_by: []</code>, no exact/WL duplicate.</p>
+<li>d=3 witness: weight-3 hole-to-boundary string, both sides.</li>
+<li>k=85 recomputed as n − rank(HX) − rank(HZ).</li>
+</ul>
+<h4>Why margin 3 is essential (a lesson)</h4>
+<p>An earlier attempt relaxed the rule *and* dropped the boundary margin (margin 0) to push k much higher (129 holes → k=130, g=1.73). The trusted gate rejected it: removing boundary cells detaches their outer-corner qubits, producing weight-1 logicals (true d=1). The margin-0 hole set is not fixable — the boundary detachment is inherent to punching boundary cells, not a tunable parameter. The corrected rule must be paired with the margin-3 boundary convention that the board&#x27;s real codes already use.</p>
+<h4>Tools</h4>
+<p>Author: @mathysrennela. Model: DeepSeek V4 Flash 0731. Repo kit (<code>css.py</code>, <code>submit.py</code>), <code>verify/validate_candidate.py</code> as the gate, scipy MILP for the exact max independent set.</p>
+<h4>Reproduction</h4>
+<pre>
+uv run python research/candidates/_solve_m3.py   # exact MILP, margin 3, corrected rule
+uv run python research/candidates/_package_672_85.py
+uv run python verify/validate_candidate.py research/candidates/672-85-3.json
+</pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/672-85-3.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/17-1-5.html">[[17,1,5]] — 17-1-5</a></h3><div class=kv style="color:var(--mut)">2026-08-12 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details open><summary>note</summary><div class=notebody><h3>[[17,1,5]] — 2D colour code from the doubling construction (arXiv:2608.11160)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target: the <code>weight-8 × k=1</code> cell. The board&#x27;s only k=1 colour codes were <code>[[19,1,5]]</code> (weight-6) and <code>[[37,1,7]]</code> (weight-6); there was no k=1 code with a weight-8 check. The paper arXiv:2608.11160 (Dastbasteh et al., &quot;Quantum Codes with Arbitrary Z-Rotation logical Gates…&quot;) constructs a family of 2D colour codes <code>[[2k²−1, 1, 2k−1]]</code> (Thm III.6) by the doubling construction. The k=3 member is <code>[[17,1,5]]</code> — the well-known distance-5 2D colour code, which is *not* on the board (only the 19-qubit triangular 6.6.6 code was). Since it has the same k=1, d=5 at n=17 &lt; 19, it strictly dominates <code>[[19,1,5]]</code> on the weight-8 board.</p>
@@ -56,7 +81,7 @@
 # v = [1,3,5]; stack the three blocks of eq. III.1; HZ = HX.
 </pre>
 <p>Verify with <code>uv run python verify/qldpc_verify.py codes/17-1-5.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/17-1-5.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/598-25-4.html">[[598,25,4]] — 598-25-4</a></h3><div class=kv style="color:var(--mut)">2026-08-12 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details open><summary>note</summary><div class=notebody><h3>[[598,25,4]] — holey rotated surface code, D=5 rule, exact d=4</h3>
+<section class=blk><h3><a href="codes/598-25-4.html">[[598,25,4]] — 598-25-4</a></h3><div class=kv style="color:var(--mut)">2026-08-12 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[598,25,4]] — holey rotated surface code, D=5 rule, exact d=4</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Tested whether the [[700,85,3]] hole-packing trick (g = 1.09 at d=3, exact MILP max-hole) generalizes to growing distance. At r = sqrt(2), rho = 1, g = kd^2/n, so beating the surface code at distance D requires k/n &gt; 1/D^2. At D=3 single-cell holes are free (loop weight 4 &gt;= 3) and independent (k = 1 + holes); at D=5 a single cell gives loop weight 4 &lt; 5, so holes must be clusters, and the D=5 rule (loop weight &gt;= 5, same-parity Chebyshev &gt;= 5, diff-parity Manhattan &gt;= 5, margin 5) was the natural generalization. Hypothesis: the g &gt; 1 trick might climb to d=5 with a denser D-rule packing.</p>
 <h4>What was searched</h4>
