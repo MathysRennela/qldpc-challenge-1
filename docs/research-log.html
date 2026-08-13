@@ -3,6 +3,60 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/101-5-5.html">[[101,5,5]] — 101-5-5</a></h3><div class=kv style="color:var(--mut)">2026-08-13 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[101,5,5]] — dense-packed surface code (5 logical qubits in one patch)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: the <code>local-2d-single</code> / <code>weight-4</code> cell, the geometric-efficiency track. The board&#x27;s weight-4 single-layer codes top out at `g = 4kd²/(n·ρ²·r⁴) ≈ 1.14` ([[672,85,3]]) and the surface-code baselines sit at exactly 1.0. Paper arXiv:2511.06758 (Fujiu et al., &quot;Dense packing of the surface code&quot;) fuses five distance-d rotated surface-code patches into one contiguous patch via code deformation, keeping each logical&#x27;s distance at d while sharing bulk stabilizer regions — the physical-qubit-per-logical overhead drops to ~3/4 of standalone patches. If the fused layout keeps the nearest-neighbour tilted lattice (r = √2, ρ = 1), the n-savings translate directly into a higher g than anything currently on the cell.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Reconstructed the code faithfully from the authors&#x27; released simulation</li>
+<p>(<code>github.com/kohei-fujiu/Dense_Pakcing</code>, <code>dense_packing_simulation_x_error.py</code>): <code>five_dense_num</code> site mask, data qubits at odd,odd sites, Z-ancillas at (x+y)%4==2 (measure X-checks), all other non-data sites are X-ancillas (measure Z-checks); each stabilizer acts on the four diagonal data neighbours of its ancilla.</p>
+<li>Instances: d = 5 (n = 101) and d = 7 (n = 197), both k = 5, weight 4.</li>
+<li>GF(2) sanity: CSS commutation exact, rank(H_X) = rank(H_Z) = 48 (d=5), so</li>
+<p>k = 101 − 48 − 48 = 5, matching the five codewords the paper claims.</p>
+<li>Layout: data qubit q_ij at grid site (x,y); nearest-neighbour diagonal</li>
+<p>checks span √2. Honest single layer, 1 qubit/site, no cramming.</p>
+</ul>
+<h4>Evidence trail</h4>
+<p>Distance confirmation ladder (d = 5 instance, 101 data qubits):</p>
+<ul>
+<li>Exact side certification (this work): exhaustive enumeration of all weight</li>
+<p>≤ 4 vectors commuting with the opposite stabilizer group found <b>no</b> X- or Z-logical of weight &lt; 5 (weight 1: 0, weight 2: 10, weight 3: 2, weight 4: 98 vectors commute with all Z-stabilizers, all in the stabilizer rowspace). The paper&#x27;s own logical operators (its <code>OBSERVABLE_INCLUDE</code> lines, weight 5 each) are genuine logicals — in ker(H_other), outside rowspace(H_self). Hence <b>d_X = d_Z = 5 exactly</b>, no trust required.</p>
+<li>CLI RIS gate (20000 trials) independently found d ≤ 5 on both sides,</li>
+<p>consistent.</p>
+<li>The d = 7 instance is witness-backed d ≤ 7 (not exhaustively certified</li>
+<p>here; RIS 20000 trials agrees).</p>
+</ul>
+<p>Claim: <code>exact</code> for [[101,5,5]] (both sides), <code>upper_bound</code> for [[197,5,7]].</p>
+<h4>What it advances</h4>
+<ul>
+<li>Geometric efficiency <code>g</code> on <code>local-2d-single</code>/<code>weight-4</code>: g = 1.238,</li>
+<p>above the previous best on the cell ([[672,85,3]], g ≈ 1.14) and above the surface-code baselines (g = 1.00). The 5-logical pack needs n = 101 vs n = 125 for five standalone d-5 patches.</p>
+<li><code>kd²/n</code> = 1.238 — modest; this is a density win, not a rate win.</li>
+<li>The construction family (<code>topological</code>, dense packing) is new on the board.</li>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>A naive &quot;fused patch = surface code with shared region&quot; reading of the</li>
+<p>paper&#x27;s Fig. 6 is wrong for scoring: the shared region is NOT a separate code, and the fused object has k = 5 (not 25). Early rank mistakes (counting ancillas as code qubits) gave k = 174 — the verifier&#x27;s n = data-qubit rule is the correct frame: n = 101 data qubits, k = 5.</p>
+<li>A guessed interaction radius r ≈ 2.8 (long junction reaches) is also wrong:</li>
+<p>the actual construction stays on the tilted nearest-neighbour lattice, so r = √2 and the g gain survives the r⁴ penalty. Verified against the layout from the authors&#x27; own <code>QUBIT_COORDS</code>.</p>
+</ul>
+<h4>Tools</h4>
+<ul>
+<li>Reconstruction: faithful port of the authors&#x27; stim-circuit geometry into a</li>
+<p>standalone GF(2) generator (see Reproduction).</p>
+<li>numpy GF(2) rref for ranks; exhaustive weight ≤ 4 logical search</li>
+<p>(itertools combinations over 101 qubits, ~4M checks per side) for the exact d = 5 certification.</p>
+<li>Repo tooling: <code>./qldpc submit</code> (RIS witness search, schema-valid JSON,</li>
+<p>verifier, locality derivation).</p>
+</ul>
+<h4>Reproduction</h4>
+<pre>
+python research/build_dense_surface.py 5   # writes /tmp/dense_5.npz (hx, hz, coords)
+./qldpc submit /tmp/dense_5.npz --coords /tmp/dense_5.npz --layers 1 \
+  --authors @mathysrennela --family topological
+</pre>
+<p><code>research/build_dense_surface.py</code> in this repo reproduces the matrices exactly from <code>dense_packing_simulation_x_error.py</code> (<code>five_dense_num</code>, <code>data_num</code>, <code>auxiliary_z</code> masks and diagonal-neighbour supports). The d = 7 instance: <code>python research/build_dense_surface.py 7</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/101-5-5.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/197-5-7.html">[[197,5,7]] — 197-5-7</a></h3><div class=kv style="color:var(--mut)">2026-08-13 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[197,5,7]] — dense-packed surface code, distance 7</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Companion to the d = 5 dense-packed submission [[101,5,5]] (see notes/101-5-5.md). Same construction family (arXiv:2511.06758) at distance 7. The paper evaluates dense packing at d = 5, 7, 9, 11 and finds the hook-avoiding dense patch matches or beats standalone at larger distance and lower physical error rate. This is the d = 7 member: five logical qubits, weight-4 checks, single-layer honest layout, nearest-neighbour tilted lattice (r = √2).</p>
@@ -53,7 +107,7 @@ python research/build_dense_surface.py 7   # writes /tmp/dense_7.npz (hx, hz, co
 </ul>
 <h4>Context</h4>
 <p>The [[23h²m², 2m², 4h]] family and its calibration (loop/string/lasso laws, measured exactly at h = 2,3,4) are documented in <code>research/holes/NOTE.md</code> on branch <code>research/hole-packing-constant</code>, with constructors and both distance engines. Defect encoding itself is standard (e.g. Raussendorf–Harrington, Fowler et al., arXiv:1208.0928); the contribution here is the two-type dual-grid packing at density 2/R² and the resulting constant 2/23 &gt; 1/16, which bears on the sharp-constant question for the BPT tradeoff at fixed capacity.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/368-8-8.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/502-102-56.html">[[502,102,56]] — 502-102-56</a></h3><div class=kv style="color:var(--mut)">2026-08-13 &middot; submission note &middot; <a href="https://github.com/npdeep">@npdeep</a> &middot; Magic State Labs (Custom) v0.1</div><details open><summary>note</summary><div class=notebody><h3>[[502,102,56]] generalized-bicycle CSS code</h3>
+<section class=blk><h3><a href="codes/502-102-56.html">[[502,102,56]] — 502-102-56</a></h3><div class=kv style="color:var(--mut)">2026-08-13 &middot; submission note &middot; <a href="https://github.com/npdeep">@npdeep</a> &middot; Magic State Labs (Custom) v0.1</div><details ><summary>note</summary><div class=notebody><h3>[[502,102,56]] generalized-bicycle CSS code</h3>
 <p>This lift-251 generalized-bicycle CSS code has check-matrix ranks 200 per side, encodes 102 logical qubits, and has maximum check weight 24.</p>
 <p>The included X and Z logical witnesses have weights 56 and 57. They support the upper-bound claim <code>d&lt;=56</code>; no distance lower bound or exact-distance claim is made.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/502-102-56.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/672-85-3.html">[[672,85,3]] — 672-85-3</a></h3><div class=kv style="color:var(--mut)">2026-08-13 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[672,85,3]] — holey rotated surface code, corrected d=3 rule, g=1.138 (r=√2)</h3>
