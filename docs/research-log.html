@@ -89,7 +89,32 @@ python research/build_dense_surface.py 7   # writes /tmp/dense_7.npz (hx, hz, co
 ./qldpc submit /tmp/dense_7.npz --coords /tmp/dense_7.npz --layers 1 \
   --authors @mathysrennela --family topological
 </pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/197-5-7.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/368-8-8.html">[[368,8,8]] — 368-8-8</a></h3><div class=kv style="color:var(--mut)">2026-08-13 &middot; submission note &middot; <a href="https://github.com/FarLab">@FarLab</a> &middot; Claude Fable 5</div><details open><summary>note</summary><div class=notebody><h3>[[368,8,8]] — dual-grid holey rotated toric code (family g → 32/23 at the r=√2 floor)</h3>
+<section class=blk><h3><a href="codes/325-5-9.html">[[325,5,9]] — 325-5-9</a></h3><div class=kv style="color:var(--mut)">2026-08-13 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[325,5,9]] — dense-packed surface code, distance 9</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Companion to the d = 5 and d = 7 dense-packed submissions (<code>[[101,5,5]]</code>, <code>[[197,5,7]]</code>). Same construction family (arXiv:2511.06758, Fujiu et al., &quot;Dense packing of the surface code&quot;) at distance 9. The paper evaluates dense packing at d = 5, 7, 9, 11 and finds the hook-avoiding dense patch matches or beats standalone at larger distance and lower physical error rate. This is the d = 9 member: five logical qubits, weight-4 checks, single-layer honest layout, nearest-neighbour tilted lattice (r = √2).</p>
+<h4>What was searched</h4>
+<p>Reconstruction identical to <code>notes/101-5-5.md</code>, with <code>distance = 9</code> in <code>research/build_dense_surface.py</code> (the <code>five_dense_num</code> mask scales with d). n = 325 data qubits, k = 5, weight 4.</p>
+<p>GF(2) sanity: CSS commutation exact, rank(H_X) = rank(H_Z) = 160, so k = 325 − 160 − 160 = 5.</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>CLI RIS gate (2000 trials) finds no logical lighter than 9 on either side:</li>
+<p>d ≤ 9 (X and Z), witnesses of weight 9 on both sides.</p>
+<li>The paper&#x27;s own logical operators at d = 9 have length 9, so this is a</li>
+<p>genuine <code>[[325,5,9]]</code> witness-backed upper bound.</p>
+<li><b>Not</b> exhaustively certified here (consistent with the d = 7 member):</li>
+<p>an exact d = 9 claim would need the repo&#x27;s MILP certificate (<code>verify/certify.py</code>) or a deeper RIS refutation. Confidence: <code>upper_bound</code>.</p>
+</ul>
+<h4>Dead ends</h4>
+<p>Same k-counting / ancilla trap as the d = 5 instance (see <code>notes/101-5-5.md</code>); resolved by the verifier&#x27;s data-qubit-only n rule. No density collapse at larger d: the shared-region structure persists and the n-savings vs standalone (5 × 81 = 405 data qubits) hold.</p>
+<h4>Tools</h4>
+<p><code>research/build_dense_surface.py</code> (this repo) with argument 9; numpy GF(2) rref; <code>./qldpc submit</code> (RIS witness search, schema, verifier, locality).</p>
+<h4>Reproduction</h4>
+<pre>
+python research/build_dense_surface.py 9   # writes /tmp/dense_9.npz (hx, hz, coords)
+./qldpc submit /tmp/dense_9.npz --coords /tmp/dense_9.npz --layers 1 \
+  --authors @mathysrennela --family topological
+</pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/325-5-9.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/368-8-8.html">[[368,8,8]] — 368-8-8</a></h3><div class=kv style="color:var(--mut)">2026-08-13 &middot; submission note &middot; <a href="https://github.com/FarLab">@FarLab</a> &middot; Claude Fable 5</div><details ><summary>note</summary><div class=notebody><h3>[[368,8,8]] — dual-grid holey rotated toric code (family g → 32/23 at the r=√2 floor)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Hole-encoded logical qubits (defect encoding) are textbook for surface codes, and the folklore says they are inefficient: a hole pays its perimeter (loop ≥ d) *and* its exclusion zone (strings ≥ d), capping single-type packings at kd²/(c²n) = 1/24 — below the plain surface code. Hypothesis, following the fixed-d hole-packing observation of the merged [[700,85,3]] (PR #464): the folklore misses that (i) string weights on the rotated lattice follow the <b>Chebyshev</b> metric (the connectivity graphs are diagonally-adjacent grids), and (ii) smooth and rough holes barely constrain each other (no light &quot;lasso&quot; mode down to gap ≈ h). Together these let <b>two</b> same-type square packings interleave at full density.</p>
 <h4>Construction</h4>
@@ -107,6 +132,79 @@ python research/build_dense_surface.py 7   # writes /tmp/dense_7.npz (hx, hz, co
 </ul>
 <h4>Context</h4>
 <p>The [[23h²m², 2m², 4h]] family and its calibration (loop/string/lasso laws, measured exactly at h = 2,3,4) are documented in <code>research/holes/NOTE.md</code> on branch <code>research/hole-packing-constant</code>, with constructors and both distance engines. Defect encoding itself is standard (e.g. Raussendorf–Harrington, Fowler et al., arXiv:1208.0928); the contribution here is the two-type dual-grid packing at density 2/R² and the resulting constant 2/23 &gt; 1/16, which bears on the sharp-constant question for the BPT tradeoff at fixed capacity.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/368-8-8.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/401-12-18.html">[[401,12,18]] — 401-12-18</a></h3><div class=kv style="color:var(--mut)">2026-08-13 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[401,12,18]] — open-boundary planar BB (w8 tile family), 10x24 bilayer; boundary-graft strategy</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: <code>weight-8 x local-2d-bilayer</code>, operational efficiency <code>K = kd^2/n</code>. Strategy (user direction): take high-<code>kd^2/n</code> periodic bivariate-bicycle supports and apply <b>boundary-grafting</b> — the open-boundary planar construction (Liang–Eberhardt–Chen, arXiv:2504.08887) plus r=1 qubit-removal grafting (Sec. III E) — to embed them on a 2D bilayer grid with small interaction radius <code>r &lt;= 7.0</code>.</p>
+<p>The cell&#x27;s prior leader was <code>[[384,12,17]]</code> (K = 9.03, the best of the <code>_planar_pop_sweep</code> at 10x23); the published bar is <code>[[512,18,19]]</code> (arXiv:2504.09171, exact, K ~ 12.7). Hypothesis: at fixed support pair the distance grows with the longer lattice axis while n grows only linearly, so a *larger, more elongated* lattice than the swept 10x23 should push K higher before the d-plateau. The 10x24 lattice (n=401) is the sweet spot.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Deep-confirmed the w8 tile-code flagship family</li>
+<p><code>f=[(0,0),(1,0),(2,3),(2,-2)]</code>, <code>g=[(0,0),(0,1),(-1,-1),(-1,3)]</code> across Lx in [9,13], Ly in [18,24] (n &lt;= 700), built with <code>boundary_engine.build_planar</code> (directional anyon condensation, corner completion, cleanup), <code>reduce_weights</code> for the weight class, bilayer layout via <code>planar.grid_coordinates</code>, distance screened at 3k RIS trials.</p>
+<li>60+ lattices; the sweep reproduces the board&#x27;s known entries exactly</li>
+<p>(<code>[[294,12,14]]</code> at 8.00, <code>[[384,12,17]]</code> at 9.03), calibrating the screen. Best: <b>10x24 -&gt; [[401,12,19]] at K = 10.80</b> (d=19 at 3k trials).</p>
+<li>Also probed the higher-k FarLab support pairs (k=15,16) at 3k trials:</li>
+<p>the raw boundary-engine build gives k=11 and d &lt;= 7 at every aspect (their board entries&#x27; k=16/d=12 come from a different construction path that does not reproduce from the published supports alone) — dead end.</p>
+<li>r=1 grafting (<code>graft_r1_safe</code>, d_floor=18, multi-seed confirmation) on</li>
+<p>the 10x24 build removed 11 more qubits at d=18 held: [[390,12,18]].</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li><code>[[401,12,18]]</code> (10x24, ungrafted): n=401, k=12, w=8, r=5.0 (bilayer,</li>
+<p>within the 7.0 cap). Distance ladder: d=19 at 100/1k/3k trials, d=18 at 6k trials and at the gate&#x27;s 8k-trial refutation — honest claim d &lt;= 18, K = 12*18^2/401 = <b>9.69</b>.</p>
+<li>Trusted gate (<code>verify/validate_candidate.py</code>): <code>passed: true</code>,</li>
+<p><code>refuted: false</code> (no lighter logical in 8k RIS trials, fresh seed), <code>dedup: none</code>, <code>board_advancing: true</code>, <code>dominated_by: []</code> in <code>weight-8 x local-2d-bilayer</code>. It strictly dominates the prior leader <code>[[384,12,17]]</code> (same k, higher d, +17 qubits: K 9.03 -&gt; 9.69).</p>
+<li><code>[[390,12,18]]</code> (grafted): n=390, k=12, w=8, d=18 held through the graft</li>
+<p>chain (K = 9.97). Staged alongside; gate verdict pending.</p>
+<li>Filed <code>upper_bound</code> (d_X = 18, d_Z = 18 witnesses); MILP exact</li>
+<p>certification not attempted at n ~ 400 (NP-hard, out of budget).</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>FarLab k=15/16 support pairs: raw <code>build_planar</code> gives k=11, w up to 38</li>
+<p>pre-reduction, d &lt;= 7 at all aspects tested (11x13..13x22). The board&#x27;s <code>[[263,16,12]]</code> / <code>[[216,15,11]]</code> do not reproduce from the published supports with this engine — their construction path (graft changing k, weight reduction 27-&gt;8) is not recoverable from the provenance string.</p>
+<li>Larger lattices at the flagship pair plateau: 11x24 (K=9.67), 12x24</li>
+<p>(8.75), 13x24 (8.86) — d saturates near 19-20 while n keeps growing.</p>
+<li>Grafting past n=390 fails: every further removal drops d to 17 at</li>
+<p>confirmation and is blacklisted (the d=18 floor is tight).</p>
+</ul>
+<h4>Tools</h4>
+<p>Autoresearch agent (DeepSeek V4 Flash 0731, matches <code>provenance.model</code>), <code>research/local2d/boundary_engine.py</code> (build_planar, reduce_weights, graft_r1_safe), <code>research/local2d/planar.py::grid_coordinates</code>, <code>research/kit/submit.py</code>, <code>verify/validate_candidate.py</code> (the gate). Compute: ~40 min of background sweeps (3k-trial distance screens dominate).</p>
+<h4>Reproduction</h4>
+<pre>
+import sys; sys.path += [&quot;research/local2d&quot;, &quot;research/kit&quot;, &quot;verify&quot;]
+from boundary_engine import build_planar, reduce_weights
+from planar import grid_coordinates
+Sf = [(0,0),(1,0),(2,3),(2,-2)]; Sg = [(0,0),(0,1),(-1,-1),(-1,3)]
+HX, HZ, info = build_planar(10, 24, Sf, Sg, cleanup=True)
+# n=401, k=12, w=8; RIS d &lt;= 18; gate: passed, board_advancing
+# graft: graft_r1_safe(HX, HZ, d_floor=18, trials=600, confirm_trials=1200, seed=7)
+</pre>
+<p>Staged: <code>research/candidates/boundary-graft/401-12-19.json</code> (d=18 in the doc), <code>research/candidates/boundary-graft/390-12-18.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/401-12-18.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/485-5-11.html">[[485,5,11]] — 485-5-11</a></h3><div class=kv style="color:var(--mut)">2026-08-13 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details ><summary>note</summary><div class=notebody><h3>[[485,5,11]] — dense-packed surface code, distance 11</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Companion to the d = 5, 7, 9 dense-packed submissions (<code>[[101,5,5]]</code>, <code>[[197,5,7]]</code>, <code>[[325,5,9]]</code>). Same construction family (arXiv:2511.06758, Fujiu et al., &quot;Dense packing of the surface code&quot;) at distance 11. The paper evaluates dense packing at d = 5, 7, 9, 11; this is the d = 11 member: five logical qubits, weight-4 checks, single-layer honest layout, nearest-neighbour tilted lattice (r = √2).</p>
+<h4>What was searched</h4>
+<p>Reconstruction identical to <code>notes/101-5-5.md</code>, with <code>distance = 11</code> in <code>research/build_dense_surface.py</code> (the <code>five_dense_num</code> mask scales with d). n = 485 data qubits, k = 5, weight 4.</p>
+<p>GF(2) sanity: CSS commutation exact, rank(H_X) = rank(H_Z) = 240, so k = 485 − 240 − 240 = 5.</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>CLI RIS gate (2000 trials) finds no logical lighter than 11 on either side:</li>
+<p>d ≤ 11 (X and Z), witnesses of weight 11 on both sides.</p>
+<li>The paper&#x27;s own logical operators at d = 11 have length 11, so this is a</li>
+<p>genuine <code>[[485,5,11]]</code> witness-backed upper bound.</p>
+<li><b>Not</b> exhaustively certified here (consistent with the d = 7, 9 members):</li>
+<p>an exact d = 11 claim would need the repo&#x27;s MILP certificate (<code>verify/certify.py</code>) or a deeper RIS refutation. Confidence: <code>upper_bound</code>.</p>
+</ul>
+<h4>Dead ends</h4>
+<p>Same k-counting / ancilla trap as the d = 5 instance (see <code>notes/101-5-5.md</code>); resolved by the verifier&#x27;s data-qubit-only n rule. No density collapse at larger d: the shared-region structure persists and the n-savings vs standalone (5 × 121 = 605 data qubits) hold.</p>
+<h4>Tools</h4>
+<p><code>research/build_dense_surface.py</code> (this repo) with argument 11; numpy GF(2) rref; <code>./qldpc submit</code> (RIS witness search, schema, verifier, locality).</p>
+<h4>Reproduction</h4>
+<pre>
+python research/build_dense_surface.py 11   # writes /tmp/dense_11.npz (hx, hz, coords)
+./qldpc submit /tmp/dense_11.npz --coords /tmp/dense_11.npz --layers 1 \
+  --authors @mathysrennela --family topological
+</pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/485-5-11.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/502-102-56.html">[[502,102,56]] — 502-102-56</a></h3><div class=kv style="color:var(--mut)">2026-08-13 &middot; submission note &middot; <a href="https://github.com/npdeep">@npdeep</a> &middot; Magic State Labs (Custom) v0.1</div><details ><summary>note</summary><div class=notebody><h3>[[502,102,56]] generalized-bicycle CSS code</h3>
 <p>This lift-251 generalized-bicycle CSS code has check-matrix ranks 200 per side, encodes 102 logical qubits, and has maximum check weight 24.</p>
 <p>The included X and Z logical witnesses have weights 56 and 57. They support the upper-bound claim <code>d&lt;=56</code>; no distance lower bound or exact-distance claim is made.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/502-102-56.md">raw markdown</a></div></details></section>
@@ -135,6 +233,31 @@ uv run python research/candidates/_solve_m3.py   # exact MILP, margin 3, correct
 uv run python research/candidates/_package_672_85.py
 uv run python verify/validate_candidate.py research/candidates/672-85-3.json
 </pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/672-85-3.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/677-5-13.html">[[677,5,13]] — 677-5-13</a></h3><div class=kv style="color:var(--mut)">2026-08-13 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details ><summary>note</summary><div class=notebody><h3>[[677,5,13]] — dense-packed surface code, distance 13</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Companion to the d = 5, 7, 9, 11 dense-packed submissions (<code>[[101,5,5]]</code>, <code>[[197,5,7]]</code>, <code>[[325,5,9]]</code>, <code>[[485,5,11]]</code>). Same construction family (arXiv:2511.06758, Fujiu et al., &quot;Dense packing of the surface code&quot;) at distance 13. Five logical qubits, weight-4 checks, single-layer honest layout, nearest-neighbour tilted lattice (r = √2). This is the largest member that fits under the n ≤ 700 cap (n = 677).</p>
+<h4>What was searched</h4>
+<p>Reconstruction identical to <code>notes/101-5-5.md</code>, with <code>distance = 13</code> in <code>research/build_dense_surface.py</code> (the <code>five_dense_num</code> mask scales with d). n = 677 data qubits, k = 5, weight 4.</p>
+<p>GF(2) sanity: CSS commutation exact, rank(H_X) = rank(H_Z) = 336, so k = 677 − 336 − 336 = 5.</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>CLI RIS gate (2000 trials) finds no logical lighter than 13 on either side:</li>
+<p>d ≤ 13 (X and Z), witnesses of weight 13 on both sides.</p>
+<li>The paper&#x27;s own logical operators at d = 13 have length 13, so this is a</li>
+<p>genuine <code>[[677,5,13]]</code> witness-backed upper bound.</p>
+<li><b>Not</b> exhaustively certified here (consistent with the d = 7, 9, 11</li>
+<p>members): an exact d = 13 claim would need the repo&#x27;s MILP certificate (<code>verify/certify.py</code>) or a deeper RIS refutation. Confidence: <code>upper_bound</code>.</p>
+</ul>
+<h4>Dead ends</h4>
+<p>Same k-counting / ancilla trap as the d = 5 instance (see <code>notes/101-5-5.md</code>); resolved by the verifier&#x27;s data-qubit-only n rule. No density collapse at larger d: the shared-region structure persists and the n-savings vs standalone (5 × 169 = 845 data qubits) hold.</p>
+<h4>Tools</h4>
+<p><code>research/build_dense_surface.py</code> (this repo) with argument 13; numpy GF(2) rref; <code>./qldpc submit</code> (RIS witness search, schema, verifier, locality).</p>
+<h4>Reproduction</h4>
+<pre>
+python research/build_dense_surface.py 13   # writes /tmp/dense_13.npz (hx, hz, coords)
+./qldpc submit /tmp/dense_13.npz --coords /tmp/dense_13.npz --layers 1 \
+  --authors @mathysrennela --family topological
+</pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/677-5-13.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/17-1-5.html">[[17,1,5]] — 17-1-5</a></h3><div class=kv style="color:var(--mut)">2026-08-12 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[17,1,5]] — 2D colour code from the doubling construction (arXiv:2608.11160)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target: the <code>weight-8 × k=1</code> cell. The board&#x27;s only k=1 colour codes were <code>[[19,1,5]]</code> (weight-6) and <code>[[37,1,7]]</code> (weight-6); there was no k=1 code with a weight-8 check. The paper arXiv:2608.11160 (Dastbasteh et al., &quot;Quantum Codes with Arbitrary Z-Rotation logical Gates…&quot;) constructs a family of 2D colour codes <code>[[2k²−1, 1, 2k−1]]</code> (Thm III.6) by the doubling construction. The k=3 member is <code>[[17,1,5]]</code> — the well-known distance-5 2D colour code, which is *not* on the board (only the 19-qubit triangular 6.6.6 code was). Since it has the same k=1, d=5 at n=17 &lt; 19, it strictly dominates <code>[[19,1,5]]</code> on the weight-8 board.</p>
@@ -170,6 +293,23 @@ uv run python verify/validate_candidate.py research/candidates/672-85-3.json
 # v = [1,3,5]; stack the three blocks of eq. III.1; HZ = HX.
 </pre>
 <p>Verify with <code>uv run python verify/qldpc_verify.py codes/17-1-5.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/17-1-5.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/564-194-18.html">[[564,194,18]] — 564-194-18</a></h3><div class=kv style="color:var(--mut)">2026-08-12 &middot; submission note &middot; Magic State Labs</div><details ><summary>note</summary><div class=notebody><h3>[[564,194,18]] pair-partition CPM CSS code</h3>
+<p>Okada--Kasai pair-partition CPM construction with <code>(J,L,P)=(4,12,47)</code>. Let <code>C(s)</code> be the <code>47 x 47</code> circulant permutation matrix with <code>C(s)[a+s,a]=1</code> modulo 47, and expand these exponent arrays blockwise:</p>
+<pre>
+E =
+19 23  5  9 16  1 10  7 28 25  1 36
+ 3 26 18 11 32  8 15 45 26 18 25  3
+37 30 15 33 24 21  5 29 41 46 41 32
+27 16 39 12 17  6  2 23  9 10 22 38
+
+D =
+20 31  1  7 30 45 11 15 24 23 15 33
+14 32 13 29 35 34 18 40 37 44 43  9
+23 21 20 35 16 14 10 22 32 38 27 34
+ 2 46 20 27  7  8 17 45 46 40 24 19
+</pre>
+<p>Set <code>H_X=[C(E[j,l])]</code> and <code>H_Z=[C(D[j,l])]</code>. Both checks have shape <code>188 x 564</code>, rank 185, and maximum row weight 12; <code>H_X H_Z^T=0</code> over GF(2), so <code>k=194</code>.  The distance is a witness-backed upper bound, not an exact claim.</p>
+<p>References: arXiv:2607.14091 and &lt;https://github.com/kasaikenta/pair-partition-cpm-css-codes&gt;.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/564-194-18.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/578-18-20.html">[[578,18,20]] — 578-18-20</a></h3><div class=kv style="color:var(--mut)">2026-08-12 &middot; submission note &middot; <a href="https://github.com/npdeep">@npdeep</a> &middot; Magic State Labs (Custom) v0.1</div><details ><summary>note</summary><div class=notebody><h3><code>[[578,18,d≤20]]</code> open-boundary Tile code</h3>
 <p>This uses the open-boundary Tile construction of arXiv:2504.09171 with box size <code>B=4</code>, a <code>14 x 14</code> bulk, and X-tile support <code>{h00,h03,h22,h30,v01,v11,v20,v33}</code>. The CSS checks have maximum row weight 8 and a one-layer planar embedding with interaction radius <code>sqrt(37)</code>.</p>
 <p>A 100,000-trial randomized information-set search per CSS direction returned validated X- and Z-logical witnesses of weights 20 and 21. This establishes <code>d &lt;= 20</code>; no exact-distance claim is made.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/578-18-20.md">raw markdown</a></div></details></section>
