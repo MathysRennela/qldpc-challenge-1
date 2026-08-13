@@ -3,6 +3,38 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/197-5-7.html">[[197,5,7]] — 197-5-7</a></h3><div class=kv style="color:var(--mut)">2026-08-13 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[197,5,7]] — dense-packed surface code, distance 7</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Companion to the d = 5 dense-packed submission [[101,5,5]] (see notes/101-5-5.md). Same construction family (arXiv:2511.06758) at distance 7. The paper evaluates dense packing at d = 5, 7, 9, 11 and finds the hook-avoiding dense patch matches or beats standalone at larger distance and lower physical error rate. This is the d = 7 member: five logical qubits, weight-4 checks, single-layer honest layout, nearest-neighbour tilted lattice (r = √2).</p>
+<h4>What was searched</h4>
+<p>Reconstruction identical to notes/101-5-5.md, with <code>distance = 7</code> in <code>research/build_dense_surface.py</code> (the <code>five_dense_num</code> mask scales with d). n = 197 data qubits, k = 5, weight 4.</p>
+<p>GF(2) sanity: CSS commutation exact, rank(H_X) = rank(H_Z) = 96, so k = 197 − 96 − 96 = 5.</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>CLI RIS gate (20000 trials) finds no logical lighter than 7 on either side:</li>
+<p>d ≤ 7 (X and Z).</p>
+<li>The paper&#x27;s own logical operators at d = 7 have length 7, so this is a</li>
+<p>genuine [[197,5,7]] witness-backed upper bound.</p>
+<li><b>Not</b> exhaustively certified here (unlike the d = 5 member): the exact</li>
+<p>d = 7 claim would need the repo&#x27;s MILP certificate (<code>verify/certify.py</code>) or a deeper RIS refutation. Confidence: <code>upper_bound</code>.</p>
+</ul>
+<h4>What it advances</h4>
+<ul>
+<li><code>local-2d-single</code> / <code>weight-4</code> geometric efficiency: g ≈ 1.24, matching the</li>
+<p>d = 5 member and above the previous cell best ([[672,85,3]], g ≈ 1.14).</p>
+<li>Longer distance than [[101,5,5]] at the cost of n; the two are</li>
+<p>Pareto-incomparable (d 7 vs 5, n 197 vs 101), so both sit on the frontier.</p>
+</ul>
+<h4>Dead ends</h4>
+<p>Same k-counting / ancilla trap as the d = 5 instance (see notes/101-5-5.md); resolved by the verifier&#x27;s data-qubit-only n rule. No density collapse at larger d: the shared-region structure persists and the n-savings vs standalone (5 × 49 = 245 data qubits) hold.</p>
+<h4>Tools</h4>
+<p><code>research/build_dense_surface.py</code> (this repo) with argument 7; numpy GF(2) rref; <code>./qldpc submit</code> (RIS witness search, schemebook, verifier, locality).</p>
+<h4>Reproduction</h4>
+<pre>
+python research/build_dense_surface.py 7   # writes /tmp/dense_7.npz (hx, hz, coords)
+./qldpc submit /tmp/dense_7.npz --coords /tmp/dense_7.npz --layers 1 \
+  --authors @mathysrennela --family topological
+</pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/197-5-7.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/368-8-8.html">[[368,8,8]] — 368-8-8</a></h3><div class=kv style="color:var(--mut)">2026-08-13 &middot; submission note &middot; <a href="https://github.com/FarLab">@FarLab</a> &middot; Claude Fable 5</div><details open><summary>note</summary><div class=notebody><h3>[[368,8,8]] — dual-grid holey rotated toric code (family g → 32/23 at the r=√2 floor)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Hole-encoded logical qubits (defect encoding) are textbook for surface codes, and the folklore says they are inefficient: a hole pays its perimeter (loop ≥ d) *and* its exclusion zone (strings ≥ d), capping single-type packings at kd²/(c²n) = 1/24 — below the plain surface code. Hypothesis, following the fixed-d hole-packing observation of the merged [[700,85,3]] (PR #464): the folklore misses that (i) string weights on the rotated lattice follow the <b>Chebyshev</b> metric (the connectivity graphs are diagonally-adjacent grids), and (ii) smooth and rough holes barely constrain each other (no light &quot;lasso&quot; mode down to gap ≈ h). Together these let <b>two</b> same-type square packings interleave at full density.</p>
@@ -46,7 +78,7 @@ uv run python research/candidates/_solve_m3.py   # exact MILP, margin 3, correct
 uv run python research/candidates/_package_672_85.py
 uv run python verify/validate_candidate.py research/candidates/672-85-3.json
 </pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/672-85-3.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/17-1-5.html">[[17,1,5]] — 17-1-5</a></h3><div class=kv style="color:var(--mut)">2026-08-12 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details open><summary>note</summary><div class=notebody><h3>[[17,1,5]] — 2D colour code from the doubling construction (arXiv:2608.11160)</h3>
+<section class=blk><h3><a href="codes/17-1-5.html">[[17,1,5]] — 17-1-5</a></h3><div class=kv style="color:var(--mut)">2026-08-12 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[17,1,5]] — 2D colour code from the doubling construction (arXiv:2608.11160)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target: the <code>weight-8 × k=1</code> cell. The board&#x27;s only k=1 colour codes were <code>[[19,1,5]]</code> (weight-6) and <code>[[37,1,7]]</code> (weight-6); there was no k=1 code with a weight-8 check. The paper arXiv:2608.11160 (Dastbasteh et al., &quot;Quantum Codes with Arbitrary Z-Rotation logical Gates…&quot;) constructs a family of 2D colour codes <code>[[2k²−1, 1, 2k−1]]</code> (Thm III.6) by the doubling construction. The k=3 member is <code>[[17,1,5]]</code> — the well-known distance-5 2D colour code, which is *not* on the board (only the 19-qubit triangular 6.6.6 code was). Since it has the same k=1, d=5 at n=17 &lt; 19, it strictly dominates <code>[[19,1,5]]</code> on the weight-8 board.</p>
 <h4>What was searched</h4>
@@ -121,6 +153,9 @@ uv run python verify/validate_candidate.py research/candidates/598-25-4-holey.js
 <section class=blk><h3><a href="codes/676-71-4.html">[[676,71,4]] — 676-71-4</a></h3><div class=kv style="color:var(--mut)">2026-08-12 &middot; submission note &middot; <a href="https://github.com/npdeep">@npdeep</a> &middot; Magic State Labs (Custom) v0.1</div><details ><summary>note</summary><div class=notebody><h3>[[676,71,4]] generic group lifted product</h3>
 <p>This is a generic group lifted product over <code>D52</code> (order 52) with monomial <code>2 x 3</code> base matrices. In group-element index notation, <code>A = [[0,14,43], [23,13,44]]</code> and <code>B = [[0,14,19], [12,35,18]]</code>. The CSS checks have maximum row weight 5.</p>
 <p>A 100,000-trial randomized information-set search per CSS direction returned validated weight-four X and Z logical witnesses. This establishes <code>d &lt;= 4</code>; no exact-distance claim is made.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/676-71-4.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/680-163-4.html">[[680,163,4]] — 680-163-4</a></h3><div class=kv style="color:var(--mut)">2026-08-12 &middot; submission note &middot; <a href="https://github.com/npdeep">@npdeep</a> &middot; Magic State Labs (Custom) v0.1</div><details ><summary>note</summary><div class=notebody><h3>[[680,163,4]] generic group lifted product</h3>
+<p>This is a generic group lifted product over <code>Dic34</code> (order 136) with <code>1 x 2</code> base matrices. In group-element index notation, <code>A = [[{0,28}, {11,19}]]</code> and <code>B = [[{0,51}, {32,109}]]</code>. The CSS checks have maximum row weight 6.</p>
+<p>A 100,000-trial randomized information-set search per CSS direction returned validated weight-four X and Z logical witnesses. This establishes <code>d &lt;= 4</code>; no exact-distance claim is made.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/680-163-4.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/700-85-3.html">[[700,85,3]] — 700-85-3</a></h3><div class=kv style="color:var(--mut)">2026-08-12 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[700,85,3]] — holey rotated surface code at exact max-hole packing, g=1.093 (r=√2)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: weight-4 × local-2d-single at the r=√2 packing floor. Family: the board&#x27;s holey rotated surface codes (<code>[[625,50,3]]</code> g=0.720, <code>[[700,57,3]]</code> g=0.733, <code>[[700,75,3]]</code> g=0.964). With d=3 and r=√2, <code>g = 9k/n = 9(1+holes)/n</code>, and the family notes argued g stays below 1 because d=3 was thought to force a period-3 / 1/9 hole-density ceiling. But the d=3 constraint is local (same-parity Chebyshev ≥ 3, any-parity Manhattan ≥ 3), so the true ceiling per grid is an **irregular maximum independent set**, not a uniform sublattice. Hypothesis: an exact maximum-hole search over grid shape and placement jointly breaks the 1/9 ceiling.</p>
