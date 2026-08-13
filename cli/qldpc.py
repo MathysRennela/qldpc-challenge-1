@@ -8,8 +8,11 @@ a single command, the way ecdsa.fail does: you bring H_X and H_Z, the tool
   2. searches for the lightest logical on each side (RIS) and records it as a
      self-certifying distance witness,
   3. assembles a schema-valid submission,
-  4. runs the full trustless verifier locally (the same gate CI runs), and
-  5. writes codes/<n>-<k>-<d>.json and prints the steps to open the PR
+  4. runs the full trustless verifier locally (the same gate CI runs),
+  5. fills the PR body's "what frontier does this advance?" section by
+     comparing against the current board (reusing the site's Pareto logic),
+     and
+  6. writes codes/<n>-<k>-<d>.json and prints the steps to open the PR
      (or opens it for you with --open-pr).
 
 If verification fails, nothing is written: you see exactly which check failed
@@ -40,10 +43,14 @@ import numpy as np
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.dirname(_HERE)
 sys.path.insert(0, os.path.join(_ROOT, "verify"))
+sys.path.insert(0, os.path.join(_ROOT, "site"))
 
 import gf2                       # noqa: E402
 import heuristic_distance as hd  # noqa: E402
 from qldpc_verify import verify  # noqa: E402
+# Reuse the site's computed-cell + Pareto-frontier helpers so the PR body
+# states exactly what the board will show (no drift between the two).
+from build import cells, pareto, LOCALITY_LABEL, WEIGHT_LABEL  # noqa: E402
 
 
 # ----------------------------------------------------------------------------
@@ -243,8 +250,16 @@ def pr_body(doc, report, args, out, note_out=None):
                    "`provenance.notes`"),
         "",
         "### What frontier does this advance?",
-        "<!-- TODO: name the track and the existing entry this beats or "
-        "extends, and on which axis. -->",
+        "<!-- Computed by `qldpc submit` against the current board; review and "
+        "edit. -->",
+    ]
+    front = frontier_summary(doc, report)
+    if front:
+        lines += front
+    else:
+        lines += ["<!-- TODO: name the track and the existing entry this beats "
+                  "or extends, and on which axis. -->"]
+    lines += [
         f"Score kd^2/n = {round(k * d * d / n, 3)}, max check weight {wmax}, "
         f"locality class {comp.get('locality_class', 'unknown')}.",
         "",
@@ -267,6 +282,75 @@ def write_pr_body(slug, body):
     with os.fdopen(fd, "w") as f:
         f.write(body + "\n")
     return path
+
+
+# ----------------------------------------------------------------------------
+# frontier comparison (reuses the site's own cell + Pareto logic)
+# ----------------------------------------------------------------------------
+def _load_board_entries():
+    """The board's current entries as the site sees them (verified, earned
+    distance). Returns [] if the site builder cannot be imported or the board
+    is empty, so the frontier section degrades gracefully to a TODO."""
+    try:
+        from build import load_entries
+        return load_entries()
+    except Exception as e:
+        print(f"  note: could not load the current board for frontier "
+              f"comparison ({e}); leaving the frontier section as a TODO")
+        return []
+
+
+def _entry_for(doc, report):
+    """A board-shaped entry for the candidate, mirroring site/build.load_entries
+    (n, k, d, w, locality/weight class, eff). The site's pareto()/cells() only
+    read these keys, so this is enough to compare against the board."""
+    comp = report.get("computed", {})
+    n, k = doc["n"], doc["k"]
+    earned = report.get("earned_distance", {}).get("d")
+    d = earned["value"] if isinstance(earned, dict) else (earned or doc["distance"]["d"])
+    return {
+        "slug": f"{n}-{k}-{d}",
+        "n": n, "k": k, "d": d,
+        "eff": round(k * d * d / n, 3),
+        "w": comp.get("max_check_weight"),
+        "locality_class": comp.get("locality_class", "unrestricted"),
+        "weight_class": comp.get("weight_class", "weight-9plus"),
+    }
+
+
+def frontier_summary(doc, report):
+    """A human summary of where the candidate lands on the current board:
+    which track cells it belongs to, whether it sits on each cell's Pareto
+    frontier, and which existing entries it strictly dominates (and on which
+    axis). Returns a list of markdown lines (may be empty if the board is
+    unavailable)."""
+    entries = _load_board_entries()
+    if not entries:
+        return []
+    cand = _entry_for(doc, report)
+    lines = []
+    for cell in cells(cand):
+        L, W = cell
+        idxs = [i for i, e in enumerate(entries) if cell in cells(e)]
+        peers = [entries[i] for i in idxs]
+        # pareto() returns the set of indices on the frontier; the candidate is
+        # appended last, so its index is len(peers).
+        on_front = len(peers) in pareto(peers + [cand])
+        # existing entries the candidate strictly dominates on (n, k, d, w)
+        dominated = [e for e in peers
+                     if e["n"] >= cand["n"] and e["k"] <= cand["k"]
+                     and e["d"] <= cand["d"] and e["w"] >= cand["w"]
+                     and (e["n"] > cand["n"] or e["k"] < cand["k"]
+                          or e["d"] < cand["d"] or e["w"] > cand["w"])]
+        dominated.sort(key=lambda e: (-e["eff"], e["n"]))
+        head = (f"- **{LOCALITY_LABEL[L]} / {WEIGHT_LABEL[W]}**: "
+                f"{'on the Pareto frontier' if on_front else 'not on the frontier'}")
+        if dominated:
+            names = ", ".join(f"[[{e['n']},{e['k']},{e['d']}]]"
+                              for e in dominated)
+            head += f" — dominates {names}"
+        lines.append(head)
+    return lines
 
 
 # ----------------------------------------------------------------------------

@@ -38,13 +38,15 @@ Useful flags:
 - `--dry-run` build and verify without writing.
 
 Either way — `--open-pr`, or the commands it prints for you to run — the PR
-title and body are drafted for you from
+body is drafted for you from
 [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md) and the
 verified submission: parameters, the computed track membership, distance
-confidence, construction, and a pointer to your note. One section the tool
-cannot fill is left as a `TODO` — **which frontier this advances, and which
-existing entry it beats or extends, on which axis**. Write that in (`gh pr edit
---body-file ...`) before asking for review; it is what a reviewer reads first.
+confidence, construction, and a pointer to your note. The "what frontier does
+this advance?" section is now **computed too**: `qldpc submit` reuses the
+site's own cell + Pareto logic to list the track cells the code lands in,
+whether it sits on each cell's frontier, and which existing board entries it
+dominates (and on which axis). Review it before requesting review — it is a
+board-relative claim, not a statement against the wider literature.
 
 ## Share the search, not just the code
 
@@ -162,10 +164,10 @@ codes. Goal: find a CSS qLDPC code that advances a frontier, and submit it.
 5. Submit: ./qldpc submit yourcode.npz --authors @yourhandle --family <family>
    --model "<exact model version, e.g. Claude Opus 4.8>". It finds the witness,
    runs the verifier (which computes the locality and weight classes), and opens
-   the PR. CI re-verifies. The PR body is drafted from the submission, but the
-   "what frontier does this advance?" section is left as a TODO: replace it
-   with the track and the specific existing entry you beat or extend, and on
-   which axis, before the PR is ready for review.
+   the PR. CI re-verifies. The PR body is drafted from the submission,
+   including a computed "what frontier does this advance?" section (the track
+   cells the code lands in and the existing entries it dominates). Review it
+   before the PR is ready for review.
 
 Report the [[n,k,d]], which track it advances, and that the distance held under
 deep re-verification.
