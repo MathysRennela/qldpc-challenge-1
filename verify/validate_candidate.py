@@ -95,8 +95,13 @@ def _board_entries():
     return _board_entries_cached(_board_stamp())
 
 
-def validate_candidate(doc, *, seed=None):
-    """Run the full trusted gate on a candidate submission ``doc``.
+def validate_candidate(doc, *, seed=None, refute=True):
+    """Run the trusted gate on a candidate submission ``doc``.
+
+    ``refute`` defaults to True and preserves the full candidate-gate behavior.
+    Trusted callers that already ran the independent distance gate may set it to
+    False to obtain the structural, deduplication, and frontier verdict without
+    repeating the expensive random search.
 
     Returns a structured verdict (JSON-serializable). ``passed`` is the honest bottom
     line; ``gates`` is the evidence for each check; ``labels`` are the human-facing
@@ -116,9 +121,10 @@ def validate_candidate(doc, *, seed=None):
     }
     g = verdict["gates"]
 
-    # 1+2. VERIFY + REFUTE -- one trusted call does schema/n/k/CSS/weight/witnesses
-    #      AND the random-seed distance refutation (the "distance_not_refuted" check).
-    rep = qldpc_verify.verify(doc, refute=True, seed=seed)
+    # 1+2. VERIFY + REFUTE -- the normal path does schema/n/k/CSS/weight/witnesses
+    #      and the random-seed distance refutation in one call. Receipt generation
+    #      can reuse the structural portion after gate_changed.py has already run.
+    rep = qldpc_verify.verify(doc, refute=refute, seed=seed)
     checks = rep["checks"]
     nd = next((c for c in checks if c["check"] == "distance_not_refuted"), None)
     refuted = nd is not None and not nd["ok"]
@@ -129,6 +135,8 @@ def validate_candidate(doc, *, seed=None):
     wc, lc = comp.get("weight_class"), comp.get("locality_class")
     verdict["candidate"]["weight_class"] = wc
     verdict["candidate"]["locality_class"] = lc
+    verdict["candidate"]["fingerprint"] = rep.get("fingerprint")
+    verdict["candidate"]["signature"] = rep.get("signature", {}).get("hash")
 
     g["verify"] = {"ok": verify_ok, "failed_checks": structural_fail,
                    "weight_class": wc, "locality_class": lc}

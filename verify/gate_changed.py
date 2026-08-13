@@ -36,6 +36,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import gf2
 import heuristic_distance as H
 from qldpc_verify import file_size_error
+from validate_candidate import validate_candidate
+from build_receipt import make_receipt, write_receipt
 
 try:
     import gf2_fast as GF          # optional C++ accelerator (make fast); the
@@ -209,6 +211,31 @@ def main(argv):
     rest = [a for a in argv if not a.endswith(".json")]
     seed = None
     code_root = ROOT
+    receipt_dir = None
+    pr_number = None
+    pr_author = None
+    base_sha = None
+    head_sha = None
+    if "--receipt-dir" in rest:
+        i = rest.index("--receipt-dir")
+        receipt_dir = os.path.abspath(rest[i + 1])
+        rest = rest[:i] + rest[i + 2:]
+    if "--pr-number" in rest:
+        i = rest.index("--pr-number")
+        pr_number = int(rest[i + 1])
+        rest = rest[:i] + rest[i + 2:]
+    if "--pr-author" in rest:
+        i = rest.index("--pr-author")
+        pr_author = rest[i + 1]
+        rest = rest[:i] + rest[i + 2:]
+    if "--base-sha" in rest:
+        i = rest.index("--base-sha")
+        base_sha = rest[i + 1]
+        rest = rest[:i] + rest[i + 2:]
+    if "--head-sha" in rest:
+        i = rest.index("--head-sha")
+        head_sha = rest[i + 1]
+        rest = rest[:i] + rest[i + 2:]
     if "--code-root" in rest:
         i = rest.index("--code-root")
         code_root = os.path.abspath(rest[i + 1])
@@ -219,6 +246,18 @@ def main(argv):
         rest = rest[:i] + rest[i + 2:]
     files = [a for a in argv if a.endswith(".json")]
     base = next((a for a in rest), "origin/main")
+    if base_sha is None:
+        try:
+            base_sha = subprocess.check_output(
+                ["git", "rev-parse", base], cwd=code_root, text=True).strip()
+        except Exception:
+            pass
+    if head_sha is None:
+        try:
+            head_sha = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"], cwd=code_root, text=True).strip()
+        except Exception:
+            pass
     if not files:
         files = changed_codes(base, code_root)
     if files is None:
@@ -287,6 +326,34 @@ def main(argv):
         fast_tag = (f" + fast x {ftrials}" if ftrials else "")
         tag = (f"deep, {len(seeds)} RIS seeds x {trials} trials (<={budget:.0f}s each)"
                f"{fast_tag}" if deep else f"standard, {trials} trials (<={budget:.0f}s)")
+        gate = {
+            "refuted": bool(hits),
+            "seed": seed,
+            "seeds": seeds,
+            "trials": trials,
+            "budget_seconds": budget,
+            "deep": deep,
+            "fast_trials": ftrials,
+            "methods": list(results),
+        }
+        if receipt_dir:
+            # The distance search above is authoritative for this run. Reuse the
+            # trusted structural/dedup/frontier checks without running refutation a
+            # second time just to produce an artifact.
+            verdict = validate_candidate(doc, seed=seed, refute=False)
+            verdict["gates"]["refute"] = {
+                "refuted": bool(hits),
+                "seed": seed,
+                "detail": "distance gate recorded by gate_changed.py",
+            }
+            verdict["passed"] = bool(
+                verdict.get("passed") and not hits)
+            slug = os.path.splitext(os.path.basename(f))[0]
+            receipt = make_receipt(
+                doc, p, verdict, gate=gate, repo_root=code_root,
+                pr_number=pr_number, pr_author=pr_author,
+                base_sha=base_sha, head_sha=head_sha)
+            write_receipt(receipt, receipt_dir, slug)
         if hits:
             refuted += 1
             for m, (dh, wit) in hits.items():

@@ -113,11 +113,13 @@ surface code to 1, but they answer different questions.
   free nor forbidden -- they must earn their density.
 
   Conventions and guards:
-  - g is computed only from a verifier-accepted layout (an honest layout
-    within a class cap). A code without one has no f. That is a certification
-    status, not a property: such a code may still be geometrically local
-    (e.g. on a torus, or simply unlayouted) -- it is not thereby an
-    "expander code".
+  - g is computed from any honest layout accepted by the verifier; the caps
+    decide the cell, not the score. A layout outside a locality cap therefore
+    remains in `unrestricted` while still receiving its continuously computed
+    (usually smaller) g. A code without a layout has no g. That is a
+    certification status, not a property: such a code may still be
+    geometrically local (e.g. on a torus, or simply unlayouted) -- it is not
+    thereby an "expander code".
   - g inherits the distance tier: computed from an upper-bound d it is an
     upper bound, and the site marks it so.
   - The headline card requires d >= 3: g is scale-free, so d = 2 tilings
