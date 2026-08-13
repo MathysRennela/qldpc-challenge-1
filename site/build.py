@@ -1247,9 +1247,10 @@ def cert_consistent(cert, doc):
 # and rho the layer count (the capacity charge rho^2 is the unique exponent
 # that makes re-packaging a layout into layers score-neutral). The constant 4
 # = (sqrt(2))^4 normalizes the planar surface code (r = sqrt(2), rho = 1) to
-# exactly 1. Defined only for codes whose layout the verifier accepted
-# (locality class != unrestricted); a code without a layout has no f -- that
-# is a certification status, not a claim that the code is an expander.
+# exactly 1. Defined for any honest layout accepted by the verifier; the
+# locality caps decide the leaderboard cell, not score eligibility. A code
+# without a layout has no f -- that is a certification status, not a claim
+# that the code is an expander.
 # D = 2 only: the schema accepts planar coordinates; other D are reserved.
 GEO_MIN_D = 3   # headline eligibility: d = 2 tilings (a [[4,2,2]] block on
                 # one plaquette scores g = 2) beat the surface code trivially,
@@ -1272,7 +1273,7 @@ def geo_score(doc, n, k, d, locality_class):
     """(f, r, rho) for a verifier-accepted layout, else (None, None, None).
     r is recomputed exactly from the stored coordinates (the report's value
     is rounded for display)."""
-    if locality_class == "unrestricted" or "locality" not in doc:
+    if "locality" not in doc:
         return None, None, None
     loc = doc["locality"]
     coords = [tuple(c) for c in loc["coordinates"]]
