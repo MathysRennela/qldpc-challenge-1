@@ -3554,7 +3554,7 @@
   "d": 16,
   "X": {
    "value": 16,
-   "confidence": "upper_bound",
+   "confidence": "exact",
    "witness": [
     0,
     4,
@@ -3576,7 +3576,7 @@
   },
   "Z": {
    "value": 16,
-   "confidence": "upper_bound",
+   "confidence": "exact",
    "witness": [
     0,
     1,
@@ -3609,7 +3609,7 @@
    "arXiv:2607.14091"
   ],
   "novelty": "known_parameters",
-  "notes": "Literature baseline, seeded 2026-08-14. Published as the girth-8 seed instance in the Okada-Kasai pair-partition CPM catalogue (arXiv:2607.14091; catalogue page updated 2026-08-13). The authors certify d=16 exactly: a complete connected-support exhaustion of both logical sides through qubit weight 14 (bundle detail/distance_lt16.json) proves d>=16, and explicit weight-16 non-boundary logicals on both sides prove d<=16. Recorded here as a witness-backed upper bound (d<=16, both sides, witnesses taken from the authors' detail/weight16_logical_witnesses.json) pending this repo's own certification. Reproduction was validated end to end: the bundle's check rows give a CSS-orthogonal (3,8)-regular pair with GF(2) ranks 175/175 (k=122), and both published witnesses were re-verified to lie in the opposing kernel and outside the same-side row space. This entry strictly dominates the existing [[472,122,14]] weight-8 baseline (same n and k, distance 16 vs 14)."
+  "notes": "Literature baseline, seeded 2026-08-14. Published as the girth-8 seed instance in the Okada-Kasai pair-partition CPM catalogue (arXiv:2607.14091; catalogue page updated 2026-08-13). The authors certify d=16 exactly: a complete connected-support exhaustion of both logical sides through qubit weight 14 (bundle detail/distance_lt16.json) proves d>=16, and explicit weight-16 non-boundary logicals on both sides prove d<=16. Marked exact on the strength of the authors' public machine-checkable certificate: the pinned bundle's detail/distance_lt16.json is a complete connected-support exhaustion of both logical sides through qubit weight 14 (proving no lighter logical exists), and the witnesses here are its published weight-16 logicals (detail/weight16_logical_witnesses.json). Per board policy the entry still displays as an upper bound until this repo's own certification. Reproduction was validated end to end: the bundle's check rows give a CSS-orthogonal (3,8)-regular pair with GF(2) ranks 175/175 (k=122), and both published witnesses were re-verified to lie in the opposing kernel and outside the same-side row space. This entry strictly dominates the existing [[472,122,14]] weight-8 baseline (same n and k, distance 16 vs 14)."
  },
  "family": "pair-partition-cpm"
 }
