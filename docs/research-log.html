@@ -3,6 +3,30 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/454-2-33.html">[[454,2,33]] — 454-2-33</a></h3><div class=kv style="color:var(--mut)">2026-08-14 &middot; submission note &middot; <a href="https://github.com/seunomonije">@seunomonije</a> &middot; exhaustive verification (exhaustive-qec verifier 0.1.0)</div><details open><summary>note</summary><div class=notebody><h3>[[454,2,33]] — generalized bicycle on Z_227, distance certified by exhaustive search</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>The unrestricted weight-6 cell thins out badly at high distance: the board&#x27;s best distance at this blocklength and check weight is 28. Generalized bicycle codes at low k buy distance cheaply, and the open question was never *finding* a candidate with a large ISD estimate — it was being able to stand behind the number. This submission targets that gap: a deep-distance entry whose distance is proven rather than estimated.</p>
+<h4>What was searched</h4>
+<p>Generalized bicycle codes over the circulant ring Z_ell, parameterised by the two polynomial supports (a, b). Candidates were enumerated over supports at each ell, screened with an information-set-decoding style minimum-weight search, and only then handed to exhaustive certification. This code is the ell = 227 entry of that campaign.</p>
+<h4>Evidence trail</h4>
+<p>Two independent halves, both re-checkable:</p>
+<ul>
+<li><b>Upper bound.</b> A nontrivial logical of weight 33 on each side, found by</li>
+<p>QDistRndMW ISD at 200,000 trials and re-verified before use: in ker(H), outside the stabilizer rowspace, weight exactly 33. Both witnesses are in this file&#x27;s <code>distance</code> block.</p>
+<li><b>Lower bound.</b> Exhaustive canonical DFS over every support of weight</li>
+<p>&lt;= 32, which found no nontrivial logical: <b>EMPTY at W = 32</b>, 3,209,399,834,729 nodes, checksum <code>xor64:aab6b94caa32d433</code>, assembled from 256 root-disjoint slices (sum nodes, XOR checksums), about 167.5 GPU-hours.</p>
+</ul>
+<p>No logical below weight 33 exists and one of weight 33 does, so d = 33 exactly.</p>
+<p>One sector&#x27;s exhaustion suffices here, and that is a proof rather than a convention: the qubit permutation pi(j) = (-j mod ell) with the two circulant blocks exchanged maps rowspace(H_X) onto rowspace(H_Z) and back, so the code is isomorphic to its own sector swap and d_X = d_Z. The permutation is three lines to re-derive and is checked in the notebook linked below.</p>
+<p>Claim stated precisely: <b>d = 33, exact</b>, on both sectors. The board displays an exact claim as an upper bound until a maintainer certifies it, which is the correct default; the evidence above is what a certifier would be re-running.</p>
+<h4>Dead ends</h4>
+<p>The honest limit of this approach is cost, and it is steep: exhaustion cost grows like beta^W, and beta is set by check weight rather than blocklength. At weight 6 that put this code at 167.5 GPU-hours, and the same method is already out of reach for the high-check-weight entries at the top of the board — a weight-28 code measured beta &gt;= 11 and still rising, which prices its refutation far past any hardware. Deep distance is reachable here *because* the checks are light.</p>
+<h4>Tools</h4>
+<p>Exhaustive certification engine (matrix-free, check-driven DFS; CUDA and a dependency-free CPU engine with identical semantics), ISD witness search via QDistRndMW. No AI model produced this code — the <code>provenance.model</code> field records the verification method, since the search and the proof are both exhaustive rather than learned.</p>
+<h4>Reproduction</h4>
+<p>H_X = [B^T | A^T], H_Z = [A | B] over Z_227, with A = circ(a), B = circ(b), a = [0, 22, 27, 63], b = [0, 1].</p>
+<p>Method, evidence and a notebook that rebuilds this code from those supports, re-derives (n, k) over GF(2), re-verifies both witnesses and replays the exhaustion record:</p>
+<p>https://github.com/qernelkit/verifiable-qec-experiments/blob/main/experiments/qldpc_challenge/qldpc_challenge.ipynb</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/454-2-33.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/101-5-5.html">[[101,5,5]] — 101-5-5</a></h3><div class=kv style="color:var(--mut)">2026-08-13 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[101,5,5]] — dense-packed surface code (5 logical qubits in one patch)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target: the <code>local-2d-single</code> / <code>weight-4</code> cell, the geometric-efficiency track. The board&#x27;s weight-4 single-layer codes top out at `g = 4kd²/(n·ρ²·r⁴) ≈ 1.14` ([[672,85,3]]) and the surface-code baselines sit at exactly 1.0. Paper arXiv:2511.06758 (Fujiu et al., &quot;Dense packing of the surface code&quot;) fuses five distance-d rotated surface-code patches into one contiguous patch via code deformation, keeping each logical&#x27;s distance at d while sharing bulk stabilizer regions — the physical-qubit-per-logical overhead drops to ~3/4 of standalone patches. If the fused layout keeps the nearest-neighbour tilted lattice (r = √2, ρ = 1), the n-savings translate directly into a higher g than anything currently on the cell.</p>
@@ -89,7 +113,7 @@ python research/build_dense_surface.py 7   # writes /tmp/dense_7.npz (hx, hz, co
 ./qldpc submit /tmp/dense_7.npz --coords /tmp/dense_7.npz --layers 1 \
   --authors @mathysrennela --family topological
 </pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/197-5-7.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/325-5-9.html">[[325,5,9]] — 325-5-9</a></h3><div class=kv style="color:var(--mut)">2026-08-13 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[325,5,9]] — dense-packed surface code, distance 9</h3>
+<section class=blk><h3><a href="codes/325-5-9.html">[[325,5,9]] — 325-5-9</a></h3><div class=kv style="color:var(--mut)">2026-08-13 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details ><summary>note</summary><div class=notebody><h3>[[325,5,9]] — dense-packed surface code, distance 9</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Companion to the d = 5 and d = 7 dense-packed submissions (<code>[[101,5,5]]</code>, <code>[[197,5,7]]</code>). Same construction family (arXiv:2511.06758, Fujiu et al., &quot;Dense packing of the surface code&quot;) at distance 9. The paper evaluates dense packing at d = 5, 7, 9, 11 and finds the hook-avoiding dense patch matches or beats standalone at larger distance and lower physical error rate. This is the d = 9 member: five logical qubits, weight-4 checks, single-layer honest layout, nearest-neighbour tilted lattice (r = √2).</p>
 <h4>What was searched</h4>
