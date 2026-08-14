@@ -798,7 +798,7 @@
   "d": 6,
   "X": {
    "value": 6,
-   "confidence": "upper_bound",
+   "confidence": "exact",
    "witness": [
     0,
     2,
@@ -810,7 +810,7 @@
   },
   "Z": {
    "value": 6,
-   "confidence": "upper_bound",
+   "confidence": "exact",
    "witness": [
     0,
     18,
@@ -833,7 +833,7 @@
    "arXiv:2607.14091"
   ],
   "novelty": "known_parameters",
-  "notes": "Literature baseline, seeded 2026-08-14. Published in the certificate-bundle set of the Okada-Kasai pair-partition CPM catalogue (arXiv:2607.14091; certificate_bundles_20260805, directory qc_84_34_6, status exact_distance_machine_verified in master_manifest.json). The authors' bundle gives complete lower-bound exclusion through weight 5 on both sides plus explicit weight-6 logicals, certifying d=6 exactly; the witnesses here are the bundle's published upper_logical_vectors.json entries, re-verified in this repo (kernel membership, row-space non-membership). Recorded as a witness-backed upper bound pending this repo's own certification. Reproduction was validated end to end: the bundle's fixed-input .cpm expanded with the authors' own script gives a CSS-orthogonal (4,12)-regular pair with GF(2) ranks 25/25 (k=34)."
+  "notes": "Literature baseline, seeded 2026-08-14. Published in the certificate-bundle set of the Okada-Kasai pair-partition CPM catalogue (arXiv:2607.14091; certificate_bundles_20260805, directory qc_84_34_6, status exact_distance_machine_verified in master_manifest.json). The authors' bundle gives complete lower-bound exclusion through weight 5 on both sides plus explicit weight-6 logicals, certifying d=6 exactly; the witnesses here are the bundle's published upper_logical_vectors.json entries, re-verified in this repo (kernel membership, row-space non-membership). Marked exact on the strength of that public machine-verified bundle (complete lower-bound exclusion through weight 5 on both sides, SHA-256-pinned artifacts, independent-verifier record included). Per board policy the entry still displays as an upper bound until this repo's own certification. Reproduction was validated end to end: the bundle's fixed-input .cpm expanded with the authors' own script gives a CSS-orthogonal (4,12)-regular pair with GF(2) ranks 25/25 (k=34)."
  },
  "family": "pair-partition-cpm"
 }
