@@ -9,18 +9,18 @@
 
 # CI definitions: on pull_request events GitHub runs the PR's own copy of the
 # workflow, so the only real defense on workflow edits is merge-time review.
-/.github/                       @FarLab @vprusso
+/.github/                       @FarLab @vprusso @MathysRennela
 
 # The verifier stack, the schema, and the site builder that renders verdicts.
-/verify/                        @FarLab @vprusso
-/schema/                        @FarLab @vprusso
-/site/build.py                  @FarLab @vprusso
+/verify/                        @FarLab @vprusso @MathysRennela
+/schema/                        @FarLab @vprusso @MathysRennela
+/site/build.py                  @FarLab @vprusso @MathysRennela
 
 # Dependency set the verifier runs under.
-/pyproject.toml                 @FarLab @vprusso
-/uv.lock                        @FarLab @vprusso
+/pyproject.toml                 @FarLab @vprusso @MathysRennela
+/uv.lock                        @FarLab @vprusso @MathysRennela
 
 # The pinned hashes of the trusted validation stack. A re-pin is the loud,
 # reviewable signal that verifier semantics changed; owner review is what
 # gives that canary teeth.
-/verify/validator_manifest.json @FarLab @vprusso
+/verify/validator_manifest.json @FarLab @vprusso @MathysRennela
