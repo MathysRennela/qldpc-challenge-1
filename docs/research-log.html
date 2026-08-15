@@ -521,6 +521,191 @@
 <p>Model: DeepSeek V4 Flash 0731 (provenance.model). Author: @mathysrennela. Repo tooling: research/kit (css, search.fingerprint, surrogate, submit.make_submission), verify/validate_candidate.py (trusted gate). Pipeline scripts: research/db_mirror.py -&gt; db_phase1.py -&gt; db_phase2.py -&gt; db_phase3.py -&gt; db_phase3_witness.py -&gt; db_phase3_backfill.py -&gt; db_phase3_provenance.py.</p>
 <h4>Reproduction</h4>
 <p>The code is reconstructed from qecdb.org record 67bc8fcb (https://qecdb.org/codes/67bc8fcb688c8ec8bb5be09d). The record&#x27;s H field holds all X-rows followed by all Z-rows; split them, take the X/Z support matrices, and re-derive k and witnesses with the kit: research/kit/db_phase1.py-style parsing then make_submission. The raw record is preserved under research/db_dump/raw/67bc8fcb.json (gitignored).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/50-18-4.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/50-2-9.html">[[50,2,9]] — 50-2-9</a></h3><div class=kv style="color:var(--mut)">2026-08-15 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[50,2,9]] — generalized-bicycle code sourced from qecdb.org record 67bc8ef2</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Aiming at the weight-6 track&#x27;s frontier: find low-check-weight CSS codes that strictly dominate an existing board entry on (n, k, d). The candidate pool is the qecdb.org database (36,830 records, mirrored and deduped to 2,369 unique CSS records), which is ~140x denser in small-block CSS codes than this board.</p>
+<h4>What was searched</h4>
+<p>Full funnel (see fieldnotes/2026-08-15-qecdb-mine-plan.md and fieldnotes/2026-08-15-qecdb-sourced-submissions.md):</p>
+<ul>
+<li>mirror qecdb.org -&gt; 2,369 unique records (by <code>_id</code>) under research/db_dump/</li>
+<li>parse css=True records into (HX, HZ): X rows then Z rows; require CSS</li>
+<p>commutation and k matching the DB (1,013 survived; 133 rejected as GF(4)- style Y rows)</p>
+<li>dedupe by stabilizer fingerprint (RREF convention, same as the verifier)</li>
+<li>frontier cross-check per (locality x weight-class) cell against codes/*</li>
+<li>screen with the kit&#x27;s RIS surrogate (distance_rand, 2k-4k trials x 2 seeds)</li>
+<li>witness extraction + packaging via research/kit/submit.make_submission</li>
+<p>(trials=8000), then the trusted gate verify/validate_candidate.py</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Screening d (RIS upper bound, 2-4k trials): held at the claimed value for</li>
+<p>this code&#x27;s cell.</p>
+<li>The submitted distance is the kit&#x27;s witness upper bound</li>
+<p>(confidence: upper_bound); the DB&#x27;s claimed d was never used as evidence.</p>
+<li>Gate: verify/validate_candidate.py -&gt; passed: true; dedup: no exact</li>
+<p>duplicate, no WL-equivalent on the board.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>133 CSS records use GF(4)-style Y characters in their rows and were</li>
+<p>excluded (not importable conservatively).</p>
+<li>2 records ([[85,53,5]], [[89,67,4]]) have check weight 40-44, above the</li>
+<p>schema&#x27;s per-check cap of 32, and cannot be represented.</p>
+<li>19 records pass the gate but &quot;do not advance their board cell&quot;; 4 more</li>
+<p>share a [[n,k,d]] already occupied on the board and were not submitted.</p>
+</ul>
+<h4>Tools</h4>
+<p>Model: DeepSeek V4 Flash 0731 (provenance.model). Author: @mathysrennela. Repo tooling: research/kit (css, search.fingerprint, surrogate, submit.make_submission), verify/validate_candidate.py (trusted gate). Pipeline scripts: research/db_mirror.py -&gt; db_phase1.py -&gt; db_phase2.py -&gt; db_phase3.py -&gt; db_phase3_witness.py -&gt; db_phase3_backfill.py -&gt; db_phase3_provenance.py.</p>
+<h4>Reproduction</h4>
+<p>The code is reconstructed from qecdb.org record 67bc8ef2 (https://qecdb.org/codes/67bc8ef238cb83471425e7ab). The record&#x27;s H field holds all X-rows followed by all Z-rows; split them, take the X/Z support matrices, and re-derive k and witnesses with the kit: research/kit/db_phase1.py-style parsing then make_submission. The raw record is preserved under research/db_dump/raw/67bc8ef2.json (gitignored).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/50-2-9.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/51-16-5.html">[[51,16,5]] — 51-16-5</a></h3><div class=kv style="color:var(--mut)">2026-08-15 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[51,16,5]] — unlabeled code sourced from qecdb.org record 6705bd32</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Aiming at the weight-6 track&#x27;s frontier: find low-check-weight CSS codes that strictly dominate an existing board entry on (n, k, d). The candidate pool is the qecdb.org database (36,830 records, mirrored and deduped to 2,369 unique CSS records), which is ~140x denser in small-block CSS codes than this board.</p>
+<h4>What was searched</h4>
+<p>Full funnel (see fieldnotes/2026-08-15-qecdb-mine-plan.md and fieldnotes/2026-08-15-qecdb-sourced-submissions.md):</p>
+<ul>
+<li>mirror qecdb.org -&gt; 2,369 unique records (by <code>_id</code>) under research/db_dump/</li>
+<li>parse css=True records into (HX, HZ): X rows then Z rows; require CSS</li>
+<p>commutation and k matching the DB (1,013 survived; 133 rejected as GF(4)- style Y rows)</p>
+<li>dedupe by stabilizer fingerprint (RREF convention, same as the verifier)</li>
+<li>frontier cross-check per (locality x weight-class) cell against codes/*</li>
+<li>screen with the kit&#x27;s RIS surrogate (distance_rand, 2k-4k trials x 2 seeds)</li>
+<li>witness extraction + packaging via research/kit/submit.make_submission</li>
+<p>(trials=8000), then the trusted gate verify/validate_candidate.py</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Screening d (RIS upper bound, 2-4k trials): held at the claimed value for</li>
+<p>this code&#x27;s cell.</p>
+<li>The submitted distance is the kit&#x27;s witness upper bound</li>
+<p>(confidence: upper_bound); the DB&#x27;s claimed d was never used as evidence.</p>
+<li>Gate: verify/validate_candidate.py -&gt; passed: true; dedup: no exact</li>
+<p>duplicate, no WL-equivalent on the board.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>133 CSS records use GF(4)-style Y characters in their rows and were</li>
+<p>excluded (not importable conservatively).</p>
+<li>2 records ([[85,53,5]], [[89,67,4]]) have check weight 40-44, above the</li>
+<p>schema&#x27;s per-check cap of 32, and cannot be represented.</p>
+<li>19 records pass the gate but &quot;do not advance their board cell&quot;; 4 more</li>
+<p>share a [[n,k,d]] already occupied on the board and were not submitted.</p>
+</ul>
+<h4>Tools</h4>
+<p>Model: DeepSeek V4 Flash 0731 (provenance.model). Author: @mathysrennela. Repo tooling: research/kit (css, search.fingerprint, surrogate, submit.make_submission), verify/validate_candidate.py (trusted gate). Pipeline scripts: research/db_mirror.py -&gt; db_phase1.py -&gt; db_phase2.py -&gt; db_phase3.py -&gt; db_phase3_witness.py -&gt; db_phase3_backfill.py -&gt; db_phase3_provenance.py.</p>
+<h4>Reproduction</h4>
+<p>The code is reconstructed from qecdb.org record 6705bd32 (https://qecdb.org/codes/6705bd328271751a9ef4eb34). The record&#x27;s H field holds all X-rows followed by all Z-rows; split them, take the X/Z support matrices, and re-derive k and witnesses with the kit: research/kit/db_phase1.py-style parsing then make_submission. The raw record is preserved under research/db_dump/raw/6705bd32.json (gitignored).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/51-16-5.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/54-2-9.html">[[54,2,9]] — 54-2-9</a></h3><div class=kv style="color:var(--mut)">2026-08-15 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[54,2,9]] — generalized-bicycle code sourced from qecdb.org record 67bc8e6d</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Aiming at the weight-6 track&#x27;s frontier: find low-check-weight CSS codes that strictly dominate an existing board entry on (n, k, d). The candidate pool is the qecdb.org database (36,830 records, mirrored and deduped to 2,369 unique CSS records), which is ~140x denser in small-block CSS codes than this board.</p>
+<h4>What was searched</h4>
+<p>Full funnel (see fieldnotes/2026-08-15-qecdb-mine-plan.md and fieldnotes/2026-08-15-qecdb-sourced-submissions.md):</p>
+<ul>
+<li>mirror qecdb.org -&gt; 2,369 unique records (by <code>_id</code>) under research/db_dump/</li>
+<li>parse css=True records into (HX, HZ): X rows then Z rows; require CSS</li>
+<p>commutation and k matching the DB (1,013 survived; 133 rejected as GF(4)- style Y rows)</p>
+<li>dedupe by stabilizer fingerprint (RREF convention, same as the verifier)</li>
+<li>frontier cross-check per (locality x weight-class) cell against codes/*</li>
+<li>screen with the kit&#x27;s RIS surrogate (distance_rand, 2k-4k trials x 2 seeds)</li>
+<li>witness extraction + packaging via research/kit/submit.make_submission</li>
+<p>(trials=8000), then the trusted gate verify/validate_candidate.py</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Screening d (RIS upper bound, 2-4k trials): held at the claimed value for</li>
+<p>this code&#x27;s cell.</p>
+<li>The submitted distance is the kit&#x27;s witness upper bound</li>
+<p>(confidence: upper_bound); the DB&#x27;s claimed d was never used as evidence.</p>
+<li>Gate: verify/validate_candidate.py -&gt; passed: true; dedup: no exact</li>
+<p>duplicate, no WL-equivalent on the board.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>133 CSS records use GF(4)-style Y characters in their rows and were</li>
+<p>excluded (not importable conservatively).</p>
+<li>2 records ([[85,53,5]], [[89,67,4]]) have check weight 40-44, above the</li>
+<p>schema&#x27;s per-check cap of 32, and cannot be represented.</p>
+<li>19 records pass the gate but &quot;do not advance their board cell&quot;; 4 more</li>
+<p>share a [[n,k,d]] already occupied on the board and were not submitted.</p>
+</ul>
+<h4>Tools</h4>
+<p>Model: DeepSeek V4 Flash 0731 (provenance.model). Author: @mathysrennela. Repo tooling: research/kit (css, search.fingerprint, surrogate, submit.make_submission), verify/validate_candidate.py (trusted gate). Pipeline scripts: research/db_mirror.py -&gt; db_phase1.py -&gt; db_phase2.py -&gt; db_phase3.py -&gt; db_phase3_witness.py -&gt; db_phase3_backfill.py -&gt; db_phase3_provenance.py.</p>
+<h4>Reproduction</h4>
+<p>The code is reconstructed from qecdb.org record 67bc8e6d (https://qecdb.org/codes/67bc8e6de8112da5fce0be80). The record&#x27;s H field holds all X-rows followed by all Z-rows; split them, take the X/Z support matrices, and re-derive k and witnesses with the kit: research/kit/db_phase1.py-style parsing then make_submission. The raw record is preserved under research/db_dump/raw/67bc8e6d.json (gitignored).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/54-2-9.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/54-20-4.html">[[54,20,4]] — 54-20-4</a></h3><div class=kv style="color:var(--mut)">2026-08-15 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[54,20,4]] — topological code sourced from qecdb.org record 67a4adfc</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Aiming at the weight-6 track&#x27;s frontier: find low-check-weight CSS codes that strictly dominate an existing board entry on (n, k, d). The candidate pool is the qecdb.org database (36,830 records, mirrored and deduped to 2,369 unique CSS records), which is ~140x denser in small-block CSS codes than this board.</p>
+<h4>What was searched</h4>
+<p>Full funnel (see fieldnotes/2026-08-15-qecdb-mine-plan.md and fieldnotes/2026-08-15-qecdb-sourced-submissions.md):</p>
+<ul>
+<li>mirror qecdb.org -&gt; 2,369 unique records (by <code>_id</code>) under research/db_dump/</li>
+<li>parse css=True records into (HX, HZ): X rows then Z rows; require CSS</li>
+<p>commutation and k matching the DB (1,013 survived; 133 rejected as GF(4)- style Y rows)</p>
+<li>dedupe by stabilizer fingerprint (RREF convention, same as the verifier)</li>
+<li>frontier cross-check per (locality x weight-class) cell against codes/*</li>
+<li>screen with the kit&#x27;s RIS surrogate (distance_rand, 2k-4k trials x 2 seeds)</li>
+<li>witness extraction + packaging via research/kit/submit.make_submission</li>
+<p>(trials=8000), then the trusted gate verify/validate_candidate.py</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Screening d (RIS upper bound, 2-4k trials): held at the claimed value for</li>
+<p>this code&#x27;s cell.</p>
+<li>The submitted distance is the kit&#x27;s witness upper bound</li>
+<p>(confidence: upper_bound); the DB&#x27;s claimed d was never used as evidence.</p>
+<li>Gate: verify/validate_candidate.py -&gt; passed: true; dedup: no exact</li>
+<p>duplicate, no WL-equivalent on the board.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>133 CSS records use GF(4)-style Y characters in their rows and were</li>
+<p>excluded (not importable conservatively).</p>
+<li>2 records ([[85,53,5]], [[89,67,4]]) have check weight 40-44, above the</li>
+<p>schema&#x27;s per-check cap of 32, and cannot be represented.</p>
+<li>19 records pass the gate but &quot;do not advance their board cell&quot;; 4 more</li>
+<p>share a [[n,k,d]] already occupied on the board and were not submitted.</p>
+</ul>
+<h4>Tools</h4>
+<p>Model: DeepSeek V4 Flash 0731 (provenance.model). Author: @mathysrennela. Repo tooling: research/kit (css, search.fingerprint, surrogate, submit.make_submission), verify/validate_candidate.py (trusted gate). Pipeline scripts: research/db_mirror.py -&gt; db_phase1.py -&gt; db_phase2.py -&gt; db_phase3.py -&gt; db_phase3_witness.py -&gt; db_phase3_backfill.py -&gt; db_phase3_provenance.py.</p>
+<h4>Reproduction</h4>
+<p>The code is reconstructed from qecdb.org record 67a4adfc (https://qecdb.org/codes/67a4adfc2916ddddf1688e1f). The record&#x27;s H field holds all X-rows followed by all Z-rows; split them, take the X/Z support matrices, and re-derive k and witnesses with the kit: research/kit/db_phase1.py-style parsing then make_submission. The raw record is preserved under research/db_dump/raw/67a4adfc.json (gitignored).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/54-20-4.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/90-6-5.html">[[90,6,5]] — 90-6-5</a></h3><div class=kv style="color:var(--mut)">2026-08-15 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[90,6,5]] — generalized-bicycle code sourced from qecdb.org record 67c507da</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Aiming at the weight-6 track&#x27;s frontier: find low-check-weight CSS codes that strictly dominate an existing board entry on (n, k, d). The candidate pool is the qecdb.org database (36,830 records, mirrored and deduped to 2,369 unique CSS records), which is ~140x denser in small-block CSS codes than this board.</p>
+<h4>What was searched</h4>
+<p>Full funnel (see fieldnotes/2026-08-15-qecdb-mine-plan.md and fieldnotes/2026-08-15-qecdb-sourced-submissions.md):</p>
+<ul>
+<li>mirror qecdb.org -&gt; 2,369 unique records (by <code>_id</code>) under research/db_dump/</li>
+<li>parse css=True records into (HX, HZ): X rows then Z rows; require CSS</li>
+<p>commutation and k matching the DB (1,013 survived; 133 rejected as GF(4)- style Y rows)</p>
+<li>dedupe by stabilizer fingerprint (RREF convention, same as the verifier)</li>
+<li>frontier cross-check per (locality x weight-class) cell against codes/*</li>
+<li>screen with the kit&#x27;s RIS surrogate (distance_rand, 2k-4k trials x 2 seeds)</li>
+<li>witness extraction + packaging via research/kit/submit.make_submission</li>
+<p>(trials=8000), then the trusted gate verify/validate_candidate.py</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Screening d (RIS upper bound, 2-4k trials): held at the claimed value for</li>
+<p>this code&#x27;s cell.</p>
+<li>The submitted distance is the kit&#x27;s witness upper bound</li>
+<p>(confidence: upper_bound); the DB&#x27;s claimed d was never used as evidence.</p>
+<li>Gate: verify/validate_candidate.py -&gt; passed: true; dedup: no exact</li>
+<p>duplicate, no WL-equivalent on the board.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>133 CSS records use GF(4)-style Y characters in their rows and were</li>
+<p>excluded (not importable conservatively).</p>
+<li>2 records ([[85,53,5]], [[89,67,4]]) have check weight 40-44, above the</li>
+<p>schema&#x27;s per-check cap of 32, and cannot be represented.</p>
+<li>19 records pass the gate but &quot;do not advance their board cell&quot;; 4 more</li>
+<p>share a [[n,k,d]] already occupied on the board and were not submitted.</p>
+</ul>
+<h4>Tools</h4>
+<p>Model: DeepSeek V4 Flash 0731 (provenance.model). Author: @mathysrennela. Repo tooling: research/kit (css, search.fingerprint, surrogate, submit.make_submission), verify/validate_candidate.py (trusted gate). Pipeline scripts: research/db_mirror.py -&gt; db_phase1.py -&gt; db_phase2.py -&gt; db_phase3.py -&gt; db_phase3_witness.py -&gt; db_phase3_backfill.py -&gt; db_phase3_provenance.py.</p>
+<h4>Reproduction</h4>
+<p>The code is reconstructed from qecdb.org record 67c507da (https://qecdb.org/codes/67c507dae8112da5fce0c080). The record&#x27;s H field holds all X-rows followed by all Z-rows; split them, take the X/Z support matrices, and re-derive k and witnesses with the kit: research/kit/db_phase1.py-style parsing then make_submission. The raw record is preserved under research/db_dump/raw/67c507da.json (gitignored).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/90-6-5.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/96-18-4.html">[[96,18,4]] — 96-18-4</a></h3><div class=kv style="color:var(--mut)">2026-08-15 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[96,18,4]] — topological code sourced from qecdb.org record 67a4b3fc</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Aiming at the weight-6 track&#x27;s frontier: find low-check-weight CSS codes that strictly dominate an existing board entry on (n, k, d). The candidate pool is the qecdb.org database (36,830 records, mirrored and deduped to 2,369 unique CSS records), which is ~140x denser in small-block CSS codes than this board.</p>
