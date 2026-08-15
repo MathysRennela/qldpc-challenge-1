@@ -35,8 +35,8 @@ else, name the source and pin it — "taken from github.com/a7b/yarn @ 82fb695,
 on request", and never point at a private checkout (`~/…`, `/Users/…`) or a machine name.
 
 **`research/candidates/` is gitignored working output; it can never be the audit trail.**
-It is the right place to *stage* a candidate (see above) and the wrong place to *cite*. If
-a search script matters to the result, either commit it or describe the method in the note
+It is the right place to *stage* a candidate (see above) and the wrong place to *cite*. If a
+search script matters to the result, either commit it or describe the method in the note
 so someone can rewrite it.
 
 Two more, same reason:
