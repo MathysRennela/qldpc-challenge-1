@@ -114,6 +114,53 @@
 <p>Model: DeepSeek V4 Flash 0731 (provenance.model). Author: @mathysrennela. Repo tooling: research/kit (css, search.fingerprint, surrogate, submit.make_submission), verify/validate_candidate.py (trusted gate). Pipeline scripts: research/db_mirror.py -&gt; db_phase1.py -&gt; db_phase2.py -&gt; db_phase3.py -&gt; db_phase3_witness.py -&gt; db_phase3_backfill.py -&gt; db_phase3_provenance.py.</p>
 <h4>Reproduction</h4>
 <p>The code is reconstructed from qecdb.org record 67a4b4d5 (https://qecdb.org/codes/67a4b4d54bcb3522b2d465a9). The record&#x27;s H field holds all X-rows followed by all Z-rows; split them, take the X/Z support matrices, and re-derive k and witnesses with the kit: research/kit/db_phase1.py-style parsing then make_submission. The raw record is preserved under research/db_dump/raw/67a4b4d5.json (gitignored).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/120-34-5.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/128-20-14.html">[[128,20,14]] — 128-20-14</a></h3><div class=kv style="color:var(--mut)">2026-08-15 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Xiaomi MiMo-V2.5</div><details ><summary>note</summary><div class=notebody><h3>[[128,20,14]] — 2BGA on non-abelian ((C4xC2):C4):C2 (order 64)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>The <code>unrestricted / weight-9plus</code> cell rewards high rate at moderate block length. The GAP-enhanced autoresearch sweep targeted non-abelian groups of order ~64 where 2BGA codes can produce even k (unlike abelian BB, which is confined to odd-free k) and weight-8 supports per side (max row weight 16) keep the code in the w-9plus tier. The group ((C4xC2):C4):C2 (order 64, GAP index 61) was chosen after its Cayley table passed the two-block orthogonality check.</p>
+<h4>What was searched</h4>
+<p>GAP 2BGA sweep over non-abelian groups of order 60-128, weight-4 supports per block (row weight 8), screening at 400 RIS trials and confirming winners with an escalating trial ladder. The winning draw: order-64 group ((C4xC2):C4):C2 with element-index supports</p>
+<pre>
+a = [ 7,  9, 11, 30, 32, 34, 47, 59]
+b = [ 3,  6, 23, 27, 41, 46, 47, 56]
+</pre>
+<h4>Evidence trail</h4>
+<ul>
+<li>Rebuilt from the order-64 group table produced by the GAP enumeration step</li>
+<p>(GAP SmallGroup(64, 61)) via <code>group_algebra.build_2bga</code>: n = 128, k = 20, CSS ok, max row weight 16.</p>
+<li>Screen (sweep, 400 trials): d &lt;= 14.</li>
+<li>Confirmation ladder: distance stayed flat across 400 -&gt; 1000 -&gt; 10000 -&gt;</li>
+<p>1000000 RIS trials; filtered at every stage (weight-14 witness persisting on both sides).</p>
+<li>Fresh staged witnesses (2026-08-15, 8000 trials/side): X 14, Z 14,</li>
+<p>each verified in ker of the opposite checks and outside its own rowspace.</p>
+<li>Trusted gate <code>verify/validate_candidate.py</code> (2026-08-15, fresh seed):</li>
+<p>passed, refutation clean, <code>dominated_by: []</code>, advances the weight-9plus x unrestricted board.</p>
+</ul>
+<p>Tier: <code>d &lt;= 14</code> (witness-backed upper bound; not exact-certified).</p>
+<h4>Dead ends</h4>
+<p>The sweep ended with this as the single survivor passing the full trial ladder; over 64-group order band the other weight-8 hits either collapsed under deep RIS (e.g. screen d=16 -&gt; true d&lt;=6 at 1M trials) or carried check weight above 16 and were dropped before distance work.</p>
+<h4>Tools</h4>
+<ul>
+<li>Model: Xiaomi MiMo-V2.5 (provenance, self-reported).</li>
+<li>Repo tooling: <code>research/kit/group_algebra.py</code> (build_2bga),</li>
+<p><code>research/kit/surrogate.py</code> (RIS distance), <code>verify/validate_candidate.py</code> (trusted gate); GAP group enumeration via the kit&#x27;s GAP bridge scripts (SmallGroup(64, 61)).</p>
+<li>Compute: GAP enumeration via the kit&#x27;s bridge (catalog cached); distance</li>
+<p>searches ~1M trials on the winner.</p>
+</ul>
+<h4>Reproduction</h4>
+<p>The committed builder <code>research/build_128_20_14.py</code> reproduces the full submission: it loads the order-64 Cayley table for ((C4xC2):C4):C2 (obtained by enumerating order-64 groups with GAP and selecting the group whose structure description is ((C4xC2):C4):C2, as the sweep did), calls <code>group_algebra.build_2bga</code> with the supports above, recomputes n/k/CSS, searches witnesses, and writes a schema-valid staged doc:</p>
+<pre>
+uv run python research/build_128_20_14.py
+</pre>
+<p>Equivalently, in GAP <code>SmallGroup(64, 61)</code> is the order-64 group with that structure description; its Cayley table plus</p>
+<pre>
+from research.kit.group_algebra import build_2bga
+from research.kit.css import compute_k, verify_css
+HX, HZ = build_2bga(mul64, a=[7, 9, 11, 30, 32, 34, 47, 59],
+                    b=[3, 6, 23, 27, 41, 46, 47, 56])
+assert verify_css(HX, HZ) and compute_k(HX, HZ) == 20
+</pre>
+<p>with <code>mul64</code> the Cayley table of that group reproduces the code.</p>
+<p>There is no public table row for this code; the group + supports fully determine (H_X, H_Z). The JSON in <code>codes/128-20-14.json</code> was built from the kit&#x27;s <code>submit.make_submission</code> on that matrix.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/128-20-14.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/34-2-7.html">[[34,2,7]] — 34-2-7</a></h3><div class=kv style="color:var(--mut)">2026-08-15 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[34,2,7]] — generalized-bicycle code sourced from qecdb.org record 67a42e51</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Aiming at the weight-6 track&#x27;s frontier: find low-check-weight CSS codes that strictly dominate an existing board entry on (n, k, d). The candidate pool is the qecdb.org database (36,830 records, mirrored and deduped to 2,369 unique CSS records), which is ~140x denser in small-block CSS codes than this board.</p>
