@@ -29,19 +29,14 @@ The board's durable value is the evidence trail, and an evidence trail that cite
 nobody else has is not one. `verify/check_prose.py` enforces this on every changed
 `notes/`/`fieldnotes/` file and on the PR body:
 
-**Every path you name must resolve in the PR's own tree.** Before writing any path, inspect the
-submitted tree (the PR head, not only the base checkout) or run the prose checker against it.
-A path that exists only in a local workspace, an ignored staging directory, or the base branch
-must not be presented as a committed artifact. If it is not committed in the PR, describe the
-method without naming that path; for an external artifact, name the source and pin it —
-"taken from github.com/a7b/yarn @ 82fb695, `processor_codes/mitten/[[300,60,14]]/Hx.npy`" — or do not cite it.
-Never write "available on request", and never point at a private checkout (`~/…`, `/Users/…`) or a machine name.
+**Every path you name must resolve in the PR's own tree.** If the artifact lives somewhere
+else, name the source and pin it — "taken from github.com/a7b/yarn @ 82fb695,
+`processor_codes/mitten/[[300,60,14]]/Hx.npy`" — or do not cite it. Never write "available on request", and never point at a private checkout (`~/…`, `/Users/…`) or a machine name.
 
 **`research/candidates/` is gitignored working output; it can never be the audit trail.**
-It is the right place to *stage* a candidate (see above) and the wrong place to cite. If a
+It is the right place to *stage* a candidate (see above) and the wrong place to *cite*. If a
 search script matters to the result, either commit it or describe the method in the note
-so someone can rewrite it. Do not mention the directory in prose intended for review unless
-explaining this prohibition; use "local staging artifact" instead.
+so someone can rewrite it.
 
 Two more, same reason:
 
