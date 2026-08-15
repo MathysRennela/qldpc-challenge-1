@@ -7,7 +7,7 @@ and searching for new codes.
 ## Doing autoresearch (finding new codes)
 
 Read **[`research/AUTORESEARCH.md`](research/AUTORESEARCH.md)** and follow it. That is the
-tool-agnostic operating manual for the research loop and the reference for the `research/` kit.
+ tool-agnostic operating manual for the research loop and the reference for the `research/` kit.
 
 The one rule, up front so it is never missed:
 
@@ -31,7 +31,8 @@ nobody else has is not one. `verify/check_prose.py` enforces this on every chang
 
 **Every path you name must resolve in the PR's own tree.** If the artifact lives somewhere
 else, name the source and pin it — "taken from github.com/a7b/yarn @ 82fb695,
-`processor_codes/mitten/[[300,60,14]]/Hx.npy`" — or do not cite it. Never write "available on request", and never point at a private checkout (`~/…`, `/Users/…`) or a machine name.
+`processor_codes/mitten/[[300,60,14]]/Hx.npy`" — or do not cite it. Never write "available
+on request", and never point at a private checkout (`~/…`, `/Users/…`) or a machine name.
 
 **`research/candidates/` is gitignored working output; it can never be the audit trail.**
 It is the right place to *stage* a candidate (see above) and the wrong place to *cite*. If a
