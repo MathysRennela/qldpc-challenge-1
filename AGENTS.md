@@ -7,7 +7,7 @@ and searching for new codes.
 ## Doing autoresearch (finding new codes)
 
 Read **[`research/AUTORESEARCH.md`](research/AUTORESEARCH.md)** and follow it. That is the
- tool-agnostic operating manual for the research loop and the reference for the `research/` kit.
+tool-agnostic operating manual for the research loop and the reference for the `research/` kit.
 
 The one rule, up front so it is never missed:
 
