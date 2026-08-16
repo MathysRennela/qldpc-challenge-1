@@ -773,7 +773,7 @@
   "notes": "Published Lin\u2013Pryadko baseline reconstructed from the authors public database at commit 403d194c3f98f0cadc236aecbc4a8b6139ccf23c. Paper reports exact d=9; repository records a witness-backed upper bound. Literature novelty is not claimed.",
   "references": [
    "https://arxiv.org/abs/2306.16400v1",
-   "https://github.com/QEC-pages/2BGA-codes/tree/403d194c3f98f0cadc236aecbc4a8b6139ccf23c/abelian.zip",
+   "https://github.com/QEC-pages/2BGA-codes/blob/403d194c3f98f0cadc236aecbc4a8b6139ccf23c/abelian.zip",
    "https://github.com/QEC-pages/2BGA-codes/blob/403d194c3f98f0cadc236aecbc4a8b6139ccf23c/2BGA.gap"
   ]
  },
