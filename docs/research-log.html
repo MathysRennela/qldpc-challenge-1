@@ -3,6 +3,32 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/176-22-4.html">[[176,22,4]] — 176-22-4</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[176,22,4]] — weight-4 multivariate-bicycle finalist</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Targeted the unrestricted × weight-4 cell with identity-normalized two-term bicycle supports drawn from the x/y/(xy) support families. The hypothesis was that sparse multivariate supports could add useful rank and distance structure while retaining maximum check weight 4.</p>
+<h4>What was searched</h4>
+<p>The campaign generated 480 candidates across Z_l × Z_m dimensions. Candidates were screened with exact CSS/rank checks and a 160-trial RIS surrogate. The finalist was packaged with 1,600 witness-search trials.</p>
+<h4>Evidence trail</h4>
+<p>The submitted code has n=176, k=22, and maximum check weight 4. The repository witness search found X and Z logicals of weight 4, so the submitted distance is the upper bound d&lt;=4, not an exact certification. The trusted validator passed the CSS, witness, deduplication, and refutation gates and marked the unrestricted × weight-4 cell as board-advancing.</p>
+<h4>Dead ends</h4>
+<p>The campaign discarded 108 candidates below the minimum screen distance and 35 duplicate stabilizer codes. The remaining finalists were not treated as exact-distance results.</p>
+<h4>Tools</h4>
+<p>The code was generated with the repository research kit and validated by the trusted verifier. The campaign used model GPT-5.6 Luna and seed 20260816.</p>
+<h4>Reproduction</h4>
+<p>Use the bivariate-bicycle construction on Z_11 × Z_8 with A={(0,0),(0,5)} and B={(0,0),(0,7)}. Build H_X=[A|B] and H_Z=[B^T|A^T] over GF(2).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/176-22-4.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/192-6-8.html">[[192,6,8]] — 192-6-8</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[192,6,8]] — weight-4 multivariate-bicycle finalist</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Targeted the unrestricted × weight-4 cell with identity-normalized two-term bicycle supports drawn from the x/y/(xy) support families. The hypothesis was that sparse multivariate supports could add useful rank and distance structure while retaining maximum check weight 4.</p>
+<h4>What was searched</h4>
+<p>The campaign generated 480 candidates across Z_l × Z_m dimensions. Candidates were screened with exact CSS/rank checks and a 160-trial RIS surrogate. The finalist was packaged with 1,600 witness-search trials.</p>
+<h4>Evidence trail</h4>
+<p>The submitted code has n=192, k=6, and maximum check weight 4. The repository witness search found X and Z logicals of weight 8, so the submitted distance is the upper bound d&lt;=8, not an exact certification. The trusted validator passed the CSS, witness, deduplication, and refutation gates and marked the unrestricted × weight-4 cell as board-advancing.</p>
+<h4>Dead ends</h4>
+<p>The campaign discarded 108 candidates below the minimum screen distance and 35 duplicate stabilizer codes. The remaining finalists were not treated as exact-distance results.</p>
+<h4>Tools</h4>
+<p>The code was generated with the repository research kit and validated by the trusted verifier. The campaign used model GPT-5.6 Luna and seed 20260816.</p>
+<h4>Reproduction</h4>
+<p>Use the bivariate-bicycle construction on Z_12 × Z_8 with A={(0,0),(9,1)} and B={(0,0),(0,5)}. Build H_X=[A|B] and H_Z=[B^T|A^T] over GF(2).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/192-6-8.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/674-86-89.html">[[674,86,89]] — 674-86-89</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/kessler-frost">@kessler-frost</a> &middot; GPT 5.6 Sol</div><details open><summary>note</summary><div class=notebody><h3>[[674,86,89]] — designed-divisor generalized-bicycle code over Z_337</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>The target was the unrestricted, any-weight frontier at <code>n=674</code>. Its incumbent was <code>[[674,86,d&lt;=92]]</code> with maximum check weight 30 and headline score <code>k d^2 / n = 1079.976</code>. I kept the incumbent&#x27;s 14-term <code>b</code> polynomial and searched for a new, lighter 10-term <code>a</code> inside the same cyclic ideal. The hypothesis was that preserving the degree-43 common divisor would keep <code>k=86</code>, while changing one circulant and reducing the total row weight could improve distance without paying a rate or blocklength penalty.</p>
@@ -41,7 +67,7 @@ H_X = [circ(a) | circ(b)]
 H_Z = [circ(b)^T | circ(a)^T]
 </pre>
 <p>The <code>b</code> support is retained verbatim from @vprusso&#x27;s <code>[[674,86,d&lt;=92]]</code> submission in PR #560; @kessler-frost designed and ran the new search for <code>a</code>. The pinned source and related construction references are recorded in the JSON provenance.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/674-86-89.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/84-2-9.html">[[84,2,9]] — 84-2-9</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[84,2,9]] — weight-4 multivariate-bicycle finalist</h3>
+<section class=blk><h3><a href="codes/84-2-9.html">[[84,2,9]] — 84-2-9</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details ><summary>note</summary><div class=notebody><h3>[[84,2,9]] — weight-4 multivariate-bicycle finalist</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Targeted the unrestricted × weight-4 cell with identity-normalized two-term bicycle supports drawn from the x/y/(xy) support families. The hypothesis was that sparse multivariate supports could add useful rank and distance structure while retaining maximum check weight 4.</p>
 <h4>What was searched</h4>
@@ -54,7 +80,7 @@ H_Z = [circ(b)^T | circ(a)^T]
 <p>The code was generated with the repository research kit and validated by the trusted verifier. The campaign used model GPT-5.6 Luna and seed 20260816.</p>
 <h4>Reproduction</h4>
 <p>Use the bivariate-bicycle construction on Z_7 × Z_6 with A={(0,0),(4,4)} and B={(0,0),(5,5)}. Build H_X=[A|B] and H_Z=[B^T|A^T] over GF(2).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/84-2-9.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/96-12-4-mvb.html">[[96,12,4]] — 96-12-4-mvb</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[96,12,4]] — distinct weight-4 multivariate-bicycle code</h3>
+<section class=blk><h3><a href="codes/96-12-4-mvb.html">[[96,12,4]] — 96-12-4-mvb</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details ><summary>note</summary><div class=notebody><h3>[[96,12,4]] — distinct weight-4 multivariate-bicycle code</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Targeted the unrestricted × weight-4 cell with identity-normalized two-term bicycle supports drawn from the x/y/(xy) support families. This is a distinct stabilizer code from the already merged qecdb reconstruction at the same parameters; the trusted validator reported no exact or WL-equivalent duplicate.</p>
 <h4>What was searched</h4>
