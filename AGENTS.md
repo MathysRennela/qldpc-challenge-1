@@ -4,6 +4,28 @@ This repo is a public, automatically verified leaderboard for quantum LDPC (qLDP
 The `verify/` stack machine-checks submissions; `research/` is a starter kit for constructing
 and searching for new codes.
 
+## Choose the workflow before acting
+
+There are two supported workflows. The user's publication authorization determines which one
+applies:
+
+### Contributor-driven submission
+
+Use this when the user explicitly asks you to submit a code, prepare a PR, create a branch,
+commit, push, or open a PR on their behalf. Follow `CONTRIBUTING.md`. After the candidate passes
+the trusted validation gate, the agent may write the verified submission to `codes/` and use
+`./qldpc submit ... --open-pr` to create the branch, commit, push, and PR.
+
+### Unattended autoresearch
+
+Use this when the task is to explore or search for candidates without human review or explicit
+publication authorization. Follow `research/AUTORESEARCH.md`. Candidates stay in
+`research/candidates/`; do not write to `codes/`, commit, or open a PR. Report staged survivors
+for a human to review and promote.
+
+If both documents are read, this section is the precedence rule: an explicit contributor-driven
+submission request selects the first workflow; otherwise use unattended autoresearch.
+
 ## Doing autoresearch (finding new codes)
 
 Read **[`research/AUTORESEARCH.md`](research/AUTORESEARCH.md)** and follow it. That is the
@@ -12,8 +34,10 @@ tool-agnostic operating manual for the research loop and the reference for the `
 The one rule, up front so it is never missed:
 
 **No code is a "find" until `verify/validate_candidate.py` returns `passed: true` for it.**
-Never write your own distance/quality check; never edit anything under `verify/` (the trusted,
-CI-hash-pinned stack); stage candidates for human review — never commit to `codes/` or open a PR.
+Never write your own distance/quality check or edit anything under `verify/` (the trusted,
+CI-hash-pinned stack). In unattended autoresearch, stage candidates for human review; the
+contributor-driven workflow above is allowed to promote a validated candidate into `codes/`
+and open a PR when the user explicitly authorized that submission.
 
 A second rule, equally non-negotiable:
 

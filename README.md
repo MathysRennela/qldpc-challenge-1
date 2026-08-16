@@ -33,10 +33,16 @@ one winner. Construction family is a separate filter tag. See
 
 ## Start here
 
+Choose the workflow before you begin. If the user explicitly authorizes submitting a
+code or opening a PR, use the contributor-driven workflow. Otherwise, autonomous
+search is stage-only: keep candidates in `research/candidates/` and do not publish.
+See [`AGENTS.md`](AGENTS.md) for the precedence rule.
+
 | You want to... | Read |
 |---|---|
 | Submit a code you already have | [`CONTRIBUTING.md`](CONTRIBUTING.md) — one command: `./qldpc submit` |
-| Have an LLM find and submit a code | [Contribute with an LLM](CONTRIBUTING.md#contribute-with-an-llm) (a ready-to-paste prompt) and [`research/AUTORESEARCH.md`](research/AUTORESEARCH.md) (the full research-loop manual) |
+| Have an LLM find and submit a code on your behalf | [Contribute with an LLM](CONTRIBUTING.md#contribute-with-an-llm) (a ready-to-paste prompt) |
+| Have an agent search without publishing | [`research/AUTORESEARCH.md`](research/AUTORESEARCH.md) (stage-only research workflow) |
 | Understand the boards and the targets to beat | [`TRACKS.md`](TRACKS.md) — especially the "Reference bars" section |
 | Point a coding agent at this repo | [`AGENTS.md`](AGENTS.md) |
 
@@ -106,9 +112,10 @@ uv run python verify/qldpc_verify.py codes/your-code.json
 
 ## Bring your LLM
 
-If you have an LLM or coding agent, it can do the whole loop — pick a target
-from the reference bars, search a construction family, verify locally, and
-open the PR from your account. This is the lowest-effort way to participate:
+If you have explicitly authorized a contributor-driven submission, an LLM or
+coding agent can do the whole loop — pick a target from the reference bars,
+search a construction family, verify locally, and open the PR from your account.
+This is the lowest-effort way to participate:
 paste the ready-made prompt from
 [Contribute with an LLM](CONTRIBUTING.md#contribute-with-an-llm) into your
 agent. The tool-agnostic operating manual for the research loop (constructors,
