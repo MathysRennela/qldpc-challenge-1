@@ -3,7 +3,49 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
-<section class=blk><h3><a href="codes/176-22-4.html">[[176,22,4]] — 176-22-4</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[176,22,4]] — weight-4 multivariate-bicycle finalist</h3>
+<section class=blk><h3><a href="codes/70-8-10.html">[[70,8,10]] — 70-8-10</a></h3><div class=kv style="color:var(--mut)">2026-08-17 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[70,8,10]] — published 2BGA code on SmallGroup(35,1)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>This is a literature reconstruction for the <code>weight-8 × unrestricted</code> cell. The source is Lin--Pryadko, arXiv:2306.16400v1, whose public exhaustive database contains connected binary 2BGA rows not yet seeded on the challenge board.</p>
+<h4>What was searched</h4>
+<p>The authors&#x27; public database was audited at <code>github.com/QEC-pages/2BGA-codes @ 403d194c3f98f0cadc236aecbc4a8b6139ccf23c</code>. This row is <code>SmallGroup(35,1)</code> with database supports <code>a=[3,9,27]</code> and <code>b=[5,26,32]</code>, using 1-based GAP positions excluding the identity. The identity was added and the group was rebuilt with GAP regular representations.</p>
+<h4>Evidence trail</h4>
+<p>The reconstructed matrices have <code>n=70</code>, <code>k=8</code>, maximum check weight 8, and CSS commutation. The repository submission builder generated persisted X/Z logical witnesses of weight 10. <code>verify/validate_candidate.py</code> returned <code>passed: true</code>, no lighter logical in 5,300 RIS trials, no exact duplicate, no WL-equivalent duplicate, and <code>board_advancing: true</code> for <code>weight-8 × unrestricted</code>.</p>
+<p>The paper reports <code>d=10</code>; this submission records only the witness-backed upper bound <code>d &lt;= 10</code> with <code>upper_bound</code> confidence. Literature novelty is not claimed: this is a published baseline reconstruction.</p>
+<h4>Dead ends</h4>
+<p>No search beyond reconstruction was performed. The public database row was selected because its parameter set was absent from the board comparison and it passed the computed Pareto check.</p>
+<h4>Tools</h4>
+<p>GAP for <code>SmallGroup</code> enumeration and the repository&#x27;s <code>research/kit/group_algebra.py</code>, <code>submit.py</code>, and trusted validator. The source database and GAP implementation are pinned above; no changes to <code>verify/</code> were made.</p>
+<h4>Reproduction</h4>
+<p>Use GAP <code>SmallGroup(35,1)</code> and add the identity to the database supports: <code>a=1+g3+g9+g27</code>, <code>b=1+g5+g26+g32</code>, with the database&#x27;s 1-based element positions. Construct <code>H_X=[L(a)|R(b)]</code> and <code>H_Z=[R(b)^T|L(a)^T]</code> over GF(2), then run the repository validator.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/70-8-10.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/72-10-9.html">[[72,10,9]] — 72-10-9</a></h3><div class=kv style="color:var(--mut)">2026-08-17 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[72,10,9]] — published 2BGA code on SmallGroup(36,2)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>This is a literature reconstruction for the <code>weight-8 × unrestricted</code> cell. Lin--Pryadko&#x27;s arXiv:2306.16400v1 database provides explicit finite group and support data for connected binary 2BGA codes that are not all represented on the challenge board.</p>
+<h4>What was searched</h4>
+<p>The authors&#x27; public database was audited at <code>github.com/QEC-pages/2BGA-codes @ 403d194c3f98f0cadc236aecbc4a8b6139ccf23c</code>. This row is <code>SmallGroup(36,2)</code> with database supports <code>a=[2,3,16]</code> and <code>b=[6,17,21]</code>, using 1-based GAP positions excluding the identity. The identity was added and the group was rebuilt with GAP regular representations.</p>
+<h4>Evidence trail</h4>
+<p>The reconstructed matrices have <code>n=72</code>, <code>k=10</code>, maximum check weight 8, and CSS commutation. The repository submission builder generated persisted X/Z logical witnesses of weight 9. <code>verify/validate_candidate.py</code> returned <code>passed: true</code>, no lighter logical in 5,380 RIS trials, no exact duplicate, no WL-equivalent duplicate, and <code>board_advancing: true</code> for <code>weight-8 × unrestricted</code>.</p>
+<p>The paper reports <code>d=9</code>; this submission records only the witness-backed upper bound <code>d &lt;= 9</code> with <code>upper_bound</code> confidence. Literature novelty is not claimed: this is a published baseline reconstruction.</p>
+<h4>Dead ends</h4>
+<p>No search beyond reconstruction was performed. The row was selected because its parameter set was absent from the board comparison and it passed the computed Pareto check.</p>
+<h4>Tools</h4>
+<p>GAP for <code>SmallGroup</code> enumeration and the repository&#x27;s <code>research/kit/group_algebra.py</code>, <code>submit.py</code>, and trusted validator. No changes to <code>verify/</code> were made.</p>
+<h4>Reproduction</h4>
+<p>Use GAP <code>SmallGroup(36,2)</code> and add the identity to the database supports: <code>a=1+g2+g3+g16</code>, <code>b=1+g6+g17+g21</code>, with the database&#x27;s 1-based element positions. Construct <code>H_X=[L(a)|R(b)]</code> and <code>H_Z=[R(b)^T|L(a)^T]</code> over GF(2), then run the repository validator.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/72-10-9.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/72-8-10.html">[[72,8,10]] — 72-8-10</a></h3><div class=kv style="color:var(--mut)">2026-08-17 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[72,8,10]] — published 2BGA code on SmallGroup(36,2)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>This is a literature reconstruction for the <code>weight-8 × unrestricted</code> cell. The Lin--Pryadko arXiv:2306.16400v1 database contains explicit finite 2BGA constructions whose parameter sets are not all seeded on the challenge board.</p>
+<h4>What was searched</h4>
+<p>The authors&#x27; public database was audited at <code>github.com/QEC-pages/2BGA-codes @ 403d194c3f98f0cadc236aecbc4a8b6139ccf23c</code>. This row is <code>SmallGroup(36,2)</code> with database supports <code>a=[2,3,26]</code> and <code>b=[6,8,31]</code>, using 1-based GAP positions excluding the identity. The identity was added and the group was rebuilt with GAP regular representations.</p>
+<h4>Evidence trail</h4>
+<p>The reconstructed matrices have <code>n=72</code>, <code>k=8</code>, maximum check weight 8, and CSS commutation. The repository submission builder generated persisted X/Z logical witnesses of weight 10. <code>verify/validate_candidate.py</code> returned <code>passed: true</code>, no lighter logical in 5,380 RIS trials, no exact duplicate, no WL-equivalent duplicate, and <code>board_advancing: true</code> for <code>weight-8 × unrestricted</code>.</p>
+<p>The paper reports <code>d=10</code>; this submission records only the witness-backed upper bound <code>d &lt;= 10</code> with <code>upper_bound</code> confidence. Literature novelty is not claimed: this is a published baseline reconstruction.</p>
+<h4>Dead ends</h4>
+<p>No search beyond reconstruction was performed. The row was selected because its parameter set was absent from the board comparison and it passed the computed Pareto check.</p>
+<h4>Tools</h4>
+<p>GAP for <code>SmallGroup</code> enumeration and the repository&#x27;s <code>research/kit/group_algebra.py</code>, <code>submit.py</code>, and trusted validator. No changes to <code>verify/</code> were made.</p>
+<h4>Reproduction</h4>
+<p>Use GAP <code>SmallGroup(36,2)</code> and add the identity to the database supports: <code>a=1+g2+g3+g26</code>, <code>b=1+g6+g8+g31</code>, with the database&#x27;s 1-based element positions. Construct <code>H_X=[L(a)|R(b)]</code> and <code>H_Z=[R(b)^T|L(a)^T]</code> over GF(2), then run the repository validator.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/72-8-10.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/176-22-4.html">[[176,22,4]] — 176-22-4</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details ><summary>note</summary><div class=notebody><h3>[[176,22,4]] — weight-4 multivariate-bicycle finalist</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Targeted the unrestricted × weight-4 cell with identity-normalized two-term bicycle supports drawn from the x/y/(xy) support families. The hypothesis was that sparse multivariate supports could add useful rank and distance structure while retaining maximum check weight 4.</p>
 <h4>What was searched</h4>
@@ -16,7 +58,7 @@
 <p>The code was generated with the repository research kit and validated by the trusted verifier. The campaign used model GPT-5.6 Luna and seed 20260816.</p>
 <h4>Reproduction</h4>
 <p>Use the bivariate-bicycle construction on Z_11 × Z_8 with A={(0,0),(0,5)} and B={(0,0),(0,7)}. Build H_X=[A|B] and H_Z=[B^T|A^T] over GF(2).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/176-22-4.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/192-24-4.html">[[192,24,4]] — 192-24-4</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[192,24,4]] — weight-4 multivariate-bicycle finalist</h3>
+<section class=blk><h3><a href="codes/192-24-4.html">[[192,24,4]] — 192-24-4</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details ><summary>note</summary><div class=notebody><h3>[[192,24,4]] — weight-4 multivariate-bicycle finalist</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Targeted the unrestricted × weight-4 cell with identity-normalized two-term bicycle supports drawn from the x/y/(xy) support families. The hypothesis was that sparse multivariate supports could add useful rank and distance structure while retaining maximum check weight 4.</p>
 <h4>What was searched</h4>
@@ -29,7 +71,7 @@
 <p>The code was generated with the repository research kit and validated by the trusted verifier. The campaign used model GPT-5.6 Luna and seed 20260816.</p>
 <h4>Reproduction</h4>
 <p>Use the bivariate-bicycle construction on Z_12 × Z_8 with A={(0,0),(9,1)} and B={(0,0),(3,3)}. Build H_X=[A|B] and H_Z=[B^T|A^T] over GF(2).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/192-24-4.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/192-6-8.html">[[192,6,8]] — 192-6-8</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[192,6,8]] — weight-4 multivariate-bicycle finalist</h3>
+<section class=blk><h3><a href="codes/192-6-8.html">[[192,6,8]] — 192-6-8</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details ><summary>note</summary><div class=notebody><h3>[[192,6,8]] — weight-4 multivariate-bicycle finalist</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Targeted the unrestricted × weight-4 cell with identity-normalized two-term bicycle supports drawn from the x/y/(xy) support families. The hypothesis was that sparse multivariate supports could add useful rank and distance structure while retaining maximum check weight 4.</p>
 <h4>What was searched</h4>
