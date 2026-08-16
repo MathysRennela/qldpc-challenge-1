@@ -207,6 +207,75 @@ assert verify_css(HX, HZ) and compute_k(HX, HZ) == 20
 </pre>
 <p>with <code>mul64</code> the Cayley table of that group reproduces the code.</p>
 <p>There is no public table row for this code; the group + supports fully determine (H_X, H_Z). The JSON in <code>codes/128-20-14.json</code> was built from the kit&#x27;s <code>submit.make_submission</code> on that matrix.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/128-20-14.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/144-2-12.html">[[144,2,12]] — 144-2-12</a></h3><div class=kv style="color:var(--mut)">2026-08-15 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[144,2,12]] trivariate bicycle (multivariate-bicycle family)</h3>
+<p>Primary reference: <a href="https://arxiv.org/abs/2406.19151">arXiv:2406.19151</a> (Voss, Sim, Haug, Bharti), SM Table 2, weight-4 row.</p>
+<h4>Direction &amp; hypothesis</h4>
+<p>Among the paper&#x27;s weight-4 rows, [[144,2,12]] offers the best distance at fixed check weight 4 (d = 12) and the best efficiency kd^2/n = 2·144/144 = 2.0 for low-k weight-4 designs, matching the toric [[64,2,8]] ratio (2·64/64 = 2.0) but with 50% more distance per qubit-axis. The weight-4 cell had no d &gt;= 12 entry at any n &lt;= 144, so the row was expected to be undominated there.</p>
+<h4>What was searched</h4>
+<p>Reproduction of the published row (l, m) = (8, 9), A = x^3 + y^7, B = x + y^5.</p>
+<p><b>The construction</b> (the paper&#x27;s R3&#x27; reduction, which is all a TB code is):</p>
+<ul>
+<li>Variables are x = S_l ⊗ I_m, y = I_l ⊗ S_m, z = S_l ⊗ S_m = x·y (S_n the</li>
+<p>size-n cyclic shift), over Z_l x Z_m. The third variable is *not* independent: z^i = x^i y^i, so the exponent pair of a monomial x^a y^b z^c on the (x, y) torus is (a + c mod l, b + c mod m).</p>
+<li>This maps every TB code to an ordinary periodic BB code: build the</li>
+<p>l·m × l·m permutation sums A and B from the translated exponent pairs, then H_X = [ A | B ],   H_Z = [ B^T | A^T ],   n = 2·l·m. CSS commutation is automatic (abelian group algebra; Aᵢ and Bⱼ are circulants over the same torus). The kit&#x27;s <code>bb.build_bb</code> produces exactly this matrix from the translated pairs listed below.</p>
+</ul>
+<p>This row uses only x/y monomials (the z variable is idle): x^3 → (3, 0), y^7 → (0, 7), x → (1, 0), y^5 → (0, 5), giving A = {(3,0), (0,7)}, B = {(1,0), (0,5)} on Z_8 × Z_9.</p>
+<h4>Evidence trail</h4>
+<p>Building H_X, H_Z from those exponent pairs yields n = 144, k = 2 (kit <code>compute_k</code>, matches the paper). CSS ✓. Fresh witness search (surrogate, 8000 trials per side): X logical weight 12, Z logical weight 12, both verified against the verifier&#x27;s criteria. Claimed d = 12 is a witness- backed upper bound, <code>confidence: upper_bound</code>, matching the paper&#x27;s stated d. Gate result: passed: true, &quot;advances the weight-4 x unrestricted board&quot;.</p>
+<h4>Dead ends</h4>
+<p>The paper&#x27;s other weight-4 rows were examined against the current board and either duplicate parameters of the seeded toric [[64,2,8]] (a distinct code — fingerprint differs) or lie strictly inside [[112,2,10]]/[[144,2,12]]. Weight-5/6/7 rows, while rate-friendly, do not enter the weight-4 cell.</p>
+<h4>Tools</h4>
+<p>Model: DeepSeek V4 Flash 0731. Repo tooling: <code>research/kit/bb.py</code> (<code>bb.build_bb</code>), <code>research/kit/surrogate.py</code> (distance_rand / lightest_logical), <code>research/kit/css.py</code> (compute_k, verify_css), and <code>verify/validate_candidate.py</code> for the staged gate. The monomial translation and parameters are documented above and reproduced directly in the recipe below.</p>
+<h4>Reproduction</h4>
+<p># 1. translate monomials (paper notation) to (x, y) exponent pairs # l=8, m=9: x^3 -&gt; (3,0), y^7 -&gt; (0,7), x -&gt; (1,0), y^5 -&gt; (0,5) A_terms = [(3,0), (0,7)] B_terms = [(1,0), (0,5)] # 2. build the periodic BB matrix with the kit&#x27;s own builder from bb import build_bb HX, HZ = build_bb(8, 9, A_terms, B_terms) # 3. screen, package, gate from surrogate import distance_rand from submit import make_submission</p>
+<p><code>bb.build_bb</code> returns exactly the submitted (H_X, H_Z); the witnesses in the staged doc can be re-found with <code>surrogate.lightest_logical</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/144-2-12.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/162-36-4.html">[[162,36,4]] — 162-36-4</a></h3><div class=kv style="color:var(--mut)">2026-08-15 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[162,36,4]] — periodic bivariate-bicycle on Z_9 x Z_9</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>The bivariate-bicycle family (arXiv:2308.07915) commutes automatically over Z_l x Z_m: any monomial choice yields a valid CSS code, so the family can be swept exhaustively at small torus sizes. The 2026-07-16 weight-6 sweep targeted the <code>unrestricted / weight-6</code> cell of the board, which was dominated by high-distance codes ([[360,12,24]], eff 19.2) but thin in high-rate points: the goal was a distinct Pareto point at k/n &gt; 0.2 rather than another distance-first entry.</p>
+<h4>What was searched</h4>
+<p>Periodic bivariate-bicycle enumeration (kit <code>bb.build_bb</code>) over Z_l x Z_m, weight-3 monomials per side (max check weight 6), n = 2·l·m up to 162, screened at 400 RIS trials with <code>min_k = 4</code>, <code>min_d = 4</code> (sweep metadata: sampler <code>enumerate</code>, seed 7, 2026-07-16). The sweep script was not retained; the survivor&#x27;s parameters are recorded in provenance and can be reproduced from the explicit construction below.</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>Parameters (recomputed from H_X, H_Z): n = 162, k = 36, max check weight 6,</li>
+<p>CSS commutation holds.</p>
+<li>Screen (2026-07-16): d &lt;= 4 at 400 trials.</li>
+<li>Fresh witnesses (2026-08-15, <code>make_submission</code>, trials = 8000, seed 7):</li>
+<p>weight-4 on each side, verified against the verifier&#x27;s witness criteria (in the opposite check kernel, outside its own rowspace).</p>
+<li>Trusted gate <code>verify/validate_candidate.py</code> (2026-08-15, fresh seed): passed,</li>
+<p>refutation clean at 8000 RIS trials, <code>dominated_by: []</code>, on the weight-6 / unrestricted Pareto frontier as of the 302-entry board.</p>
+<li>Score kd^2/n = 36·16/162 = 3.556.</li>
+</ul>
+<p>Tier: <code>d &lt;= 4</code> (witness-backed upper bound; not server-certified exact). The same witnesses survived a fresh gating seed when the code was re-validated.</p>
+<h4>Dead ends</h4>
+<p>Three siblings from the same sweep sit below the current frontier and were not submitted:</p>
+<ul>
+<li>[[162,12,8]] — dominated by [[144,12,12]], [[144,16,8]], [[128,12,8]]</li>
+<p>(all smaller or equal n with higher or equal d at k=12).</p>
+<li>[[168,18,6]] — dominated by [[144,24,6]] (smaller n, higher k, same d).</li>
+<li>[[168,6,12]] — dominated by six weight-6 entries including [[98,6,12]]</li>
+<p>and [[140,6,14]].</p>
+</ul>
+<p>Only [[162,36,4]] survived the Pareto check; the pattern is the usual one for periodic BB at this size: k and d trade off sharply, and only the high-k / low-d corner had headroom.</p>
+<h4>Tools</h4>
+<ul>
+<li>Model: DeepSeek V4 Flash 0731 (self-reported).</li>
+<li>Repo tooling: <code>research/kit/bb.py</code> (build_bb), <code>research/kit/css.py</code></li>
+<p>(compute_k, verify_css), <code>research/kit/submit.py</code> (make_submission, save_submission), <code>verify/validate_candidate.py</code> (trusted gate).</p>
+<li>Compute: trivial — a few seconds per witness search at 8000 trials.</li>
+</ul>
+<h4>Reproduction</h4>
+<pre>
+from research.kit.bb import build_bb
+from research.kit.css import compute_k, verify_css
+
+HX, HZ = build_bb(9, 9,
+                  A_terms=[(0, 0), (0, 3), (3, 3)],
+                  B_terms=[(0, 0), (3, 0), (3, 3)])
+assert verify_css(HX, HZ)
+assert compute_k(HX, HZ) == 36
+</pre>
+<p><code>n = 2 * 9 * 9 = 162</code>. Package the matrices through the kit&#x27;s submission functions, preserving the witnesses, then run the trusted gate on the resulting document with <code>verify/validate_candidate.py</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/162-36-4.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/254-14-16.html">[[254,14,16]] — 254-14-16</a></h3><div class=kv style="color:var(--mut)">2026-08-15 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details ><summary>note</summary><div class=notebody><h3>[[254,14,16]] — generalized bicycle (two-block) code on Z_127</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>The <code>unrestricted / weight-6</code> cell rewards distance at low rate. A generalized-bicycle (two-block group-algebra) code on the cyclic group Z_127, H_X = [A | B], H_Z = [B^T | A^T] with trinomial supports, is the classic construction (Panteleev-Kalachev, arXiv:2111.03654; Lin-Pryadko two-block, arXiv:2306.16400). 127 is prime and 127 = 1 mod 2, so x^127 - 1 factors into one linear and 9 irreducible degree-7 factors; a trinomial&#x27;s gcd with x^127 - 1 is at most one degree-7 factor, which caps k = 2*deg(gcd) at 14 (k=28 is structurally impossible at w&lt;=6). The goal: a w&lt;=6 code on the frontier with the best achievable d at k=14.</p>
