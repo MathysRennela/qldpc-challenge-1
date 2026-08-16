@@ -428,7 +428,7 @@ def cmd_submit(args):
     print(f"  gh pr create --title {title!r} --body-file {body_file}")
     print(f"\nthe PR body was drafted for you from the verified submission:"
           f"\n  {body_file}"
-          f"\nit follows .github/PULL_REQUEST_TEMPLATE.md — read it and fill"
+          f"\nit follows .github/pull_request_template.md — read it and fill"
           f"\nin the 'what frontier does this advance?' section before review.")
     print("\nor re-run with --open-pr to do this automatically.")
     return 0
@@ -440,7 +440,7 @@ def open_pr(slug, out, note_out=None, title=None, body_file=None):
     title = title or f"Add [[{n_k_d}]]"
     add = ["git", "add", out] + ([note_out] if note_out else [])
     # --title/--body-file rather than --fill: the body is the filled-in
-    # PULL_REQUEST_TEMPLATE, which the commit message does not carry (#404).
+    # pull request template, which the commit message does not carry (#404).
     create = ["gh", "pr", "create", "--title", title]
     create += ["--body-file", body_file] if body_file else ["--fill"]
     cmds = [
@@ -516,7 +516,7 @@ def main(argv=None):
         prog="qldpc", description="qLDPC challenge submission tool")
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    s = sub.add_parser("submit", help="build, verify, score, and stage a code")
+    s = sub.add_parser("submit", help="build, verify, and prepare a code submission")
     s.add_argument("code", help=".npz with H_X/H_Z (+ optional coords) or a "
                                 ".json draft")
     s.add_argument("--authors", nargs="+", required=True,

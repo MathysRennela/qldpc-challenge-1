@@ -39,7 +39,7 @@ Useful flags:
 
 Either way — `--open-pr`, or the commands it prints for you to run — the PR
 body is drafted for you from
-[`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md) and the
+[`.github/pull_request_template.md`](.github/pull_request_template.md) and the
 verified submission: parameters, the computed track membership, distance
 confidence, construction, and a pointer to your note. The "what frontier does
 this advance?" section is now **computed too**: `qldpc submit` reuses the
@@ -117,14 +117,14 @@ If you have an LLM or coding agent, it can do the whole loop: pick a target,
 search for a code, verify it, and open the PR. This is the lowest-effort way in.
 Paste the prompt below into your agent.
 
-A note on scope: here your agent acts on *your* behalf, so it may open the PR
-from your account (you are the author of record and CI checks that the PR
-author is listed in the code's `authors`). This is different from the in-repo
-autoresearch manual, [`research/AUTORESEARCH.md`](research/AUTORESEARCH.md),
-whose stage-only rule (never commit to `codes/`, never open a PR) governs
-autonomous research runs where no human has reviewed the candidate yet. If
-your agent reads both documents: this section wins for a contributor-driven
-submission; AUTORESEARCH.md wins for an unattended search. 
+A note on scope: this contributor-driven section applies only when you explicitly
+ask the agent to submit on your behalf. In that case the agent acts from your
+account (you are the author of record and CI checks that the PR author is listed
+in the code's `authors`). Without that explicit publication authorization, use
+the stage-only workflow in [`research/AUTORESEARCH.md`](research/AUTORESEARCH.md):
+do not commit to `codes/` or open a PR. If an agent reads both documents, this
+section wins for an explicit contributor-driven submission; AUTORESEARCH.md wins
+otherwise.
 The method follows IBM's LLM-guided
 evolutionary search for these codes (arXiv:2606.02418): the model mutates the
 program that generates a code, rather than tweaking numbers by hand.
