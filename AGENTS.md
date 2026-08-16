@@ -29,15 +29,20 @@ The board's durable value is the evidence trail, and an evidence trail that cite
 nobody else has is not one. `verify/check_prose.py` enforces this on every changed
 `notes/`/`fieldnotes/` file and on the PR body:
 
-**Every path you name must resolve in the PR's own tree.** If the artifact lives somewhere
-else, name the source and pin it — "taken from github.com/a7b/yarn @ 82fb695,
+**Every path you name must resolve in the PR's own tree.** Before writing a path, verify it
+against the submitted PR tree, not only the base checkout or your local workspace. A path
+that exists only locally, in ignored staging output, or on the base branch must not be
+presented as a committed artifact. If the artifact lives elsewhere, name the source and
+pin it — "taken from github.com/a7b/yarn @ 82fb695,
 `processor_codes/mitten/[[300,60,14]]/Hx.npy`" — or do not cite it. Never write "available
 on request", and never point at a private checkout (`~/…`, `/Users/…`) or a machine name.
 
 **`research/candidates/` is gitignored working output; it can never be the audit trail.**
 It is the right place to *stage* a candidate (see above) and the wrong place to *cite*. If a
 search script matters to the result, either commit it or describe the method in the note
-so someone can rewrite it.
+so someone can rewrite it. Do not mention the staging directory in submission prose unless
+you are explicitly explaining that it is forbidden as evidence; describe it as local staging
+output instead.
 
 Two more, same reason:
 
