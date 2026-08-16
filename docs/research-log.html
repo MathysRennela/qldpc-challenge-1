@@ -41,7 +41,33 @@ H_X = [circ(a) | circ(b)]
 H_Z = [circ(b)^T | circ(a)^T]
 </pre>
 <p>The <code>b</code> support is retained verbatim from @vprusso&#x27;s <code>[[674,86,d&lt;=92]]</code> submission in PR #560; @kessler-frost designed and ran the new search for <code>a</code>. The pinned source and related construction references are recorded in the JSON provenance.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/674-86-89.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/108-20-4.html">[[108,20,4]] — 108-20-4</a></h3><div class=kv style="color:var(--mut)">2026-08-15 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details open><summary>note</summary><div class=notebody><h3>[[108,20,4]] — topological code sourced from qecdb.org record 67a4b421</h3>
+<section class=blk><h3><a href="codes/84-2-9.html">[[84,2,9]] — 84-2-9</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[84,2,9]] — weight-4 multivariate-bicycle finalist</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Targeted the unrestricted × weight-4 cell with identity-normalized two-term bicycle supports drawn from the x/y/(xy) support families. The hypothesis was that sparse multivariate supports could add useful rank and distance structure while retaining maximum check weight 4.</p>
+<h4>What was searched</h4>
+<p>The campaign generated 480 candidates across Z_l × Z_m dimensions. Candidates were screened with exact CSS/rank checks and a 160-trial RIS surrogate. The finalist was packaged with 1,600 witness-search trials.</p>
+<h4>Evidence trail</h4>
+<p>The submitted code has n=84, k=2, and maximum check weight 4. The repository witness search found X and Z logicals of weight 9, so the submitted distance is the upper bound d&lt;=9, not an exact certification. The trusted validator passed the CSS, witness, deduplication, and refutation gates and marked the unrestricted × weight-4 cell as board-advancing.</p>
+<h4>Dead ends</h4>
+<p>The campaign discarded 108 candidates below the minimum screen distance and 35 duplicate stabilizer codes. The remaining finalists were not treated as exact-distance results.</p>
+<h4>Tools</h4>
+<p>The code was generated with the repository research kit and validated by the trusted verifier. The campaign used model GPT-5.6 Luna and seed 20260816.</p>
+<h4>Reproduction</h4>
+<p>Use the bivariate-bicycle construction on Z_7 × Z_6 with A={(0,0),(4,4)} and B={(0,0),(5,5)}. Build H_X=[A|B] and H_Z=[B^T|A^T] over GF(2).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/84-2-9.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/96-12-4-mvb.html">[[96,12,4]] — 96-12-4-mvb</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[96,12,4]] — distinct weight-4 multivariate-bicycle code</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Targeted the unrestricted × weight-4 cell with identity-normalized two-term bicycle supports drawn from the x/y/(xy) support families. This is a distinct stabilizer code from the already merged qecdb reconstruction at the same parameters; the trusted validator reported no exact or WL-equivalent duplicate.</p>
+<h4>What was searched</h4>
+<p>The campaign generated 480 candidates across Z_l × Z_m dimensions. Candidates were screened with exact CSS/rank checks and a 160-trial RIS surrogate. This finalist was packaged with 1,600 witness-search trials.</p>
+<h4>Evidence trail</h4>
+<p>The submitted code has n=96, k=12, and maximum check weight 4. The repository witness search found X and Z logicals of weight 4, so the submitted distance is the upper bound d&lt;=4, not an exact certification. The trusted validator passed the CSS, witness, deduplication, and refutation gates and marked the unrestricted × weight-4 cell as board-advancing.</p>
+<h4>Dead ends</h4>
+<p>The campaign discarded 108 candidates below the minimum screen distance and 35 duplicate stabilizer codes. The remaining finalists were not treated as exact-distance results.</p>
+<h4>Tools</h4>
+<p>The code was generated with the repository research kit and validated by the trusted verifier. The campaign used model GPT-5.6 Luna and seed 20260816.</p>
+<h4>Reproduction</h4>
+<p>Use the bivariate-bicycle construction on Z_8 × Z_6 with A={(0,0),(7,0)} and B={(0,0),(3,0)}. Build H_X=[A|B] and H_Z=[B^T|A^T] over GF(2).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/96-12-4-mvb.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/108-20-4.html">[[108,20,4]] — 108-20-4</a></h3><div class=kv style="color:var(--mut)">2026-08-15 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[108,20,4]] — topological code sourced from qecdb.org record 67a4b421</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Aiming at the weight-6 track&#x27;s frontier: find low-check-weight CSS codes that strictly dominate an existing board entry on (n, k, d). The candidate pool is the qecdb.org database (36,830 records, mirrored and deduped to 2,369 unique CSS records), which is ~140x denser in small-block CSS codes than this board.</p>
 <h4>What was searched</h4>
@@ -78,7 +104,7 @@ H_Z = [circ(b)^T | circ(a)^T]
 <p>Model: DeepSeek V4 Flash 0731 (provenance.model). Author: @mathysrennela. Repo tooling: research/kit (css, search.fingerprint, surrogate, submit.make_submission), verify/validate_candidate.py (trusted gate). Pipeline scripts: research/db_mirror.py -&gt; db_phase1.py -&gt; db_phase2.py -&gt; db_phase3.py -&gt; db_phase3_witness.py -&gt; db_phase3_backfill.py -&gt; db_phase3_provenance.py.</p>
 <h4>Reproduction</h4>
 <p>The code is reconstructed from qecdb.org record 67a4b421 (https://qecdb.org/codes/67a4b4217cff110ed639a841). The record&#x27;s H field holds all X-rows followed by all Z-rows; split them, take the X/Z support matrices, and re-derive k and witnesses with the kit: research/kit/db_phase1.py-style parsing then make_submission. The raw record is preserved under research/db_dump/raw/67a4b421.json (gitignored).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/108-20-4.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/112-2-10.html">[[112,2,10]] — 112-2-10</a></h3><div class=kv style="color:var(--mut)">2026-08-15 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details open><summary>note</summary><div class=notebody><h3>[[112,2,10]] trivariate bicycle (multivariate-bicycle family)</h3>
+<section class=blk><h3><a href="codes/112-2-10.html">[[112,2,10]] — 112-2-10</a></h3><div class=kv style="color:var(--mut)">2026-08-15 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[112,2,10]] trivariate bicycle (multivariate-bicycle family)</h3>
 <p>Primary reference: <a href="https://arxiv.org/abs/2406.19151">arXiv:2406.19151</a> (Voss, Sim, Haug, Bharti), SM Table 2, weight-4 row.</p>
 <h4>Direction &amp; hypothesis</h4>
 <p>The board&#x27;s weight-4 × unrestricted cell is thin: 24 entries, mostly surface/toric baselines with k&lt;=2. A trivariate-bicycle (TB) code is a periodic BB code over Z_l x Z_m whose monomials are drawn from the thin set {x^a, y^b, z^c} with z = x·y, paying rate via a third variable without raising check weight. The paper&#x27;s weight-4 rows were expected to land in this cell as undominated literature points.</p>
