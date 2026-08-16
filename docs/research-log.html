@@ -3,6 +3,56 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/666-150-88.html">[[666,150,88]] — 666-150-88</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[666,150,88]] designed-divisor generalized-bicycle code</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>The search targeted a high-rate unrestricted generalized-bicycle construction over <code>Z_333</code>. The construction keeps the same degree-75 common-divisor mechanism while replacing one sparse ideal word and retaining a second sparse word. The hypothesis was that a nearby support mutation could retain <code>k=150</code> and improve the witnessed minimum logical weight.</p>
+<h4>What was searched</h4>
+<p>The campaign factored <code>x^333+1</code> over GF(2), recovered the degree-75 common divisor from the construction seed, and sampled bounded XOR combinations of cyclic shifts of sparse words in that ideal. Candidate pairs were translated to exact CSS matrices, checked for rank and commutation, and screened with randomized information-set searches. The generation and packaging used the repository&#x27;s research kit and is described by the exact parameters in the reproduction section below.</p>
+<p>The submitted supports are the 14-term and 16-term words recorded in the JSON provenance. The resulting matrices have <code>n=666</code>, <code>k=150</code>, and maximum row weight 30.</p>
+<h4>Evidence trail</h4>
+<p>The research-kit submission path computed and embedded both logical witnesses. A fresh Python RIS search found a Z-side logical of weight 88, and the candidate was repackaged with that witness. The claim is therefore the witness-backed upper bound <code>d&lt;=88</code>; no exact-distance claim is made.</p>
+<p>The corrected submission passed the trusted validator, including CSS commutation, dimensions, row weights, witness validity, and the current-board checks. The validator&#x27;s refutation pass found no logical lighter than the stored claim in its bounded run. This is evidence for staging only, not a proof of the exact distance.</p>
+<h4>Dead ends</h4>
+<p>The original screening estimate for this support pair was higher, but a fresh refutation found the weight-88 Z logical. The candidate was corrected rather than discarded so the lower-weight witness remains part of the evidence trail. Low-weight ordinary multiplier enumeration produced no useful degree-75 words under the target row-weight cap, so the campaign used sparse-output XOR combinations of cyclic shifts.</p>
+<h4>Tools</h4>
+<p>The construction used the repository&#x27;s <code>group_algebra.py</code>, <code>css.py</code>, <code>surrogate.py</code>, <code>submit.py</code>, and trusted validator. All arithmetic is over GF(2). The reported distance is an explicit-witness upper bound and is not exact.</p>
+<h4>Reproduction</h4>
+<p>For <code>N=333</code>, use</p>
+<pre>
+H_X = [circ(A) | circ(B)]
+H_Z = [circ(B)^T | circ(A)^T]
+</pre>
+<p>with</p>
+<pre>
+A = [3, 73, 84, 91, 102, 145, 167, 183, 192, 226, 278, 280, 298, 327]
+B = [0, 1, 17, 37, 58, 93, 107, 136, 147, 149, 152, 165, 260, 273, 324, 326]
+</pre>
+<p>where <code>circ(S)</code> is the binary <code>333 x 333</code> circulant whose row <code>i</code> has support <code>(i+j) mod 333</code> for <code>j</code> in <code>S</code>. The complete expanded checks and witnesses are in <code>codes/666-150-88.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/666-150-88.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/666-150-90.html">[[666,150,90]] — 666-150-90</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[666,150,90]] designed-divisor generalized-bicycle code</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>The search targeted a high-rate unrestricted generalized-bicycle construction over the cyclic group <code>Z_333</code>. The hypothesis was that keeping a degree-75 common divisor of <code>x^333+1</code> would preserve the <code>k=150</code> rank regime while allowing sparse output words with balanced supports.</p>
+<h4>What was searched</h4>
+<p>The campaign factored <code>x^333+1</code> over GF(2), recovered the degree-75 common divisor from the construction seed, and sampled bounded XOR combinations of cyclic shifts of two sparse words already in that ideal. Candidate pairs were reduced under cyclic translation, built as exact CSS matrices, rank-filtered, and screened with randomized information-set searches. The generation and packaging used the repository&#x27;s research kit and is described by the exact parameters in the reproduction section below.</p>
+<p>The submitted supports are the 14-term and 16-term words recorded in the JSON provenance. The resulting matrices have <code>n=666</code>, <code>k=150</code>, and maximum row weight 30.</p>
+<h4>Evidence trail</h4>
+<p>The research-kit submission path computed and embedded both logical witnesses. The stored side witnesses have weights X=90 and Z=94, so the claim is the witness-backed upper bound <code>d&lt;=90</code>; no exact-distance claim is made.</p>
+<p>A fresh 2,500-trial-per-side Python RIS check at seed <code>20260818</code> found weight 90 and no lighter logical. The result is retained as limited corroboration, not a proof. The complete output is recorded in the local research record; the trusted validator independently accepted the staged submission&#x27;s structure, CSS relations, dimensions, witnesses, and current-board status.</p>
+<h4>Dead ends</h4>
+<p>Low-weight ordinary multiplier enumeration produced no useful degree-75 words under the target row-weight cap. The search therefore used sparse-output XOR combinations of cyclic shifts instead. Candidates below the threshold were not promoted as finalists.</p>
+<h4>Tools</h4>
+<p>The construction used the repository&#x27;s <code>group_algebra.py</code>, <code>css.py</code>, <code>surrogate.py</code>, <code>submit.py</code>, and trusted validator. All arithmetic is over GF(2). The reported distance remains an upper bound from explicit witnesses and randomized refutation searches.</p>
+<h4>Reproduction</h4>
+<p>For <code>N=333</code>, use the cyclic generalized-bicycle construction</p>
+<pre>
+H_X = [circ(A) | circ(B)]
+H_Z = [circ(B)^T | circ(A)^T]
+</pre>
+<p>with</p>
+<pre>
+A = [0, 2, 20, 49, 58, 128, 139, 146, 157, 200, 222, 238, 247, 281]
+B = [0, 1, 17, 37, 58, 93, 107, 136, 147, 149, 152, 165, 260, 273, 324, 326]
+</pre>
+<p>where <code>circ(S)</code> is the binary <code>333 x 333</code> circulant whose row <code>i</code> has support <code>(i+j) mod 333</code> for <code>j</code> in <code>S</code>. The complete expanded checks and witnesses are in <code>codes/666-150-90.json</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/666-150-90.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/674-86-89.html">[[674,86,89]] — 674-86-89</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/kessler-frost">@kessler-frost</a> &middot; GPT 5.6 Sol</div><details open><summary>note</summary><div class=notebody><h3>[[674,86,89]] — designed-divisor generalized-bicycle code over Z_337</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>The target was the unrestricted, any-weight frontier at <code>n=674</code>. Its incumbent was <code>[[674,86,d&lt;=92]]</code> with maximum check weight 30 and headline score <code>k d^2 / n = 1079.976</code>. I kept the incumbent&#x27;s 14-term <code>b</code> polynomial and searched for a new, lighter 10-term <code>a</code> inside the same cyclic ideal. The hypothesis was that preserving the degree-43 common divisor would keep <code>k=86</code>, while changing one circulant and reducing the total row weight could improve distance without paying a rate or blocklength penalty.</p>
@@ -41,7 +91,7 @@ H_X = [circ(a) | circ(b)]
 H_Z = [circ(b)^T | circ(a)^T]
 </pre>
 <p>The <code>b</code> support is retained verbatim from @vprusso&#x27;s <code>[[674,86,d&lt;=92]]</code> submission in PR #560; @kessler-frost designed and ran the new search for <code>a</code>. The pinned source and related construction references are recorded in the JSON provenance.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/674-86-89.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/108-20-4.html">[[108,20,4]] — 108-20-4</a></h3><div class=kv style="color:var(--mut)">2026-08-15 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details open><summary>note</summary><div class=notebody><h3>[[108,20,4]] — topological code sourced from qecdb.org record 67a4b421</h3>
+<section class=blk><h3><a href="codes/108-20-4.html">[[108,20,4]] — 108-20-4</a></h3><div class=kv style="color:var(--mut)">2026-08-15 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[108,20,4]] — topological code sourced from qecdb.org record 67a4b421</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Aiming at the weight-6 track&#x27;s frontier: find low-check-weight CSS codes that strictly dominate an existing board entry on (n, k, d). The candidate pool is the qecdb.org database (36,830 records, mirrored and deduped to 2,369 unique CSS records), which is ~140x denser in small-block CSS codes than this board.</p>
 <h4>What was searched</h4>
@@ -78,7 +128,7 @@ H_Z = [circ(b)^T | circ(a)^T]
 <p>Model: DeepSeek V4 Flash 0731 (provenance.model). Author: @mathysrennela. Repo tooling: research/kit (css, search.fingerprint, surrogate, submit.make_submission), verify/validate_candidate.py (trusted gate). Pipeline scripts: research/db_mirror.py -&gt; db_phase1.py -&gt; db_phase2.py -&gt; db_phase3.py -&gt; db_phase3_witness.py -&gt; db_phase3_backfill.py -&gt; db_phase3_provenance.py.</p>
 <h4>Reproduction</h4>
 <p>The code is reconstructed from qecdb.org record 67a4b421 (https://qecdb.org/codes/67a4b4217cff110ed639a841). The record&#x27;s H field holds all X-rows followed by all Z-rows; split them, take the X/Z support matrices, and re-derive k and witnesses with the kit: research/kit/db_phase1.py-style parsing then make_submission. The raw record is preserved under research/db_dump/raw/67a4b421.json (gitignored).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/108-20-4.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/112-2-10.html">[[112,2,10]] — 112-2-10</a></h3><div class=kv style="color:var(--mut)">2026-08-15 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details open><summary>note</summary><div class=notebody><h3>[[112,2,10]] trivariate bicycle (multivariate-bicycle family)</h3>
+<section class=blk><h3><a href="codes/112-2-10.html">[[112,2,10]] — 112-2-10</a></h3><div class=kv style="color:var(--mut)">2026-08-15 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[112,2,10]] trivariate bicycle (multivariate-bicycle family)</h3>
 <p>Primary reference: <a href="https://arxiv.org/abs/2406.19151">arXiv:2406.19151</a> (Voss, Sim, Haug, Bharti), SM Table 2, weight-4 row.</p>
 <h4>Direction &amp; hypothesis</h4>
 <p>The board&#x27;s weight-4 × unrestricted cell is thin: 24 entries, mostly surface/toric baselines with k&lt;=2. A trivariate-bicycle (TB) code is a periodic BB code over Z_l x Z_m whose monomials are drawn from the thin set {x^a, y^b, z^c} with z = x·y, paying rate via a third variable without raising check weight. The paper&#x27;s weight-4 rows were expected to land in this cell as undominated literature points.</p>
