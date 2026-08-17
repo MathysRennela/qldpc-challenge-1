@@ -2251,6 +2251,75 @@ uv run python verify/validate_candidate.py research/candidates/700-57-3-rect-hol
 <p>The search used the repository&#x27;s <code>research/kit</code> product constructors, screening code, submission packager, and <code>verify/validate_candidate.py</code>. The final verifier run used the trusted validator source hash reported by the local gate. No files under <code>verify/</code> were modified.</p>
 <h4>Reproduction</h4>
 <p>Use <code>research/kit/products.py</code> and construct the order-5 groups with the repository&#x27;s group helpers. Build each parent with <code>build_2bga(mul, a, b)</code>, then call <code>hypergraph_product(parent1_HX, parent2_HX)</code>. The exact support parameters are given above and in the code&#x27;s provenance field.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/125-25-4.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/132-30-12.html">[[132,30,12]] — 132-30-12</a></h3><div class=kv style="color:var(--mut)">2026-08-07 &middot; submission note &middot; Yang and Willers and Duckering and Casey and Dua and Arpit</div><details ><summary>note</summary><div class=notebody><h3>[[132,30,12]] — GALA self-dual lift over C_11 (literature baseline)</h3>
+<p>Reproduction of the compact self-dual instance of arXiv:2608.07431, &quot;Designer Codes from GALA: Compact, Self-Dual, and Rate-1/2 QEC on Reconfigurable Atom Arrays&quot; (Yang, Duckering, Dua; 7 Aug 2026). This is a <b>literature baseline</b>: no search was performed here, so this note documents the reproduction instead of a search story, per <code>notes/README.md</code>.</p>
+<h4>What GALA is</h4>
+<p>GALA = <b>G</b>roup-<b>A</b>ction <b>L</b>ifts with <b>A</b>ctive orthogonality. Fix <code>L</code>, <code>J &lt;= L/2</code>, and a group <code>G = H_k x C_m</code> (<code>H_k</code> a small non-abelian factor, <code>C_m</code> a large abelian one). Choose lifts <code>F = (F_0..F_{L/2-1})</code> and <code>G = (G_0..G_{L/2-1})</code> in the group ring <code>F_2[G]</code>, and form the block-circulant parents (Eq. 1 of the paper)</p>
+<p>F = sum_i z^i (x) F_i,    G = sum_i z^i (x) G_i,    z = cyclic shift on Z_{L/2}</p>
+<p>Hhat_X = [F | G],    Hhat_Z = [G^T | F^T]</p>
+<p>then <b>keep only the first <code>J</code> block rows</b> as <code>H_X</code>, <code>H_Z</code>. Blocks are the regular representation of <code>G</code>, so <code>n = L*|G|</code> and each side has <code>J*|G|</code> rows. Stabilizer weight is the total term count <code>w = sum_i (|F_i| + |G_i|)</code>.</p>
+<p>The <code>[F | G] / [G^T | F^T]</code> shape is the generalized-bicycle signature; the row truncation to <code>J &lt; L/2</code> block rows is what GALA adds, and it is where the rate comes from (<code>rate &gt;= 1 - 2J/L</code>). The non-abelian factor <code>H_k</code> supplies &quot;active orthogonality&quot; — it lets the retained <code>J</code> block rows commute even when the full parents do not. <b>This instance does not need it</b>: <code>H_k</code> is trivial, so the whole lift is abelian, <code>F_2[G]</code> is commutative, and <code>Hhat_X Hhat_Z^T = 0</code> identically.</p>
+<h4>This instance</h4>
+<p>Table S5 of the paper, row <code>[[132,30,12]]</code>:</p>
+<p>| | | |---|---| | <code>L</code>, <code>J</code> | 12, 5 | | group | <code>C_11</code> (trivial <code>H_k</code>) | | duality | <code>r_2</code> | | <code>F</code> | <code>x^2, x^4, x^3, x^6, x^3, x^9</code> | | <code>G</code> | <code>x^9, x^2, x^8, x^5, x^8, x^7</code> |</p>
+<p>All twelve entries are monomials, so <code>w = 12</code> and <code>n = 12 * 11 = 132</code>, <code>J*|G| = 55</code> rows per side.</p>
+<h4>Reconstruction check</h4>
+<p>No parity-check matrices or repo are published with the preprint, so the code was rebuilt from the generators above. Four independent quantities from the paper were reproduced by the rebuild, none of which were used as inputs:</p>
+<p>| quantity | paper | rebuild | |---|---|---| | <code>rank(H)</code> | 51 (§&quot;end-to-end&quot;, <code>k = 132 - 2*51</code>) | 51 | | <code>k</code> | 30 | 30 | | stabilizer weight | 12 | 12 | | 4-cycle count <code>t_4</code> | 660 (Table S5) | 660 | | self-dual (<code>H_X = H_Z</code>) | yes | yes |</p>
+<p>The <code>t_4 = 660</code> match is the sharp fingerprint: it is a girth-4 code (the paper flags it as &quot;almost girth-6&quot;), and the 4-cycle count is sensitive to the exact generator ordering and circulant orientation. Both circulant orientations (<code>(b-a)</code> and <code>(a-b) mod L/2</code>) give identical <code>n, k, w, t_4</code> and are permutation-equivalent; the <code>(b-a)</code> convention is the one submitted.</p>
+<h4>Distance</h4>
+<p>The paper certifies <code>d = 12</code> <b>exactly</b> — exhaustive exclusion of all lower-weight logicals plus an explicit weight-12 witness — so no <code>&lt;=</code> is attached to it there. Independently here:</p>
+<p>| side | RIS trials | lightest logical found | |---|---|---| | X | 20,000 | 12 | | Z | 20,000 | 12 |</p>
+<p>RIS found nothing below 12 on either side, consistent with the paper&#x27;s exact certification. The witnesses recorded in the JSON are decoder-found weight-12 logicals, so the board records this as a witness-backed <b>upper bound</b> of 12, with the exactness claim resting on the paper.</p>
+<p>Consistency with the paper&#x27;s own distance bound: it notes <code>J = 5 &gt; L/4 = 3</code> puts this instance in the <code>J &gt; L/4</code> branch, which caps <code>d &lt;= L = 12</code>; the cap is attained.</p>
+<h4>Where it sits on the board</h4>
+<p><code>kd^2/n = 30 * 144 / 132 = 32.73</code>. That is the best <code>kd^2/n</code> on the board for <code>n &lt;= 200</code> — the previous best in that range is <code>[[200,40,12]]</code> at 28.8, and the best at <code>n &lt;= 132</code> is <code>[[126,18,14]]</code> at 28.0. It reaches it at rate 0.227, well above the 0.10-0.20 typical of the compact cell.</p>
+<p>The trade the paper makes for this compactness is girth 4 and rate 0.227; it is explicitly *not* covered by the girth-&gt;=6, rate-&gt;=1/2 claims made for the other GALA instances. Its selling point in the paper is hardware: 132 data atoms, a 3.1 ms syndrome-extraction cycle, and — because the ZX-duality fold is the identity here — transversal Clifford gates with no atom rearrangement at all.</p>
+<h4>Dead ends / notes for the next reader</h4>
+<ul>
+<li>The three other codes in the abstract are <b>not</b> submitted here.</li>
+<p><code>[[672,336,12]]</code> is in scope and is a separate PR. <code>[[1752,880,14]]</code> and <code>[[2232,1120,16]]</code> exceed the <code>n &lt;= 700</code> schema cap (issue #249) and cannot be submitted without raising it — worth recording that the interesting end of this family (rate 1/2 with <code>d &gt; w</code>) sits above the cap.</p>
+<li>Table S3&#x27;s <code>J</code> column is absent; for those rows <code>J</code> is recoverable from the</li>
+<p>quoted rate via <code>k = |G|(L - 2J)</code>. Table S5 lists <code>J</code> directly.</p>
+<li>Rows with a non-trivial <code>H_k</code> (<code>S_3</code>, <code>S_4</code>, <code>S_2 x_R C_m</code>) need the paper&#x27;s</li>
+<p><code>sigma/tau</code> labelling and the semidirect action to be rebuilt; the reproduction script here covers the abelian sector only, which is all that the two in-scope codes require.</p>
+</ul>
+<h4>Tools</h4>
+<p>Rebuild and verification: this repo&#x27;s <code>./qldpc submit</code> (RIS witness search, 20,000 trials/side, verifier from base branch). Reconstruction script written with Claude Opus 5. No search compute — the generators are read from the paper.</p>
+<h4>Reproduction</h4>
+<pre>
+import itertools, numpy as np
+
+def reg(mod, s):                      # regular rep of x^s in prod_j C_{mod[j]}
+    idx = list(itertools.product(*[range(m) for m in mod]))
+    pos = {t: i for i, t in enumerate(idx)}
+    P = np.zeros((len(idx),) * 2, np.uint8)
+    for a, t in enumerate(idx):
+        P[a, pos[tuple((t[j] + s[j]) % mod[j] for j in range(len(mod)))]] = 1
+    return P
+
+def circ(mod, ent):                   # block circulant, block (a,b) = ent[(b-a) % h]
+    h, m = len(ent), int(np.prod(mod))
+    blk = [np.bitwise_xor.reduce([reg(mod, s) for s in e]) for e in ent]
+    M = np.zeros((h * m, h * m), np.uint8)
+    for a in range(h):
+        for b in range(h):
+            M[a*m:(a+1)*m, b*m:(b+1)*m] = blk[(b - a) % h]
+    return M
+
+def gala(mod, F, G, J):
+    m = int(np.prod(mod)); Fm, Gm = circ(mod, F), circ(mod, G)
+    return (np.concatenate([Fm, Gm], 1)[:J*m],
+            np.concatenate([Gm.T, Fm.T], 1)[:J*m])
+
+mod = [11]                                                    # C_11, L = 12, J = 5
+F = [[(2,)], [(4,)], [(3,)], [(6,)], [(3,)], [(9,)]]
+G = [[(9,)], [(2,)], [(8,)], [(5,)], [(8,)], [(7,)]]
+HX, HZ = gala(mod, F, G, 5)                                   # -&gt; [[132,30,12]]
+</pre>
+<p>Then <code>./qldpc submit code.npz</code> with <code>hx=HX, hz=HZ</code>.</p>
+<h4>Reference</h4>
+<p>arXiv:2608.07431, Tables S5 and S2, and the end-to-end case study section.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/132-30-12.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/183-12-10.html">[[183,12,10]] — 183-12-10</a></h3><div class=kv style="color:var(--mut)">2026-08-07 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[183,12,10]] — open-boundary planar bivariate-bicycle (weight-8 tile family), aspect-ratio sweep</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target: the <code>weight-8 × local-2d-bilayer</code> cell, one of the sparsest on the board (3 entries before this sweep). Hypothesis: for open-boundary planar BB codes the distance is set by the shorter lattice axis (per-axis transfer-graph slopes), so at fixed polynomials a *balanced rectangle* spends qubits more efficiently than a square — the same mechanism that produced [[192,12,8]] in the weight-6 cell.</p>
@@ -2388,6 +2457,84 @@ b exponents = [0, 1, 9, 10, 40, 51, 78, 94, 117, 134, 157, 173, 200, 211]
 <p>Kimi K3 (matches <code>provenance.model</code>), Amicode harness; repo kit (<code>css.py</code>, <code>surrogate.py</code>, <code>submit.py</code>), <code>verify/gf2_fast</code> RIS, <code>verify/validate_candidate.py</code> as the gate; scipy MILP for the puncture bounds. Compute: ~2 CPU-hours on an M-series MacBook.</p>
 <h4>Reproduction</h4>
 <p><code>research/campaigns/rotated_holey.py</code> (in our working clone): odd L; qubits at integer points of [0, L)²; X-plaquettes on even cells + top/bottom boundary pairs, Z on odd + left/right pairs; holes = period-3 parity-matched cell sublattice, margin 3. This code: L = 25.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/625-50-3.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/672-336-12.html">[[672,336,12]] — 672-336-12</a></h3><div class=kv style="color:var(--mut)">2026-08-07 &middot; submission note &middot; Yang and Willers and Duckering and Casey and Dua and Arpit</div><details ><summary>note</summary><div class=notebody><h3>[[672,336,12]] — GALA rate-1/2 abelian lift over C_2 x C_3 x C_14 (literature baseline)</h3>
+<p>Reproduction of the compact rate-1/2 instance of arXiv:2608.07431, &quot;Designer Codes from GALA: Compact, Self-Dual, and Rate-1/2 QEC on Reconfigurable Atom Arrays&quot; (Yang, Duckering, Dua; 7 Aug 2026). This is a <b>literature baseline</b>: no search was performed here, so this note documents the reproduction instead of a search story, per <code>notes/README.md</code>.</p>
+<p>Its sibling <code>[[132,30,12]]</code> from the same paper is a separate submission; the construction summary below is shared between the two notes.</p>
+<h4>What GALA is</h4>
+<p>GALA = <b>G</b>roup-<b>A</b>ction <b>L</b>ifts with <b>A</b>ctive orthogonality. Fix <code>L</code>, <code>J &lt;= L/2</code>, and a group <code>G = H_k x C_m</code> (<code>H_k</code> a small non-abelian factor, <code>C_m</code> a large abelian one). Choose lifts <code>F = (F_0..F_{L/2-1})</code> and <code>G = (G_0..G_{L/2-1})</code> in the group ring <code>F_2[G]</code>, and form the block-circulant parents (Eq. 1 of the paper)</p>
+<p>F = sum_i z^i (x) F_i,    G = sum_i z^i (x) G_i,    z = cyclic shift on Z_{L/2}</p>
+<p>Hhat_X = [F | G],    Hhat_Z = [G^T | F^T]</p>
+<p>then <b>keep only the first <code>J</code> block rows</b> as <code>H_X</code>, <code>H_Z</code>. Blocks are the regular representation of <code>G</code>, so <code>n = L*|G|</code> and each side has <code>J*|G|</code> rows. Stabilizer weight is the total term count <code>w = sum_i (|F_i| + |G_i|)</code>, which for *polynomial* lifts (entries that are sums, not single group elements) is decoupled from <code>L</code>.</p>
+<p>The <code>[F | G] / [G^T | F^T]</code> shape is the generalized-bicycle signature; the row truncation to <code>J &lt; L/2</code> block rows is what GALA adds, and it is where the rate comes from: <code>rate &gt;= 1 - 2J/L</code>, so <code>J = L/4</code> gives rate <code>&gt;= 1/2</code>.</p>
+<h4>This instance</h4>
+<p>Table S3 of the paper, row <code>[[672,336,12]]</code>:</p>
+<p>| | | |---|---| | <code>L</code> | 8, hence <code>J = L/4 = 2</code> for rate 1/2 | | group | <code>C_2 x C_3 x C_14</code> (trivial <code>H_k</code>) | | <code>F</code> | <code>x^(1,1,5)</code>, <code>x^(0,2,7) + x^(0,0,10)</code>, <code>x^(1,2,5)</code>, <code>x^(1,0,6) + x^(0,0,8)</code> | | <code>G</code> | <code>x^(0,1,13)</code>, <code>x^(1,0,10) + x^(0,2,10)</code>, <code>x^(0,0,6)</code>, <code>x^(1,0,8) + x^(0,1,12)</code> |</p>
+<p><code>|G| = 84</code>, so <code>n = 8 * 84 = 672</code> and each side has <code>J*|G| = 168</code> rows. Two of the four entries on each side are binomials, giving <code>w = 6 + 6 = 12</code> — this is the polynomial regime, and it is what lets a weight-12 code sit at <code>L = 8</code>.</p>
+<p><code>J</code> is not printed in Table S3; it is recovered from the quoted rate via <code>k = |G|(L - 2J)</code>, i.e. <code>336 = 84(8 - 2J)</code> gives <code>J = 2</code>.</p>
+<h5>Why the abelian sector suffices here</h5>
+<p><code>H_k</code> is trivial, so <code>F_2[G]</code> is commutative and <code>Hhat_X Hhat_Z^T = 0</code> *identically* — every block row commutes, not just the retained <code>J</code>. The paper calls this a &quot;trivial top&quot; and singles this instance out for it: &quot;the abelian sector of the framework combined with a polynomial lift already suffices for compact rate-1/2 codes at the weight ceiling&quot;. The non-abelian &quot;active orthogonality&quot; machinery that the rest of the family needs is not exercised by this code, which is what makes it cheap to rebuild.</p>
+<h4>Reconstruction check</h4>
+<p>No parity-check matrices or repo ship with the preprint, so the code was rebuilt from the generators above. Quantities the paper states independently, all reproduced and none of them inputs to the rebuild:</p>
+<p>| quantity | paper | rebuild | |---|---|---| | <code>n</code> | 672 | 672 | | <code>k</code> | 336 (rate exactly 0.500) | 336 (<code>rank H_X = rank H_Z = 168</code>, full rank) | | stabilizer weight | 12 | 12 | | girth | <code>&gt;= 6</code> | 6 (4-cycle count <code>t_4 = 0</code> on both sides) | | CSS orthogonality | trivial top | <code>H_X H_Z^T = 0</code> identically |</p>
+<p>Both circulant orientations (<code>(b-a)</code> and <code>(a-b) mod L/2</code>) give identical <code>n, k, w, t_4</code> and are permutation-equivalent; the <code>(b-a)</code> convention is the one submitted.</p>
+<h4>Distance</h4>
+<p>The paper certifies <code>d = 12</code> <b>exactly</b> — exhaustive exclusion of all lower-weight logicals plus an explicit weight-12 witness — so no <code>&lt;=</code> is attached to it there. It notes this instance sits at the structural ceiling <code>d = w = 12</code>.</p>
+<p>Independent ladder here (RIS, <code>verify/heuristic_distance.py</code>, seed 7):</p>
+<p>| trials/side | lightest logical found | |---|---| | 200 | 12 | | 1,000 | 12 | | 4,000 | 12 |</p>
+<p>Weight 12 is hit almost immediately and nothing below it ever appears — the <code>d = w</code> ceiling makes weight-12 logicals plentiful. The submitted witnesses come from the 4,000-trial pass. The repo&#x27;s refutation gate result is reported in the PR. Recorded on the board as a witness-backed <b>upper bound</b>; the exactness claim rests on the paper.</p>
+<h4>Where it sits on the board</h4>
+<p><code>kd^2/n = 336 * 144 / 672 = 72.0</code>, at rate exactly 0.500 and <code>n = 672</code>.</p>
+<ul>
+<li>Best rate on the board at <code>d &gt;= 12</code> was 0.439 (<code>[[574,252,18]]</code>); at exactly</li>
+<p><code>d = 12</code> it was 0.408 (<code>[[530,216,12]]</code>, <code>kd^2/n = 58.7</code>). This raises the <code>d = 12</code> rate frontier from 0.408 to 0.500 and the score from 58.7 to 72.0.</p>
+<li>The board&#x27;s previous best rate at *any* <code>d &gt;= 8</code> was 0.507</li>
+<p>(<code>[[576,292,8]]</code>, <code>kd^2/n = 32.4</code>). This holds essentially the same rate while going from <code>d = 8</code> to <code>d = 12</code>, more than doubling <code>kd^2/n</code>.</p>
+</ul>
+<h4>Dead ends / notes for the next reader</h4>
+<ul>
+<li>The two most interesting codes in the paper are <b>out of scope</b>:</li>
+<p><code>[[1752,880,14]]</code> and <code>[[2232,1120,16]]</code> are the &quot;barrier-breaking&quot; instances with <code>d &gt; w = 12</code>, and both exceed the <code>n &lt;= 700</code> verification-budget cap (issue #249), so the schema rejects them outright. Worth recording as a data point for that cap: the part of this family that breaks the <code>d = w</code> ceiling sits entirely above it. Both need a non-trivial <code>H_k</code> (<code>S_2 x C_73^2</code> and <code>S_3 x C_62</code>) and so also need the semidirect / <code>sigma</code>-<code>tau</code> machinery, not just the abelian rebuild used here.</p>
+<li>The paper&#x27;s other in-range rows (<code>[[480,240,10]]</code>, <code>[[720,360,12]]</code>,</li>
+<p><code>[[312,156,8]]</code>, <code>[[560,280,10]]</code>, ...) are mostly non-abelian lifts; the abelian-sector script below does not cover them.</p>
+<li><code>[[672,340,8]]</code> also appears in Table S3 and is *not* the same code as this</li>
+<p>one despite the shared <code>n</code> — different <code>L</code>, group, and distance.</p>
+</ul>
+<h4>Tools</h4>
+<p>Rebuild and verification: this repo&#x27;s <code>./qldpc submit</code> (RIS witness search, 4,000 trials/side) and <code>verify/gate_changed.py</code> for the refutation gate. Reconstruction script written with Claude Opus 5. No search compute — the generators are read from the paper.</p>
+<h4>Reproduction</h4>
+<pre>
+import itertools, numpy as np
+
+def reg(mod, s):                      # regular rep of x^s in prod_j C_{mod[j]}
+    idx = list(itertools.product(*[range(m) for m in mod]))
+    pos = {t: i for i, t in enumerate(idx)}
+    P = np.zeros((len(idx),) * 2, np.uint8)
+    for a, t in enumerate(idx):
+        P[a, pos[tuple((t[j] + s[j]) % mod[j] for j in range(len(mod)))]] = 1
+    return P
+
+def circ(mod, ent):                   # block circulant, block (a,b) = ent[(b-a) % h]
+    h, m = len(ent), int(np.prod(mod))
+    blk = [np.bitwise_xor.reduce([reg(mod, s) for s in e]) for e in ent]
+    M = np.zeros((h * m, h * m), np.uint8)
+    for a in range(h):
+        for b in range(h):
+            M[a*m:(a+1)*m, b*m:(b+1)*m] = blk[(b - a) % h]
+    return M
+
+def gala(mod, F, G, J):
+    m = int(np.prod(mod)); Fm, Gm = circ(mod, F), circ(mod, G)
+    return (np.concatenate([Fm, Gm], 1)[:J*m],
+            np.concatenate([Gm.T, Fm.T], 1)[:J*m])
+
+mod = [2, 3, 14]                                          # L = 8, J = 2
+F = [[(1,1,5)], [(0,2,7), (0,0,10)], [(1,2,5)], [(1,0,6), (0,0,8)]]
+G = [[(0,1,13)], [(1,0,10), (0,2,10)], [(0,0,6)], [(1,0,8), (0,1,12)]]
+HX, HZ = gala(mod, F, G, 2)                               # -&gt; [[672,336,12]]
+</pre>
+<p>Then <code>./qldpc submit code.npz</code> with <code>hx=HX, hz=HZ</code>.</p>
+<h4>Reference</h4>
+<p>arXiv:2608.07431, Table S3 and the &quot;Code results&quot; section.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/672-336-12.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/144-16-8.html">[[144,16,8]] — 144-16-8</a></h3><div class=kv style="color:var(--mut)">2026-08-05 &middot; submission note &middot; <a href="https://github.com/cbjuan">@cbjuan</a> &middot; Claude Opus 4.6 + GPT-5.3-Codex + Gemini 3.1 Pro Preview</div><details ><summary>note</summary><div class=notebody><h3>[[144,16,8]] — mixed-monomial BB, MILP-exact d=8</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Campaign 4 extended our search from weight-3 trinomials to 4-6 term mixed-monomial polynomials (terms x^a y^b combining both variables in one factor, not just pure-x or pure-y), aiming to escape the d&lt;=8 ceiling that weight-6 trinomial families showed at small (ell,m). Found by our LLM-guided evolutionary search (<a href="https://arxiv.org/abs/2606.02418">arXiv:2606.02418</a>, Campaign 4 ensemble: Claude Opus 4.6 + GPT-5.3-Codex + Gemini 3.1 Pro Preview).</p>
