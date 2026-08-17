@@ -137,7 +137,20 @@ object-fit:cover;flex:0 0 auto}
 .lbcrown{margin-left:5px}
 .lbm{display:flex;flex-direction:column;align-items:center;width:82px;
 flex:0 0 auto;text-decoration:none;color:var(--ink)}
-a.lbm:hover b{text-decoration:underline;color:var(--ac)}
+a.lbm[href]:hover b{text-decoration:underline;color:var(--ac)}
+/* a metric with no target (e.g. no eligible g at the active weight cap) is an
+   anchor without an href, so it must not read as a link */
+a.lbm:not([href]){cursor:default}
+/* the heroes wrapper exists only so the weight slider can swap both cards at
+   once; it must not become a flex item of its own inside .lbhead */
+.lbheroes{display:contents}
+/* One stop per integer weight. 120px is the widest track that still leaves the
+   header on one row in BOTH metric modes (the "best g" card is the wider of
+   the two); past that the hero wraps to a second line. Fine-grained aiming is
+   covered by the arrow keys, which step exactly one weight, and by the value
+   label, which always reads the live W. */
+.lbwf .wfslider{width:120px}
+.lbwf .wfval{min-width:1.6em}
 .lbm b{font-size:17px;font-variant-numeric:tabular-nums}
 .lbml{font-size:11px;color:var(--mut);margin-top:1px;white-space:nowrap}
 .lbrow{cursor:pointer}
