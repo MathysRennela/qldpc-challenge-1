@@ -121,7 +121,9 @@ surface code to 1, but they answer different questions.
     geometrically local (e.g. on a torus, or simply unlayouted) -- it is not
     thereby an "expander code".
   - g inherits the distance tier: computed from an upper-bound d it is an
-    upper bound, and the site marks it so.
+    upper bound. So is kd^2/n, which is monotone in d in the same way, so the
+    site marks neither -- the distance column carries the one `d <=` that
+    governs both, and marking g alone read as if kd^2/n were the firmer number.
   - The headline card requires d >= 3: g is scale-free, so d = 2 tilings
     (a [[4,2,2]] block on one plaquette scores g = 2) would "beat" the
     surface code without encoding anything asymptotic. No known d = 3-4

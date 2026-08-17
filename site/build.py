@@ -446,7 +446,20 @@ object-fit:cover;flex:0 0 auto}}
 .lbcrown{{margin-left:5px}}
 .lbm{{display:flex;flex-direction:column;align-items:center;width:82px;
 flex:0 0 auto;text-decoration:none;color:var(--ink)}}
-a.lbm:hover b{{text-decoration:underline;color:var(--ac)}}
+a.lbm[href]:hover b{{text-decoration:underline;color:var(--ac)}}
+/* a metric with no target (e.g. no eligible g at the active weight cap) is an
+   anchor without an href, so it must not read as a link */
+a.lbm:not([href]){{cursor:default}}
+/* the heroes wrapper exists only so the weight slider can swap both cards at
+   once; it must not become a flex item of its own inside .lbhead */
+.lbheroes{{display:contents}}
+/* One stop per integer weight. 120px is the widest track that still leaves the
+   header on one row in BOTH metric modes (the "best g" card is the wider of
+   the two); past that the hero wraps to a second line. Fine-grained aiming is
+   covered by the arrow keys, which step exactly one weight, and by the value
+   label, which always reads the live W. */
+.lbwf .wfslider{{width:120px}}
+.lbwf .wfval{{min-width:1.6em}}
 .lbm b{{font-size:17px;font-variant-numeric:tabular-nums}}
 .lbml{{font-size:11px;color:var(--mut);margin-top:1px;white-space:nowrap}}
 .lbrow{{cursor:pointer}}
@@ -2122,12 +2135,10 @@ def progress_panel(entries, best_eff_e, best_geo_e):
         return (f'<div class=sub><a href="codes/{e["slug"]}.html">'
                 f'[[{e["n"]},{e["k"]},{e["d"]}]]</a>{extra}</div>')
 
-    if best_geo_e is None:
-        geo_v = "&middot;"
-    else:
-        # an upper-bound distance makes g an upper bound too; show it as such
-        geo_v = (f"{best_geo_e['geo']:.3g}" if best_geo_e["tier"] == "exact"
-                 else f"&le;{best_geo_e['geo']:.3g}")
+    # g and kd^2/n are both monotone in d, so an upper-bound distance makes both
+    # of them upper bounds. Marking only g implied the other was firmer than it
+    # is; the distance column already carries the one d <= that governs both.
+    geo_v = "&middot;" if best_geo_e is None else f"{best_geo_e['geo']:.3g}"
     best_eff = best_eff_e["eff"] if best_eff_e else 0
     metrics = [
         (str(n_contrib), "submitted codes",
@@ -2161,68 +2172,90 @@ def contributors_panel(entries):
     comparators cannot drift apart. g eligibility matches the headline card
     (verified layout, d >= GEO_MIN_D); contributors without an eligible code
     show a dot and sort last, which is the honest reading: no layout shipped,
-    so no geometric claim."""
+    so no geometric claim.
+
+    A weight slider restricts every ranking to the codes of check weight <= W,
+    snapping to the same caps as the primary-track weight cells. kd^2/n climbs
+    with check weight (it is a per-cell figure, not a global one -- TRACKS.md),
+    so an uncapped headline quietly rewards whoever worked the highest-weight
+    region; the slider makes the cap you are reading explicit. Each cap is
+    ranked here and shipped precomputed, like the metric toggle."""
 
     def geo_disp(g, tier):
-        """g inherited from an upper-bound distance is itself an upper bound.
-        Same 3-significant-digit display as the headline card and the board."""
-        if g is None:
-            return "&middot;"
-        return ("" if tier == "exact" else "&le;") + f"{g:.3g}"
+        """Same 3-significant-digit display as the headline card and the board.
+        No d <= marker: kd^2/n inherits the distance tier exactly as g does, so
+        marking g alone read as if the other were the firmer number."""
+        return "&middot;" if g is None else f"{g:.3g}"
 
     front_slugs = {entries[i]["slug"] for i in compute_records(entries)}
-    stats = {}
-    for e in entries:
-        if e["origin"] == "baseline":
-            continue
-        for a in e["authors_list"]:
-            h = a.strip()
-            if not (h.startswith("@") and re.fullmatch(r"@[A-Za-z0-9-]+", h)):
+
+    def collect(cap):
+        """Per-contributor stats over the codes with check weight <= cap
+        (cap None = no cap, the whole board). Returns
+        (stats, eff_order, geo_order, n_codes, n_geo)."""
+        stats = {}
+        for e in entries:
+            if e["origin"] == "baseline":
                 continue
-            s = stats.setdefault(h.casefold(),
-                                 {"codes": 0, "front": 0, "exact": 0,
-                                  "eff": 0.0, "slug": None, "handle": h,
-                                  "geo": None, "geo_slug": None,
-                                  "geo_tier": None, "list": []})
-            s["codes"] += 1
-            s["front"] += e["slug"] in front_slugs
-            s["exact"] += e["tier"] == "exact"
-            s["list"].append({"name": f'[[{e["n"]},{e["k"]},{e["d"]}]]',
-                              "slug": e["slug"], "eff": e["eff"],
-                              "geo": (geo_disp(e["geo"], e["tier"])
-                                      if e["geo"] is not None else None),
-                              "w": e["w"], "date": e["date"],
-                              "front": e["slug"] in front_slugs})
-            if e["eff"] > s["eff"]:
-                s["eff"] = e["eff"]
-                s["slug"] = e["slug"]    # the code achieving the best kd^2/n
-            if (e["geo"] is not None and e["d"] >= GEO_MIN_D
-                    and (s["geo"] is None or e["geo"] > s["geo"])):
-                s["geo"] = e["geo"]
-                s["geo_slug"] = e["slug"]
-                s["geo_tier"] = e["tier"]
+            if cap is not None and (e["w"] is None or e["w"] > cap):
+                continue
+            for a in e["authors_list"]:
+                h = a.strip()
+                if not (h.startswith("@") and re.fullmatch(r"@[A-Za-z0-9-]+", h)):
+                    continue
+                s = stats.setdefault(h.casefold(),
+                                     {"codes": 0, "front": 0, "exact": 0,
+                                      "eff": 0.0, "slug": None, "handle": h,
+                                      "geo": None, "geo_slug": None,
+                                      "geo_tier": None, "list": []})
+                s["codes"] += 1
+                s["front"] += e["slug"] in front_slugs
+                s["exact"] += e["tier"] == "exact"
+                s["list"].append({"name": f'[[{e["n"]},{e["k"]},{e["d"]}]]',
+                                  "slug": e["slug"], "eff": e["eff"],
+                                  "geo": (geo_disp(e["geo"], e["tier"])
+                                          if e["geo"] is not None else None),
+                                  "w": e["w"], "date": e["date"],
+                                  "front": e["slug"] in front_slugs})
+                if e["eff"] > s["eff"]:
+                    s["eff"] = e["eff"]
+                    s["slug"] = e["slug"]   # the code achieving the best kd^2/n
+                if (e["geo"] is not None and e["d"] >= GEO_MIN_D
+                        and (s["geo"] is None or e["geo"] > s["geo"])):
+                    s["geo"] = e["geo"]
+                    s["geo_slug"] = e["slug"]
+                    s["geo_tier"] = e["tier"]
+        eff_order = sorted(stats.items(),
+                           key=lambda kv: (-kv[1]["eff"], -kv[1]["front"],
+                                           -kv[1]["codes"], kv[1]["handle"]))
+        # the g ordering: contributors with no eligible g fall to the bottom
+        geo_order = sorted(stats.items(),
+                           key=lambda kv: (kv[1]["geo"] is None,
+                                           -(kv[1]["geo"] or 0.0),
+                                           -kv[1]["front"], -kv[1]["codes"],
+                                           kv[1]["handle"]))
+        n_geo = sum(1 for s in stats.values() if s["geo"] is not None)
+        n_codes = sum(1 for e in entries
+                      if e["origin"] != "baseline"
+                      and (cap is None
+                           or (e["w"] is not None and e["w"] <= cap)))
+        return stats, eff_order, geo_order, n_codes, n_geo
+
+    # The uncapped board is what the rows are rendered from, so every
+    # contributor has a DOM row for the slider to show or hide.
+    stats, order, geo_order, n_codes, n_geo = collect(None)
     if not stats:
         return ""
-    order = sorted(stats.items(),
-                   key=lambda kv: (-kv[1]["eff"], -kv[1]["front"],
-                                   -kv[1]["codes"], kv[1]["handle"]))
-    # the g ordering: contributors with no eligible g fall to the bottom
-    geo_order = sorted(stats.items(),
-                       key=lambda kv: (kv[1]["geo"] is None,
-                                       -(kv[1]["geo"] or 0.0),
-                                       -kv[1]["front"], -kv[1]["codes"],
-                                       kv[1]["handle"]))
     grank = {k: i for i, (k, _) in enumerate(geo_order, 1)}
-    n_geo = sum(1 for s in stats.values() if s["geo"] is not None)
-    n_codes = sum(1 for e in entries if e["origin"] != "baseline")
 
     def metric(v, lab, href=None, tip="", cls=""):
+        # Always an anchor, with href only when there is a target: the weight
+        # slider can give a contributor a best-g code at one cap and none at
+        # another, and an <a> can gain or lose an href where a <span> could not.
         body = f'<b>{v}</b><span class=lbml>{lab}</span>'
         k = f"lbm {cls}".strip()
-        if href:
-            return (f'<a class="{k}" href="{href}" title="{html.escape(tip)}">'
-                    f'{body}</a>')
-        return f'<span class="{k}">{body}</span>'
+        h = f' href="{href}"' if href else ""
+        return f'<a class="{k}"{h} title="{html.escape(tip)}">{body}</a>'
 
     rows = []
     for r, (key, s) in enumerate(order, 1):
@@ -2246,10 +2279,13 @@ def contributors_panel(entries):
             f'{html.escape(h)}</a>'
             ' <span class=lbcrown title="top contributor">&#128081;</span>'
             '</span>'
-            + metric(s["codes"], "codes", qh, f"all {h} codes on the board")
+            + metric(s["codes"], "codes", qh, f"all {h} codes on the board",
+                     cls="lbmcodes")
             + metric(s["front"], "on frontier",
-                     html.escape(f"?q={h} record"), f"{h} frontier codes")
-            + metric(s["exact"], "exact", qh, f"all {h} codes on the board")
+                     html.escape(f"?q={h} record"), f"{h} frontier codes",
+                     cls="lbmfront")
+            + metric(s["exact"], "exact", qh, f"all {h} codes on the board",
+                     cls="lbmexact")
             + metric(f'{s["eff"]:g}', "best kd&sup2;/n",
                      f'codes/{s["slug"]}.html' if s["slug"] else None,
                      "the code achieving this", cls="lbmeff")
@@ -2308,19 +2344,75 @@ def contributors_panel(entries):
                 f'{dmark}{be["d"]} &middot; {extra} &middot; '
                 f'{html.escape(holder)}</div></div>')
 
-    best = order[0][1]
-    be = by_slug.get(best["slug"])
-    hero = hero_card(best["handle"], best["slug"], f'{best["eff"]:g}',
-                     f'w={be["w"]}' if be else "",
-                     "best kd&sup2;/n", "lbheff")
-    gbest = geo_order[0][1]
-    if gbest["geo"] is not None:
-        ge = by_slug.get(gbest["geo_slug"])
-        hero += hero_card(
-            gbest["handle"], gbest["geo_slug"],
-            geo_disp(gbest["geo"], gbest["geo_tier"]),
-            f'r={ge["geo_r"]:g} &middot; &rho;={ge["geo_rho"]}' if ge else "",
-            "best g", "lbhgeo")
+    def heroes(od, gd):
+        """The two headline cards for a ranking: best kd^2/n and best g."""
+        h = ""
+        if od:
+            b = od[0][1]
+            be = by_slug.get(b["slug"])
+            h = hero_card(b["handle"], b["slug"], f'{b["eff"]:g}',
+                          f'w={be["w"]}' if be else "",
+                          "best kd&sup2;/n", "lbheff")
+        if gd and gd[0][1]["geo"] is not None:
+            gb = gd[0][1]
+            ge = by_slug.get(gb["geo_slug"])
+            h += hero_card(
+                gb["handle"], gb["geo_slug"],
+                geo_disp(gb["geo"], gb["geo_tier"]),
+                f'r={ge["geo_r"]:g} &middot; &rho;={ge["geo_rho"]}' if ge else "",
+                "best g", "lbhgeo")
+        return h
+
+    def subs_html(nk, nc, ng):
+        return (f'<span class=lbseff>{nk} contributor'
+                f'{"" if nk == 1 else "s"} &middot; {nc} code'
+                f'{"" if nc == 1 else "s"} submitted through the challenge</span>'
+                f'<span class=lbsgeo>{ng} of {nk} contributor'
+                f'{"" if nk == 1 else "s"} have a code with a verified '
+                f'layout and d &ge; {GEO_MIN_D}</span>')
+
+    hero = heroes(order, geo_order)
+    # One ranking per integer check weight W. Position W ranks each contributor
+    # using only their codes of weight <= W, so the nesting the track cells use
+    # holds here too: a weight-4 code still competes at every W above it.
+    # Without this the headline collapses every weight cell and rewards whoever
+    # mined the highest-weight region, since kd^2/n climbs with w (TRACKS.md:
+    # kd^2/n is compared within a cell, not globally).
+    #
+    # The range is the board's own [min w, max w]: below the minimum every
+    # ranking is empty, so a slider starting at 0 would only offer dead travel.
+    #
+    # Every W is ranked in Python and shipped precomputed, for the same reason
+    # the eff/g toggle is: the client applies a ranking, never computes one, so
+    # the two cannot drift apart. Rankings are deduplicated because leader-at-W
+    # is a max over a growing set and so is a step function of W -- consecutive
+    # weights usually share a ranking, and only the distinct ones are shipped.
+    cw = [e["w"] for e in entries
+          if e["origin"] != "baseline" and e["w"] is not None]
+    wmin, wmax = (min(cw), max(cw)) if cw else (0, 0)
+    lbw, lbidx, seen = {}, [], {}
+    for cap in range(wmin, wmax + 1):
+        st, od, gd, nc, ng = (
+            (stats, order, geo_order, n_codes, n_geo) if cap >= wmax
+            else collect(cap))
+        er = {k: i for i, (k, _) in enumerate(od, 1)}
+        gr = {k: i for i, (k, _) in enumerate(gd, 1)}
+        payload = {
+            "m": {s["handle"]: {
+                "codes": s["codes"], "front": s["front"], "exact": s["exact"],
+                "eff": f'{s["eff"]:g}', "effSlug": s["slug"],
+                "geo": geo_disp(s["geo"], s["geo_tier"]),
+                "geoSlug": s["geo_slug"],
+                "erank": er[key2], "grank": gr[key2]}
+                for key2, s in st.items()},
+            "hero": heroes(od, gd),
+            "subs": subs_html(len(od), nc, ng),
+        }
+        sig = json.dumps(payload, sort_keys=True)
+        if sig not in seen:
+            seen[sig] = str(len(lbw))
+            lbw[seen[sig]] = payload
+        lbidx.append(seen[sig])
     # Contributor modal: row click opens a summary card; inner links still
     # navigate (profile, filtered board, code pages).
     cdata = json.dumps({s["handle"]: {
@@ -2371,38 +2463,86 @@ def contributors_panel(entries):
               'title="rank contributors by their best geometric efficiency g. '
               'Needs a code with a verifier-accepted layout and d &ge; '
               f'{GEO_MIN_D}">g</button></span>')
-    subs = (f'<p class=lbsub><span class=lbseff>{len(order)} contributor'
-            f'{"" if len(order) == 1 else "s"} &middot; {n_codes} codes '
-            'submitted through the challenge</span>'
-            f'<span class=lbsgeo>{n_geo} of {len(order)} contributor'
-            f'{"" if len(order) == 1 else "s"} have a code with a verified '
-            f'layout and d &ge; {GEO_MIN_D}</span></p>')
+    # Single-handle weight slider over the raw check weight, one step per
+    # integer W from the board's lightest code to its heaviest.
+    wslider = (
+        '<span class="wfilter lbwf" title="rank contributors using only their '
+        'codes of check weight &le; W. Nested, like the track cells: a '
+        'weight-4 code still competes at every W above it.">'
+        '<span class=wflabel>weight &le;</span>'
+        '<span class=wfslider>'
+        '<span class=wftrack></span><span class=wffill id=lbwfill></span>'
+        f'<input type=range id=lbwrange class=wfrange min={wmin} max={wmax} '
+        f'value={wmax} step=1 aria-label="maximum check weight">'
+        '</span>'
+        f'<span class=wfval id=lbwval>{wmax}</span>'
+        '</span>')
+    subs = f'<p class=lbsub id=lbsub>{subs_html(len(order), n_codes, n_geo)}</p>'
     # Reordering only: both rankings are server-computed (data-erank /
     # data-grank), so this cannot disagree with the Python comparators.
-    lbjs = ('<script>(function(){'
+    # Reordering and value swapping only: every (weight cap x metric) ranking is
+    # server-computed, so this cannot disagree with the Python comparators.
+    lbdata = json.dumps({"wmin": wmin, "wmax": wmax, "idx": lbidx, "b": lbw})
+    lbjs = ('<script id=lbwdata type="application/json">' + lbdata + '</script>'
+            '<script>(function(){'
             'var sec=document.getElementById("leaderboard");if(!sec)return;'
+            'var D=JSON.parse(document.getElementById("lbwdata").textContent);'
+            'var WMIN=D.wmin,WMAX=D.wmax,SPAN=(WMAX-WMIN)||1;'
             'var list=sec.querySelector(".lblist");'
             'var rows=[].slice.call(list.querySelectorAll(".lbrow"));'
-            'function apply(m){'
-            'sec.dataset.mode=m;'
-            'var key=m==="geo"?"grank":"erank";'
-            'rows.slice().sort(function(a,b){'
-            'return (+a.dataset[key])-(+b.dataset[key]);})'
+            'var heroes=document.getElementById("lbheroes");'
+            'var subs=document.getElementById("lbsub");'
+            'var rng=document.getElementById("lbwrange");'
+            'var fill=document.getElementById("lbwfill");'
+            'var val=document.getElementById("lbwval");'
+            'var mode="eff";'
+            # wcap() reads the live input on every apply, never a cached index:
+            # a browser restoring the range on reload would otherwise leave the
+            # label and the ranking disagreeing with the thumb.
+            'function wcap(){var v=rng?+rng.value:WMAX;'
+            'return Math.min(WMAX,Math.max(WMIN,v||WMIN));}'
+            'function put(r,sel,v,slug){var el=r.querySelector(sel);'
+            'if(!el)return;el.querySelector("b").innerHTML=v;'
+            'if(slug===undefined)return;'
+            'if(slug){el.setAttribute("href","codes/"+slug+".html");}'
+            'else{el.removeAttribute("href");}'
+            'el.classList.toggle("lbmnone",!slug);}'
+            'function apply(){'
+            'var w=wcap(),b=D.b[D.idx[w-WMIN]],m=b.m,'
+            'key=mode==="geo"?"grank":"erank";'
+            'var vis=[];'
+            'rows.forEach(function(r){var s=m[r.dataset.h];'
+            'if(!s){r.style.display="none";r.classList.remove("lbtop");return;}'
+            'r.style.display="";'
+            'put(r,".lbmcodes",s.codes);put(r,".lbmfront",s.front);'
+            'put(r,".lbmexact",s.exact);'
+            'put(r,".lbmeff",s.eff,s.effSlug);'
+            'put(r,".lbmgeo",s.geo,s.geoSlug);'
+            'r.dataset.erank=s.erank;r.dataset.grank=s.grank;vis.push(r);});'
+            'vis.sort(function(a,c){'
+            'return (+a.dataset[key])-(+c.dataset[key]);})'
             '.forEach(function(r,i){'
             'r.querySelector(".lbrank").textContent=i+1;'
-            'r.classList.toggle("lbtop",i===0);'
-            'list.appendChild(r);});}'
+            'r.classList.toggle("lbtop",i===0);list.appendChild(r);});'
+            'if(heroes)heroes.innerHTML=b.hero;'
+            'if(subs)subs.innerHTML=b.subs;'
+            'sec.dataset.mode=mode;'
+            'if(val)val.textContent=w;'
+            'if(fill)fill.style.width=((w-WMIN)/SPAN*100)+"%";}'
+            'if(rng)rng.addEventListener("input",apply);'
             'sec.querySelectorAll(".lbbtn").forEach(function(b){'
             'b.addEventListener("click",function(){'
             'sec.querySelectorAll(".lbbtn").forEach(function(x){'
             'x.classList.remove("active");});'
-            'b.classList.add("active");apply(b.dataset.lb);});});'
+            'b.classList.add("active");mode=b.dataset.lb;apply();});});'
+            'apply();'
             '})();</script>')
     return ('<section class=lb id=leaderboard data-mode=eff>'
             '<div class=lbhead>'
             f'<div><h2 class=lbh>Leaderboard</h2>{subs}</div>'
-            + toggle + hero +
-            '</div>'
+            + wslider + toggle
+            + f'<span class=lbheroes id=lbheroes>{hero}</span>'
+            + '</div>'
             f'<div class=lblist>{"".join(rows)}</div>'
             + modal + cmodal + lbjs +
             '</section>')
@@ -2527,6 +2667,7 @@ LOCALITY_LABEL = {"local-2d-single": "2D-local single",
                   "unrestricted": "unrestricted"}
 WEIGHT_LABEL = {"weight-4": "weight ≤ 4", "weight-6": "weight ≤ 6",
                 "weight-8": "weight ≤ 8", "weight-any": "any weight"}
+
 
 # Layer-2 family tags (filterable, never ranked).
 FAMILY_LABEL = {
@@ -2957,9 +3098,8 @@ def primary_tracks_grid(entries, records):
             def gitem(i, pos):
                 e = entries[i]
                 geo = e["geo"]
-                geod = ("" if geo is None else
-                        ("" if e["tier"] == "exact" else "&le;")
-                        + f"{geo:.3g}")
+                # no d <= marker: kd^2/n carries the same tier and shows none
+                geod = "" if geo is None else f"{geo:.3g}"
                 # the seeded surface/toric/Steane tilings ARE the g = 1
                 # ceiling (same convention as the record chart); in g mode
                 # they rank below every submission, dimmed, as the reference
