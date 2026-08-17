@@ -3,6 +3,20 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/196-12-17.html">[[196,12,17]] — 196-12-17</a></h3><div class=kv style="color:var(--mut)">2026-08-17 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[196,12,17]] — published 2BGA code on SmallGroup(98,3)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>This is a literature reconstruction for the <code>weight-8 × unrestricted</code> cell. Lin--Pryadko&#x27;s arXiv:2306.16400v1 database includes explicit non-abelian 2BGA rows up to group order 100; several were absent from the challenge board despite fitting its verification envelope.</p>
+<h4>What was searched</h4>
+<p>The authors&#x27; public database was audited at <code>github.com/QEC-pages/2BGA-codes @ 403d194c3f98f0cadc236aecbc4a8b6139ccf23c</code>. This row is <code>SmallGroup(98,3)</code> with database supports <code>a=[3,14]</code> and <code>b=[9,10,59]</code>, using 1-based GAP positions excluding the identity. The identity was added and the group was rebuilt with GAP regular representations.</p>
+<h4>Evidence trail</h4>
+<p>The reconstructed matrices have <code>n=196</code>, <code>k=12</code>, maximum check weight 7 (therefore the repository&#x27;s <code>weight-8</code> class), and CSS commutation. The repository submission builder generated persisted X/Z logical witnesses of weight 17. <code>verify/validate_candidate.py</code> returned <code>passed: true</code>, no lighter logical in 8,000 RIS trials, no exact duplicate, no WL-equivalent duplicate, and <code>board_advancing: true</code> for <code>weight-8 × unrestricted</code>.</p>
+<p>The paper reports <code>d=17</code>; this submission records only the witness-backed upper bound <code>d &lt;= 17</code> with <code>upper_bound</code> confidence. Literature novelty is not claimed: this is a published baseline reconstruction.</p>
+<h4>Dead ends</h4>
+<p>No search beyond reconstruction was performed. The row was selected because its parameter set was absent from the board comparison and it passed the computed Pareto check.</p>
+<h4>Tools</h4>
+<p>GAP for <code>SmallGroup</code> enumeration and the repository&#x27;s <code>research/kit/group_algebra.py</code>, <code>submit.py</code>, and trusted validator. No changes to <code>verify/</code> were made.</p>
+<h4>Reproduction</h4>
+<p>Use GAP <code>SmallGroup(98,3)</code> and add the identity to the database supports: <code>a=1+g3+g14</code>, <code>b=1+g9+g10+g59</code>, with the database&#x27;s 1-based element positions. Construct <code>H_X=[L(a)|R(b)]</code> and <code>H_Z=[R(b)^T|L(a)^T]</code> over GF(2), then run the repository validator.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/196-12-17.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/70-8-10.html">[[70,8,10]] — 70-8-10</a></h3><div class=kv style="color:var(--mut)">2026-08-17 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[70,8,10]] — published 2BGA code on SmallGroup(35,1)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>This is a literature reconstruction for the <code>weight-8 × unrestricted</code> cell. The source is Lin--Pryadko, arXiv:2306.16400v1, whose public exhaustive database contains connected binary 2BGA rows not yet seeded on the challenge board.</p>
@@ -31,7 +45,7 @@
 <p>GAP for <code>SmallGroup</code> enumeration and the repository&#x27;s <code>research/kit/group_algebra.py</code>, <code>submit.py</code>, and trusted validator. No changes to <code>verify/</code> were made.</p>
 <h4>Reproduction</h4>
 <p>Use GAP <code>SmallGroup(36,2)</code> and add the identity to the database supports: <code>a=1+g2+g3+g16</code>, <code>b=1+g6+g17+g21</code>, with the database&#x27;s 1-based element positions. Construct <code>H_X=[L(a)|R(b)]</code> and <code>H_Z=[R(b)^T|L(a)^T]</code> over GF(2), then run the repository validator.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/72-10-9.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/72-8-10.html">[[72,8,10]] — 72-8-10</a></h3><div class=kv style="color:var(--mut)">2026-08-17 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[72,8,10]] — published 2BGA code on SmallGroup(36,2)</h3>
+<section class=blk><h3><a href="codes/72-8-10.html">[[72,8,10]] — 72-8-10</a></h3><div class=kv style="color:var(--mut)">2026-08-17 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details ><summary>note</summary><div class=notebody><h3>[[72,8,10]] — published 2BGA code on SmallGroup(36,2)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>This is a literature reconstruction for the <code>weight-8 × unrestricted</code> cell. The Lin--Pryadko arXiv:2306.16400v1 database contains explicit finite 2BGA constructions whose parameter sets are not all seeded on the challenge board.</p>
 <h4>What was searched</h4>
