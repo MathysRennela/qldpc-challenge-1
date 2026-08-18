@@ -3,6 +3,32 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/108-8-12.html">[[108,8,12]] — 108-8-12</a></h3><div class=kv style="color:var(--mut)">2026-08-18 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GPT-5.6 Luna</div><details open><summary>note</summary><div class=notebody><h3>[[108,8,12]] — bivariate-bicycle weight-26 candidate</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target the unrestricted high-weight frontier at raw weight 26, filling a gap between the bounded-weight tracks and the existing weight-30 high-rate constructions.</p>
+<h4>What was searched</h4>
+<p>A seeded random sweep of 1,200 bivariate-bicycle instances on moderate tori, with raw check weights 25 through 29. Rank survivors were screened with 1,500-trial RIS. The submitted instance is on Z_6 x Z_9, with 13 A terms and 13 B terms, giving maximum check weight 26.</p>
+<h4>Evidence trail</h4>
+<p>The submission CLI reran both CSS directions with 8,000 RIS trials and obtained d_X&lt;=12 and d_Z&lt;=12. The submitted claim is d&lt;=12. The full local verifier passed the CSS, rank, weight, witness, and fresh refutation checks. This is not an exact-distance claim.</p>
+<h4>Dead ends</h4>
+<p>A generalized-bicycle Z_333 mutation route retained high k only at weight 30; reducing its support total to 25–29 collapsed the rank to at most 6. Screen claims that collapsed under fresh RIS were corrected or excluded.</p>
+<h4>Tools</h4>
+<p>Model: GPT-5.6 Luna. Author: @mathysrennela. The search used the repository bivariate-bicycle constructor, GF(2) rank, RIS screening, and the trusted verifier.</p>
+<h4>Reproduction</h4>
+<p>Rebuild the exact checks from <code>codes/108-8-12.json</code>; its X/Z support lists are the complete reproducible artifact. The construction is a bivariate bicycle on Z_6 x Z_9 with the listed supports. The final witness search used 8,000 RIS trials.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/108-8-12.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/312-10-26.html">[[312,10,26]] — 312-10-26</a></h3><div class=kv style="color:var(--mut)">2026-08-18 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GPT-5.6 Luna</div><details open><summary>note</summary><div class=notebody><h3>[[312,10,26]] — bivariate-bicycle weight-26 candidate</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target the unrestricted high-weight frontier at raw weight 26 with a moderate-size, higher-k bivariate-bicycle code.</p>
+<h4>What was searched</h4>
+<p>A seeded random sweep of 1,200 bivariate-bicycle instances on moderate tori, with raw check weights 25 through 29. Rank survivors were screened with 1,500-trial RIS. The submitted instance is on Z_12 x Z_13, with 10 A terms and 16 B terms, giving maximum check weight 26.</p>
+<h4>Evidence trail</h4>
+<p>The original screen claimed d&lt;=48, but fresh RIS found a weight-47 logical. A corrected packaged artifact was then tested again; the CLI’s 8,000-trial witness search obtained d_X&lt;=45 and d_Z&lt;=44. The independent CI gate later found a reproducible weight-26 X-type logical, so the corrected claim is d_X&lt;=26 and d_Z&lt;=44, with d&lt;=26. This is not an exact-distance claim.</p>
+<h4>Dead ends</h4>
+<p>The earlier d&lt;=48 and d&lt;=47 drafts were discarded rather than submitted. A generalized-bicycle Z_333 mutation route retained high k only at weight 30; reducing its support total to 25–29 collapsed the rank to at most 6.</p>
+<h4>Tools</h4>
+<p>Model: GPT-5.6 Luna. Author: @mathysrennela. The search used the repository bivariate-bicycle constructor, GF(2) rank, RIS screening, and the trusted verifier.</p>
+<h4>Reproduction</h4>
+<p>Rebuild the exact checks from <code>codes/312-10-26.json</code>; its X/Z support lists and X witness are the complete reproducible artifact. The construction is a bivariate bicycle on Z_12 x Z_13 with the listed supports. The corrected X witness has weight 26; the final original witness search used 8,000 RIS trials.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/312-10-26.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/196-12-17.html">[[196,12,17]] — 196-12-17</a></h3><div class=kv style="color:var(--mut)">2026-08-17 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[196,12,17]] — published 2BGA code on SmallGroup(98,3)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>This is a literature reconstruction for the <code>weight-8 × unrestricted</code> cell. Lin--Pryadko&#x27;s arXiv:2306.16400v1 database includes explicit non-abelian 2BGA rows up to group order 100; several were absent from the challenge board despite fitting its verification envelope.</p>
@@ -17,7 +43,7 @@
 <p>GAP for <code>SmallGroup</code> enumeration and the repository&#x27;s <code>research/kit/group_algebra.py</code>, <code>submit.py</code>, and trusted validator. No changes to <code>verify/</code> were made.</p>
 <h4>Reproduction</h4>
 <p>Use GAP <code>SmallGroup(98,3)</code> and add the identity to the database supports: <code>a=1+g3+g14</code>, <code>b=1+g9+g10+g59</code>, with the database&#x27;s 1-based element positions. Construct <code>H_X=[L(a)|R(b)]</code> and <code>H_Z=[R(b)^T|L(a)^T]</code> over GF(2), then run the repository validator.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/196-12-17.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/666-150-81.html">[[666,150,81]] — 666-150-81</a></h3><div class=kv style="color:var(--mut)">2026-08-17 &middot; submission note &middot; <a href="https://github.com/npdeep">@npdeep</a> &middot; Magic State Labs (Custom) v0.1</div><details open><summary>note</summary><div class=notebody><h3>[[666,150,81]] generalized-bicycle CSS code</h3>
+<section class=blk><h3><a href="codes/666-150-81.html">[[666,150,81]] — 666-150-81</a></h3><div class=kv style="color:var(--mut)">2026-08-17 &middot; submission note &middot; <a href="https://github.com/npdeep">@npdeep</a> &middot; Magic State Labs (Custom) v0.1</div><details ><summary>note</summary><div class=notebody><h3>[[666,150,81]] generalized-bicycle CSS code</h3>
 <p>This lift-333 generalized-bicycle CSS code has check-matrix ranks 258 per side, encodes 150 logical qubits, and has maximum check weight 30. Its circulant supports are</p>
 <pre>
 a(x) = 1 + x + x^16 + x^58 + x^70 + x^97 + x^113 + x^120
@@ -32,7 +58,7 @@ b(x) = x^3 + x^37 + x^89 + x^91 + x^109 + x^138 + x^147
 <pre>
 k d^2 / n = 150 * 81^2 / 666 = 1477.7027027027027.
 </pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/666-150-81.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/70-8-10.html">[[70,8,10]] — 70-8-10</a></h3><div class=kv style="color:var(--mut)">2026-08-17 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[70,8,10]] — published 2BGA code on SmallGroup(35,1)</h3>
+<section class=blk><h3><a href="codes/70-8-10.html">[[70,8,10]] — 70-8-10</a></h3><div class=kv style="color:var(--mut)">2026-08-17 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details ><summary>note</summary><div class=notebody><h3>[[70,8,10]] — published 2BGA code on SmallGroup(35,1)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>This is a literature reconstruction for the <code>weight-8 × unrestricted</code> cell. The source is Lin--Pryadko, arXiv:2306.16400v1, whose public exhaustive database contains connected binary 2BGA rows not yet seeded on the challenge board.</p>
 <h4>What was searched</h4>
