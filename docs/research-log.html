@@ -17,6 +17,21 @@
 <p>GAP for <code>SmallGroup</code> enumeration and the repository&#x27;s <code>research/kit/group_algebra.py</code>, <code>submit.py</code>, and trusted validator. No changes to <code>verify/</code> were made.</p>
 <h4>Reproduction</h4>
 <p>Use GAP <code>SmallGroup(98,3)</code> and add the identity to the database supports: <code>a=1+g3+g14</code>, <code>b=1+g9+g10+g59</code>, with the database&#x27;s 1-based element positions. Construct <code>H_X=[L(a)|R(b)]</code> and <code>H_Z=[R(b)^T|L(a)^T]</code> over GF(2), then run the repository validator.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/196-12-17.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/666-150-81.html">[[666,150,81]] — 666-150-81</a></h3><div class=kv style="color:var(--mut)">2026-08-17 &middot; submission note &middot; <a href="https://github.com/npdeep">@npdeep</a> &middot; Magic State Labs (Custom) v0.1</div><details open><summary>note</summary><div class=notebody><h3>[[666,150,81]] generalized-bicycle CSS code</h3>
+<p>This lift-333 generalized-bicycle CSS code has check-matrix ranks 258 per side, encodes 150 logical qubits, and has maximum check weight 30. Its circulant supports are</p>
+<pre>
+a(x) = 1 + x + x^16 + x^58 + x^70 + x^97 + x^113 + x^120
+       + x^129 + x^164 + x^168 + x^179 + x^186 + x^242
+       + x^255 + x^274
+b(x) = x^3 + x^37 + x^89 + x^91 + x^109 + x^138 + x^147
+       + x^217 + x^228 + x^235 + x^246 + x^289 + x^311
+       + x^327
+</pre>
+<p>The generalized-bicycle search screened the candidate with progressively larger information-set searches. The six-stage confirmation ladder used 100,000, 500,000, and 2,000,000 depth-8 trials per CSS direction, followed by an independent 5,000,000-trial depth-8 run and 2,000,000-trial depth-16 and depth-24 runs. An independent CI RIS-fast gate subsequently found a weight-81 Z logical operator. The retained weight-82 X and weight-81 Z logical operators were independently validated against the submitted check matrices.</p>
+<p>The included witnesses therefore support only the upper-bound claim <code>d&lt;=81</code>; no distance lower bound or exact-distance claim is made. The resulting reported score is</p>
+<pre>
+k d^2 / n = 150 * 81^2 / 666 = 1477.7027027027027.
+</pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/666-150-81.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/70-8-10.html">[[70,8,10]] — 70-8-10</a></h3><div class=kv style="color:var(--mut)">2026-08-17 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[70,8,10]] — published 2BGA code on SmallGroup(35,1)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>This is a literature reconstruction for the <code>weight-8 × unrestricted</code> cell. The source is Lin--Pryadko, arXiv:2306.16400v1, whose public exhaustive database contains connected binary 2BGA rows not yet seeded on the challenge board.</p>
@@ -31,7 +46,7 @@
 <p>GAP for <code>SmallGroup</code> enumeration and the repository&#x27;s <code>research/kit/group_algebra.py</code>, <code>submit.py</code>, and trusted validator. The source database and GAP implementation are pinned above; no changes to <code>verify/</code> were made.</p>
 <h4>Reproduction</h4>
 <p>Use GAP <code>SmallGroup(35,1)</code> and add the identity to the database supports: <code>a=1+g3+g9+g27</code>, <code>b=1+g5+g26+g32</code>, with the database&#x27;s 1-based element positions. Construct <code>H_X=[L(a)|R(b)]</code> and <code>H_Z=[R(b)^T|L(a)^T]</code> over GF(2), then run the repository validator.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/70-8-10.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/72-10-9.html">[[72,10,9]] — 72-10-9</a></h3><div class=kv style="color:var(--mut)">2026-08-17 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[72,10,9]] — published 2BGA code on SmallGroup(36,2)</h3>
+<section class=blk><h3><a href="codes/72-10-9.html">[[72,10,9]] — 72-10-9</a></h3><div class=kv style="color:var(--mut)">2026-08-17 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details ><summary>note</summary><div class=notebody><h3>[[72,10,9]] — published 2BGA code on SmallGroup(36,2)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>This is a literature reconstruction for the <code>weight-8 × unrestricted</code> cell. Lin--Pryadko&#x27;s arXiv:2306.16400v1 database provides explicit finite group and support data for connected binary 2BGA codes that are not all represented on the challenge board.</p>
 <h4>What was searched</h4>
