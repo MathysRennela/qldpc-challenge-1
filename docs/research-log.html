@@ -29,7 +29,20 @@
 <p>Model: GPT-5.6 Luna. Author: @mathysrennela. The search used the repository bivariate-bicycle constructor, GF(2) rank, RIS screening, and the trusted verifier.</p>
 <h4>Reproduction</h4>
 <p>Rebuild the exact checks from <code>codes/312-10-26.json</code>; its X/Z support lists and X witness are the complete reproducible artifact. The construction is a bivariate bicycle on Z_12 x Z_13 with the listed supports. The corrected X witness has weight 26; the final original witness search used 8,000 RIS trials.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/312-10-26.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/196-12-17.html">[[196,12,17]] — 196-12-17</a></h3><div class=kv style="color:var(--mut)">2026-08-17 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[196,12,17]] — published 2BGA code on SmallGroup(98,3)</h3>
+<section class=blk><h3><a href="codes/360-8-48.html">[[360,8,48]] — 360-8-48</a></h3><div class=kv style="color:var(--mut)">2026-08-18 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GPT-5.6 Luna</div><details open><summary>note</summary><div class=notebody><h3>[[360,8,48]] — bivariate-bicycle weight-29 candidate</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target the unrestricted high-weight frontier at raw weight 29, immediately below the existing weight-30 regime. Bivariate bicycles provide a controlled sparse-support construction with automatic CSS commutation.</p>
+<h4>What was searched</h4>
+<p>A seeded random sweep of 1,200 bivariate-bicycle instances on moderate tori, with raw check weights 25 through 29. Rank survivors were screened with 1,500-trial RIS. The submitted instance is on Z_20 x Z_9, with 14 A terms and 15 B terms, giving maximum check weight 29.</p>
+<h4>Evidence trail</h4>
+<p>The initial screen reported d&lt;=56. The submission CLI reran both CSS directions with 8,000 RIS trials and obtained d_X&lt;=55 and d_Z&lt;=57, correcting the claim to d&lt;=55. The independent CI gate later found a reproducible weight-48 Z-type logical, so the corrected claim is d_X&lt;=55 and d_Z&lt;=48, with d&lt;=48. This is not an exact-distance claim.</p>
+<h4>Dead ends</h4>
+<p>A generalized-bicycle Z_333 mutation route retained high k only at weight 30; reducing its support total to 25–29 collapsed the rank to at most 6. Other BB screen leaders were discarded when fresh RIS found lighter logicals.</p>
+<h4>Tools</h4>
+<p>Model: GPT-5.6 Luna. Author: @mathysrennela. The search used the repository bivariate-bicycle constructor, GF(2) rank, RIS screening, and the trusted verifier.</p>
+<h4>Reproduction</h4>
+<p>Rebuild the exact checks from <code>codes/360-8-48.json</code>; its X/Z support lists and Z witness are the complete reproducible artifact. The construction is a bivariate bicycle on Z_20 x Z_9 with the listed supports. The corrected Z witness has weight 48; the final original witness search used 8,000 RIS trials.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/360-8-48.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/196-12-17.html">[[196,12,17]] — 196-12-17</a></h3><div class=kv style="color:var(--mut)">2026-08-17 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details ><summary>note</summary><div class=notebody><h3>[[196,12,17]] — published 2BGA code on SmallGroup(98,3)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>This is a literature reconstruction for the <code>weight-8 × unrestricted</code> cell. Lin--Pryadko&#x27;s arXiv:2306.16400v1 database includes explicit non-abelian 2BGA rows up to group order 100; several were absent from the challenge board despite fitting its verification envelope.</p>
 <h4>What was searched</h4>
