@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.join(_HERE, "kit"))
 sys.path.insert(0, os.path.join(_HERE, "..", "verify"))
 
 from bb import build_bb, KNOWN
+import surrogate
 from surrogate import distance_rand
 from search import screen, sample_bb
 
@@ -29,6 +30,18 @@ def main():
         pass
     else:
         raise AssertionError("invalid backend was accepted")
+
+    class NoLogicalBackend:
+        @staticmethod
+        def distance_rand_witness(*args, **kwargs):
+            return HX.shape[1] + 1, "", []
+
+    original_backend = surrogate._fast
+    surrogate._fast = NoLogicalBackend()
+    try:
+        assert distance_rand(HX, HZ, trials=1, backend="fast") == float("inf")
+    finally:
+        surrogate._fast = original_backend
 
     if gf2_fast is not None:
         assert distance_rand(

@@ -163,7 +163,9 @@ update_leaderboard("board.json", records)   # merge + persist, so a sweep can re
 description of how the code was built — so you can point it at **your own generator** for any
 family. `sample_bb` is a ready-made one; a 2BGA or coset sampler over `group_algebra` / `coset`
 has the same shape. `backend="fast"` requires `make fast`; `threads=` controls its CPU workers.
-All screening values remain upper bounds, and finalists must still pass the validation gate.
+The `trials` value is backend-specific: NumPy iterations and fast RIS samples are
+not comparable screening budgets. All screening values remain upper bounds, and
+finalists must still pass the validation gate.
 
 ## 4. Package a submission
 

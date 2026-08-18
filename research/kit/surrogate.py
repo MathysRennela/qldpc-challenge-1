@@ -58,6 +58,9 @@ def _distance_rand_fast(HX, HZ, trials, seed, threads):
         trials=int(trials), seed=int(seed), pair_depth=10, threads=int(threads))
     if not _validate_fast_witness(HX, HZ, weight, side, support):
         raise RuntimeError("gf2_fast returned an invalid logical witness")
+    # Match the NumPy backend's no-witness result so screen() filters it out.
+    if weight > HX.shape[1]:
+        return float("inf")
     return int(weight)
 
 
@@ -194,6 +197,8 @@ def distance_rand(HX, HZ, trials=2000, seed=0, *, backend="numpy", threads=1):
     ``backend`` is ``"numpy"`` (portable), ``"fast"`` (requires ``make fast``),
     or ``"auto"`` (fast when available, otherwise NumPy). Fast proposals are
     validated by Python; this remains an upper-bound search, not a proof.
+    ``trials`` counts different search operations in the two backends, so the
+    same value is not a comparable screening budget across backends.
     """
     if backend not in ("numpy", "fast", "auto"):
         raise ValueError("backend must be 'numpy', 'fast', or 'auto'")
