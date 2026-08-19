@@ -1,5 +1,5 @@
 {
- "schema_version": "0.1",
+ "schema_version": "0.2",
  "name": "[[502,102,d<=50]] designed-divisor generalized-bicycle CSS code",
  "code_type": "CSS",
  "n": 502,
@@ -13118,7 +13118,18 @@
     231,
     234,
     243
-   ]
+   ],
+   "witness_provenance": {
+    "found_by": [
+     "@FarLab"
+    ],
+    "date": "2026-08-19",
+    "found_at_samples": 1000000000,
+    "tool": "ris_gpu",
+    "seeds": [
+     88000007
+    ]
+   }
   },
   "Z": {
    "value": 50,
@@ -13174,20 +13185,30 @@
     232,
     235,
     244
-   ]
+   ],
+   "witness_provenance": {
+    "found_by": [
+     "@FarLab"
+    ],
+    "date": "2026-08-19",
+    "found_at_samples": 1000000000,
+    "tool": "ris_gpu",
+    "seeds": [
+     88000007
+    ]
+   }
   }
  },
  "provenance": {
   "authors": [
-   "@npdeep",
-   "@FarLab"
+   "@npdeep"
   ],
   "construction": "Generalized-bicycle CSS code over F2[x]/(x^251-1): H_X=[A|B], H_Z=[B^T|A^T], with A=sum_{e in a} P^e, a=[0,1,5,23,41,46,72,84,103,197,211,223], and B=sum_{e in b} P^e, b=[72,153,155,156,157,176,194,237,239,241,244,246].",
   "references": [
    "arXiv:2306.16400"
   ],
   "date": "2026-08-13",
-  "notes": "Witness-backed d<=56 only; no exact-distance claim. Distance revised 2026-08-19 by GPU deep refutation with the board's standalone ris_gpu tool (verify/ris_gpu.cu, sqetch kernels by Muzhou Ma, MIT) on an NVIDIA L40S: a 1,000,000,000-trial random-ISD recovery ladder per side (seed 88000007) committed a weight-50 X logical and a weight-50 Z logical, both re-verified on the CPU with the repo's GF(2) arithmetic and recorded here as the new per-side witnesses. This tightens d<=56 to d<=50 and the score from 102*56^2/502 = 637.15 to 102*50^2/502 = 507.97. The distance remains a witness-backed upper bound, not an exact-distance claim. @npdeep constructed the code; @FarLab is added as an author for the refutation, following the board's precedent for refutation contributions.",
+  "notes": "Witness-backed d<=56 only; no exact-distance claim. Distance revised 2026-08-19 by GPU deep refutation with the board's standalone ris_gpu tool (verify/ris_gpu.cu, sqetch kernels by Muzhou Ma, MIT) on an NVIDIA L40S: a 1,000,000,000-trial random-ISD recovery ladder per side (seed 88000007) committed a weight-50 X logical and a weight-50 Z logical, both re-verified on the CPU with the repo's GF(2) arithmetic and recorded here as the new per-side witnesses. This tightens d<=56 to d<=50 and the score from 102*56^2/502 = 637.15 to 102*50^2/502 = 507.97. The distance remains a witness-backed upper bound, not an exact-distance claim. @npdeep constructed the code. Refutation credit and the search budget are recorded in witness_provenance on each corrected side (schema 0.2, issue #611); authorship is unchanged.",
   "model": "Magic State Labs (Custom) v0.1"
  },
  "family": "generalized-bicycle"
