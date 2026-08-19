@@ -1629,9 +1629,9 @@ def sci_int(v):
         return str(v)
     e = len(str(v)) - 1
     m = v / 10 ** e
-    if m == 1:
-        return f'10<sup>{e}</sup>'
     ms = f"{m:.1f}".rstrip("0").rstrip(".")
+    if ms == "1":
+        return f'10<sup>{e}</sup>'
     return f'{ms}&times;10<sup>{e}</sup>'
 
 
@@ -1888,7 +1888,11 @@ def detail_page(e):
                          + authors_html(wp["found_by"])]
                 if wp.get("tool"):
                     parts.append(html.escape(wp["tool"]))
-                parts.append(f'survived {sci_int(wp["samples"])} trials')
+                parts.append(f'found at {sci_int(wp["found_at_samples"])} '
+                             'trials')
+                if wp.get("survived_samples"):
+                    parts.append('survived '
+                                 f'{sci_int(wp["survived_samples"])} trials')
                 parts.append(html.escape(wp["date"]))
                 P.append('<div class=kv style="color:var(--mut)">'
                          + " &middot; ".join(parts) + '</div>')
