@@ -1619,6 +1619,22 @@ def research_log_page(entries, fieldnotes):
     return "\n".join(P)
 
 
+def sci_int(v):
+    """Compact trial-count display: exact powers of ten as 10<sup>e</sup>,
+    everything else as m×10<sup>e</sup> to two significant figures, small
+    numbers verbatim. The budget a witness survived is evidence (issue #611),
+    so it is shown, not buried."""
+    v = int(v)
+    if v < 10000:
+        return str(v)
+    e = len(str(v)) - 1
+    m = v / 10 ** e
+    ms = f"{m:.1f}".rstrip("0").rstrip(".")
+    if ms == "1":
+        return f'10<sup>{e}</sup>'
+    return f'{ms}&times;10<sup>{e}</sup>'
+
+
 def authors_html(lst):
     """A GitHub handle is written with a leading '@' in the data and rendered as
     a profile link; anything else (a paper-author surname or citation string) is
@@ -1866,6 +1882,20 @@ def detail_page(e):
             P.append(f'<div class=kv><b>d_{side}</b> {sd["value"]} '
                      f'&middot; witness weight {len(wit)} '
                      f'({"claimed " + sd["confidence"]})</div>')
+            wp = sd.get("witness_provenance")
+            if wp:
+                parts = ['witness found by '
+                         + authors_html(wp["found_by"])]
+                if wp.get("tool"):
+                    parts.append(html.escape(wp["tool"]))
+                parts.append(f'found at {sci_int(wp["found_at_samples"])} '
+                             'trials')
+                if wp.get("survived_samples"):
+                    parts.append('survived '
+                                 f'{sci_int(wp["survived_samples"])} trials')
+                parts.append(html.escape(wp["date"]))
+                P.append('<div class=kv style="color:var(--mut)">'
+                         + " &middot; ".join(parts) + '</div>')
             P.append(f'<details><summary>witness operator (support, {len(wit)} '
                      f'qubits)</summary><div class=wit>{wit}</div></details>')
     if cert and cert.get("d_exact"):
