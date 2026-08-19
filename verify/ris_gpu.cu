@@ -355,6 +355,224 @@ sqetch_ksub_recover_kernel(
 }
 
 /* ------------------------------------------------------------------ */
+/*  Deep kernel: full-basis RREF + depth-2 pair stage (this repo).     */
+/*                                                                     */
+/*  Motivation: the sketch kernels above are depth-1 Prange -- a trial */
+/*  succeeds only if the permutation isolates the target's ENTIRE      */
+/*  support. Empirically (two-orbit GB campaign, 2026-08-19) 1e5 CPU   */
+/*  information sets with a pair stage beat 4e7 sketched GPU trials at */
+/*  n >= 500. This kernel gives GPU trials the same per-trial power:   */
+/*  when k_sub >= k_null the whole kernel basis is copied (no          */
+/*  with-replacement rank loss), and after the RREF the lightest       */
+/*  pair_top rows are XORed pairwise (Leon/Stern-style depth 2).       */
+/*  Recover-capable: the winning vector (row or row-pair XOR) is       */
+/*  written back for CPU re-verification.                              */
+/* ------------------------------------------------------------------ */
+
+#define MAX_PAIR_TOP 32
+
+__global__ void __launch_bounds__(BLOCK_SIZE)
+deep_pair_kernel(
+    const uint64_t* __restrict__ W_null,
+    const uint64_t* __restrict__ W_logical,
+    int k, int kx, int nw, int n, int k_sub, int pair_top,
+    int* global_best,
+    unsigned long long base_seed,
+    int d_target,
+    int* found_flag,
+    uint64_t* out_vec,
+    int* done_flag
+) {
+    const int bid = blockIdx.x;
+    const int tid = threadIdx.x;
+
+    extern __shared__ char raw_shmem[];
+
+    uint16_t* perm = (uint16_t*)raw_shmem;
+    int perm_bytes = (n * 2 + 7) & ~7;
+    uint64_t* W_sub = (uint64_t*)(raw_shmem + perm_bytes);
+    int wsub_bytes = k_sub * nw * 8;
+    uint64_t* pivot_row_shmem = (uint64_t*)(raw_shmem + perm_bytes + wsub_bytes);
+    int pivot_bytes = nw * 8;
+    int16_t* wts = (int16_t*)(raw_shmem + perm_bytes + wsub_bytes + pivot_bytes);
+    int wts_bytes = (k_sub * 2 + 7) & ~7;
+    int* control = (int*)(raw_shmem + perm_bytes + wsub_bytes + pivot_bytes + wts_bytes);
+    /* control[0..1] as above; control[2..2+MAX_PAIR_TOP) top row indices */
+    int* thread_best = control + 2 + MAX_PAIR_TOP;
+    int* thread_ra = thread_best + BLOCK_SIZE;
+    int* thread_rb = thread_ra + BLOCK_SIZE;
+
+    uint64_t block_seed = base_seed ^ ((uint64_t)bid * 6364136223846793005ULL + 1442695040888963407ULL);
+
+    if (tid == 0) {
+        uint64_t rng = block_seed;
+        xorshift64(&rng);
+        for (int i = 0; i < n; i++) perm[i] = (uint16_t)i;
+        for (int i = n - 1; i > 0; i--) {
+            int j = (int)(xorshift64(&rng) % (uint64_t)(i + 1));
+            uint16_t tmp = perm[i]; perm[i] = perm[j]; perm[j] = tmp;
+        }
+        control[1] = 0;
+    }
+
+    /* full copy when the whole basis fits; sketch draw otherwise */
+    if (k_sub >= k) {
+        for (size_t i = tid; i < (size_t)k * nw; i += BLOCK_SIZE)
+            W_sub[i] = __ldg(W_null + i);
+    } else {
+        uint64_t thread_rng = block_seed ^ ((uint64_t)tid * 2685821657736338717ULL + 1);
+        xorshift64(&thread_rng);
+        for (int s = tid; s < k_sub; s += BLOCK_SIZE) {
+            int src_row = (int)(xorshift64(&thread_rng) % (uint64_t)k);
+            const uint64_t* src = W_null + (size_t)src_row * nw;
+            uint64_t* dst = W_sub + (size_t)s * nw;
+            for (int w = 0; w < nw; w++) dst[w] = __ldg(src + w);
+        }
+    }
+    int rows = k_sub < k ? k_sub : k;
+    __syncthreads();
+
+    for (int c_virt = 0; c_virt < n; c_virt++) {
+        int pr = control[1];
+        if (pr >= rows) { __syncthreads(); __syncthreads(); continue; }
+
+        int c_phys = (int)perm[c_virt];
+        int word = c_phys >> 6;
+        uint64_t mask = (uint64_t)1 << (c_phys & 63);
+
+        if (tid == 0) {
+            int found = -1;
+            for (int r = pr; r < rows; r++)
+                if (W_sub[(size_t)r * nw + word] & mask) { found = r; break; }
+            control[0] = found;
+            if (found != -1) {
+                if (found != pr) {
+                    for (int w = 0; w < nw; w++) {
+                        uint64_t tmp = W_sub[(size_t)pr * nw + w];
+                        W_sub[(size_t)pr * nw + w] = W_sub[(size_t)found * nw + w];
+                        W_sub[(size_t)found * nw + w] = tmp;
+                    }
+                }
+                for (int w = 0; w < nw; w++)
+                    pivot_row_shmem[w] = W_sub[(size_t)pr * nw + w];
+                control[1] = pr + 1;
+            }
+        }
+        __syncthreads();
+        if (control[0] == -1) { __syncthreads(); continue; }
+
+        int pr2 = pr;
+        for (int r = tid; r < rows; r += BLOCK_SIZE) {
+            if (r != pr2 && (W_sub[(size_t)r * nw + word] & mask)) {
+                for (int w = 0; w < nw; w++)
+                    W_sub[(size_t)r * nw + w] ^= pivot_row_shmem[w];
+            }
+        }
+        __syncthreads();
+    }
+
+    /* weights + single-row candidates */
+    thread_best[tid] = n + 1;
+    thread_ra[tid] = -1;
+    thread_rb[tid] = -1;
+    for (int r = tid; r < rows; r += BLOCK_SIZE) {
+        uint64_t* row = W_sub + (size_t)r * nw;
+        int wt = row_weight(row, nw);
+        wts[r] = (int16_t)(wt > 32000 ? 32000 : wt);
+        if (wt == 0 || wt >= thread_best[tid]) continue;
+        int is_logical = 0;
+        for (int rx = 0; rx < kx && !is_logical; rx++)
+            if (gf2_dot(W_logical + (size_t)rx * nw, row, nw)) is_logical = 1;
+        if (is_logical) {
+            thread_best[tid] = wt;
+            thread_ra[tid] = r;
+            thread_rb[tid] = -1;
+        }
+    }
+    __syncthreads();
+
+    /* pair_top lightest rows (thread 0 selection sort) */
+    int top = pair_top < MAX_PAIR_TOP ? pair_top : MAX_PAIR_TOP;
+    if (top > rows) top = rows;
+    if (tid == 0) {
+        for (int t = 0; t < top; t++) {
+            int bi = -1, bw = 1 << 30;
+            for (int r = 0; r < rows; r++) {
+                if (wts[r] <= 0 || wts[r] >= bw) continue;
+                int used = 0;
+                for (int u = 0; u < t; u++)
+                    if (control[2 + u] == r) { used = 1; break; }
+                if (!used) { bw = wts[r]; bi = r; }
+            }
+            control[2 + t] = bi;
+        }
+    }
+    __syncthreads();
+
+    /* depth-2: pairs among the top rows, threads strided over pairs */
+    int npairs = top * (top - 1) / 2;
+    for (int p = tid; p < npairs; p += BLOCK_SIZE) {
+        int a = 0, rem = p;
+        while (rem >= top - 1 - a) { rem -= top - 1 - a; a++; }
+        int b = a + 1 + rem;
+        int ra = control[2 + a], rb = control[2 + b];
+        if (ra < 0 || rb < 0) continue;
+        const uint64_t* pa = W_sub + (size_t)ra * nw;
+        const uint64_t* pb = W_sub + (size_t)rb * nw;
+        int wt = 0;
+        for (int w = 0; w < nw; w++) wt += __popcll(pa[w] ^ pb[w]);
+        if (wt == 0 || wt >= thread_best[tid]) continue;
+        int is_logical = 0;
+        for (int rx = 0; rx < kx && !is_logical; rx++) {
+            uint64_t acc = 0;
+            const uint64_t* lr = W_logical + (size_t)rx * nw;
+            for (int w = 0; w < nw; w++) acc ^= ((pa[w] ^ pb[w]) & lr[w]);
+            acc ^= acc >> 32; acc ^= acc >> 16; acc ^= acc >> 8;
+            acc ^= acc >> 4;  acc ^= acc >> 2;  acc ^= acc >> 1;
+            is_logical = (int)(acc & 1);
+        }
+        if (is_logical) {
+            thread_best[tid] = wt;
+            thread_ra[tid] = ra;
+            thread_rb[tid] = rb;
+        }
+    }
+    __syncthreads();
+
+    for (int stride = BLOCK_SIZE / 2; stride > 0; stride >>= 1) {
+        if (tid < stride && thread_best[tid + stride] < thread_best[tid]) {
+            thread_best[tid] = thread_best[tid + stride];
+            thread_ra[tid] = thread_ra[tid + stride];
+            thread_rb[tid] = thread_rb[tid + stride];
+        }
+        __syncthreads();
+    }
+
+    if (tid == 0) {
+        control[0] = -1;
+        if (thread_best[0] <= n) {
+            atomicMin(global_best, thread_best[0]);
+            if (d_target >= 0 && thread_best[0] < d_target) {
+                if (found_flag) atomicExch(found_flag, 1);
+                if (out_vec && done_flag && atomicExch(done_flag, 1) == 0)
+                    control[0] = 0;   /* we own the output slot */
+            }
+        }
+    }
+    __syncthreads();
+
+    if (control[0] == 0) {
+        int ra = thread_ra[0], rb = thread_rb[0];
+        const uint64_t* pa = W_sub + (size_t)ra * nw;
+        for (int w = tid; w < nw; w += BLOCK_SIZE) {
+            uint64_t v = pa[w];
+            if (rb >= 0) v ^= W_sub[(size_t)rb * nw + w];
+            out_vec[w] = v;
+        }
+    }
+}
+
+/* ------------------------------------------------------------------ */
 /*  Host                                                               */
 /* ------------------------------------------------------------------ */
 
@@ -406,14 +624,29 @@ static int shmem_bytes_for(int n, int nw, int k_sub, bool recover) {
     return perm_bytes + wsub_bytes + pivot_bytes + ctrl_bytes + best_bytes + brow_bytes;
 }
 
+static int shmem_bytes_deep(int n, int nw, int k_sub) {
+    int perm_bytes = (n * 2 + 7) & ~7;
+    int wsub_bytes = k_sub * nw * 8;
+    int pivot_bytes = nw * 8;
+    int wts_bytes = (k_sub * 2 + 7) & ~7;
+    int ctrl_bytes = (2 + MAX_PAIR_TOP) * 4;
+    int best_bytes = 3 * BLOCK_SIZE * 4;
+    return perm_bytes + wsub_bytes + pivot_bytes + wts_bytes + ctrl_bytes + best_bytes;
+}
+
 static void usage(const char* argv0) {
     fprintf(stderr,
         "usage: %s <input.risgpu> [--mode recover|estimate] [--trials N]\n"
         "          [--batch N] [--seed S] [--k-sub K] [--target D]\n"
+        "          [--pair-depth P]\n"
         "  recover (default): ladder toward the lightest logical operator it\n"
         "  can find within the budget; prints its support. estimate: weight\n"
         "  only, slightly faster. --target D stops early once a weight < D\n"
-        "  is committed.\n", argv0);
+        "  is committed. --pair-depth P > 0 switches to the deep kernel:\n"
+        "  full-basis RREF (k_sub defaults to the whole kernel) plus XOR\n"
+        "  combinations of the P lightest rows per trial -- far stronger per\n"
+        "  trial at large n, at lower trial throughput. P is capped at %d;\n"
+        "  larger values are rejected.\n", argv0, MAX_PAIR_TOP);
     exit(2);
 }
 
@@ -425,6 +658,8 @@ int main(int argc, char** argv) {
     int k_sub = 64;
     int d_target = -1;
     bool recover = true;
+    int pair_depth = 0;
+    bool k_sub_given = false;
 
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--mode") && i + 1 < argc) {
@@ -440,6 +675,9 @@ int main(int argc, char** argv) {
             seed = strtoull(argv[++i], nullptr, 10);
         } else if (!strcmp(argv[i], "--k-sub") && i + 1 < argc) {
             k_sub = atoi(argv[++i]);
+            k_sub_given = true;
+        } else if (!strcmp(argv[i], "--pair-depth") && i + 1 < argc) {
+            pair_depth = atoi(argv[++i]);
         } else if (!strcmp(argv[i], "--target") && i + 1 < argc) {
             d_target = atoi(argv[++i]);
         } else if (argv[i][0] == '-') {
@@ -451,24 +689,38 @@ int main(int argc, char** argv) {
         }
     }
     if (!path || trials <= 0 || batch <= 0 || k_sub <= 0) usage(argv[0]);
+    if (pair_depth < 0 || pair_depth > MAX_PAIR_TOP) {
+        fprintf(stderr, "--pair-depth %d out of range (max %d)\n",
+                pair_depth, MAX_PAIR_TOP);
+        exit(2);
+    }
 
     Input in = read_input(path);
     int n = in.n, nw = in.nw;
+    if (pair_depth > 0 && !k_sub_given)
+        k_sub = in.k_null;                 /* deep mode defaults to full basis */
     int k_sub_eff = k_sub < in.k_null ? k_sub : in.k_null;
 
-    int shmem = shmem_bytes_for(n, nw, k_sub_eff, recover);
+    int shmem = pair_depth > 0 ? shmem_bytes_deep(n, nw, k_sub_eff)
+                               : shmem_bytes_for(n, nw, k_sub_eff, recover);
     int max_shmem = 0;
     CUDA_CHECK(cudaDeviceGetAttribute(&max_shmem,
         cudaDevAttrMaxSharedMemoryPerBlockOptin, 0));
     if (shmem > max_shmem) {
-        int overhead = shmem_bytes_for(n, nw, 0, recover);
-        int k_cap = (max_shmem - overhead) / (nw * 8);
+        int overhead = pair_depth > 0 ? shmem_bytes_deep(n, nw, 0)
+                                      : shmem_bytes_for(n, nw, 0, recover);
+        int k_cap = (max_shmem - overhead) / (nw * 8 + (pair_depth > 0 ? 2 : 0));
         fprintf(stderr, "k_sub=%d needs %d bytes shared memory, device max %d; "
                 "max k_sub for n=%d is %d\n", k_sub_eff, shmem, max_shmem, n, k_cap);
         exit(2);
     }
     int shmem_request = (shmem + 4095) & ~4095;
-    if (recover) {
+    if (pair_depth > 0) {
+        CUDA_CHECK(cudaFuncSetAttribute(deep_pair_kernel,
+            cudaFuncAttributeMaxDynamicSharedMemorySize, shmem_request));
+        CUDA_CHECK(cudaFuncSetCacheConfig(deep_pair_kernel,
+            cudaFuncCachePreferShared));
+    } else if (recover) {
         CUDA_CHECK(cudaFuncSetAttribute(sqetch_ksub_recover_kernel,
             cudaFuncAttributeMaxDynamicSharedMemorySize, shmem_request));
         CUDA_CHECK(cudaFuncSetCacheConfig(sqetch_ksub_recover_kernel,
@@ -510,7 +762,13 @@ int main(int argc, char** argv) {
         CUDA_CHECK(cudaMemcpy(d_flag, &zero, 4, cudaMemcpyHostToDevice));
         CUDA_CHECK(cudaMemcpy(d_done, &zero, 4, cudaMemcpyHostToDevice));
 
-        if (recover) {
+        if (pair_depth > 0) {
+            deep_pair_kernel<<<B, BLOCK_SIZE, shmem>>>(
+                d_null, d_logical, in.k_null, in.k_logical, nw, n, k_sub_eff,
+                pair_depth, d_best, batch_seed,
+                recover ? current_target : d_target, d_flag,
+                recover ? d_vec : nullptr, recover ? d_done : nullptr);
+        } else if (recover) {
             sqetch_ksub_recover_kernel<<<B, BLOCK_SIZE, shmem>>>(
                 d_null, d_logical, in.k_null, in.k_logical, nw, n, k_sub_eff,
                 d_best, batch_seed, current_target, d_flag, d_vec, d_perm, d_done);
@@ -554,8 +812,8 @@ int main(int argc, char** argv) {
     }
 
     printf("mode=%s\n", recover ? "recover" : "estimate");
-    printf("n=%d\nk_null=%d\nk_logical=%d\nk_sub=%d\n", n, in.k_null,
-           in.k_logical, k_sub_eff);
+    printf("n=%d\nk_null=%d\nk_logical=%d\nk_sub=%d\npair_depth=%d\n",
+           n, in.k_null, in.k_logical, k_sub_eff, pair_depth);
     printf("seed=%llu\ntrials=%lld\n", seed, trials_done);
     printf("best_weight=%d\n", best_overall <= n ? best_overall : -1);
     if (recover && !best_vec.empty()) {

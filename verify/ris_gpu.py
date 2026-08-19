@@ -85,7 +85,7 @@ def parse_output(text):
         out[key] = val
     if "support" in out:
         out["support"] = [int(x) for x in out["support"].split(",") if x]
-    for key in ("best_weight", "trials", "n"):
+    for key in ("best_weight", "trials", "n", "k_sub", "k_null", "k_logical"):
         if key in out:
             out[key] = int(out[key])
     return out
@@ -114,8 +114,11 @@ def run_side(side, H_check, L_opp, claimed, args, binary):
         write_input(tmp.name, gf2.kernel_basis(H_check), L_opp,
                     H_check.shape[1])
         cmd = [binary, tmp.name, "--mode", args.mode,
-               "--trials", str(args.trials), "--seed", str(args.seed),
-               "--k-sub", str(args.k_sub)]
+               "--trials", str(args.trials), "--seed", str(args.seed)]
+        if args.k_sub is not None:
+            cmd += ["--k-sub", str(args.k_sub)]
+        if args.pair_depth:
+            cmd += ["--pair-depth", str(args.pair_depth)]
         if args.target is not None:
             cmd += ["--target", str(args.target)]
         try:
@@ -148,7 +151,14 @@ def main():
     ap.add_argument("code_json", nargs="+", help="board code JSON file(s)")
     ap.add_argument("--trials", type=int, default=50_000_000)
     ap.add_argument("--seed", type=int, default=1)
-    ap.add_argument("--k-sub", type=int, default=64)
+    ap.add_argument("--k-sub", type=int, default=None,
+                    help="sketch rows (default: binary's default; in "
+                         "--pair-depth mode the binary defaults to the "
+                         "full kernel basis)")
+    ap.add_argument("--pair-depth", type=int, default=0,
+                    help=">0: deep kernel (full-basis RREF + XOR pairs of "
+                         "the P lightest rows per trial); stronger per "
+                         "trial at large n")
     ap.add_argument("--mode", choices=("recover", "estimate"),
                     default="recover")
     ap.add_argument("--target", type=int, default=None,
