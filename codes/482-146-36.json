@@ -1,6 +1,6 @@
 {
  "schema_version": "0.1",
- "name": "[[482,146,42]] prime-index cyclic generalized-bicycle code on Z_241",
+ "name": "[[482,146,36]] prime-index cyclic generalized-bicycle code on Z_241",
  "code_type": "CSS",
  "n": 482,
  "k": 146,
@@ -14471,7 +14471,7 @@
   ]
  },
  "distance": {
-  "d": 42,
+  "d": 36,
   "X": {
    "value": 42,
    "confidence": "upper_bound",
@@ -14521,60 +14521,53 @@
    ]
   },
   "Z": {
-   "value": 44,
+   "value": 36,
    "confidence": "upper_bound",
    "witness": [
-    0,
-    3,
+    5,
+    6,
     12,
-    15,
-    28,
+    14,
+    19,
+    29,
     32,
-    56,
-    59,
-    72,
-    73,
-    94,
+    35,
+    36,
+    43,
+    44,
+    50,
+    65,
+    84,
+    88,
     107,
-    123,
-    133,
+    122,
+    128,
+    129,
+    136,
     137,
-    138,
-    164,
-    180,
-    190,
-    199,
-    212,
-    215,
-    216,
-    232,
-    249,
-    264,
-    280,
-    293,
-    296,
-    305,
-    313,
-    341,
-    342,
-    356,
-    363,
-    365,
-    381,
-    415,
-    417,
-    439,
-    446,
-    458,
-    465,
-    480
+    140,
+    143,
+    153,
+    158,
+    160,
+    166,
+    167,
+    175,
+    238,
+    331,
+    353,
+    357,
+    362,
+    366,
+    388
    ]
   }
  },
  "family": "generalized-bicycle",
  "provenance": {
   "authors": [
-   "@yhu1996"
+   "@yhu1996",
+   "@FarLab"
   ],
   "origin": "submission",
   "construction": "Generalized bicycle (two-block cyclic) code on Z_241 with m=241 PRIME. H_X = [circ(a) | circ(b)], H_Z = [circ(b)^T | circ(a)^T] on n = 2m = 482 qubits. a and b are low-weight codewords of a cyclic divisor ideal <g>, g | x^241 - 1, where g is assembled in one step as a product over a chosen union of 2-cyclotomic cosets of Z_241 of total degree 72. This fixes k = 2 deg gcd(a, b, x^241 - 1) = 146 by design before any distance search, giving rate 0.303. a exponents = [0, 5, 14, 22, 31, 41, 78, 108, 145, 155, 164, 172, 181, 186] (weight 14); b exponents = [0, 1, 9, 10, 40, 51, 78, 94, 117, 134, 157, 173, 200, 211] (weight 14); max check weight 28. Design rationale: choosing m PRIME empties the shift-invariant (period) and coset-union subspaces of Z_m, because Z_m then has no proper nontrivial subgroup. On composite m those subspaces are where two-block cyclic codes carry their lightest logicals -- e.g. on a sibling code at m = 273 = 3*7*13 the period sector at t = 3 cut the honest distance from 48 to 36. Both a and b are mined light codewords of <g> rather than random multiples of g (random multiples give d = 4-7), and a == b draws are rejected since (u,u) is then automatically a logical and forces d = 2.",
@@ -14584,6 +14577,6 @@
    "arXiv:2306.16400"
   ],
   "date": "2026-08-07",
-  "notes": "Found by Jukebox-Autoresearch. Distance is a witness-backed UPPER bound (d <= 42), not exact. The bound was tightened from an initially staged 45 in three stages: (i) a Lee-Brickell search restricted to the four active 2-cyclotomic component subspaces (k = 146 = 2 + 3*48; 392 searches, ~4.1M subspace trials) found nothing below 44; (ii) Lee-Brickell on the full 314-dimensional kernel (60 runs) likewise found nothing below 44; (iii) witness-returning RIS run of 128M total trials (2M trials per configuration over 8 seeds x pair-depths {8,16,24,32} x both orientations) exhibited the weight-42 X-logical packaged here (seed 123457, pair_depth 24). No independent-mechanism cross-check was completed: the pinned BP+OSD decoder (decode/distance.py) exceeded the available budget at this size, so the corroboration is linear-algebraic only. Novelty vs the literature is UNVERIFIED; the construction is a generalized bicycle code, a well-mined family, and while no board entry has these parameters we have not searched the literature for an equivalent [[482,146]] code. No equivalence to an existing board entry is known: the gate reported no exact duplicate and no Weisfeiler-Leman-equivalent entry."
+  "notes": "Found by Jukebox-Autoresearch. Distance is a witness-backed UPPER bound (d <= 42), not exact. The bound was tightened from an initially staged 45 in three stages: (i) a Lee-Brickell search restricted to the four active 2-cyclotomic component subspaces (k = 146 = 2 + 3*48; 392 searches, ~4.1M subspace trials) found nothing below 44; (ii) Lee-Brickell on the full 314-dimensional kernel (60 runs) likewise found nothing below 44; (iii) witness-returning RIS run of 128M total trials (2M trials per configuration over 8 seeds x pair-depths {8,16,24,32} x both orientations) exhibited the weight-42 X-logical packaged here (seed 123457, pair_depth 24). No independent-mechanism cross-check was completed: the pinned BP+OSD decoder (decode/distance.py) exceeded the available budget at this size, so the corroboration is linear-algebraic only. Novelty vs the literature is UNVERIFIED; the construction is a generalized bicycle code, a well-mined family, and while no board entry has these parameters we have not searched the literature for an equivalent [[482,146]] code. No equivalence to an existing board entry is known: the gate reported no exact duplicate and no Weisfeiler-Leman-equivalent entry. Distance revised 2026-08-19 by GPU deep refutation with the board's standalone ris_gpu tool (verify/ris_gpu.cu, sqetch kernels by Muzhou Ma, MIT) on an NVIDIA L40S: a 1,000,000,000-trial random-ISD recovery ladder per side (seed 88000007) committed a weight-36 Z logical, re-verified on the CPU with the repo's GF(2) arithmetic and recorded here as the new Z witness. The same budget found no X logical lighter than weight 43, so the claimed dX<=42 stands. This tightens d<=42 to d<=36 and the score from 146*42^2/482 = 534.26 to 146*36^2/482 = 392.55. The distance remains a witness-backed upper bound, not an exact-distance claim. @yhu1996 constructed the code; @FarLab is added as an author for the refutation, following the board's precedent for refutation contributions."
  }
 }
