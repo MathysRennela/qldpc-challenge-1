@@ -12,15 +12,15 @@ import sys
 import numpy as np
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, _HERE)
 import gf2
 
 try:
     import gf2_fast
-except ImportError:
-    print("SKIP: gf2_fast not built (run `make fast`); pure-Python fallback is "
-          "the reference and needs no test here.")
-    sys.exit(0)
+except ImportError:                      # pragma: no cover - depends on `make fast`
+    import pytest
+    pytest.skip("gf2_fast not built (run `make fast`); the pure-Python "
+                "fallback is the reference and needs no test here.",
+                allow_module_level=True)
 
 FAILURES = []
 
@@ -108,4 +108,6 @@ ok = (side in ("X", "Z")
 check("distance_rand_witness returns a valid logical", ok,
       f"w={w} side={side} |support|={len(support)}")
 
-sys.exit(1 if FAILURES else 0)
+def test_gf2_fast_matches_reference():
+    """pytest entry point: the checks above run at import, this reports them."""
+    assert not FAILURES, FAILURES

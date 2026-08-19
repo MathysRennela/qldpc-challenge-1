@@ -12,7 +12,6 @@ import tempfile
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(_HERE)
-sys.path.insert(0, _HERE)
 import check_prose
 
 FAILURES = []
@@ -119,6 +118,11 @@ def main():
         return 1
     print("all prose checks pass")
     return 0
+
+
+def test_main():
+    """pytest entry point; the suite body lives in main()."""
+    assert main() == 0
 
 
 if __name__ == "__main__":

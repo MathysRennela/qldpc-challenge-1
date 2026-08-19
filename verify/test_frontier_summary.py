@@ -13,9 +13,6 @@ import json
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "cli"))
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "site"))
-
 import qldpc  # noqa: E402
 import qldpc_verify  # noqa: E402
 
@@ -74,6 +71,11 @@ def main():
 
     print(f"\n{'PASS' if not _fail else 'FAIL: ' + ', '.join(_fail)}")
     return 1 if _fail else 0
+
+
+def test_main():
+    """pytest entry point; the suite body lives in main()."""
+    assert main() == 0
 
 
 if __name__ == "__main__":

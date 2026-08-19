@@ -4,7 +4,6 @@ import os
 import tempfile
 
 import sys
-sys.path.insert(0, os.path.dirname(__file__))
 
 from build_receipt import make_receipt, write_receipt
 from validate_candidate import validate_candidate
@@ -36,6 +35,12 @@ def main():
         assert loaded["provenance"]["model"]["status"] == "self_reported"
         assert "board_advancing" in loaded["frontier"]
     print("receipt tests passed")
+
+
+def test_main():
+    """pytest entry point. main() returns None and signals failure by raising,
+    so a clean return is the pass condition."""
+    main()
 
 
 if __name__ == "__main__":
