@@ -51,7 +51,7 @@ def git(td, *args):
 def write_code(td, fname, doc):
     os.makedirs(os.path.join(td, "codes"), exist_ok=True)
     with open(os.path.join(td, "codes", fname), "w") as f:
-        json.dump(doc, f)
+        json.dump(doc, f, indent=1)  # multi-line, like real board files
 
 
 def make_repo(td, base_doc=None):
@@ -224,6 +224,34 @@ def main():
         return doc
     run_case("pure refutation of a baseline still accepted (exempt)",
              refutes_baseline, True, base_doc=BASELINE)
+
+    print("\nrename detection (a real refutation is ~98% similar, which git "
+          "folds\ninto an R line unless the gate splits renames):")
+    BIG = copy.deepcopy(BASE_DOC)
+    BIG["checks"]["X"] = [[i, i + 1, i + 2] for i in range(500)]
+
+    def refuted_big():
+        doc = copy.deepcopy(BIG)
+        doc["name"] = "[[60,8,5]] synthetic test code"
+        doc["schema_version"] = "0.2"
+        doc["distance"]["X"] = {"value": 5, "confidence": "upper_bound",
+                                "witness": [0, 1, 2, 3, 4],
+                                "witness_provenance": {
+                                    "found_by": ["@bob"],
+                                    "date": "2026-08-19",
+                                    "found_at_samples": 10 ** 9}}
+        doc["distance"]["d"] = 5
+        doc["provenance"]["notes"] += " Refuted."
+        return doc
+    run_case("high-similarity rename: clean refutation still binds",
+             refuted_big, True, base_doc=BIG)
+
+    def refuted_big_tampered():
+        doc = refuted_big()
+        doc["provenance"]["authors"] = ["@bob"]
+        return doc
+    run_case("high-similarity rename: tampered refutation still caught",
+             refuted_big_tampered, False, base_doc=BIG)
 
     print("\nmalformed input:")
     missing_side = copy.deepcopy(BASE_DOC)
