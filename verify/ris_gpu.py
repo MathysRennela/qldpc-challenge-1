@@ -92,14 +92,21 @@ def parse_output(text):
 
 
 def cpu_verify(support, n, H_check, L_opp):
-    """The trust boundary: accept an operator only on CPU-checked evidence."""
+    """The trust boundary: accept an operator only on CPU-checked evidence.
+
+    Returns the recounted weight of the verified operator, or None. Malformed
+    support lists (out-of-range or duplicate indices) are rejected like any
+    failed verification rather than crashing the sweep."""
+    if not support or len(set(support)) != len(support) or \
+            not all(isinstance(q, int) and 0 <= q < n for q in support):
+        return None
     v = np.zeros(n, dtype=np.int8)
     v[support] = 1
-    if not v.any():
-        return False
     if not gf2.commutes(v, H_check):
-        return False
-    return bool(((gf2._as_gf2(L_opp) @ v) % 2).any())
+        return None
+    if not bool(((gf2._as_gf2(L_opp) @ v) % 2).any()):
+        return None
+    return int(v.sum())
 
 
 def run_side(side, H_check, L_opp, claimed, args, binary):
@@ -113,7 +120,7 @@ def run_side(side, H_check, L_opp, claimed, args, binary):
             cmd += ["--target", str(args.target)]
         try:
             proc = subprocess.run(cmd, capture_output=True, text=True,
-                                  check=True)
+                                  check=True, timeout=args.proc_timeout)
         finally:
             os.unlink(tmp.name)
     res = parse_output(proc.stdout)
@@ -122,8 +129,9 @@ def run_side(side, H_check, L_opp, claimed, args, binary):
              "operator_support": None, "cpu_verified": False}
     support = res.get("support")
     if support:
-        if cpu_verify(support, H_check.shape[1], H_check, L_opp):
-            entry["witness_weight"] = len(support)
+        weight = cpu_verify(support, H_check.shape[1], H_check, L_opp)
+        if weight is not None:
+            entry["witness_weight"] = weight
             entry["operator_support"] = support
             entry["cpu_verified"] = True
         else:
@@ -148,6 +156,8 @@ def main():
     ap.add_argument("--sides", default="X,Z")
     ap.add_argument("--binary", default=None,
                     help="path to the ris_gpu binary (default: build/ris_gpu)")
+    ap.add_argument("--proc-timeout", type=int, default=7200,
+                    help="kill a wedged GPU binary after this many seconds")
     args = ap.parse_args()
     binary = find_binary(args.binary)
     sides = [s.strip().upper() for s in args.sides.split(",") if s.strip()]

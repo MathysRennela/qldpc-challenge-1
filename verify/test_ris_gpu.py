@@ -108,6 +108,18 @@ def test_cpu_verify_gate():
     # a single qubit is outside ker(HZ) in the Steane code: must be rejected
     assert not ris_gpu.cpu_verify([0], n, HZ, L_opp)
 
+    # a verified operator's weight is recounted, never len(support)
+    assert ris_gpu.cpu_verify(found, n, HZ, L_opp) == len(found)
+
+    # malformed GPU output must be rejected, not crash or miscount:
+    # duplicate indices (would silently collapse in the indicator vector)
+    assert ris_gpu.cpu_verify(found + [found[0]], n, HZ, L_opp) is None
+    # out-of-range index (would raise IndexError unguarded)
+    assert ris_gpu.cpu_verify([0, n + 3], n, HZ, L_opp) is None
+    assert ris_gpu.cpu_verify([-1], n, HZ, L_opp) is None
+    # empty support
+    assert ris_gpu.cpu_verify([], n, HZ, L_opp) is None
+
 
 def gpu_available(binary):
     if not (os.path.isfile(binary) and os.access(binary, os.X_OK)):
