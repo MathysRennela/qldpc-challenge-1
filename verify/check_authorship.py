@@ -19,7 +19,10 @@ distance checks, so a bogus claim cannot pass regardless.
 Relatedly, on a change to an existing code the author list itself may only be
 edited by someone already on it: without that, adding (or swapping in) your own
 handle would grant edit rights over anyone's entry, which is the hole the
-refutation binding exists to avoid. New submissions are unaffected.
+refutation binding exists to avoid. This includes first-claiming an @handle on
+a no-handle literature baseline (that needs a maintainer); a refuted 'exact'
+claim must demote to upper_bound, and no correction may claim 'exact' at the
+new value without going through certification. New submissions are unaffected.
 
 Fails CLOSED only on a definite author/PR-author mismatch. Anything ambiguous
 (no author info, git/parse error) fails OPEN with a warning -- a bug here must
@@ -119,27 +122,35 @@ def refutation_binding(author, base_doc, new_doc):
         return False, "provenance.notes may only be appended to"
 
     bd, nd = base_doc.get("distance") or {}, new_doc.get("distance") or {}
+    for side in ("X", "Z"):
+        if not (bd.get(side) and nd.get(side)):
+            return False, f"distance.{side} is missing"
     tightened = 0
     for side in ("X", "Z"):
-        bs, ns = bd.get(side) or {}, nd.get(side) or {}
+        bs, ns = bd[side], nd[side]
         if bs == ns:
             continue
         if author not in found_by_handles(ns):
             return False, (f"distance.{side} changed but its witness_provenance"
                            f".found_by does not list @{author}")
-        if bs.get("confidence") != ns.get("confidence"):
-            return False, f"distance.{side}.confidence changed"
         if ns.get("value", 0) < bs.get("value", 0):
+            # A falsified claim can only be an upper bound now: a refuted
+            # 'exact' must demote, and nothing may claim 'exact' at the new
+            # value without going through certification.
+            if ns.get("confidence") != "upper_bound":
+                return False, (f"distance.{side}.confidence must become "
+                               "upper_bound when the value is corrected")
             tightened += 1
         elif (ns.get("value") == bs.get("value")
-              and ns.get("witness") == bs.get("witness")):
+              and ns.get("witness") == bs.get("witness")
+              and ns.get("confidence") == bs.get("confidence")):
             pass  # survival stamp: witness_provenance recorded, claim untouched
         else:
             return False, (f"distance.{side}.value did not strictly decrease "
-                           "and its witness changed")
+                           "and its witness or confidence changed")
     if tightened == 0:
         return False, "no side's distance strictly decreased"
-    if nd.get("d") != min(nd.get(s, {}).get("value", 0) for s in ("X", "Z")):
+    if nd.get("d") != min(nd[s].get("value", 0) for s in ("X", "Z")):
         return False, "distance.d is not min(dX, dZ)"
     return True, ""
 
@@ -196,9 +207,12 @@ def main(argv):
         if author in hs:
             # Being listed binds -- but on a change to an existing code, the
             # author list itself may only be edited by an existing author.
-            # Otherwise swapping authors would grant edit rights (issue #611).
+            # Otherwise swapping (or first-claiming, on a no-handle baseline)
+            # your own handle would grant edit rights (issue #611). A genuine
+            # first @handle claim on a baseline needs a maintainer.
             base_hs = handles(base_doc) if base_doc is not None else None
-            if (base_hs and hs != base_hs and author not in base_hs):
+            if (base_hs is not None and hs != base_hs
+                    and author not in base_hs):
                 pass  # fall through to the refutation binding
             else:
                 print(f"ok    {f}: PR author @{author} is listed")

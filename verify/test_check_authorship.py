@@ -54,9 +54,9 @@ def write_code(td, fname, doc):
         json.dump(doc, f)
 
 
-def make_repo(td):
+def make_repo(td, base_doc=None):
     git(td, "init", "-q", "-b", "main")
-    write_code(td, "60-8-6.json", BASE_DOC)
+    write_code(td, "60-8-6.json", base_doc or BASE_DOC)
     git(td, "add", "codes")
     git(td, "commit", "-q", "-m", "base")
     git(td, "checkout", "-q", "-b", "change")
@@ -76,9 +76,10 @@ def refuted(with_wp=True, found_by="@bob"):
     return doc
 
 
-def run_case(name, edit, expect_ok, author="bob", rename=True):
+def run_case(name, edit, expect_ok, author="bob", rename=True,
+             base_doc=None):
     with tempfile.TemporaryDirectory() as td:
-        make_repo(td)
+        make_repo(td, base_doc=base_doc)
         doc = edit()
         if rename:
             git(td, "rm", "-q", "codes/60-8-6.json")
@@ -169,6 +170,68 @@ def main():
         return doc
     run_case("survival stamp riding on a real refutation binds",
              stamp_riding_along, True)
+
+    print("\nexact-claim corrections (PR review round 2):")
+    EXACT_BASE = copy.deepcopy(BASE_DOC)
+    EXACT_BASE["distance"]["X"]["confidence"] = "exact"
+
+    def demotes_exact():
+        doc = refuted()
+        doc["distance"]["X"]["confidence"] = "upper_bound"
+        return doc
+    run_case("refuted exact claim demoting to upper_bound binds",
+             demotes_exact, True, base_doc=EXACT_BASE)
+
+    def keeps_exact():
+        doc = refuted()
+        doc["distance"]["X"]["confidence"] = "exact"
+        return doc
+    run_case("refuted exact claim keeping 'exact' rejected",
+             keeps_exact, False, base_doc=EXACT_BASE)
+
+    def upgrades_to_exact():
+        doc = refuted()
+        doc["distance"]["X"]["confidence"] = "exact"
+        return doc
+    run_case("correction claiming 'exact' at the new value rejected",
+             upgrades_to_exact, False)
+
+    def stamp_upgrades_conf():
+        doc = refuted()
+        doc["distance"]["Z"]["confidence"] = "exact"
+        doc["distance"]["Z"]["witness_provenance"] = {
+            "found_by": ["@bob"], "date": "2026-08-19",
+            "found_at_samples": 10 ** 9}
+        return doc
+    run_case("survival stamp that upgrades confidence rejected",
+             stamp_upgrades_conf, False)
+
+    print("\nbaselines (no @handle authors):")
+    BASELINE = copy.deepcopy(BASE_DOC)
+    BASELINE["provenance"]["authors"] = ["Kitaev"]
+
+    def claims_baseline():
+        doc = copy.deepcopy(BASELINE)
+        doc["provenance"]["authors"] = ["Kitaev", "@bob"]
+        doc["n"] = 61
+        return doc
+    run_case("first @handle claim on a baseline rejected",
+             claims_baseline, False, rename=False, base_doc=BASELINE)
+
+    def refutes_baseline():
+        doc = refuted()
+        doc["provenance"]["authors"] = ["Kitaev"]
+        return doc
+    run_case("pure refutation of a baseline still accepted (exempt)",
+             refutes_baseline, True, base_doc=BASELINE)
+
+    print("\nmalformed input:")
+    missing_side = copy.deepcopy(BASE_DOC)
+    del missing_side["distance"]["Z"]
+    ok, why = check_authorship.refutation_binding(
+        "bob", BASE_DOC, missing_side)
+    check("missing side named in the rejection reason",
+          not ok and "distance.Z is missing" in why)
 
     print("\nplain submissions (original binding):")
     def new_code():
