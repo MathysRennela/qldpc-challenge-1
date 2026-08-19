@@ -24,7 +24,8 @@ Two principles drive the format:
 
 ## Fields
 
-- `schema_version`: `"0.1"`.
+- `schema_version`: `"0.1"` or `"0.2"` (0.2 added the optional
+  `witness_provenance` block; 0.1 files remain valid unchanged).
 - `name`: human-readable, e.g. `"[[72,6,6]] generalized weight-6 planar BB code"`.
 - `code_type`: `"CSS"` (the only type in v0.1).
 - `n`: physical qubit count. Must match the qubit indices used in `checks`.
@@ -41,6 +42,14 @@ Two principles drive the format:
   - `witness`: support of a logical operator of that Pauli type and weight
     `value`. An X-witness must lie in `ker(H_Z)` and outside `rowspace(H_X)`;
     the Z-witness mirrors it. This is what makes the upper bound trustless.
+  - `witness_provenance` (optional, schema 0.2, issue #611): who found this
+    witness, when, and at what budget — `found_by` (list of `@handles`),
+    `date`, `samples` (total search trials), optional `tool` and `seeds`.
+    Refutation credit lives here, attached to the operator contributed,
+    rather than in `provenance.authors`, which stays reserved for the code's
+    constructors. `samples` is the load-bearing number: a bound that has
+    survived 10^9 trials is materially stronger evidence than the same value
+    backed by 10^6, and it tells the next refuter the budget to beat.
 - `locality` (optional): provide a layout and the verifier derives the locality
   class (`local-2d-single`, `local-2d-bilayer`, or `unrestricted`); omit it and
   the code is `unrestricted`.

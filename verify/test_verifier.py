@@ -209,6 +209,32 @@ def main():
     except Exception as e:
         check(f"malformed rejected cleanly (raised {type(e).__name__})", False)
 
+    # 8b. witness_provenance (schema 0.2, issue #611): refutation credit is
+    #     attached to the witness, not to provenance.authors
+    d = copy.deepcopy(GOOD)
+    d["schema_version"] = "0.2"
+    d["distance"]["X"]["witness_provenance"] = {
+        "found_by": ["@FarLab"], "date": "2026-08-19",
+        "samples": 1_000_000_000, "tool": "ris_gpu", "seeds": [88000007]}
+    r = rep(d)
+    check("witness_provenance accepted (schema 0.2)", r["ok"])
+
+    d = copy.deepcopy(GOOD)
+    d["schema_version"] = "0.2"
+    d["distance"]["X"]["witness_provenance"] = {
+        "found_by": ["@FarLab"], "date": "2026-08-19"}  # no samples
+    r = rep(d)
+    check("witness_provenance without samples rejected",
+          not r["ok"] and "schema_valid" in failed_checks(r))
+
+    d = copy.deepcopy(GOOD)
+    d["schema_version"] = "0.2"
+    d["distance"]["X"]["witness_provenance"] = {
+        "found_by": ["FarLab"], "date": "2026-08-19", "samples": 1000}
+    r = rep(d)
+    check("witness_provenance handle without @ rejected",
+          not r["ok"] and "schema_valid" in failed_checks(r))
+
     # 9. not even a dict, must not crash
     try:
         r = rep([1, 2, 3])
