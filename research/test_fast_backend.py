@@ -11,55 +11,54 @@ import surrogate
 from surrogate import distance_rand
 from search import screen, sample_bb
 
-try:
-    import gf2_fast
-except ImportError:
-    gf2_fast = None
+_fail = []
+
+
+def check(name, cond):
+    print(f"  {'ok  ' if cond else 'FAIL'}  {name}")
+    if not cond:
+        _fail.append(name)
+
+
+def raises(exc, fn, *args, **kwargs):
+    """Return whether calling ``fn`` raises ``exc``."""
+    try:
+        fn(*args, **kwargs)
+    except exc:
+        return True
+    return False
 
 
 def main():
+    print("research/ optional fast-backend test:")
     p = KNOWN["[[72,12,6]]"]
     HX, HZ = build_bb(p["l"], p["m"], p["A"], p["B"])
+    n = HX.shape[1]
 
-    assert distance_rand(HX, HZ, trials=100, seed=0, backend="numpy") == 6
-    assert distance_rand(HX, HZ, trials=100, seed=0, backend="auto") == 6
+    check("NumPy backend finds distance 6",
+          distance_rand(HX, HZ, trials=100, seed=0, backend="numpy") == 6)
+    check("auto backend finds distance 6",
+          distance_rand(HX, HZ, trials=100, seed=0, backend="auto") == 6)
+    check("invalid backend is rejected",
+          raises(ValueError, distance_rand, HX, HZ, trials=1, backend="invalid"))
+    check("sentinel maps to infinity",
+          surrogate._weight_or_inf(n + 1, n) == float("inf"))
 
-    try:
-        distance_rand(HX, HZ, trials=1, backend="invalid")
-    except ValueError:
-        pass
-    else:
-        raise AssertionError("invalid backend was accepted")
-
-    class NoLogicalBackend:
-        @staticmethod
-        def distance_rand_witness(*args, **kwargs):
-            return HX.shape[1] + 1, "", []
-
-    original_backend = surrogate._fast
-    surrogate._fast = NoLogicalBackend()
-    try:
-        assert distance_rand(HX, HZ, trials=1, backend="fast") == float("inf")
-    finally:
-        surrogate._fast = original_backend
-
-    if gf2_fast is not None:
-        assert distance_rand(
-            HX, HZ, trials=100, seed=0, backend="fast", threads=2) == 6
+    if surrogate._fast is not None:
+        check("fast backend finds distance 6",
+              distance_rand(HX, HZ, trials=100, seed=0,
+                            backend="fast", threads=2) == 6)
         records = screen(
             sample_bb(4, seed=1), min_k=2, min_d=2, trials=20,
             backend="fast", threads=2)
-        assert records
+        check("fast screening produced candidates", bool(records))
     else:
-        try:
-            distance_rand(HX, HZ, trials=1, backend="fast")
-        except ImportError:
-            pass
-        else:
-            raise AssertionError("explicit fast backend did not report missing extension")
+        check("missing fast backend is reported",
+              raises(ImportError, distance_rand, HX, HZ,
+                     trials=1, backend="fast"))
 
-    print("PASS: optional fast backend and NumPy fallback")
-    return 0
+    print("PASS" if not _fail else "FAIL: " + ", ".join(_fail))
+    return 0 if not _fail else 1
 
 
 if __name__ == "__main__":

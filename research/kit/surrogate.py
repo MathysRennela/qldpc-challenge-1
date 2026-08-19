@@ -51,6 +51,11 @@ def _validate_fast_witness(HX, HZ, weight, side, support):
     return commutes(v, opposite) and not in_rowspace(v, own)
 
 
+def _weight_or_inf(weight, n):
+    """Normalize gf2_fast's no-logical sentinel to NumPy's infinity result."""
+    return float("inf") if int(weight) > n else int(weight)
+
+
 def _distance_rand_fast(HX, HZ, trials, seed, threads):
     if _fast is None:
         raise RuntimeError("gf2_fast backend is unavailable")
@@ -59,10 +64,7 @@ def _distance_rand_fast(HX, HZ, trials, seed, threads):
         trials=int(trials), seed=int(seed), pair_depth=10, threads=int(threads))
     if not _validate_fast_witness(HX, HZ, weight, side, support):
         raise RuntimeError("gf2_fast returned an invalid logical witness")
-    # Match the NumPy backend's no-witness result so screen() filters it out.
-    if weight > HX.shape[1]:
-        return float("inf")
-    return int(weight)
+    return _weight_or_inf(weight, HX.shape[1])
 
 
 # =====================================================================
