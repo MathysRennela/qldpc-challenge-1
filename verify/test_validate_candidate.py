@@ -20,10 +20,6 @@ import json
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))          # verify/
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(       # research/kit (fixtures only)
-    os.path.abspath(__file__))), "research", "kit"))
-
 import numpy as np
 import gf2
 from bb import build_bb
@@ -113,6 +109,11 @@ def main():
 
 
 def test_validate_candidate():
+    assert main() == 0
+
+
+def test_main():
+    """pytest entry point; the suite body lives in main()."""
     assert main() == 0
 
 

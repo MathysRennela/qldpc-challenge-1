@@ -13,9 +13,6 @@ Run: uv run python research/test_smoke.py   (exit 0 = pass)
 import os
 import sys
 
-_HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(_HERE, "kit"))              # research/kit modules
-sys.path.insert(0, os.path.join(_HERE, "..", "verify"))    # the verifier
 
 from bb import build_bb, KNOWN
 from css import compute_k, verify_css
@@ -67,6 +64,11 @@ def main():
 
     print("PASS" if not _fail else "FAIL: " + ", ".join(_fail))
     return 0 if not _fail else 1
+
+
+def test_main():
+    """pytest entry point; the suite body lives in main()."""
+    assert main() == 0
 
 
 if __name__ == "__main__":

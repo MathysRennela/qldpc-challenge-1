@@ -17,8 +17,6 @@ import json
 import os
 import sys
 import tempfile
-
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import qldpc_verify
 
 verify = qldpc_verify.verify
@@ -305,6 +303,11 @@ def main():
 
 # pytest entry points
 def test_adversarial():
+    assert main() == 0
+
+
+def test_main():
+    """pytest entry point; the suite body lives in main()."""
     assert main() == 0
 
 

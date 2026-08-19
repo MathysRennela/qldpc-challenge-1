@@ -19,8 +19,6 @@ import glob
 import json
 import os
 import sys
-
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import heuristic_distance as H
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -130,6 +128,15 @@ def main(argv):
 
     print(f"\n{failures} failure(s)")
     sys.exit(1 if failures else 0)
+
+
+def test_main():
+    """pytest entry point. main() takes argv and reports by calling sys.exit,
+    including on success, so the exit status is what gets asserted."""
+    import pytest
+    with pytest.raises(SystemExit) as exc:
+        main([])
+    assert not exc.value.code, f"panel run exited {exc.value.code}"
 
 
 if __name__ == "__main__":

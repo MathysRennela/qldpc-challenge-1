@@ -21,3 +21,8 @@ research = ["scipy>=1.11", "ldpc>=2.0"]
 [tool.uv]
 # scripts-only repo: manage the environment, do not try to build/install it
 package = false
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+]
