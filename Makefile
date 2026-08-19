@@ -1,7 +1,13 @@
-.PHONY: build verify example test test-fast fast
+.PHONY: build verify example test test-fast fast ris
 
 build:
 	uv run python site/build.py
+
+# Optional GPU RIS deep-search binary (verify/ris_gpu.cu); needs nvcc + an
+# NVIDIA GPU. Driven by verify/ris_gpu.py, which CPU-verifies its output.
+ris:
+	mkdir -p build
+	nvcc -O3 -arch=$(or $(RIS_ARCH),native) -o build/ris_gpu verify/ris_gpu.cu
 
 # Optional C++ RIS accelerator (verify/gf2_fast.cpp); pure Python is the fallback.
 fast:
