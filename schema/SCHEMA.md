@@ -24,7 +24,8 @@ Two principles drive the format:
 
 ## Fields
 
-- `schema_version`: `"0.1"`.
+- `schema_version`: `"0.1"` or `"0.2"` (0.2 added the optional
+  `witness_provenance` block; 0.1 files remain valid unchanged).
 - `name`: human-readable, e.g. `"[[72,6,6]] generalized weight-6 planar BB code"`.
 - `code_type`: `"CSS"` (the only type in v0.1).
 - `n`: physical qubit count. Must match the qubit indices used in `checks`.
@@ -41,6 +42,20 @@ Two principles drive the format:
   - `witness`: support of a logical operator of that Pauli type and weight
     `value`. An X-witness must lie in `ker(H_Z)` and outside `rowspace(H_X)`;
     the Z-witness mirrors it. This is what makes the upper bound trustless.
+  - `witness_provenance` (optional; requires `schema_version: "0.2"`, and the
+    schema enforces that; issue #611): who found this witness, when, and at
+    what budget — `found_by` (list of `@handles`), `date`, `found_at_samples`,
+    optional `survived_samples`, `tool`, and `seeds`. Refutation credit lives
+    here, attached to the operator contributed, rather than in
+    `provenance.authors`, which stays reserved for the code's constructors.
+    The two budgets are deliberately separate because they are opposite kinds
+    of evidence: `found_at_samples` is the budget the witness turned up at and
+    says nothing about whether something lighter exists, while
+    `survived_samples` is the largest budget a deep search has spent on this
+    side without finding anything lighter — only a null result may write it.
+    `survived_samples` is what actually constrains the distance and tells the
+    next refuter the budget they need to beat; a deep sweep that finds nothing
+    records its null result by raising it.
 - `locality` (optional): provide a layout and the verifier derives the locality
   class (`local-2d-single`, `local-2d-bilayer`, or `unrestricted`); omit it and
   the code is `unrestricted`.

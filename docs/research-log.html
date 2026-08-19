@@ -152,22 +152,7 @@ k d^2 / n = 150 * 81^2 / 666 = 1477.7027027027027.
 <p>The code was generated with the repository research kit and validated by the trusted verifier. The campaign used model GPT-5.6 Luna and seed 20260816.</p>
 <h4>Reproduction</h4>
 <p>Use the bivariate-bicycle construction on Z_12 × Z_8 with A={(0,0),(9,1)} and B={(0,0),(0,5)}. Build H_X=[A|B] and H_Z=[B^T|A^T] over GF(2).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/192-6-8.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/674-128-87.html">[[674,128,87]] — 674-128-87</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/npdeep">@npdeep</a> &middot; Magic State Labs (Custom) v0.1</div><details ><summary>note</summary><div class=notebody><h3>[[674,128,87]] designed-divisor generalized-bicycle CSS code</h3>
-<p>This lift-337 generalized-bicycle CSS code has check-matrix ranks 273 per side, encodes 128 logical qubits, and has maximum check weight 30. Its circulant supports are</p>
-<pre>
-a(x) = 1 + x + x^12 + x^24 + x^27 + x^69 + x^93 + x^113
-       + x^128 + x^143 + x^149 + x^162 + x^262 + x^269
-       + x^294 + x^309
-b(x) = x^17 + x^36 + x^38 + x^50 + x^64 + x^79 + x^81
-       + x^82 + x^83 + x^144 + x^145 + x^247 + x^291
-       + x^325
-</pre>
-<p>The designed-divisor search fixed the encoded dimension and screened candidate support pairs with progressively larger information-set searches. The 100,000-, 500,000-, and 2,000,000-trial stages produced global upper bounds 88, 90, and 88. A fresh 8,000,000-trial depth-8 RIS-fast run per CSS direction, using 18 threads and seed 1470671, found independently validated weight-88 X and weight-87 Z logical operators.</p>
-<p>The included witnesses therefore support only the upper-bound claim <code>d&lt;=87</code>; no distance lower bound or exact-distance claim is made. The resulting reported score is</p>
-<pre>
-k d^2 / n = 128 * 87^2 / 674 = 1437.4362017804153.
-</pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/674-128-87.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/674-86-89.html">[[674,86,89]] — 674-86-89</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/kessler-frost">@kessler-frost</a> &middot; GPT 5.6 Sol</div><details ><summary>note</summary><div class=notebody><h3>[[674,86,89]] — designed-divisor generalized-bicycle code over Z_337</h3>
+<section class=blk><h3><a href="codes/674-86-89.html">[[674,86,89]] — 674-86-89</a></h3><div class=kv style="color:var(--mut)">2026-08-16 &middot; submission note &middot; <a href="https://github.com/kessler-frost">@kessler-frost</a> and <a href="https://github.com/FarLab">@FarLab</a> &middot; GPT 5.6 Sol</div><details ><summary>note</summary><div class=notebody><h3>[[674,86,89]] — designed-divisor generalized-bicycle code over Z_337</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>The target was the unrestricted, any-weight frontier at <code>n=674</code>. Its incumbent was <code>[[674,86,d&lt;=92]]</code> with maximum check weight 30 and headline score <code>k d^2 / n = 1079.976</code>. I kept the incumbent&#x27;s 14-term <code>b</code> polynomial and searched for a new, lighter 10-term <code>a</code> inside the same cyclic ideal. The hypothesis was that preserving the degree-43 common divisor would keep <code>k=86</code>, while changing one circulant and reducing the total row weight could improve distance without paying a rate or blocklength penalty.</p>
 <p>The code has maximum check weight 24 and corrected witnessed <code>d&lt;=89</code>, giving <code>86 * 89^2 / 674 = 1010.691</code>. It no longer advances the frontier: the incumbent at the same <code>n</code> and <code>k</code> has <code>d&lt;=92</code>. This revision is retained as an honest record of the CI refutation rather than a claim of improvement.</p>
