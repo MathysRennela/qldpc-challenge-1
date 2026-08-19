@@ -645,7 +645,8 @@ static void usage(const char* argv0) {
         "  is committed. --pair-depth P > 0 switches to the deep kernel:\n"
         "  full-basis RREF (k_sub defaults to the whole kernel) plus XOR\n"
         "  combinations of the P lightest rows per trial -- far stronger per\n"
-        "  trial at large n, at lower trial throughput.\n", argv0);
+        "  trial at large n, at lower trial throughput. P is capped at %d;\n"
+        "  larger values are rejected.\n", argv0, MAX_PAIR_TOP);
     exit(2);
 }
 
@@ -688,6 +689,11 @@ int main(int argc, char** argv) {
         }
     }
     if (!path || trials <= 0 || batch <= 0 || k_sub <= 0) usage(argv[0]);
+    if (pair_depth < 0 || pair_depth > MAX_PAIR_TOP) {
+        fprintf(stderr, "--pair-depth %d out of range (max %d)\n",
+                pair_depth, MAX_PAIR_TOP);
+        exit(2);
+    }
 
     Input in = read_input(path);
     int n = in.n, nw = in.nw;
@@ -806,8 +812,8 @@ int main(int argc, char** argv) {
     }
 
     printf("mode=%s\n", recover ? "recover" : "estimate");
-    printf("n=%d\nk_null=%d\nk_logical=%d\nk_sub=%d\n", n, in.k_null,
-           in.k_logical, k_sub_eff);
+    printf("n=%d\nk_null=%d\nk_logical=%d\nk_sub=%d\npair_depth=%d\n",
+           n, in.k_null, in.k_logical, k_sub_eff, pair_depth);
     printf("seed=%llu\ntrials=%lld\n", seed, trials_done);
     printf("best_weight=%d\n", best_overall <= n ? best_overall : -1);
     if (recover && !best_vec.empty()) {

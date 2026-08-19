@@ -165,8 +165,10 @@ def test_pair_depth_flag_surface():
 
 
 def test_end_to_end_gpu_pair_depth():
-    # Deep mode on the Steane code: full-kernel default (no --k-sub), pair
-    # stage on. Must find the exact distance and a CPU-verifiable witness.
+    # Deep-mode PLUMBING on the Steane code: full-kernel default (no
+    # --k-sub), witness recovery, CPU re-verify. At this size the pair
+    # stage itself is not load-bearing (any config saturates); the
+    # pair-stage mechanism is exercised by test_gpu_pair_stage_matters.
     binary = os.path.join(ROOT, "build", "ris_gpu")
     if not gpu_available(binary):
         pytest.skip("no ris_gpu binary or no GPU")
@@ -225,10 +227,11 @@ def test_end_to_end_gpu_pair_depth_hybrid():
 
 
 def test_gpu_pair_depth_midsize():
-    # Deep mode on a real mid-size board code ([[186,10,14]], weight-6 GB):
-    # 100k full-kernel pair trials reach the known distance and the witness
-    # re-verifies. (Statistical, but far inside the converged regime: the
-    # weight-14 operator is found by ~5k CPU information sets.)
+    # Deep-mode exactness on a mid-size board code ([[186,10,14]]): 100k
+    # full-kernel trials reach the known distance, witness re-verifies.
+    # Covers full-basis deep mode, not the pair stage per se (at n=186 the
+    # exact distance is reached with pairs inert; see
+    # test_gpu_pair_stage_matters for the pair-sensitive case).
     binary = os.path.join(ROOT, "build", "ris_gpu")
     if not gpu_available(binary):
         pytest.skip("no ris_gpu binary or no GPU")
@@ -254,13 +257,44 @@ def test_gpu_pair_depth_midsize():
         os.unlink(path)
 
 
+def test_gpu_pair_stage_matters():
+    # The pair stage must be load-bearing: at n >= 500 and a small matched
+    # trial budget, depth-24 finds strictly lighter operators than depth-1
+    # (full-basis RREF, pairs inert). Fixed seed; estimate mode is a pure
+    # min over a deterministic trial set, so the comparison is exact and
+    # this test FAILS if the pair stage is deleted or disabled.
+    binary = os.path.join(ROOT, "build", "ris_gpu")
+    if not gpu_available(binary):
+        pytest.skip("no ris_gpu binary or no GPU")
+    with open(os.path.join(ROOT, "codes", "514-162-41.json")) as f:
+        doc = json.load(f)
+    n = doc["n"]
+    HX = ris_gpu.checks_matrix(doc["checks"]["X"], n)
+    HZ = ris_gpu.checks_matrix(doc["checks"]["Z"], n)
+    L_opp = gf2.logical_basis(HX, HZ)
+    with tempfile.NamedTemporaryFile(suffix=".risgpu", delete=False) as tmp:
+        path = tmp.name
+    try:
+        ris_gpu.write_input(path, gf2.kernel_basis(HZ), L_opp, n)
+        best = {}
+        for pd in (1, 24):
+            proc = subprocess.run(
+                [binary, path, "--mode", "estimate", "--trials", "20000",
+                 "--seed", "11", "--pair-depth", str(pd)],
+                capture_output=True, text=True, check=True)
+            best[pd] = ris_gpu.parse_output(proc.stdout)["best_weight"]
+        assert best[24] < best[1], best
+    finally:
+        os.unlink(path)
+
+
 if __name__ == "__main__":
     for fn in (test_pack_rows_layout, test_input_file_format,
                test_parse_output, test_cpu_verify_gate,
                test_pair_depth_flag_surface, test_end_to_end_gpu,
                test_end_to_end_gpu_pair_depth,
                test_end_to_end_gpu_pair_depth_hybrid,
-               test_gpu_pair_depth_midsize):
+               test_gpu_pair_depth_midsize, test_gpu_pair_stage_matters):
         try:
             fn()
         except pytest.skip.Exception as e:
