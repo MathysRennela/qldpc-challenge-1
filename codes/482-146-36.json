@@ -1,6 +1,6 @@
 {
- "schema_version": "0.1",
- "name": "[[482,146,42]] prime-index cyclic generalized-bicycle code on Z_241",
+ "schema_version": "0.2",
+ "name": "[[482,146,36]] prime-index cyclic generalized-bicycle code on Z_241",
  "code_type": "CSS",
  "n": 482,
  "k": 146,
@@ -14471,7 +14471,7 @@
   ]
  },
  "distance": {
-  "d": 42,
+  "d": 36,
   "X": {
    "value": 42,
    "confidence": "upper_bound",
@@ -14521,54 +14521,57 @@
    ]
   },
   "Z": {
-   "value": 44,
+   "value": 36,
    "confidence": "upper_bound",
    "witness": [
-    0,
-    3,
+    5,
+    6,
     12,
-    15,
-    28,
+    14,
+    19,
+    29,
     32,
-    56,
-    59,
-    72,
-    73,
-    94,
+    35,
+    36,
+    43,
+    44,
+    50,
+    65,
+    84,
+    88,
     107,
-    123,
-    133,
+    122,
+    128,
+    129,
+    136,
     137,
-    138,
-    164,
-    180,
-    190,
-    199,
-    212,
-    215,
-    216,
-    232,
-    249,
-    264,
-    280,
-    293,
-    296,
-    305,
-    313,
-    341,
-    342,
-    356,
-    363,
-    365,
-    381,
-    415,
-    417,
-    439,
-    446,
-    458,
-    465,
-    480
-   ]
+    140,
+    143,
+    153,
+    158,
+    160,
+    166,
+    167,
+    175,
+    238,
+    331,
+    353,
+    357,
+    362,
+    366,
+    388
+   ],
+   "witness_provenance": {
+    "found_by": [
+     "@FarLab"
+    ],
+    "date": "2026-08-19",
+    "found_at_samples": 1000000000,
+    "tool": "ris_gpu",
+    "seeds": [
+     88000007
+    ]
+   }
   }
  },
  "family": "generalized-bicycle",
@@ -14584,6 +14587,6 @@
    "arXiv:2306.16400"
   ],
   "date": "2026-08-07",
-  "notes": "Found by Jukebox-Autoresearch. Distance is a witness-backed UPPER bound (d <= 42), not exact. The bound was tightened from an initially staged 45 in three stages: (i) a Lee-Brickell search restricted to the four active 2-cyclotomic component subspaces (k = 146 = 2 + 3*48; 392 searches, ~4.1M subspace trials) found nothing below 44; (ii) Lee-Brickell on the full 314-dimensional kernel (60 runs) likewise found nothing below 44; (iii) witness-returning RIS run of 128M total trials (2M trials per configuration over 8 seeds x pair-depths {8,16,24,32} x both orientations) exhibited the weight-42 X-logical packaged here (seed 123457, pair_depth 24). No independent-mechanism cross-check was completed: the pinned BP+OSD decoder (decode/distance.py) exceeded the available budget at this size, so the corroboration is linear-algebraic only. Novelty vs the literature is UNVERIFIED; the construction is a generalized bicycle code, a well-mined family, and while no board entry has these parameters we have not searched the literature for an equivalent [[482,146]] code. No equivalence to an existing board entry is known: the gate reported no exact duplicate and no Weisfeiler-Leman-equivalent entry."
+  "notes": "Found by Jukebox-Autoresearch. Distance is a witness-backed UPPER bound (d <= 42), not exact. The bound was tightened from an initially staged 45 in three stages: (i) a Lee-Brickell search restricted to the four active 2-cyclotomic component subspaces (k = 146 = 2 + 3*48; 392 searches, ~4.1M subspace trials) found nothing below 44; (ii) Lee-Brickell on the full 314-dimensional kernel (60 runs) likewise found nothing below 44; (iii) witness-returning RIS run of 128M total trials (2M trials per configuration over 8 seeds x pair-depths {8,16,24,32} x both orientations) exhibited the weight-42 X-logical packaged here (seed 123457, pair_depth 24). No independent-mechanism cross-check was completed: the pinned BP+OSD decoder (decode/distance.py) exceeded the available budget at this size, so the corroboration is linear-algebraic only. Novelty vs the literature is UNVERIFIED; the construction is a generalized bicycle code, a well-mined family, and while no board entry has these parameters we have not searched the literature for an equivalent [[482,146]] code. No equivalence to an existing board entry is known: the gate reported no exact duplicate and no Weisfeiler-Leman-equivalent entry. Distance revised 2026-08-19 by GPU deep refutation with the board's standalone ris_gpu tool (verify/ris_gpu.cu, sqetch kernels by Muzhou Ma, MIT) on an NVIDIA L40S: a 1,000,000,000-trial random-ISD recovery ladder per side (seed 88000007) committed a weight-36 Z logical, re-verified on the CPU with the repo's GF(2) arithmetic and recorded here as the new Z witness. The same budget found no X logical lighter than weight 43, so the claimed dX<=42 stands. This tightens d<=42 to d<=36 and the score from 146*42^2/482 = 534.26 to 146*36^2/482 = 392.55. The distance remains a witness-backed upper bound, not an exact-distance claim. @yhu1996 constructed the code. Refutation credit and the search budget are recorded in witness_provenance on each corrected side (schema 0.2, issue #611); authorship is unchanged."
  }
 }
