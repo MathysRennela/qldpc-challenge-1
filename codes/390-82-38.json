@@ -1,5 +1,5 @@
 {
- "schema_version": "0.1",
+ "schema_version": "0.2",
  "name": "[[380,82,38]]",
  "code_type": "CSS",
  "n": 390,
@@ -13359,19 +13359,28 @@
     357,
     373,
     388
-   ]
+   ],
+   "witness_provenance": {
+    "found_by": [
+     "@seunomonije"
+    ],
+    "date": "2026-07-20",
+    "found_at_samples": 24000000,
+    "seeds": [
+     31415
+    ]
+   }
   }
  },
  "provenance": {
   "authors": [
-   "@mathysrennela",
-   "@seunomonije"
+   "@mathysrennela"
   ],
   "construction": "Generalized bicycle (2BGA on Z_195), circulant size 195, a(x) weight 16, b(x) weight 16, both multiples of degree-41 divisor g of x^195-1 (k=82). Symmetric high-distance variant of [[390,82,27]].",
   "origin": "submission",
   "date": "2026-07-19",
   "model": "Tencent Hy3",
-  "notes": "Distance corrected 39 -> 38 (2026-07-20): an independent deep-refutation pass by @seunomonije's verification harness (Claude Fable 5) found a weight-38 Z logical (RIS, 24M trials, seed 31415, pair_depth 8; ~129M trials total across 7 fresh seeds and pair-depth 16/24 passes, readings 38-41). The original weight-39 X witness remains valid; the embedded Z witness is the new lightest known."
+  "notes": "Distance corrected 39 -> 38 (2026-07-20): an independent deep-refutation pass by @seunomonije's verification harness (Claude Fable 5) found a weight-38 Z logical (RIS, 24M trials, seed 31415, pair_depth 8; ~129M trials total across 7 fresh seeds and pair-depth 16/24 passes, readings 38-41). The original weight-39 X witness remains valid; the embedded Z witness is the new lightest known. Migrated 2026-08-19 (issue #611): refutation credit moved from provenance.authors to witness_provenance on the refuted side(s); authors again lists only the constructor."
  },
  "family": "generalized-bicycle"
 }

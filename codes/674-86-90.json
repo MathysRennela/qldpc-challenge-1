@@ -1,5 +1,5 @@
 {
- "schema_version": "0.1",
+ "schema_version": "0.2",
  "name": "[[674,86,90]] generalized-bicycle code over Z_337",
  "code_type": "CSS",
  "n": 674,
@@ -21674,7 +21674,18 @@
     564,
     628,
     640
-   ]
+   ],
+   "witness_provenance": {
+    "found_by": [
+     "@FarLab"
+    ],
+    "date": "2026-08-19",
+    "found_at_samples": 1000000000,
+    "tool": "sqetch",
+    "seeds": [
+     77000003
+    ]
+   }
   },
   "Z": {
    "value": 91,
@@ -21771,19 +21782,29 @@
     584,
     609,
     656
-   ]
+   ],
+   "witness_provenance": {
+    "found_by": [
+     "@FarLab"
+    ],
+    "date": "2026-08-19",
+    "found_at_samples": 1000000000,
+    "tool": "sqetch",
+    "seeds": [
+     77000004
+    ]
+   }
   }
  },
  "family": "generalized-bicycle",
  "provenance": {
   "authors": [
-   "@vprusso",
-   "@FarLab"
+   "@vprusso"
   ],
   "construction": "Generalized bicycle code over the cyclic group Z_337 (m = 337 prime): H_X = [circ(a) | circ(b)], H_Z = [circ(b)^T | circ(a)^T] with a = x^[0, 2, 36, 41, 67, 95, 98, 132, 136, 201, 234, 254, 260, 287, 294, 321] and b = x^[63, 105, 112, 144, 215, 241, 253, 267, 276, 300, 312, 316, 317, 320] (exponent lists over Z_337). k = 2 deg gcd(a, b, x^337 - 1) = 86. Prime m makes x^m - 1 factor as (x - 1) times irreducibles of degree ord_337(2), which pins the attainable k and concentrates the search on the pair (a, b) within the ideal.",
   "references": [],
   "date": "2026-08-15",
-  "notes": "Found by a prime-m GB sweep with a screening ladder of randomized information-set passes (4k to 20M samples), then confirmed at 20M twice and independently re-attacked with 47M samples across four fresh seeds; the bound converged to d <= 92 and no lighter logical was found in roughly 87M samples across six seeds total. Witness weights match the per-side claims exactly (X: 92, Z: 93). Distance claims are upper bounds; no exactness is claimed at this size. Distance revised 2026-08-19 by GPU deep refutation. Random-ISD runs with the sqetch GPU kernels (Muzhou Ma, MIT) on an NVIDIA L40S: a 50M-trial x 3-seed triage per side first beat both claimed bounds, then a 1,000,000,000-trial recovery ladder per side (seed 77000003 for X, 77000004 for Z) committed a weight-90 X logical and a weight-91 Z logical, both re-verified on the CPU with the repo's GF(2) arithmetic and recorded here as the new per-side witnesses. This tightens d<=92 to d<=90 and the score from 86*92^2/674 = 1079.98 to 86*90^2/674 = 1033.53. The distance remains a witness-backed upper bound, not an exact-distance claim. @vprusso constructed the code; @FarLab is added as an author for the refutation, following the board's precedent for refutation contributions.",
+  "notes": "Found by a prime-m GB sweep with a screening ladder of randomized information-set passes (4k to 20M samples), then confirmed at 20M twice and independently re-attacked with 47M samples across four fresh seeds; the bound converged to d <= 92 and no lighter logical was found in roughly 87M samples across six seeds total. Witness weights match the per-side claims exactly (X: 92, Z: 93). Distance claims are upper bounds; no exactness is claimed at this size. Distance revised 2026-08-19 by GPU deep refutation. Random-ISD runs with the sqetch GPU kernels (Muzhou Ma, MIT) on an NVIDIA L40S: a 50M-trial x 3-seed triage per side first beat both claimed bounds, then a 1,000,000,000-trial recovery ladder per side (seed 77000003 for X, 77000004 for Z) committed a weight-90 X logical and a weight-91 Z logical, both re-verified on the CPU with the repo's GF(2) arithmetic and recorded here as the new per-side witnesses. This tightens d<=92 to d<=90 and the score from 86*92^2/674 = 1079.98 to 86*90^2/674 = 1033.53. The distance remains a witness-backed upper bound, not an exact-distance claim. @vprusso constructed the code; @FarLab is added as an author for the refutation, following the board's precedent for refutation contributions. Migrated 2026-08-19 (issue #611): refutation credit moved from provenance.authors to witness_provenance on the refuted side(s); authors again lists only the constructor.",
   "model": "Claude Fable 5"
  }
 }

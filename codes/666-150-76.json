@@ -21400,7 +21400,17 @@
     622,
     653,
     657
-   ]
+   ],
+   "witness_provenance": {
+    "found_by": [
+     "@vprusso"
+    ],
+    "date": "2026-08-18",
+    "found_at_samples": 40000000,
+    "seeds": [
+     901
+    ]
+   }
   },
   "Z": {
    "value": 77,
@@ -21483,7 +21493,17 @@
     645,
     656,
     664
-   ]
+   ],
+   "witness_provenance": {
+    "found_by": [
+     "@vprusso"
+    ],
+    "date": "2026-08-18",
+    "found_at_samples": 20000000,
+    "seeds": [
+     77
+    ]
+   }
   }
  },
  "k": 150,
@@ -21491,14 +21511,13 @@
  "name": "[[666,150,76]] designed-divisor generalized-bicycle CSS code",
  "provenance": {
   "authors": [
-   "@npdeep",
-   "@vprusso"
+   "@npdeep"
   ],
   "construction": "Designed-divisor generalized-bicycle search at lift 333, with 16-term a(x) and 14-term b(x); a CI RIS-fast refutation of the original d<=82 submission supplied the retained weight-79 Z logical witness.",
   "date": "2026-08-15",
   "model": "Magic State Labs (Custom) v0.1",
-  "notes": "The weight-82 X witness and the corrected weight-79 Z witness were independently validated. The original d<=82 claim was corrected after CI found the lighter Z logical. The distance is a witness-backed upper bound, not an exact-distance claim. Distance revised 2026-08-18. @npdeep constructed the code; @vprusso is added as an author for the refutation that tightened the claim, following the board's precedent for refutation contributions. The refutation ran on independent hardware: 105M RIS samples across four fresh seeds found a weight-76 X logical (seed 901, 40M samples) and a weight-77 Z logical (seed 77, 20M samples), both recorded here as the new per-side witnesses; two further 20M/40M rungs found nothing lighter. This tightens d<=79 to d<=76 and the score to 150*76^2/666 = 1300.90."
+  "notes": "The weight-82 X witness and the corrected weight-79 Z witness were independently validated. The original d<=82 claim was corrected after CI found the lighter Z logical. The distance is a witness-backed upper bound, not an exact-distance claim. Distance revised 2026-08-18. @npdeep constructed the code; @vprusso is added as an author for the refutation that tightened the claim, following the board's precedent for refutation contributions. The refutation ran on independent hardware: 105M RIS samples across four fresh seeds found a weight-76 X logical (seed 901, 40M samples) and a weight-77 Z logical (seed 77, 20M samples), both recorded here as the new per-side witnesses; two further 20M/40M rungs found nothing lighter. This tightens d<=79 to d<=76 and the score to 150*76^2/666 = 1300.90. Migrated 2026-08-19 (issue #611): refutation credit moved from provenance.authors to witness_provenance on the refuted side(s); authors again lists only the constructor."
  },
- "schema_version": "0.1",
+ "schema_version": "0.2",
  "family": "generalized-bicycle"
 }
