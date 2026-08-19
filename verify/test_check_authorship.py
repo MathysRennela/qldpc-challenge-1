@@ -70,7 +70,7 @@ def refuted(with_wp=True, found_by="@bob"):
                             "witness": [0, 1, 2, 3, 4]}
     if with_wp:
         doc["distance"]["X"]["witness_provenance"] = {
-            "found_by": [found_by], "date": "2026-08-19", "samples": 10 ** 9}
+            "found_by": [found_by], "date": "2026-08-19", "found_at_samples": 10 ** 9}
     doc["distance"]["d"] = 5
     doc["provenance"]["notes"] += " Refuted."
     return doc
@@ -157,7 +157,7 @@ def main():
         doc = copy.deepcopy(BASE_DOC)
         doc["schema_version"] = "0.2"
         doc["distance"]["X"]["witness_provenance"] = {
-            "found_by": ["@bob"], "date": "2026-08-19", "samples": 10 ** 9}
+            "found_by": ["@bob"], "date": "2026-08-19", "found_at_samples": 10 ** 9}
         return doc
     run_case("survival stamp alone does not grant edit rights", stamp_only,
              False, rename=False)
@@ -165,7 +165,7 @@ def main():
     def stamp_riding_along():
         doc = refuted()
         doc["distance"]["Z"]["witness_provenance"] = {
-            "found_by": ["@bob"], "date": "2026-08-19", "samples": 10 ** 9}
+            "found_by": ["@bob"], "date": "2026-08-19", "found_at_samples": 10 ** 9}
         return doc
     run_case("survival stamp riding on a real refutation binds",
              stamp_riding_along, True)
