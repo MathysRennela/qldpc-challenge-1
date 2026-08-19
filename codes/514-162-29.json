@@ -1,5 +1,5 @@
 {
- "schema_version": "0.1",
+ "schema_version": "0.2",
  "name": "[[514,162,29]] prime-index cyclic generalized-bicycle code on Z_257",
  "code_type": "CSS",
  "n": 514,
@@ -13409,7 +13409,18 @@
     387,
     487,
     494
-   ]
+   ],
+   "witness_provenance": {
+    "found_by": [
+     "@FarLab"
+    ],
+    "date": "2026-08-19",
+    "found_at_samples": 1000000000,
+    "tool": "ris_gpu",
+    "seeds": [
+     88000007
+    ]
+   }
   },
   "Z": {
    "value": 29,
@@ -13444,21 +13455,31 @@
     333,
     419,
     447
-   ]
+   ],
+   "witness_provenance": {
+    "found_by": [
+     "@FarLab"
+    ],
+    "date": "2026-08-19",
+    "found_at_samples": 1000000000,
+    "tool": "ris_gpu",
+    "seeds": [
+     88000007
+    ]
+   }
   }
  },
  "family": "generalized-bicycle",
  "provenance": {
   "authors": [
-   "@vprusso",
-   "@FarLab"
+   "@vprusso"
   ],
   "construction": "Generalized bicycle (two-block cyclic) code on Z_257 with m=257 PRIME. H_X = [circ(a) | circ(b)], H_Z = [circ(b)^T | circ(a)^T] on n = 2m = 514 qubits. a and b are low-weight codewords of a cyclic divisor ideal <g>, g | x^257 - 1, assembled from a union of 2-cyclotomic cosets of Z_257 of total degree 80; k = 2 deg gcd(a, b, x^257 - 1) = 162. a=[17, 44, 46, 94, 142, 190, 192, 219, 242, 245, 248, 251], b=[5, 18, 26, 83, 97, 134, 148, 205, 213, 226, 238, 250]. Max check weight 24.",
   "references": [
    "arXiv:2308.07915"
   ],
   "date": "2026-08-11",
-  "notes": "Found by a search over PRIME block sizes m with 2m <= 700, the regime the [[482,146,42]] entry on Z_241 occupies; earlier cyclic searches here used composite m only. Distance ladder: 4k screen d<=48, 200k d<=50, 2M d<=46, 20M d<=41, each rung the minimum over its budget. Witnesses come from multi-seed randomized information-set searches at 20M reads and are re-verified to commute with the opposite check matrix and to lie outside the stabilizer rowspace. d is the minimum over sides (X 41, Z 44). Distance revised 2026-08-19 by GPU deep refutation with the board's standalone ris_gpu tool (verify/ris_gpu.cu, sqetch kernels by Muzhou Ma, MIT) on an NVIDIA L40S: a 1,000,000,000-trial random-ISD recovery ladder per side (seed 88000007) committed a weight-29 X logical and a weight-29 Z logical, both re-verified on the CPU with the repo's GF(2) arithmetic and recorded here as the new per-side witnesses. This tightens d<=41 to d<=29 and the score from 162*41^2/514 = 529.83 to 162*29^2/514 = 265.06. The distance remains a witness-backed upper bound, not an exact-distance claim. @vprusso constructed the code; @FarLab is added as an author for the refutation, following the board's precedent for refutation contributions.",
+  "notes": "Found by a search over PRIME block sizes m with 2m <= 700, the regime the [[482,146,42]] entry on Z_241 occupies; earlier cyclic searches here used composite m only. Distance ladder: 4k screen d<=48, 200k d<=50, 2M d<=46, 20M d<=41, each rung the minimum over its budget. Witnesses come from multi-seed randomized information-set searches at 20M reads and are re-verified to commute with the opposite check matrix and to lie outside the stabilizer rowspace. d is the minimum over sides (X 41, Z 44). Distance revised 2026-08-19 by GPU deep refutation with the board's standalone ris_gpu tool (verify/ris_gpu.cu, sqetch kernels by Muzhou Ma, MIT) on an NVIDIA L40S: a 1,000,000,000-trial random-ISD recovery ladder per side (seed 88000007) committed a weight-29 X logical and a weight-29 Z logical, both re-verified on the CPU with the repo's GF(2) arithmetic and recorded here as the new per-side witnesses. This tightens d<=41 to d<=29 and the score from 162*41^2/514 = 529.83 to 162*29^2/514 = 265.06. The distance remains a witness-backed upper bound, not an exact-distance claim. @vprusso constructed the code. Refutation credit and the search budget are recorded in witness_provenance on each corrected side (schema 0.2, issue #611); authorship is unchanged.",
   "model": "Claude Opus 5"
  }
 }
