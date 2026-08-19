@@ -21,11 +21,50 @@ submission built this way is ``"upper_bound"``; an ``"exact"`` claim is a
 separate, server-certified tier (see ``verify/certify.py``). The witness this
 search returns is exactly what the verifier checks to certify the upper bound.
 
-Pure numpy; no exact-solver or decoder dependency (those are a later phase).
+The default path is pure numpy. An optional ``gf2_fast`` backend accelerates the
+randomized screening search after ``make fast``; no exact-solver or decoder
+dependency is needed here.
 """
 import numpy as np
 
-from css import kernel_basis, logical_basis
+from css import kernel_basis, logical_basis, commutes, in_rowspace
+
+try:
+    import gf2_fast as _fast
+except ImportError:
+    _fast = None
+
+
+def _validate_fast_witness(HX, HZ, weight, side, support):
+    """Validate an accelerator proposal with the Python GF(2) stack."""
+    if side not in ("X", "Z"):
+        return weight == HX.shape[1] + 1 and not support
+    support = [int(q) for q in support]
+    n = HX.shape[1]
+    if len(support) != len(set(support)) or any(q < 0 or q >= n for q in support):
+        return False
+    if int(weight) != len(support):
+        return False
+    v = np.zeros(n, dtype=np.int8)
+    v[support] = 1
+    own, opposite = (HX, HZ) if side == "X" else (HZ, HX)
+    return commutes(v, opposite) and not in_rowspace(v, own)
+
+
+def _weight_or_inf(weight, n):
+    """Normalize gf2_fast's no-logical sentinel to NumPy's infinity result."""
+    return float("inf") if int(weight) > n else int(weight)
+
+
+def _distance_rand_fast(HX, HZ, trials, seed, threads):
+    if _fast is None:
+        raise RuntimeError("gf2_fast backend is unavailable")
+    weight, side, support = _fast.distance_rand_witness(
+        np.asarray(HX, dtype=np.int8), np.asarray(HZ, dtype=np.int8),
+        trials=int(trials), seed=int(seed), pair_depth=10, threads=int(threads))
+    if not _validate_fast_witness(HX, HZ, weight, side, support):
+        raise RuntimeError("gf2_fast returned an invalid logical witness")
+    return _weight_or_inf(weight, HX.shape[1])
 
 
 # =====================================================================
@@ -155,9 +194,23 @@ def lightest_logical(Hself, Hopp, trials=8000, seed=0):
     return _search_lightest(Hself, Hopp, trials, seed)
 
 
-def distance_rand(HX, HZ, trials=2000, seed=0):
-    """Upper bound on the code distance d = min(d_X, d_Z), as an int. Cheap
-    screening number; for the witnesses, call ``lightest_logical`` per side."""
+def distance_rand(HX, HZ, trials=2000, seed=0, *, backend="numpy", threads=1):
+    """Return a randomized upper bound on ``d = min(d_X, d_Z)``.
+
+    ``backend`` is ``"numpy"`` (portable), ``"fast"`` (requires ``make fast``),
+    or ``"auto"`` (fast when available, otherwise NumPy). Fast proposals are
+    validated by Python; this remains an upper-bound search, not a proof.
+    ``trials`` counts different search operations in the two backends, so the
+    same value is not a comparable screening budget across backends.
+    """
+    if backend not in ("numpy", "fast", "auto"):
+        raise ValueError("backend must be 'numpy', 'fast', or 'auto'")
+    if threads < 1:
+        raise ValueError("threads must be at least 1")
+    if backend in ("fast", "auto") and _fast is not None:
+        return _distance_rand_fast(HX, HZ, trials, seed, threads)
+    if backend == "fast":
+        raise ImportError("gf2_fast is unavailable; run `make fast` to build it")
     wx, _ = _search_lightest(HX, HZ, trials, seed)
     wz, _ = _search_lightest(HZ, HX, trials, seed)
     return min(wx, wz)

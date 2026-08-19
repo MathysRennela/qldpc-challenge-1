@@ -8,11 +8,12 @@ standard three stages:
     2. screen     skip k < min_k; estimate d with the surrogate; score by k*d^2/n
     3. rank       sort by efficiency and/or extract the Pareto frontier
 
-All pure numpy. The screening distance is ``surrogate.distance_rand`` -- an
-UPPER bound -- so ``screen`` gives you ranked *candidates*, not certified codes.
-Confirm the finalists' distance (``research/kit/distance.py``: exact MILP or decoder
-corroboration) before claiming anything, then package the winner with
-``submit.make_submission``.
+The default path is pure numpy. ``surrogate.distance_rand`` also supports an
+optional bit-packed C++ RIS backend (``backend="fast"`` or ``"auto"`` after
+``make fast``). The screening distance is always an UPPER bound, so ``screen``
+gives you ranked *candidates*, not certified codes. Confirm the finalists'
+distance (``research/kit/distance.py``: exact MILP or decoder corroboration)
+before claiming anything, then package the winner with ``submit.make_submission``.
 
 ``screen`` consumes any iterable of ``(label, HX, HZ)`` triples, so you can point
 it at your own generator. Ready-made samplers ship for the BB family
@@ -51,7 +52,8 @@ def fingerprint(HX, HZ):
 
 
 def screen(candidates, *, min_k=1, min_d=1, trials=400, seed=0,
-           metric=efficiency, keep=None, verbose=False):
+           metric=efficiency, keep=None, verbose=False, backend="numpy",
+           threads=1):
     """Screen an iterable of ``(spec, HX, HZ)`` candidates.
 
     ``spec`` is any JSON-serializable description of how the code was built (a
@@ -60,7 +62,8 @@ def screen(candidates, *, min_k=1, min_d=1, trials=400, seed=0,
     estimate ``d`` with ``distance_rand`` (upper bound; require ``d >= min_d``),
     and score with ``metric(n, k, d)``. Returns records
     ``{spec, n, k, d, efficiency, fingerprint}`` sorted by score (best first),
-    deduplicated by fingerprint, truncated to ``keep`` if given.
+    deduplicated by fingerprint, truncated to ``keep`` if given. ``backend`` and
+    ``threads`` control the optional accelerated distance screen.
     """
     seen = {}
     for spec, HX, HZ in candidates:
@@ -73,7 +76,9 @@ def screen(candidates, *, min_k=1, min_d=1, trials=400, seed=0,
         if fp in seen:
             continue
         n = int(HX.shape[1])
-        d = distance_rand(HX, HZ, trials=trials, seed=seed + int(fp, 16))
+        d = distance_rand(
+            HX, HZ, trials=trials, seed=seed + int(fp, 16),
+            backend=backend, threads=threads)
         if d == float("inf") or d < min_d:
             continue
         w = int(max((HX.shape[0] and max((int(r.sum()) for r in HX), default=0)),

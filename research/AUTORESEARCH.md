@@ -6,11 +6,9 @@ tool. It is both the **operating manual for the research loop** and the **refere
 `research/` starter kit**: constructing a code, estimating its distance, and packaging a
 verifiable submission.
 
-Everything in `research/` is **pure numpy** (no deps beyond what the verifier needs) and sits
-directly on the verifier's own GF(2) core, so what you build here is exactly what the board
-records. Your job: given a research direction, construct and search qLDPC codes and surface
-**verified, genuinely-new candidates** for human review. You may write and run any code you
-like — but you do **not** get to decide whether a code is good. A trusted gate does.
+The default path in `research/` is pure NumPy. An optional bit-packed C++ RIS backend can be
+built with `make fast` for larger screens and confirmation runs; Python still validates its
+witnesses.
 
 Layout:
 
@@ -153,6 +151,10 @@ frontier.
 from search import screen, pareto_frontier, sample_bb, update_leaderboard
 records = screen(sample_bb(400, seed=7), min_k=4, min_d=4, trials=250)
 records[:5]                       # best by k*d^2/n (the board's headline metric)
+
+# ``auto`` uses gf2_fast when available and otherwise falls back to NumPy.
+records = screen(sample_bb(10_000, seed=7), min_k=4, min_d=4, trials=2_000,
+                 backend="auto", threads=8)
 pareto_frontier(records)          # the non-dominated codes over (n, k, d)
 update_leaderboard("board.json", records)   # merge + persist, so a sweep can resume
 ```
@@ -160,8 +162,10 @@ update_leaderboard("board.json", records)   # merge + persist, so a sweep can re
 `screen` consumes any iterable of `(spec, HX, HZ)` triples, where `spec` is a JSON-serializable
 description of how the code was built — so you can point it at **your own generator** for any
 family. `sample_bb` is a ready-made one; a 2BGA or coset sampler over `group_algebra` / `coset`
-has the same shape. Because the screening distance is the surrogate *upper bound*, `screen`
-ranks **candidates** — validate the winners before claiming anything (next).
+has the same shape. `backend="fast"` requires `make fast`; `threads=` controls its CPU workers.
+The `trials` value is backend-specific: NumPy iterations and fast RIS samples are
+not comparable screening budgets. All screening values remain upper bounds, and
+finalists must still pass the validation gate.
 
 ## 4. Package a submission
 
