@@ -21659,7 +21659,18 @@
     550,
     571,
     655
-   ]
+   ],
+   "witness_provenance": {
+    "found_by": [
+     "@FarLab"
+    ],
+    "date": "2026-08-19",
+    "found_at_samples": 1000000000,
+    "tool": "sqetch",
+    "seeds": [
+     77000003
+    ]
+   }
   },
   "Z": {
    "confidence": "upper_bound",
@@ -21747,7 +21758,18 @@
     618,
     638,
     658
-   ]
+   ],
+   "witness_provenance": {
+    "found_by": [
+     "@FarLab"
+    ],
+    "date": "2026-08-19",
+    "found_at_samples": 1000000000,
+    "tool": "sqetch",
+    "seeds": [
+     77000004
+    ]
+   }
   },
   "d": 80
  },
@@ -21756,13 +21778,12 @@
  "name": "[[674,128,d<=80]] designed-divisor generalized-bicycle code",
  "provenance": {
   "authors": [
-   "@npdeep",
-   "@FarLab"
+   "@npdeep"
   ],
   "construction": "Designed-divisor generalized-bicycle search at lift 337, with 16-term a(x) and 14-term b(x); a fresh 8,000,000-trial-per-direction RIS-fast gate supplied the retained weight-88 X and weight-87 Z logical witnesses.",
   "date": "2026-08-16",
   "model": "Magic State Labs (Custom) v0.1",
-  "notes": "The X and Z witnesses were independently validated. The distance is a witness-backed upper bound, not an exact-distance claim. Distance revised 2026-08-19 by GPU deep refutation. Random-ISD runs with the sqetch GPU kernels (Muzhou Ma, MIT) on an NVIDIA L40S: a 50M-trial x 3-seed triage per side first beat both claimed bounds, then a 1,000,000,000-trial recovery ladder per side (seed 77000003 for X, 77000004 for Z) committed a weight-80 X logical and a weight-82 Z logical, both re-verified on the CPU with the repo's GF(2) arithmetic and recorded here as the new per-side witnesses. This tightens d<=87 to d<=80 and the score from 128*87^2/674 = 1437.44 to 128*80^2/674 = 1215.43. The distance remains a witness-backed upper bound, not an exact-distance claim. @npdeep constructed the code; @FarLab is added as an author for the refutation, following the board's precedent for refutation contributions."
+  "notes": "The X and Z witnesses were independently validated. The distance is a witness-backed upper bound, not an exact-distance claim. Distance revised 2026-08-19 by GPU deep refutation. Random-ISD runs with the sqetch GPU kernels (Muzhou Ma, MIT) on an NVIDIA L40S: a 50M-trial x 3-seed triage per side first beat both claimed bounds, then a 1,000,000,000-trial recovery ladder per side (seed 77000003 for X, 77000004 for Z) committed a weight-80 X logical and a weight-82 Z logical, both re-verified on the CPU with the repo's GF(2) arithmetic and recorded here as the new per-side witnesses. This tightens d<=87 to d<=80 and the score from 128*87^2/674 = 1437.44 to 128*80^2/674 = 1215.43. The distance remains a witness-backed upper bound, not an exact-distance claim. @npdeep constructed the code; @FarLab is added as an author for the refutation, following the board's precedent for refutation contributions. Migrated 2026-08-19 (issue #611): refutation credit moved from provenance.authors to witness_provenance on the refuted side(s); authors again lists only the constructor."
  },
- "schema_version": "0.1"
+ "schema_version": "0.2"
 }

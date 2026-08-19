@@ -1,5 +1,5 @@
 {
- "schema_version": "0.1",
+ "schema_version": "0.2",
  "name": "[[674,86,89]] generalized-bicycle code over Z_337",
  "code_type": "CSS",
  "n": 674,
@@ -17632,7 +17632,18 @@
     593,
     641,
     668
-   ]
+   ],
+   "witness_provenance": {
+    "found_by": [
+     "@FarLab"
+    ],
+    "date": "2026-08-19",
+    "found_at_samples": 1000000000,
+    "tool": "sqetch",
+    "seeds": [
+     77000003
+    ]
+   }
   },
   "Z": {
    "value": 89,
@@ -17732,8 +17743,7 @@
  },
  "provenance": {
   "authors": [
-   "@kessler-frost",
-   "@FarLab"
+   "@kessler-frost"
   ],
   "origin": "submission",
   "novelty": "unknown",
@@ -17748,7 +17758,7 @@
    "https://arxiv.org/abs/2608.09115"
   ],
   "date": "2026-08-16",
-  "notes": "Submitted by @kessler-frost, who designed and ran the candidate search. The retained b polynomial is credited to @vprusso and the pinned source above; the a polynomial was found in the new search. The original d <= 95 submission was refuted by public CI seed 147873169, whose RIS-fast pass found the retained weight-89 Z logical. This revision therefore makes only the corrected witness-backed claims d_X <= 98, d_Z <= 89, and d <= 89; no lower bound or exact-distance claim is made. No exact or WL-equivalent current-board entry was found, but no exhaustive literature classification is known, so novelty is unknown. X-side bound revised 2026-08-19 by GPU deep refutation. Random-ISD runs with the sqetch GPU kernels (Muzhou Ma, MIT) on an NVIDIA L40S: a 50M-trial x 3-seed triage per side, then a 1,000,000,000-trial recovery ladder per side (seed 77000003 for X, 77000004 for Z), committed a weight-92 X logical, re-verified on the CPU with the repo's GF(2) arithmetic and recorded here as the new X witness, tightening dX<=98 to dX<=92. The same budget found no Z logical lighter than weight 90, so the claimed dZ<=89 and the overall d<=89 stand unchanged (the deep run corroborates rather than refutes the headline distance; score unchanged at 86*89^2/674 = 1010.55). All distances remain witness-backed upper bounds, not exact-distance claims. @kessler-frost constructed the code; @FarLab is added as an author for the bound revision, following the board's precedent for refutation contributions."
+  "notes": "Submitted by @kessler-frost, who designed and ran the candidate search. The retained b polynomial is credited to @vprusso and the pinned source above; the a polynomial was found in the new search. The original d <= 95 submission was refuted by public CI seed 147873169, whose RIS-fast pass found the retained weight-89 Z logical. This revision therefore makes only the corrected witness-backed claims d_X <= 98, d_Z <= 89, and d <= 89; no lower bound or exact-distance claim is made. No exact or WL-equivalent current-board entry was found, but no exhaustive literature classification is known, so novelty is unknown. X-side bound revised 2026-08-19 by GPU deep refutation. Random-ISD runs with the sqetch GPU kernels (Muzhou Ma, MIT) on an NVIDIA L40S: a 50M-trial x 3-seed triage per side, then a 1,000,000,000-trial recovery ladder per side (seed 77000003 for X, 77000004 for Z), committed a weight-92 X logical, re-verified on the CPU with the repo's GF(2) arithmetic and recorded here as the new X witness, tightening dX<=98 to dX<=92. The same budget found no Z logical lighter than weight 90, so the claimed dZ<=89 and the overall d<=89 stand unchanged (the deep run corroborates rather than refutes the headline distance; score unchanged at 86*89^2/674 = 1010.55). All distances remain witness-backed upper bounds, not exact-distance claims. @kessler-frost constructed the code; @FarLab is added as an author for the bound revision, following the board's precedent for refutation contributions. Migrated 2026-08-19 (issue #611): refutation credit moved from provenance.authors to witness_provenance on the refuted side(s); authors again lists only the constructor."
  },
  "family": "generalized-bicycle"
 }
