@@ -30,7 +30,7 @@ import numpy as np
 from css import kernel_basis, logical_basis, commutes, in_rowspace
 
 try:
-    import gf2_fast as _fast       # optional; build with ``make fast``
+    import gf2_fast as _fast
 except ImportError:
     _fast = None
 
@@ -52,7 +52,8 @@ def _validate_fast_witness(HX, HZ, weight, side, support):
 
 
 def _distance_rand_fast(HX, HZ, trials, seed, threads):
-    assert _fast is not None
+    if _fast is None:
+        raise RuntimeError("gf2_fast backend is unavailable")
     weight, side, support = _fast.distance_rand_witness(
         np.asarray(HX, dtype=np.int8), np.asarray(HZ, dtype=np.int8),
         trials=int(trials), seed=int(seed), pair_depth=10, threads=int(threads))
