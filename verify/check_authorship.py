@@ -44,10 +44,18 @@ HANDLE = re.compile(r"^@([A-Za-z0-9-]+)$")
 
 
 def changed_codes(base, root=ROOT):
-    """{path: status} for codes changed vs base; status is A, M, or D."""
+    """{path: status} for codes changed vs base; status is A, M, or D.
+
+    --no-renames matters: a refutation renames codes/<n>-<k>-<d>.json to the
+    new d while changing only the distance block, which git otherwise folds
+    into a single R line (98% similar on a real board file) that used to
+    parse as neither added nor modified -- the gate then checked nothing at
+    all. Splitting renames back into D + A keeps every path visible; the R
+    branch below is belt-and-braces in case the flag is ever lost."""
     try:
         out = subprocess.check_output(
-            ["git", "diff", "--name-status", f"{base}...HEAD", "--", "codes"],
+            ["git", "diff", "--name-status", "--no-renames",
+             f"{base}...HEAD", "--", "codes"],
             cwd=root, text=True)
     except Exception as e:
         print(f"(could not diff vs {base}: {e}); skipping authorship check")
@@ -55,8 +63,16 @@ def changed_codes(base, root=ROOT):
     changes = {}
     for line in out.splitlines():
         parts = line.split("\t")
-        if len(parts) >= 2 and parts[1].endswith(".json"):
-            changes[parts[1]] = parts[0][:1]
+        if len(parts) < 2:
+            continue
+        status = parts[0][:1]
+        if status == "R" and len(parts) >= 3:
+            if parts[1].endswith(".json"):
+                changes[parts[1]] = "D"
+            if parts[2].endswith(".json"):
+                changes[parts[2]] = "A"
+        elif parts[1].endswith(".json"):
+            changes[parts[1]] = status
     return changes
 
 
