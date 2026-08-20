@@ -1,4 +1,4 @@
-"""Measured logical error rate for the circuit tier (issue #460).
+"""Measured logical error rate for the circuit tier.
 
 The circuit tier certifies d_circ, a floor. Two schedules with the same d_circ
 can differ substantially in measured logical error rate, because the number of

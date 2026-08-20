@@ -1,4 +1,4 @@
-"""Tests for the measured logical-error-rate tier (issue #460).
+"""Tests for the measured logical-error-rate tier.
 
 The known-good artifact is generated in-test with the toolkit's own builder
 and measurement, then each tamper must be caught by its specific check:

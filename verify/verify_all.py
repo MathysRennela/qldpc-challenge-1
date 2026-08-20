@@ -61,7 +61,7 @@ if __name__ == "__main__":
             else:
                 rep["ok"] = False
                 rep["checks"] += [c for c in crep["checks"] if not c["ok"]]
-            # measured-rate tier (issue #460): an ler claim is re-measured,
+            # measured-rate tier: an ler claim is re-measured,
             # never trusted; a missing decoder fails the claim rather than
             # skipping it, so an unverifiable number cannot merge.
             if rep["ok"] and (doc["circuit"] or {}).get("ler"):

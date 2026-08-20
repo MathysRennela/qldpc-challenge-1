@@ -138,7 +138,7 @@
         },
         "ler": {
           "type": "object",
-          "description": "optional measured logical-error-rate tier (issue #460): the same committed memory circuits, sampled under the canonical noise recipe and decoded with the pinned decoder. Distance is a floor; this is the measured rate a device-like simulation actually sees, prefactors included.",
+          "description": "optional measured logical-error-rate tier: the same committed memory circuits, sampled under the canonical noise recipe and decoded with the pinned decoder. Distance is a floor; this is the measured rate a device-like simulation actually sees, prefactors included.",
           "required": [
             "X",
             "Z"

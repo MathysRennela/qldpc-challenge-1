@@ -1,4 +1,4 @@
-"""Verifier for measured logical-error-rate claims (issue #460).
+"""Verifier for measured logical-error-rate claims.
 
 Usage:
     python verify/ler_verify.py codes/your-code.json [circuits-dir]

@@ -89,7 +89,7 @@ Two principles drive the format:
     Every TICK layer must be genuinely parallel (no qubit operated on twice
     in a layer): layer count controls idle-data noise, so this is what makes
     a schedule's claimed parallelism -- and the resulting d_circ -- honest.
-  - `ler` (optional; issue #460): the measured logical-error-rate tier, on
+  - `ler` (optional): the measured logical-error-rate tier, on
     the same committed circuits. `d_circ` is a floor; this is the rate a
     simulation actually sees, prefactors included. Per basis (`ler.X`,
     `ler.Z`):
