@@ -12,13 +12,26 @@ witness check, and the refutation discipline all transfer unchanged.
 
 Canonical noise recipe (RFC 0001). Noise placement is NOT a submitter degree
 of freedom -- the schedule is. A submitted circuit conforms iff it equals
-`apply_noise(strip_noise(circuit))` at the reference rate P_REF:
+`apply_noise(strip_noise(circuit))` at the reference rate P_REF AND its TICK
+layers are genuinely parallel:
 
   - DEPOLARIZE2(p) immediately after every two-qubit gate instruction;
   - X_ERROR(p) after every R, Z_ERROR(p) after every RX (reset flips);
   - measurement flip probability p on every M / MX;
   - DEPOLARIZE1(p) on every idle DATA qubit (index < n) at the end of each
-    TICK-delimited layer that performs at least one operation.
+    TICK-delimited layer that performs at least one operation;
+  - within one TICK layer, no qubit is operated on more than once.
+
+The last rule is what makes idle noise honest, and it is load-bearing for the
+tier's penalty-only property (vprusso's #646 review): idle-data mechanisms
+scale with the number of layers, so without it a submitter could delete TICKs
+-- pure annotations -- to shed fault mechanisms and inflate d_circ. With it,
+every layer is a set of operations a device could execute simultaneously:
+merging layers is legal exactly when the merged operations touch disjoint
+qubits, which is real pipelining that genuinely reduces idle exposure --
+schedule optimization the tier exists to score -- while the coarsenings that
+only exist on paper (an ancilla reset, coupled and measured "at once") are
+rejected.
 
 The allowed gate set is stim's unitary gates plus R, RX, M, MX and the
 annotations (TICK, DETECTOR, OBSERVABLE_INCLUDE, QUBIT_COORDS, SHIFT_COORDS).
@@ -110,6 +123,36 @@ def _segments(flat_circuit):
     return segs
 
 
+def layer_conflict_errors(skeleton):
+    """[] iff every TICK segment of the noiseless skeleton is a genuinely
+    parallel layer: no qubit targeted by more than one operation atom
+    (annotations do not count). See the module docstring for why this is
+    load-bearing: layer count controls idle-data noise, so a layer structure
+    that could not run on hardware would shed fault mechanisms for free."""
+    errs = []
+    for si, seg in enumerate(_segments(skeleton.flattened())):
+        used = set()
+        for inst in seg:
+            if inst.name in ANNOTATIONS:
+                continue
+            for t in inst.targets_copy():
+                q = t.qubit_value
+                if q is None:
+                    continue
+                if q in used:
+                    errs.append(
+                        f"TICK layer {si} operates on qubit {q} more than "
+                        f"once; a layer must be executable in parallel "
+                        f"(sequential operations need a TICK between them)")
+                    break
+                used.add(q)
+            if errs:
+                break
+        if len(errs) >= 3:
+            break
+    return errs
+
+
 def apply_noise(skeleton, n_data, p=P_REF):
     """The canonical noisy circuit for a noiseless skeleton (see module
     docstring). This function IS the recipe: a submission conforms iff it
@@ -151,7 +194,7 @@ def noise_recipe_errors(circuit, n_data, p=P_REF):
     skeleton. Any deviation -- a missing or extra channel, a wrong rate, a
     disallowed instruction -- is reported with the first differing line."""
     skel = strip_noise(circuit)
-    errs = skeleton_errors(skel)
+    errs = skeleton_errors(skel) + layer_conflict_errors(skel)
     if errs:
         return errs
     want = str(apply_noise(skel, n_data, p))

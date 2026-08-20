@@ -86,6 +86,9 @@ Two principles drive the format:
   - Circuits must be memory experiments with the canonical noise recipe
     (`verify/circuit_verify.py` documents and enforces it mechanically);
     noise placement is not a submitter degree of freedom, the schedule is.
+    Every TICK layer must be genuinely parallel (no qubit operated on twice
+    in a layer): layer count controls idle-data noise, so this is what makes
+    a schedule's claimed parallelism -- and the resulting d_circ -- honest.
 - `locality` (optional): provide a layout and the verifier derives the locality
   class (`local-2d-single`, `local-2d-bilayer`, or `unrestricted`); omit it and
   the code is `unrestricted`.

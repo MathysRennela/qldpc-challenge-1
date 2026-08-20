@@ -191,6 +191,34 @@ def test_stabilizer_observable_rejected(seed, tmp_path):
     assert not _status(report, "Z_code_binding")
 
 
+def test_tick_coarsening_rejected():
+    """vprusso's #646 review: idle-data mechanisms scale with TICK layer
+    count, so deleting TICKs -- pure annotations -- shed fault mechanisms and
+    inflated d_circ while staying recipe-conformant. Coarsening that claims
+    impossible simultaneity (a qubit operated on twice in one layer) must now
+    be rejected; merging genuinely disjoint layers -- real pipelining --
+    stays legal."""
+    HX = _matrix(BASE_DOC["checks"]["X"], N)
+    HZ = _matrix(BASE_DOC["checks"]["Z"], N)
+    skel = ct.build_css_memory(HX, HZ, rounds=2, basis="Z")
+    lines = str(skel).splitlines()
+
+    # all TICKs deleted: one giant "layer" reusing every ancilla
+    coarse = stim.Circuit("\n".join(l for l in lines if l != "TICK"))
+    noisy = ct.apply_noise(coarse, N)
+    errs = ct.noise_recipe_errors(noisy, N)
+    assert errs and "parallel" in errs[0]
+    assert ct.derive_dem(noisy).num_errors < \
+        ct.derive_dem(ct.apply_noise(skel, N)).num_errors      # the lever
+
+    # merging two DISJOINT layers (MX on X-ancillas, then R on Z-ancillas)
+    # is honest pipelining and must stay conformant
+    i = next(j for j, l in enumerate(lines) if l.startswith("MX "))
+    assert lines[i + 1] == "TICK" and lines[i + 2].startswith("R ")
+    merged = stim.Circuit("\n".join(lines[:i + 1] + lines[i + 2:]))
+    assert ct.noise_recipe_errors(ct.apply_noise(merged, N), N) == []
+
+
 def test_dem_matches_unit():
     """Probabilities compare to float tolerance (last ulps are architecture-
     sensitive: an honest artifact from another machine must pass), but any

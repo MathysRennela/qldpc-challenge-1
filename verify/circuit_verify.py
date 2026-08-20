@@ -13,8 +13,13 @@ Checks, per basis (RFC 0001 numbering):
                     deterministic (stim rejects an extraction that fails to
                     measure the stabilizer group faithfully)
   2. noise recipe   the circuit is exactly apply_noise(strip_noise(circuit))
-                    at the reference rate: canonical placement, not a
-                    submitter degree of freedom (circuit_tools docstring)
+                    at the reference rate, and every TICK layer is genuinely
+                    parallel (no qubit operated on twice in a layer). Layer
+                    count controls idle-data noise, so without the second half
+                    deleting TICKs -- pure annotations -- would shed fault
+                    mechanisms and inflate d_circ (vprusso's #646 review);
+                    with it, merging layers is legal exactly when a device
+                    could run them simultaneously (circuit_tools docstring)
   3. code binding   observables = the code's k declared-basis logicals on the
                     final transversal readout; closure detectors match the
                     declared check matrix rows; data qubits are 0..n-1; the
