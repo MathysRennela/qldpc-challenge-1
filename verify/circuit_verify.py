@@ -55,6 +55,16 @@ from qldpc_verify import _matrix
 
 MAX_CIRCUIT_FILE_BYTES = 5_000_000
 
+# Verification-budget cap for the circuit tier (the RFC's "cap the tier by
+# n*rounds", enforced on the actual cost driver): the refutation gate searches
+# ker(H_dem) by RIS, and per-trial cost fits ~1.2e-12 * mechanisms^3 seconds
+# with the gf2_fast extension (measured 2026-08-20: 8.4 ms at m=1651, 3.9 s at
+# m=15800, 25 s at m=34530). At this cap a basis costs the gate ~2 minutes at
+# minimum depth, keeping a circuit entry within the same ~10-minute budget a
+# deep code claim gets. Raise-only, as the search stack improves (GPU RIS /
+# sparse RREF are the known routes up).
+MAX_DEM_MECHANISMS = 25_000
+
 SIDE_FILES = {"X": "memory_x", "Z": "memory_z"}
 SIDE_READOUT = {"X": "MX", "Z": "M"}
 
@@ -241,6 +251,13 @@ def verify_circuit(doc, circuits_dir):
                f"k observables, checks, and rounds bound to the declared code")
 
         derived = ct.derive_dem(circuit)        # step 5: witness
+        record(f"{side}_dem_within_budget",
+               derived.num_errors <= MAX_DEM_MECHANISMS,
+               f"{derived.num_errors} mechanisms (cap {MAX_DEM_MECHANISMS}: "
+               f"verification-budget rule; the refutation gate must be able "
+               f"to search this DEM)")
+        if derived.num_errors > MAX_DEM_MECHANISMS:
+            continue
         dem_match = ct.dem_matches(derived, committed)
         record(f"{side}_dem_reproduces", dem_match,
                "committed .dem re-derives mechanism-for-mechanism (exact "

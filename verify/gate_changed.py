@@ -34,6 +34,19 @@ new codes, edited checks, raised values, unclassifiable diffs -- fails closed
 to the full existing behavior. Classification is recomputed from the git
 diff, never taken from the PR's framing.
 
+Entries with a circuit block (RFC 0001, issue #505) additionally face the
+circuit-tier refutation (_circuit_refute): a bounded RIS search on each memory
+circuit's re-derived DEM, hunting an undetected logical fault set lighter than
+the claimed d_circ. The circuit search is priced by the same diff principle
+(circuit_gate_needed): it runs when the circuit claim surface changed -- the
+JSON's circuit block, or anything under circuits/<slug>/, whose diffs
+map_changed routes here even when the JSON is untouched -- or when the entry
+is new; an untouched circuit claim already survived its own gate. In
+particular a diff that only adds or edits a circuit block classifies as
+layout-only for the CODE tier (checks and distance are unchanged) yet still
+pays the circuit search: the code-tier skip must never skip the claim that
+actually changed.
+
 Usage:
   python verify/gate_changed.py [--code-root PATH] [BASE] [files...]
     --code-root PATH  repository tree containing the submitted codes
@@ -50,8 +63,10 @@ import sys
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import circuit_tools as CT
 import gf2
 import heuristic_distance as H
+from circuit_verify import MAX_DEM_MECHANISMS, SIDE_FILES
 from qldpc_verify import file_size_error
 from validate_candidate import validate_candidate
 from build_receipt import make_receipt, write_receipt
@@ -79,15 +94,30 @@ def _load_syndrome():
         return None
 
 
+def map_changed(paths):
+    """Changed paths -> the code JSONs the gate must run on. A change under
+    circuits/<slug>/ is a change to that entry's circuit-tier claim surface
+    (the DEM the witnesses live in), so it maps back to codes/<slug>.json --
+    a schedule swap cannot dodge the gate by leaving the JSON untouched."""
+    files = []
+    for p in paths:
+        if p.startswith("circuits/") and p.count("/") >= 2:
+            p = f"codes/{p.split('/')[1]}.json"
+        if p.endswith(".json") and p not in files:
+            files.append(p)
+    return files
+
+
 def changed_codes(base, code_root=ROOT):
     try:
         out = subprocess.check_output(
-            ["git", "diff", "--name-only", f"{base}...HEAD", "--", "codes", "verify/fixtures"],
+            ["git", "diff", "--name-only", f"{base}...HEAD", "--",
+             "codes", "verify/fixtures", "circuits"],
             cwd=code_root, text=True)
     except Exception as e:
         print(f"could not compute diff vs {base}: {e}; failing closed")
         return None
-    return [f for f in out.split() if f.endswith(".json")]
+    return map_changed(out.split())
 
 
 def changed_codes_status(base: str, code_root: str = ROOT) -> dict | None:
@@ -341,6 +371,87 @@ def _budget(n, deep, fast=False):
     return trials, seconds, 1
 
 
+# Circuit-tier refutation budget (RFC 0001 step 6). Per-trial RIS cost on
+# ker(H_dem) fits ~cost * mechanisms^3 (dominated by the packed RREF; measured
+# 2026-08-20 with gf2_fast: 8.4 ms at m=1651, 26 ms at m=2845, 3.9 s at
+# m=15800; python fallback ~10x). The budget targets a wall-clock per basis
+# and converts it to trials through that fit; the hard time cap inside
+# ris_dem bounds CI even where the fit is off. At MAX_DEM_MECHANISMS the
+# floor of 12 trials costs ~2 minutes per basis, which is what sized the cap.
+CIRCUIT_TRIAL_COST = 1.2e-12          # seconds per trial per mechanisms^3
+CIRCUIT_PY_FACTOR = 10                # python fallback slowdown, measured
+CIRCUIT_SECONDS = 120.0               # wall-clock target per basis
+CIRCUIT_MAX_TRIALS = 2000
+CIRCUIT_MIN_TRIALS = 12
+
+
+def _circuit_budget(m, fast):
+    per = CIRCUIT_TRIAL_COST * m ** 3 * (1 if fast else CIRCUIT_PY_FACTOR)
+    per = max(per, 0.002)
+    trials = int(max(CIRCUIT_MIN_TRIALS if fast else 3,
+                     min(CIRCUIT_MAX_TRIALS, CIRCUIT_SECONDS / per)))
+    return trials, CIRCUIT_SECONDS * 1.5
+
+
+def circuit_gate_needed(base_doc, doc, circuits_diffed):
+    """Diff-priced circuit gate decision: search only when the circuit claim
+    surface changed -- the JSON's circuit block or the artifacts under
+    circuits/<slug>/ -- or when there is no base to have gated it. An
+    untouched claim already survived its own gate and the code-tier skip
+    logic must never be the thing that skips a CHANGED circuit claim."""
+    if "circuit" not in doc:
+        return False
+    if base_doc is None:
+        return True
+    return base_doc.get("circuit") != doc.get("circuit") or circuits_diffed
+
+
+def _circuits_diffed(base, code_root, slug):
+    """Did anything under circuits/<slug>/ change vs base? Fails closed (True)
+    when the diff cannot be computed."""
+    try:
+        out = subprocess.check_output(
+            ["git", "diff", "--name-only", f"{base}...HEAD", "--",
+             f"circuits/{slug}"], cwd=code_root, text=True)
+        return bool(out.strip())
+    except Exception:
+        return True
+
+
+def _circuit_refute(doc, circuits_dir, seed, trials_override=None):
+    """RFC 0001 step 6: independent bounded RIS on the DEM of each committed
+    memory circuit, hunting an undetected logical fault set lighter than the
+    claimed d_circ. The DEM is RE-DERIVED from the .stim with the pinned stim
+    -- the search substrate is never the committed .dem taken on faith -- and
+    a find only counts after the pinned witness check confirms it, exactly
+    the layering the code-distance gate uses. Returns (hits, notes): hits
+    maps basis -> (found_weight, witness, claimed); notes are per-basis "ok"
+    summaries. Raises on unreadable artifacts (caller fails closed)."""
+    import stim
+    hits, notes = {}, []
+    for side in ("X", "Z"):
+        claim = int(doc["circuit"]["d_circ"][side]["value"])
+        base = os.path.join(circuits_dir, SIDE_FILES[side])
+        circuit = stim.Circuit(open(base + ".stim").read())
+        dem = CT.derive_dem(circuit)
+        m = dem.num_errors
+        if m > MAX_DEM_MECHANISMS:
+            raise ValueError(f"{side}: {m} mechanisms exceeds the tier cap "
+                             f"{MAX_DEM_MECHANISMS}")
+        Hd, L = CT.dem_matrices(dem)
+        trials, cap = _circuit_budget(m, CT._GF is not None)
+        if trials_override:
+            trials = trials_override
+        w, wit = CT.ris_dem(Hd, L, trials, seed=seed, max_seconds=cap)
+        if w is not None and w < claim and \
+                not CT.witness_errors(dem, wit, w):
+            hits[side] = (w, wit, claim)
+        else:
+            notes.append(f"{side} ok (m={m}, {trials} trials, "
+                         f"lightest {w} vs claimed {claim})")
+    return hits, notes
+
+
 def _fast_refute(doc, seed, trials):
     """Deep RIS via the optional C++ accelerator, kept SOUND the same way the
     python passes are: the accelerator only proposes (weight, side, support);
@@ -464,7 +575,31 @@ def main(argv):
         # Price the diff, not just the code: what changed determines what could
         # newly be over-claimed (see module docstring).
         base_doc = base_doc_for(f, doc, base, code_root)
+        if base_doc is None:
+            status = changed_codes_status(base, code_root)
+            if status is not None and f not in status:
+                # The JSON itself is untouched -- this file was mapped in by
+                # a circuits/<slug>/ diff. Its base counterpart is simply
+                # itself at base, so the code tier classifies as unchanged
+                # (and skips) instead of pricing an unchanged claim as a new
+                # one. A None status (git failure) stays None: fail closed.
+                base_doc = load_base_doc(base, f, code_root)
         cls, why = classify_diff(base_doc, doc)
+        run_circuit = circuit_gate_needed(
+            base_doc, doc, _circuits_diffed(base, code_root, slug))
+
+        def run_circuit_gate():
+            """The circuit-tier search (RFC 0001 step 6); (hits, notes, err)."""
+            if not run_circuit:
+                return {}, (["circuit claim unchanged from base; already "
+                             "gated"] if "circuit" in doc else []), None
+            cdir = os.path.join(os.path.dirname(p), "..", "circuits", slug)
+            try:
+                h, nts = _circuit_refute(doc, cdir, seed + 11)
+                return h, nts, None
+            except Exception as e:
+                return {}, [], f"{type(e).__name__}: {e}"
+
         if cls == "layout-only":
             # The structural verdict (schema, witnesses, layout honesty) is
             # authoritative here even though verify_all also runs it: the
@@ -486,24 +621,55 @@ def main(argv):
                 print(f"ok       {f} (layout-only diff: {why}; refutation "
                       f"deferred to the weekly board sweep)")
             if cls == "layout-only":
+                # The CODE claim is unchanged and skips, but a changed
+                # circuit claim in the same diff must still be searched: a
+                # circuit-block-only edit classifies exactly here.
+                ok_struct = structural_ok(verdict)
+                circ_hits, circ_notes, circ_failed = ({}, [], None)
+                if ok_struct:
+                    circ_hits, circ_notes, circ_failed = run_circuit_gate()
+                if circ_failed:
+                    failed += 1
+                    print(f"FAIL     {f} [circuit]: gate could not search the "
+                          f"DEM ({circ_failed}); failing closed -- manual "
+                          f"review required")
+                elif circ_hits:
+                    refuted += 1
+                    for s, (w, wit, c) in circ_hits.items():
+                        print(f"REFUTED  {f} [circuit-{s}]: weight-{w} "
+                              f"undetected logical fault set < claimed "
+                              f"d_circ {c}\n         witness (dem error "
+                              f"indices) = {wit}")
+                elif ok_struct and run_circuit:
+                    print(f"ok       {f} [circuit]: {'; '.join(circ_notes)}")
                 if receipt_dir:
                     # The receipt's headline verdict must reflect structural
                     # soundness of the edit, not the new-candidate gates
                     # (dedup self-matches by construction on an in-place edit).
-                    verdict["passed"] = structural_ok(verdict)
+                    verdict["passed"] = bool(ok_struct and not circ_hits
+                                             and not circ_failed)
                     verdict["gates"]["refute"] = {
-                        "refuted": False, "seed": seed,
+                        "refuted": bool(circ_hits), "seed": seed,
                         "detail": f"skipped: {why}; distance claim identical "
                                   f"to base and covered by the weekly refute "
                                   f"sweep; dedup self-match is expected for "
                                   f"an in-place edit",
                     }
+                    gate = {"refuted": bool(circ_hits), "seed": seed,
+                            "seeds": [], "trials": 0, "budget_seconds": 0.0,
+                            "deep": False, "fast_trials": 0, "methods": [],
+                            "diff_class": cls, "diff_reason": why}
+                    if "circuit" in doc:
+                        gate["circuit"] = {
+                            "searched": run_circuit,
+                            "refuted": bool(circ_hits),
+                            "failed": circ_failed,
+                            "hits": {s: {"found": w, "claimed": c}
+                                     for s, (w, _, c) in circ_hits.items()},
+                            "notes": circ_notes,
+                        }
                     receipt = make_receipt(
-                        doc, p, verdict,
-                        gate={"refuted": False, "seed": seed, "seeds": [],
-                              "trials": 0, "budget_seconds": 0.0,
-                              "deep": False, "fast_trials": 0, "methods": [],
-                              "diff_class": cls, "diff_reason": why},
+                        doc, p, verdict, gate=gate,
                         repo_root=code_root, pr_number=pr_number,
                         pr_author=pr_author, base_sha=base_sha,
                         head_sha=head_sha)
@@ -537,12 +703,19 @@ def main(argv):
             ftrials = min(8_000_000, 150 * trials)
             results["RIS-fast"] = _fast_refute(doc, seed + 7, ftrials)
         hits = {m: (dh, wit) for m, (ref, dh, wit, _) in results.items() if ref}
+        # Circuit tier (RFC 0001 step 6): entries shipping syndrome circuits
+        # additionally face a bounded RIS search on each memory DEM when the
+        # circuit claim surface changed (circuit_gate_needed). A validated
+        # lighter fault set refutes the d_circ claim the same way a lighter
+        # logical refutes d. FAILS CLOSED: unreadable or over-cap artifacts
+        # are a gate failure, never a silent pass.
+        circ_hits, circ_notes, circ_failed = run_circuit_gate()
         fast_tag = (f" + fast x {ftrials}" if ftrials else "")
         tag = (f"deep, {len(seeds)} RIS seeds x {trials} trials (<={budget:.0f}s each)"
                f"{fast_tag}" if deep else f"standard, {trials} trials (<={budget:.0f}s)")
         tag += f"; diff: {cls}"
         gate = {
-            "refuted": bool(hits),
+            "refuted": bool(hits or circ_hits),
             "seed": seed,
             "seeds": seeds,
             "trials": trials,
@@ -553,6 +726,15 @@ def main(argv):
             "diff_class": cls,
             "diff_reason": why,
         }
+        if "circuit" in doc:
+            gate["circuit"] = {
+                "searched": run_circuit,
+                "refuted": bool(circ_hits),
+                "failed": circ_failed,
+                "hits": {s: {"found": w, "claimed": c}
+                         for s, (w, _, c) in circ_hits.items()},
+                "notes": circ_notes,
+            }
         if receipt_dir:
             # The distance search above is authoritative for this run. Reuse the
             # trusted structural/dedup/frontier checks without running refutation a
@@ -564,7 +746,8 @@ def main(argv):
                 "detail": "distance gate recorded by gate_changed.py",
             }
             verdict["passed"] = bool(
-                verdict.get("passed") and not hits)
+                verdict.get("passed") and not hits
+                and not circ_hits and not circ_failed)
             slug = os.path.splitext(os.path.basename(f))[0]
             receipt = make_receipt(
                 doc, p, verdict, gate=gate, repo_root=code_root,
@@ -579,6 +762,19 @@ def main(argv):
         else:
             print(f"ok       {f} ({tag}): no logical lighter than "
                   f"{doc['distance']['d']}")
+        if circ_failed:
+            failed += 1
+            print(f"FAIL     {f} [circuit]: gate could not search the DEM "
+                  f"({circ_failed}); failing closed -- manual review required")
+        elif circ_hits:
+            if not hits:
+                refuted += 1
+            for s, (w, wit, c) in circ_hits.items():
+                print(f"REFUTED  {f} [circuit-{s}]: weight-{w} undetected "
+                      f"logical fault set < claimed d_circ {c}\n"
+                      f"         witness (dem error indices) = {wit}")
+        elif circ_notes:
+            print(f"ok       {f} [circuit]: {'; '.join(circ_notes)}")
     if refuted:
         print(f"\n{refuted} submission(s) refuted: claimed distance is not supported "
               f"by an independent search. See witnesses above.")
