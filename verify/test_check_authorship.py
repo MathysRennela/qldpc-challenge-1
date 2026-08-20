@@ -251,6 +251,84 @@ def main():
     run_case("high-similarity rename: tampered refutation still caught",
              refuted_big_tampered, False, base_doc=BIG)
 
+    print("\nlayout binding (first locality block):")
+    LAYOUT = {"coordinates": [[float(i), 0.0] for i in range(60)], "layers": 2}
+
+    def adds_layout(base=BASE_DOC, model=None, append="@bob"):
+        doc = copy.deepcopy(base)
+        doc["locality"] = copy.deepcopy(LAYOUT)
+        doc["name"] += ", two-layer layout"
+        if append:
+            doc["provenance"]["authors"] = (
+                list(doc["provenance"]["authors"]) + [append])
+        doc["provenance"]["notes"] += " Layout added."
+        if model:
+            doc["provenance"]["model"] = model
+        return doc
+    run_case("layout addition appending @bob binds",
+             lambda: adds_layout(model="TestModel 1.0"), True, rename=False)
+    run_case("layout addition on a no-handle baseline binds",
+             lambda: adds_layout(base=BASELINE), True, rename=False,
+             base_doc=BASELINE)
+
+    def layout_no_credit():
+        return adds_layout(append=None)
+    run_case("layout addition without appending the PR author rejected",
+             layout_no_credit, False, rename=False)
+
+    def layout_touches_checks():
+        doc = adds_layout()
+        doc["checks"]["X"] = [[0, 1, 3]]
+        return doc
+    run_case("layout addition that also edits checks rejected",
+             layout_touches_checks, False, rename=False)
+
+    def layout_touches_distance():
+        doc = adds_layout()
+        doc["distance"]["X"]["value"] = 5
+        doc["distance"]["X"]["witness"] = [0, 1, 2, 3, 4]
+        doc["distance"]["d"] = 5
+        return doc
+    run_case("layout addition that also edits distance rejected",
+             layout_touches_distance, False, rename=False)
+
+    def layout_rewrites_notes():
+        doc = adds_layout()
+        doc["provenance"]["notes"] = "Mine now."
+        return doc
+    run_case("layout addition that rewrites notes rejected",
+             layout_rewrites_notes, False, rename=False)
+
+    def layout_swaps_authors():
+        doc = adds_layout(append=None)
+        doc["provenance"]["authors"] = ["@bob"]
+        return doc
+    run_case("layout addition that swaps the author list rejected",
+             layout_swaps_authors, False, rename=False)
+
+    HAS_LAYOUT = copy.deepcopy(BASE_DOC)
+    HAS_LAYOUT["locality"] = copy.deepcopy(LAYOUT)
+
+    def layout_replaces():
+        doc = copy.deepcopy(HAS_LAYOUT)
+        doc["locality"] = {"coordinates": [[0.0, float(i)] for i in range(60)],
+                           "layers": 1}
+        doc["provenance"]["authors"] = (
+            list(doc["provenance"]["authors"]) + ["@bob"])
+        doc["provenance"]["notes"] += " Better layout."
+        return doc
+    run_case("replacing an existing layout rejected",
+             layout_replaces, False, rename=False, base_doc=HAS_LAYOUT)
+
+    MODELED = copy.deepcopy(BASE_DOC)
+    MODELED["provenance"]["model"] = "Original Model 2.0"
+
+    def layout_changes_model():
+        doc = adds_layout(base=MODELED, model="Other Model 3.0")
+        return doc
+    run_case("layout addition changing an existing model rejected",
+             layout_changes_model, False, rename=False, base_doc=MODELED)
+
     print("\nmalformed input:")
     missing_side = copy.deepcopy(BASE_DOC)
     del missing_side["distance"]["Z"]

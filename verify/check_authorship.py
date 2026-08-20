@@ -19,10 +19,18 @@ distance checks, so a bogus claim cannot pass regardless.
 Relatedly, on a change to an existing code the author list itself may only be
 edited by someone already on it: without that, adding (or swapping in) your own
 handle would grant edit rights over anyone's entry, which is the hole the
-refutation binding exists to avoid. This includes first-claiming an @handle on
-a no-handle literature baseline (that needs a maintainer); a refuted 'exact'
-claim must demote to upper_bound, and no correction may claim 'exact' at the
-new value without going through certification. New submissions are unaffected.
+refutation binding exists to avoid. A refuted 'exact' claim must demote to
+upper_bound, and no correction may claim 'exact' at the new value without going
+through certification. New submissions are unaffected.
+
+One more binding exists for layouts: a change that ONLY adds a first `locality`
+block (the code had none) may also append the contributor to `authors` and set
+a previously-absent `model`, with everything else -- checks, distance, and the
+original provenance -- byte-identical (notes append-only). The layout is a
+separate verifiable artifact (the verifier recomputes the radius and locality
+class from the coordinates), so crediting its contributor does not grant edit
+rights over the code itself: any later change by them still has to pass one of
+these bindings or be a pure layout replacement they authored.
 
 Fails CLOSED only on a definite author/PR-author mismatch. Anything ambiguous
 (no author info, git/parse error) fails OPEN with a warning -- a bug here must
@@ -171,6 +179,56 @@ def refutation_binding(author, base_doc, new_doc):
     return True, ""
 
 
+def layout_binding(author, base_doc, new_doc):
+    """Does new_doc differ from base_doc by exactly the addition of a first
+    layout credited to author? Returns (ok, reason-if-not).
+
+    Allowed: add `locality` where none existed, append entries (including
+    @author) to provenance.authors, set a previously-absent provenance.model,
+    append to provenance.notes, and change `name`. Everything else -- checks,
+    distance, and the remaining provenance -- must be untouched, so the
+    binding grants credit for the layout artifact without granting edit
+    rights over the code (issue #611's concern). The layout's own validity
+    (spacing, layers, radius, class) is the verifier's job, not this gate's."""
+    if "locality" in (base_doc or {}):
+        return False, ("the entry already has a layout; replacing one is "
+                       "reserved to its listed authors")
+    if "locality" not in new_doc:
+        return False, "no locality block was added"
+    for key in (set(base_doc) | set(new_doc)) - {"locality", "name",
+                                                 "schema_version",
+                                                 "provenance"}:
+        if base_doc.get(key) != new_doc.get(key):
+            return False, (f"field '{key}' changed (a layout addition may "
+                           "only add locality)")
+
+    bp, np_ = base_doc.get("provenance") or {}, new_doc.get("provenance") or {}
+    for key in (set(bp) | set(np_)) - {"authors", "notes", "model"}:
+        if bp.get(key) != np_.get(key):
+            return False, (f"provenance.{key} changed (only authors may be "
+                           "appended, notes appended, and an absent model set)")
+    ba, na = bp.get("authors") or [], np_.get("authors") or []
+    if na[:len(ba)] != ba or len(na) <= len(ba):
+        return False, ("provenance.authors must keep the original list and "
+                       "append the layout contributor")
+    appended = [a for a in na[len(ba):]]
+    appended_handles = []
+    for a in appended:
+        m = HANDLE.match(str(a).strip())
+        if m:
+            appended_handles.append(m.group(1).lower())
+    if author not in appended_handles:
+        return False, (f"appended authors {appended} do not include the PR "
+                       f"author @{author}")
+    old_notes, new_notes = bp.get("notes", ""), np_.get("notes", "")
+    if not new_notes.startswith(old_notes):
+        return False, "provenance.notes may only be appended to"
+    if "model" in bp and bp.get("model") != np_.get("model"):
+        return False, ("provenance.model was already set and may not be "
+                       "changed by a layout addition")
+    return True, ""
+
+
 def main(argv):
     author = None
     if "--author" in argv:
@@ -239,14 +297,22 @@ def main(argv):
                 print(f"ok    {f}: @{author} binds via witness_provenance "
                       f"(refutation of {base_path})")
                 continue
-            violations.append((f, hs, f"refutation binding failed: {why}"))
+            ok2, why2 = layout_binding(author, base_doc, doc)
+            if ok2:
+                print(f"ok    {f}: @{author} binds via layout addition "
+                      f"(first locality block on {base_path})")
+                continue
+            violations.append((f, hs, f"refutation binding failed: {why}; "
+                                      f"layout binding failed: {why2}"))
         else:
             violations.append((f, hs, None))
 
     if violations:
         print("\nAuthorship mismatch: the PR author must be one of a code's "
               "@handle authors, or the change must be exactly a refutation "
-              "credited to them in witness_provenance.found_by (issue #611).")
+              "credited to them in witness_provenance.found_by (issue #611), "
+              "or exactly a first-layout addition that appends them to "
+              "provenance.authors.")
         for f, hs, extra in violations:
             print(f"  {f}: authors {['@' + h for h in hs]} do not include "
                   f"@{author}" + (f"; {extra}" if extra else ""))
