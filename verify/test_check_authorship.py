@@ -252,29 +252,50 @@ def main():
              refuted_big_tampered, False, base_doc=BIG)
 
     print("\nlayout binding (first locality block):")
-    LAYOUT = {"coordinates": [[float(i), 0.0] for i in range(60)], "layers": 2}
+    LAYOUT = {"coordinates": [[float(i), 0.0] for i in range(60)], "layers": 2,
+              "contributed_by": {"by": ["@bob"], "date": "2026-08-20"}}
 
-    def adds_layout(base=BASE_DOC, model=None, append="@bob"):
+    def adds_layout(base=BASE_DOC, credit=True):
         doc = copy.deepcopy(base)
         doc["locality"] = copy.deepcopy(LAYOUT)
+        if not credit:
+            del doc["locality"]["contributed_by"]
+        doc["schema_version"] = "0.2"
         doc["name"] += ", two-layer layout"
-        if append:
-            doc["provenance"]["authors"] = (
-                list(doc["provenance"]["authors"]) + [append])
         doc["provenance"]["notes"] += " Layout added."
-        if model:
-            doc["provenance"]["model"] = model
         return doc
-    run_case("layout addition appending @bob binds",
-             lambda: adds_layout(model="TestModel 1.0"), True, rename=False)
+    run_case("layout addition credited in contributed_by binds",
+             adds_layout, True, rename=False)
     run_case("layout addition on a no-handle baseline binds",
              lambda: adds_layout(base=BASELINE), True, rename=False,
              base_doc=BASELINE)
 
     def layout_no_credit():
-        return adds_layout(append=None)
-    run_case("layout addition without appending the PR author rejected",
+        return adds_layout(credit=False)
+    run_case("layout addition without contributed_by credit rejected",
              layout_no_credit, False, rename=False)
+
+    def layout_wrong_credit():
+        doc = adds_layout()
+        doc["locality"]["contributed_by"]["by"] = ["@carol"]
+        return doc
+    run_case("layout addition crediting someone else rejected",
+             layout_wrong_credit, False, rename=False)
+
+    def layout_appends_author():
+        doc = adds_layout()
+        doc["provenance"]["authors"] = (
+            list(doc["provenance"]["authors"]) + ["@bob"])
+        return doc
+    run_case("layout addition that also appends to authors rejected",
+             layout_appends_author, False, rename=False)
+
+    def layout_sets_model():
+        doc = adds_layout()
+        doc["provenance"]["model"] = "TestModel 1.0"
+        return doc
+    run_case("layout addition that also sets model rejected",
+             layout_sets_model, False, rename=False)
 
     def layout_touches_checks():
         doc = adds_layout()
@@ -299,35 +320,63 @@ def main():
     run_case("layout addition that rewrites notes rejected",
              layout_rewrites_notes, False, rename=False)
 
-    def layout_swaps_authors():
-        doc = adds_layout(append=None)
-        doc["provenance"]["authors"] = ["@bob"]
-        return doc
-    run_case("layout addition that swaps the author list rejected",
-             layout_swaps_authors, False, rename=False)
-
     HAS_LAYOUT = copy.deepcopy(BASE_DOC)
-    HAS_LAYOUT["locality"] = copy.deepcopy(LAYOUT)
+    HAS_LAYOUT["locality"] = {"coordinates": LAYOUT["coordinates"],
+                              "layers": 2}
 
     def layout_replaces():
         doc = copy.deepcopy(HAS_LAYOUT)
-        doc["locality"] = {"coordinates": [[0.0, float(i)] for i in range(60)],
-                           "layers": 1}
-        doc["provenance"]["authors"] = (
-            list(doc["provenance"]["authors"]) + ["@bob"])
+        doc["schema_version"] = "0.2"
+        doc["locality"] = copy.deepcopy(LAYOUT)
+        doc["locality"]["layers"] = 1
         doc["provenance"]["notes"] += " Better layout."
         return doc
     run_case("replacing an existing layout rejected",
              layout_replaces, False, rename=False, base_doc=HAS_LAYOUT)
 
-    MODELED = copy.deepcopy(BASE_DOC)
-    MODELED["provenance"]["model"] = "Original Model 2.0"
+    print("\nmerged-state escalation (the author list is the privilege "
+          "boundary;\na merged binding must not widen the contributor's "
+          "rights on the next PR):")
 
-    def layout_changes_model():
-        doc = adds_layout(base=MODELED, model="Other Model 3.0")
+    def merged_state_case(name, followup_edit, expect_ok, merged_doc=None):
+        with tempfile.TemporaryDirectory() as td:
+            make_repo(td)                       # base on main, branch 'change'
+            git(td, "checkout", "-q", "main")   # merge the binding into main
+            write_code(td, "60-8-6.json", merged_doc or adds_layout())
+            git(td, "add", "codes")
+            git(td, "commit", "-q", "-m", "layout binding merged")
+            git(td, "checkout", "-q", "-b", "followup")
+            write_code(td, "60-8-6.json", followup_edit())
+            git(td, "add", "codes")
+            git(td, "commit", "-q", "-m", "followup")
+            rc = check_authorship.main(
+                ["--author", "bob", "--root", td, "--base", "main"])
+            check(name, (rc == 0) == expect_ok)
+
+    def bob_rewrites_after_merge():
+        doc = adds_layout()
+        doc["checks"]["X"] = [[0, 1, 3]]
+        doc["distance"]["X"]["value"] = 9
+        doc["distance"]["d"] = 7
+        doc["provenance"]["construction"] = "bob's construction"
         return doc
-    run_case("layout addition changing an existing model rejected",
-             layout_changes_model, False, rename=False, base_doc=MODELED)
+    merged_state_case("after a merged layout binding, @bob still cannot "
+                      "edit the code", bob_rewrites_after_merge, False)
+
+    def bob_refutes_after_merge():
+        doc = adds_layout()
+        doc["name"] = "[[60,8,5]] synthetic test code, two-layer layout"
+        doc["distance"]["X"] = {
+            "value": 5, "confidence": "upper_bound",
+            "witness": [0, 1, 2, 3, 4],
+            "witness_provenance": {"found_by": ["@bob"],
+                                   "date": "2026-08-20",
+                                   "found_at_samples": 10 ** 9}}
+        doc["distance"]["d"] = 5
+        doc["provenance"]["notes"] += " Refuted."
+        return doc
+    merged_state_case("after a merged layout binding, a clean refutation "
+                      "by @bob still binds", bob_refutes_after_merge, True)
 
     print("\nmalformed input:")
     missing_side = copy.deepcopy(BASE_DOC)

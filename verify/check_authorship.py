@@ -23,14 +23,14 @@ refutation binding exists to avoid. A refuted 'exact' claim must demote to
 upper_bound, and no correction may claim 'exact' at the new value without going
 through certification. New submissions are unaffected.
 
-One more binding exists for layouts: a change that ONLY adds a first `locality`
-block (the code had none) may also append the contributor to `authors` and set
-a previously-absent `model`, with everything else -- checks, distance, and the
-original provenance -- byte-identical (notes append-only). The layout is a
-separate verifiable artifact (the verifier recomputes the radius and locality
-class from the coordinates), so crediting its contributor does not grant edit
-rights over the code itself: any later change by them still has to pass one of
-these bindings or be a pure layout replacement they authored.
+One more binding exists for layouts, and it mirrors the refutation binding's
+credit model exactly: a change that ONLY adds a first `locality` block (the
+code had none) binds when the block's `contributed_by.by` lists the PR author.
+`provenance` must be byte-identical apart from an append to notes -- in
+particular `authors` and `model` never change, so layout credit lives beside
+the artifact (like witness_provenance.found_by) and can never widen the
+contributor's edit rights over the code: they are still not a listed author
+on the next PR, and any later change must itself pass a binding.
 
 Fails CLOSED only on a definite author/PR-author mismatch. Anything ambiguous
 (no author info, git/parse error) fails OPEN with a warning -- a bug here must
@@ -179,17 +179,28 @@ def refutation_binding(author, base_doc, new_doc):
     return True, ""
 
 
+def contributed_by_handles(loc):
+    cb = (loc or {}).get("contributed_by") or {}
+    out = []
+    for a in cb.get("by") or []:
+        m = HANDLE.match(str(a).strip())
+        if m:
+            out.append(m.group(1).lower())
+    return out
+
+
 def layout_binding(author, base_doc, new_doc):
     """Does new_doc differ from base_doc by exactly the addition of a first
     layout credited to author? Returns (ok, reason-if-not).
 
-    Allowed: add `locality` where none existed, append entries (including
-    @author) to provenance.authors, set a previously-absent provenance.model,
-    append to provenance.notes, and change `name`. Everything else -- checks,
-    distance, and the remaining provenance -- must be untouched, so the
-    binding grants credit for the layout artifact without granting edit
-    rights over the code (issue #611's concern). The layout's own validity
-    (spacing, layers, radius, class) is the verifier's job, not this gate's."""
+    Allowed: add `locality` where none existed, with the PR author listed in
+    locality.contributed_by.by; append to provenance.notes; change `name` and
+    `schema_version`. Everything else -- checks, distance, and ALL other
+    provenance including authors and model -- must be byte-identical. Credit
+    lives beside the artifact (as witness_provenance.found_by does for
+    refutations), so the binding never widens the contributor's edit rights
+    over the code (issue #611). The layout's own validity (spacing, layers,
+    radius, class) is the verifier's job, not this gate's."""
     if "locality" in (base_doc or {}):
         return False, ("the entry already has a layout; replacing one is "
                        "reserved to its listed authors")
@@ -203,29 +214,17 @@ def layout_binding(author, base_doc, new_doc):
                            "only add locality)")
 
     bp, np_ = base_doc.get("provenance") or {}, new_doc.get("provenance") or {}
-    for key in (set(bp) | set(np_)) - {"authors", "notes", "model"}:
+    for key in (set(bp) | set(np_)) - {"notes"}:
         if bp.get(key) != np_.get(key):
-            return False, (f"provenance.{key} changed (only authors may be "
-                           "appended, notes appended, and an absent model set)")
-    ba, na = bp.get("authors") or [], np_.get("authors") or []
-    if na[:len(ba)] != ba or len(na) <= len(ba):
-        return False, ("provenance.authors must keep the original list and "
-                       "append the layout contributor")
-    appended = [a for a in na[len(ba):]]
-    appended_handles = []
-    for a in appended:
-        m = HANDLE.match(str(a).strip())
-        if m:
-            appended_handles.append(m.group(1).lower())
-    if author not in appended_handles:
-        return False, (f"appended authors {appended} do not include the PR "
-                       f"author @{author}")
+            return False, (f"provenance.{key} changed (layout credit lives in "
+                           "locality.contributed_by, not in provenance)")
     old_notes, new_notes = bp.get("notes", ""), np_.get("notes", "")
     if not new_notes.startswith(old_notes):
         return False, "provenance.notes may only be appended to"
-    if "model" in bp and bp.get("model") != np_.get("model"):
-        return False, ("provenance.model was already set and may not be "
-                       "changed by a layout addition")
+
+    if author not in contributed_by_handles(new_doc.get("locality")):
+        return False, ("locality.contributed_by.by does not list the PR "
+                       f"author @{author}")
     return True, ""
 
 
@@ -302,8 +301,15 @@ def main(argv):
                 print(f"ok    {f}: @{author} binds via layout addition "
                       f"(first locality block on {base_path})")
                 continue
-            violations.append((f, hs, f"refutation binding failed: {why}; "
-                                      f"layout binding failed: {why2}"))
+            # Lead with the binding the change was evidently aiming for, so a
+            # plain unauthorized edit reads one relevant rejection, not two.
+            layoutish = ("locality" in doc) and ("locality" not in base_doc)
+            first, second = ((f"layout binding failed: {why2}",
+                              f"refutation binding failed: {why}")
+                             if layoutish else
+                             (f"refutation binding failed: {why}",
+                              f"layout binding failed: {why2}"))
+            violations.append((f, hs, f"{first} ({second})"))
         else:
             violations.append((f, hs, None))
 
