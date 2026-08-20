@@ -64,6 +64,11 @@ Two principles drive the format:
   - `interaction_radius`: claimed max check diameter in the layout; the
     verifier recomputes the true max check diameter and requires
     `measured <= claim`.
+  - `contributed_by` (optional, schema 0.2): `{by, date, method?}` crediting
+    who contributed this layout. Layout credit lives here, beside the
+    artifact, not in `provenance.authors` — the same separation
+    `witness_provenance` uses for refutation credit — so adding a layout to
+    an existing entry never changes its author list.
 - `provenance`: `authors`, `construction` (how it was built), optional
   `references`, `date`, `notes`, `model`.
   - `origin`: `"baseline"` for a literature seed or `"submission"` for a code
