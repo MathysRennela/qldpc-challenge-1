@@ -8,6 +8,11 @@ license = { file = "LICENSE" }
 dependencies = [
     "numpy>=2.0",
     "jsonschema>=4.0",
+    # Exact pin, not a floor: circuit-tier verification (RFC 0001, issue #505)
+    # compares a submission's committed .dem mechanism-for-mechanism against a
+    # re-derivation, so the stim version is part of the spec. Bumps must
+    # re-check the committed .dem artifacts.
+    "stim==1.16.0",
 ]
 
 [project.optional-dependencies]

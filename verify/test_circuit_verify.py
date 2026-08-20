@@ -1,0 +1,265 @@
+"""
+Adversarial tests for the circuit-tier verifier (RFC 0001, issue #505): it
+must ACCEPT a valid circuit-tier artifact and REJECT every way a circuit
+claim can be wrong -- a tampered witness, a stale DEM, non-canonical noise, a
+circuit that is not a memory experiment of the declared code, an inflated
+round count, an unpinned stim.
+
+The known-good artifact is generated once per run from the board's
+[[25,1,5]] surface entry with the toolkit's own builder + searcher (the same
+loop a submitter runs), so these tests need no committed circuits/ artifact
+and gate the trusted stack independently of any submission. The default
+greedy schedule's d_circ is below d (a hook error -- the phenomenon the tier
+exists to expose); that is fine here: these tests exercise the validity of
+claims, not schedule quality. Each tamper then breaks exactly one thing and
+asserts the specific check catches it.
+
+Run: uv run pytest verify/test_circuit_verify.py
+"""
+
+import copy
+import json
+import os
+import shutil
+
+import pytest
+import stim
+
+import circuit_tools as ct
+import circuit_verify as cv
+from qldpc_verify import _matrix
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DOC = json.load(open(os.path.join(ROOT, "codes", "25-1-5.json")))
+N = BASE_DOC["n"]
+
+
+@pytest.fixture(scope="module")
+def seed(tmp_path_factory):
+    """(doc, circuits_dir): a complete valid artifact -- both memory circuits
+    with canonical noise, committed DEMs, and a circuit block whose witnesses
+    the toolkit search found."""
+    d = tmp_path_factory.mktemp("circuits")
+    HX = _matrix(BASE_DOC["checks"]["X"], N)
+    HZ = _matrix(BASE_DOC["checks"]["Z"], N)
+    doc = copy.deepcopy(BASE_DOC)
+    doc["schema_version"] = "0.2"
+    block = {"d_circ": {}, "rounds": 5, "stim_version": stim.__version__,
+             "notes": "test artifact, default greedy schedule"}
+    for basis in ("Z", "X"):
+        skel = ct.build_css_memory(HX, HZ, rounds=5, basis=basis)
+        noisy = ct.apply_noise(skel, N)
+        dem = ct.derive_dem(noisy)
+        H, L = ct.dem_matrices(dem)
+        w, wit = ct.ris_dem(H, L, trials=8, seed=5)
+        stem = os.path.join(d, f"memory_{basis.lower()}")
+        open(stem + ".stim", "w").write(str(noisy) + "\n")
+        open(stem + ".dem", "w").write(str(dem) + "\n")
+        block["d_circ"][basis] = {"value": w, "confidence": "upper_bound",
+                                  "witness": wit}
+    doc["circuit"] = block
+    return doc, str(d)
+
+
+def _status(report, label):
+    return next(c["ok"] for c in report["checks"] if c["check"] == label)
+
+
+def _tampered_dir(seed_dir, tmp_path, filename, edit):
+    d = tmp_path / "circuits"
+    shutil.copytree(seed_dir, d)
+    p = d / filename
+    p.write_text(edit(p.read_text()))
+    return str(d)
+
+
+def test_generated_artifact_passes(seed):
+    doc, d = seed
+    report = cv.verify_circuit(doc, d)
+    assert report["ok"], report
+    want = min(doc["circuit"]["d_circ"][s]["value"] for s in ("X", "Z"))
+    assert report["earned_d_circ"]["d_circ"] == {"value": want,
+                                                 "tier": "upper_bound"}
+
+
+def test_missing_files_rejected(seed, tmp_path):
+    doc, _ = seed
+    report = cv.verify_circuit(doc, str(tmp_path))
+    assert not report["ok"]
+    assert not _status(report, "X_circuit_files")
+
+
+def test_tampered_witness_rejected(seed):
+    doc, d = seed
+    doc = copy.deepcopy(doc)
+    doc["circuit"]["d_circ"]["Z"]["witness"] = \
+        doc["circuit"]["d_circ"]["Z"]["witness"][:-1]      # weight != value
+    report = cv.verify_circuit(doc, d)
+    assert not _status(report, "Z_witness_valid")
+
+    w = doc["circuit"]["d_circ"]["Z"]["value"]
+    doc["circuit"]["d_circ"]["Z"]["witness"] = list(range(w))  # detected junk
+    report = cv.verify_circuit(doc, d)
+    assert not _status(report, "Z_witness_valid")
+
+
+def test_claim_above_code_distance_rejected(seed):
+    doc, d = seed
+    doc = copy.deepcopy(doc)
+    side = doc["circuit"]["d_circ"]["Z"]
+    side["witness"] = side["witness"] + [side["witness"][-1] + 1]
+    side["value"] = len(side["witness"])
+    while side["value"] <= doc["distance"]["d"]:   # inflate past the clamp
+        side["witness"].append(side["witness"][-1] + 1)
+        side["value"] += 1
+    report = cv.verify_circuit(doc, d)
+    assert not _status(report, "Z_witness_valid")
+
+
+def test_stale_dem_rejected(seed, tmp_path):
+    doc, sd = seed
+    d = _tampered_dir(sd, tmp_path, "memory_z.dem",
+                      lambda t: t.replace("error(0.00", "error(0.01", 1))
+    report = cv.verify_circuit(doc, d)
+    assert not _status(report, "Z_dem_reproduces")
+
+
+def test_missing_noise_channel_rejected(seed, tmp_path):
+    def drop_first_dep2(t):
+        lines = t.splitlines()
+        i = next(j for j, l in enumerate(lines)
+                 if l.startswith("DEPOLARIZE2"))
+        return "\n".join(lines[:i] + lines[i + 1:]) + "\n"
+    doc, sd = seed
+    d = _tampered_dir(sd, tmp_path, "memory_z.stim", drop_first_dep2)
+    report = cv.verify_circuit(doc, d)
+    assert not _status(report, "Z_noise_recipe_canonical")
+
+
+def test_wrong_noise_rate_rejected(seed, tmp_path):
+    doc, sd = seed
+    d = _tampered_dir(sd, tmp_path, "memory_z.stim",
+                      lambda t: t.replace("DEPOLARIZE2(0.001)",
+                                          "DEPOLARIZE2(0.002)", 1))
+    report = cv.verify_circuit(doc, d)
+    assert not _status(report, "Z_noise_recipe_canonical")
+
+
+def test_nondeterministic_detector_rejected(seed, tmp_path):
+    def break_detector(t):
+        i = t.index("DETECTOR rec[")
+        j = t.index("\n", i)
+        return t[:i] + "DETECTOR rec[-1]" + t[j:]   # lone data M: random
+    doc, sd = seed
+    d = _tampered_dir(sd, tmp_path, "memory_z.stim", break_detector)
+    report = cv.verify_circuit(doc, d)
+    assert not _status(report, "Z_detectors_deterministic")
+
+
+def test_inflated_round_count_rejected(seed):
+    doc, d = seed
+    doc = copy.deepcopy(doc)
+    doc["circuit"]["rounds"] = 6            # circuit only performs 5
+    report = cv.verify_circuit(doc, d)
+    assert not _status(report, "Z_code_binding")
+
+
+def test_unpinned_stim_version_rejected(seed):
+    doc, d = seed
+    doc = copy.deepcopy(doc)
+    doc["circuit"]["stim_version"] = "1.0.0"
+    report = cv.verify_circuit(doc, d)
+    assert not _status(report, "stim_version_pinned")
+
+
+def test_stabilizer_observable_rejected(seed, tmp_path):
+    """An observable that is a product of declared stabilizers protects
+    nothing; binding must reject it even though it is deterministic."""
+    doc, sd = seed
+    text = open(os.path.join(sd, "memory_z.stim")).read()
+    lines = [l for l in text.splitlines()
+             if not l.startswith("OBSERVABLE_INCLUDE")]
+    row = BASE_DOC["checks"]["Z"][0]        # final data M of qubit q: rec[q-n]
+    lines.append("OBSERVABLE_INCLUDE(0) " +
+                 " ".join(f"rec[{q - N}]" for q in row))
+    d = tmp_path / "circuits"
+    shutil.copytree(sd, d)
+    noisy = stim.Circuit("\n".join(lines))
+    (d / "memory_z.stim").write_text(str(noisy) + "\n")
+    (d / "memory_z.dem").write_text(str(ct.derive_dem(noisy)) + "\n")
+    report = cv.verify_circuit(doc, str(d))
+    assert not _status(report, "Z_code_binding")
+
+
+def test_tick_coarsening_rejected():
+    """vprusso's #646 review: idle-data mechanisms scale with TICK layer
+    count, so deleting TICKs -- pure annotations -- shed fault mechanisms and
+    inflated d_circ while staying recipe-conformant. Coarsening that claims
+    impossible simultaneity (a qubit operated on twice in one layer) must now
+    be rejected; merging genuinely disjoint layers -- real pipelining --
+    stays legal."""
+    HX = _matrix(BASE_DOC["checks"]["X"], N)
+    HZ = _matrix(BASE_DOC["checks"]["Z"], N)
+    skel = ct.build_css_memory(HX, HZ, rounds=2, basis="Z")
+    lines = str(skel).splitlines()
+
+    # all TICKs deleted: one giant "layer" reusing every ancilla
+    coarse = stim.Circuit("\n".join(l for l in lines if l != "TICK"))
+    noisy = ct.apply_noise(coarse, N)
+    errs = ct.noise_recipe_errors(noisy, N)
+    assert errs and "parallel" in errs[0]
+    assert ct.derive_dem(noisy).num_errors < \
+        ct.derive_dem(ct.apply_noise(skel, N)).num_errors      # the lever
+
+    # merging two DISJOINT layers (MX on X-ancillas, then R on Z-ancillas)
+    # is honest pipelining and must stay conformant
+    i = next(j for j, l in enumerate(lines) if l.startswith("MX "))
+    assert lines[i + 1] == "TICK" and lines[i + 2].startswith("R ")
+    merged = stim.Circuit("\n".join(lines[:i + 1] + lines[i + 2:]))
+    assert ct.noise_recipe_errors(ct.apply_noise(merged, N), N) == []
+
+
+def test_dem_matches_unit():
+    """Probabilities compare to float tolerance (last ulps are architecture-
+    sensitive: an honest artifact from another machine must pass), but any
+    structural difference -- and any real probability tamper -- must not."""
+    a = stim.DetectorErrorModel("error(0.0044999999999999) D0 D1 L0")
+    assert ct.dem_matches(a, stim.DetectorErrorModel(
+        "error(0.0045000000000001) D0 D1 L0"))          # ulp drift: honest
+    assert not ct.dem_matches(a, stim.DetectorErrorModel(
+        "error(0.0046) D0 D1 L0"))                      # real tamper
+    assert not ct.dem_matches(a, stim.DetectorErrorModel(
+        "error(0.0045) D0 D2 L0"))                      # structure
+    assert not ct.dem_matches(a, stim.DetectorErrorModel(
+        "error(0.0045) D0 D1"))                         # observable dropped
+    assert not ct.dem_matches(a, a + stim.DetectorErrorModel(
+        "error(0.0045) D1"))                            # extra mechanism
+
+
+def test_witness_errors_unit():
+    dem = stim.DetectorErrorModel("""
+        error(0.1) D0 L0
+        error(0.1) D0
+        error(0.1) D1
+    """)
+    assert ct.witness_errors(dem, [0, 1], 2) == []
+    assert ct.witness_errors(dem, [0], 1)            # detected
+    assert ct.witness_errors(dem, [1, 2], 2)         # flips nothing
+    assert ct.witness_errors(dem, [0, 1], 3)         # weight mismatch
+    assert ct.witness_errors(dem, [1, 0], 2)         # not sorted
+    assert ct.witness_errors(dem, [0, 9], 2)         # out of range
+
+
+def test_search_matches_witness_check():
+    """The toolkit loop an agent runs: build, search, self-check -- the same
+    arithmetic CI applies."""
+    HX = _matrix(BASE_DOC["checks"]["X"], N)
+    HZ = _matrix(BASE_DOC["checks"]["Z"], N)
+    skel = ct.build_css_memory(HX, HZ, rounds=2, basis="Z")
+    noisy = ct.apply_noise(skel, N)
+    assert ct.noise_recipe_errors(noisy, N) == []
+    dem = ct.derive_dem(noisy)
+    H, L = ct.dem_matrices(dem)
+    w, wit = ct.ris_dem(H, L, trials=8, seed=3)
+    assert w is not None and w <= 5      # rounds-truncated: can only be <= d
+    assert ct.witness_errors(dem, wit, w) == []
