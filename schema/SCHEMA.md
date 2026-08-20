@@ -89,6 +89,30 @@ Two principles drive the format:
     Every TICK layer must be genuinely parallel (no qubit operated on twice
     in a layer): layer count controls idle-data noise, so this is what makes
     a schedule's claimed parallelism -- and the resulting d_circ -- honest.
+  - `ler` (optional; issue #460): the measured logical-error-rate tier, on
+    the same committed circuits. `d_circ` is a floor; this is the rate a
+    simulation actually sees, prefactors included. Per basis (`ler.X`,
+    `ler.Z`):
+    - `p`: the physical rate; fixed at the canonical `0.001` so rates are
+      comparable across entries.
+    - `shots`, `failures`, `seed`: the measurement. The stim sampler is
+      seeded, so (shots, seed, stim version) determine the sample; a shot
+      fails when the pinned decoder's predicted observable flips disagree
+      with the sampled ones.
+    - `decoder`: `"bposd-cs-10"`, the one pinned decoder (BP+OSD exactly as
+      `decode/distance.py` pins it, with the DEM's own probabilities as the
+      channel prior). MWPM is deliberately not offered: matching needs a
+      decomposable DEM, which the weight-6+ codes this board is about do
+      not produce.
+    - `ler_per_round`, `ci95`: the per-round rate via the parity-aware
+      conversion, and its Wilson 95% interval; both must recompute exactly
+      from `failures`/`shots`/`rounds`.
+    - Verification (`verify/ler_verify.py`) re-measures with an independent
+      seed and rejects a claim outside sampling error. Statistical by
+      design: BP is float arithmetic, so bit-exact cross-platform
+      replication is not a promise the board can keep, and the gaming
+      direction -- claiming a lower rate than the circuit earns -- is
+      exactly what re-measurement detects.
 - `locality` (optional): provide a layout and the verifier derives the locality
   class (`local-2d-single`, `local-2d-bilayer`, or `unrestricted`); omit it and
   the code is `unrestricted`.
