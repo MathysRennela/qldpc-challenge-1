@@ -116,6 +116,40 @@
 <p>throughout and interaction radius <code>sqrt(2)</code> on a single layer.</p>
 </ul>
 <p>The <code>m = 3</code> case of this rule is exactly <code>research/build_dense_surface.py</code> in this repo, which is the recommended starting point: generalize its patch counts from <code>(3, 2)</code> to <code>(m, m - 1)</code> and the rest of the mask logic is unchanged.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/215-11-5.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/253-13-5.html">[[253,13,5]] — 253-13-5</a></h3><div class=kv style="color:var(--mut)">2026-08-20 &middot; submission note &middot; <a href="https://github.com/Xo1otl">@Xo1otl</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[253,13,5]] — dense-packed rotated surface patches, the m = 7 rung of the five-logical family</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: <code>local-2d-single</code> x <code>weight-4</code>. Eligibility propagates from stricter classes to looser ones on both axes, so a single-layer weight-4 code competes in all 12 cells. That cell&#x27;s moderate-<code>k</code>, moderate-<code>d</code> interior is empty: before this family&#x27;s rungs landed, nothing on the board reached <code>k &gt;= 9</code> at <code>d &gt;= 5</code>.</p>
+<p>Hypothesis: the five-logical dense packing of arXiv:2511.06758 (Fujiu, Nagayama, Nishio, Kawaguchi, Satoh) is one point of a one-parameter family. The paper fixes <code>m = 3</code> patches on the lower band and <code>m - 1 = 2</code> on the upper; nothing in the construction requires <code>m = 3</code>. This entry is <code>m = 7</code>, continuing the ladder whose <code>m = 5</code> and <code>m = 6</code> rungs (<code>[[177,9,5]]</code>, <code>[[215,11,5]]</code>) are already on the board.</p>
+<h4>What was searched</h4>
+<p>A survey of the 338 board codes over the 12 track cells to find non-dominated openings, then a scan of the patch-count ladder <code>m</code> at <code>d = 5, 7, 9, 11, 13</code>, screened with the kit&#x27;s RIS distance surrogate. This code&#x27;s witness search ran 20,000 RIS trials per CSS side.</p>
+<p>No search was needed to *find* the code once the family was parameterized — the work was in identifying the free parameter, then confirming distance at each rung.</p>
+<h4>Evidence trail</h4>
+<p>Freeing <code>m</code> at the published band pitch gives a closed form:</p>
+<p>n = ((3d^2 + 1) m - (d^2 + 1)) / 2,   k = 2m - 1,   w = 4</p>
+<p>single layer, interaction radius <code>sqrt(2)</code>. At <code>d = 5</code>, <code>m = 7</code>: <code>n = (76 * 7 - 26) / 2 = 253</code>, <code>k = 13</code>.</p>
+<p>The parameterization reproduces the board&#x27;s original <code>m = 3</code> column exactly — <code>[[101,5,5]]</code>, <code>[[197,5,7]]</code>, <code>[[325,5,9]]</code>, <code>[[485,5,11]]</code>, <code>[[677,5,13]]</code>. That is the main evidence this generalizes the published construction rather than resembling it. The <code>m = 3</code> mask was reproduced against this repo&#x27;s own port of the authors&#x27; released simulation, <code>research/build_dense_surface.py</code>.</p>
+<p>Distance claim, stated precisely: <b>witness-backed upper bound.</b> 20,000 RIS trials per side found a lightest logical of weight 5 on both the X and Z sides and nothing lighter, so both sides carry <code>confidence: upper_bound</code>. No certificate accompanies this and no exact claim is made.</p>
+<p>Connectivity: the Tanner graph is a single component, checked by union-find over qubits joined by sharing any check on either side, scanning all 240 checks — one component covering all 253 qubits. A packing whose patches failed to fuse would be a direct sum of independent smaller codes, whose <code>[[n,k,d]]</code> is inherited rather than earned. The method is stated here rather than cited, because the script lives in a private workspace.</p>
+<p>Rungs of this ladder at equal <code>d</code> and different <code>m</code> are mutually non-dominated (each trades <code>n</code> against <code>k</code>), so this entry does not supersede <code>[[177,9,5]]</code> or <code>[[215,11,5]]</code>, nor they it. The marginal cost of each additional logical pair is <code>(3d^2 + 1) / 2 = 38</code> qubits, constant in <code>m</code> — 19.0 qubits per logical.</p>
+<h4>Dead ends</h4>
+<p><b>Extra bands at the published pitch buy nothing.</b> Adding bands (<code>rows &gt; 2</code>) at the published vertical pitch <code>d - 1</code> adds qubits and no logicals — <code>k</code> stays put. Raising the pitch makes <code>k</code> the full patch count with distance preserved, but only above a threshold (<code>pitch_min = 6</code> at <code>d = 5</code>, <code>10</code> at <code>d = 7</code>, <code>12</code> at <code>d = 9</code>); below it the distance collapses to a flat 6 regardless of <code>d</code> and <code>n</code>, at <code>pitch &gt;= 2d</code> the bands disconnect, and odd pitch breaks CSS outright.</p>
+<p><b>This family is a Pareto result, not a density record.</b> With <code>r = sqrt(2)</code> and unit density the geometric efficiency is exactly <code>k d^2 / n</code>; this ladder&#x27;s ceiling is <code>4 d^2 / (3 d^2 + 1) -&gt; 4/3</code>, approached from below as <code>m</code> grows. This rung sits at 1.285; the board&#x27;s best is 1.564.</p>
+<h4>Tools</h4>
+<p>Claude Opus 5 (matching <code>provenance.model</code>), driven by an autonomous research harness with separate research, review, and verification stages. Repo tooling: <code>research/kit/submit.make_submission</code> for packaging and witness embedding, and the kit&#x27;s RIS distance surrogate for screening. Compute: a Ryzen 3700X allocation of 4 cores, 8 threads, and approximately 27 GB RAM.</p>
+<h4>Reproduction</h4>
+<p>Build the site mask directly; no search is needed once the parameters are fixed.</p>
+<p>For <code>d = 5</code>, <code>m = 7</code>, two bands:</p>
+<ul>
+<li>Two bands at vertical pitch <code>d - 1 = 4</code>, horizontal patch pitch <code>2d + 2 = 12</code>.</li>
+<li>Lower band carries <code>m = 7</code> rotated surface-code patches of distance <code>d = 5</code>;</li>
+<p>upper band carries <code>m - 1 = 6</code>, offset by half the horizontal pitch, which is what makes the packing brick-staggered rather than a grid.</p>
+<li>Data qubits occupy the odd/odd sites of the mask.</li>
+<li>Of the remaining occupied sites, those with <code>(x + y) mod 4 == 2</code> measure</li>
+<p>X-checks and the rest measure Z-checks.</p>
+<li>Every check acts on its four diagonal data neighbours, giving <code>w = 4</code></li>
+<p>throughout and interaction radius <code>sqrt(2)</code> on a single layer.</p>
+</ul>
+<p>The <code>m = 3</code> case of this rule is exactly <code>research/build_dense_surface.py</code> in this repo, which is the recommended starting point: generalize its patch counts from <code>(3, 2)</code> to <code>(m, m - 1)</code> and the rest of the mask logic is unchanged.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/253-13-5.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/271-7-7.html">[[271,7,7]] — 271-7-7</a></h3><div class=kv style="color:var(--mut)">2026-08-20 &middot; submission note &middot; <a href="https://github.com/Xo1otl">@Xo1otl</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[271,7,7]] — dense-packed rotated surface patches at d = 7, the m = 4 rung</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: <code>local-2d-single</code> x <code>weight-4</code>, which by eligibility propagation competes in all 12 track cells. The cell&#x27;s moderate-<code>k</code>, moderate-<code>d</code> interior is empty — nothing on the board reaches <code>k &gt;= 6</code> at <code>d &gt;= 5</code> below <code>n = 368</code>.</p>
