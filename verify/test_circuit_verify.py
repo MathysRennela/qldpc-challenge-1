@@ -191,6 +191,23 @@ def test_stabilizer_observable_rejected(seed, tmp_path):
     assert not _status(report, "Z_code_binding")
 
 
+def test_dem_matches_unit():
+    """Probabilities compare to float tolerance (last ulps are architecture-
+    sensitive: an honest artifact from another machine must pass), but any
+    structural difference -- and any real probability tamper -- must not."""
+    a = stim.DetectorErrorModel("error(0.0044999999999999) D0 D1 L0")
+    assert ct.dem_matches(a, stim.DetectorErrorModel(
+        "error(0.0045000000000001) D0 D1 L0"))          # ulp drift: honest
+    assert not ct.dem_matches(a, stim.DetectorErrorModel(
+        "error(0.0046) D0 D1 L0"))                      # real tamper
+    assert not ct.dem_matches(a, stim.DetectorErrorModel(
+        "error(0.0045) D0 D2 L0"))                      # structure
+    assert not ct.dem_matches(a, stim.DetectorErrorModel(
+        "error(0.0045) D0 D1"))                         # observable dropped
+    assert not ct.dem_matches(a, a + stim.DetectorErrorModel(
+        "error(0.0045) D1"))                            # extra mechanism
+
+
 def test_witness_errors_unit():
     dem = stim.DetectorErrorModel("""
         error(0.1) D0 L0

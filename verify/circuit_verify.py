@@ -19,8 +19,11 @@ Checks, per basis (RFC 0001 numbering):
                     final transversal readout; closure detectors match the
                     declared check matrix rows; data qubits are 0..n-1; the
                     declared round count is what the circuit performs
-  5. witness        the committed .dem re-derives byte-identically from the
-                    committed .stim under the pinned stim, and the claimed
+  5. witness        the committed .dem re-derives from the committed .stim
+                    under the pinned stim, mechanism-for-mechanism (exact
+                    structure and file order; probabilities to float
+                    tolerance -- their last ulps are architecture-sensitive
+                    and the distance tier never reads them), and the claimed
                     witness is an undetected logical fault set of the claimed
                     weight in it, with value <= d (penalty-only clamp)
 
@@ -204,7 +207,7 @@ def verify_circuit(doc, circuits_dir):
                     raise ValueError(f"{base + ext} exceeds "
                                      f"{MAX_CIRCUIT_FILE_BYTES} bytes")
             circuit = stim.Circuit(open(base + ".stim").read())
-            committed = open(base + ".dem").read()
+            committed = stim.DetectorErrorModel(open(base + ".dem").read())
         except Exception as e:
             record(f"{side}_circuit_files", False, f"{type(e).__name__}: {e}")
             continue
@@ -233,9 +236,11 @@ def verify_circuit(doc, circuits_dir):
                f"k observables, checks, and rounds bound to the declared code")
 
         derived = ct.derive_dem(circuit)        # step 5: witness
-        dem_match = str(derived).strip() == committed.strip()
+        dem_match = ct.dem_matches(derived, committed)
         record(f"{side}_dem_reproduces", dem_match,
-               "committed .dem re-derives byte-for-byte" if dem_match else
+               "committed .dem re-derives mechanism-for-mechanism (exact "
+               "structure and order; probabilities to float tolerance)"
+               if dem_match else
                "committed .dem differs from the pinned re-derivation -- "
                "regenerate it with the pinned stim version")
         if not dem_match:

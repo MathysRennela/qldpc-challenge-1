@@ -75,8 +75,11 @@ Two principles drive the format:
       circuit-tier analogue of the low-weight logical the code tier stores.
   - `rounds`: noisy extraction rounds per memory circuit; must be `>= d`.
   - `stim_version`: the stim that derived the `.dem` files; must equal the
-    version pinned in `uv.lock` (the verifier re-derives the `.dem`
-    byte-for-byte, so a version bump surfaces as a diff on that artifact).
+    version pinned in `uv.lock` (the verifier re-derives the `.dem` and
+    requires an exact mechanism-for-mechanism match -- probabilities only to
+    float tolerance, since their last ulps are architecture-sensitive and the
+    distance tier never reads them -- so a version bump surfaces as a diff on
+    that artifact).
   - `ancilla_coordinates` (optional): one `[x, y]` per non-data qubit in
     circuit index order; required only for the geometric circuit tier
     (Phase B, not yet checked).

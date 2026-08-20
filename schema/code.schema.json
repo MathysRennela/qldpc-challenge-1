@@ -117,7 +117,7 @@
         "stim_version": {
           "type": "string",
           "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
-          "description": "stim version that derived the committed .dem files; the verifier requires it to equal the version pinned in uv.lock and re-derives the .dem byte-for-byte"
+          "description": "stim version that derived the committed .dem files; the verifier requires it to equal the version pinned in uv.lock and re-derives the .dem mechanism-for-mechanism (probabilities only to float tolerance: their last ulps are architecture-sensitive and the distance tier never reads them)"
         },
         "ancilla_coordinates": {
           "type": "array",

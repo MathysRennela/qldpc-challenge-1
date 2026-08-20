@@ -174,9 +174,37 @@ def derive_dem(circuit):
     mechanisms fire >2 detectors and must survive), loops flattened so error
     instructions are plain, absolutely-indexed lines. str() of the result is
     the committed .dem artifact; witness indices count its error instructions
-    in file order."""
+    in file order. Verification compares a committed .dem against this with
+    dem_matches, not byte equality -- see there for why."""
     return circuit.detector_error_model(decompose_errors=False,
                                         flatten_loops=True)
+
+
+def dem_matches(derived, committed, rtol=1e-9, atol=1e-12):
+    """Does the committed DEM match the pinned re-derivation? Everything
+    d_circ depends on -- instruction count, types, detector/observable
+    targets, and their file order (witness indices) -- must be EXACTLY equal.
+    Probabilities are compared only to a tight tolerance: they are display
+    metadata the distance tier never reads, and their last ulps are
+    architecture-sensitive (e.g. FMA contraction on arm64 vs x86), so exact
+    byte equality would reject an honest artifact generated on another
+    machine while a real tamper still exceeds any plausible tolerance."""
+    da = list(derived.flattened())
+    ca = list(committed.flattened())
+    if len(da) != len(ca):
+        return False
+    for x, y in zip(da, ca):
+        if x.type != y.type:
+            return False
+        if [str(t) for t in x.targets_copy()] != \
+           [str(t) for t in y.targets_copy()]:
+            return False
+        ax, ay = x.args_copy(), y.args_copy()
+        if len(ax) != len(ay) or any(
+                abs(a - b) > rtol * max(abs(a), abs(b)) + atol
+                for a, b in zip(ax, ay)):
+            return False
+    return True
 
 
 def dem_columns(dem):
