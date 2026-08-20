@@ -110,11 +110,20 @@ def cite(s, rel=""):
     the paper on arXiv; any other reference that resolves to a bib entry links
     to its entry on the references page (reachable from the footer too)."""
     if s.lower().startswith("arxiv:"):
-        aid = s.split(":", 1)[1]
-        return f'<a href="https://arxiv.org/abs/{aid}">{html.escape(s)}</a>'
+        aid = s.split(":", 1)[1].strip()
+        # Link only a complete arXiv identifier.  Free-form provenance strings
+        # must never be allowed to supply part of an HTML attribute.
+        if not re.fullmatch(
+                r"(?:\d{4}\.\d{4,5}|[a-z-]+(?:\.[a-z]{2})?/\d{7})(?:v\d+)?",
+                aid, re.IGNORECASE):
+            return html.escape(s)
+        href = safe_url(f"https://arxiv.org/abs/{aid}")
+        return f'<a href="{href}">{html.escape(s)}</a>'
     key = resolve_ref(s)
     if key:
-        return (f'<a href="{rel}references.html#{key}">{html.escape(s)}</a>')
+        fragment = urllib.parse.quote(key, safe="-._~")
+        href = safe_url(f"{rel}references.html#{fragment}")
+        return f'<a href="{href}">{html.escape(s)}</a>'
     return html.escape(s)
 
 
@@ -129,6 +138,55 @@ SITE_URL = "https://unitaryfoundation.github.io/qldpc-challenge"
 # the same committed pages.  The Plausible site ID is the path-qualified
 # ``unitaryfoundation.github.io/qldpc-challenge`` project site.
 PLAUSIBLE_SCRIPT_SRC = "https://plausible.io/js/pa-BZqEmTRv5VBwv3HYwVpoB.js"
+
+_SAFE_SLUG = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+_SAFE_DATA_SCRIPT_ID = re.compile(r"[A-Za-z][A-Za-z0-9_-]*")
+
+
+def safe_url(value, *, allow_relative=True):
+    """Return an attribute-escaped HTTP(S) or local URL, rejecting active
+    schemes and parser-confusing control characters.
+
+    Use this for submission-derived destinations; escaping alone does not
+    reject active schemes such as ``javascript:``.
+    """
+    value = str(value)
+    if not value or any(ord(c) < 0x20 or ord(c) == 0x7f for c in value):
+        raise ValueError(f"unsafe URL: {value!r}")
+    if value.startswith("//") or "\\" in value:
+        raise ValueError(f"unsafe URL: {value!r}")
+    parsed = urllib.parse.urlsplit(value)
+    if parsed.scheme:
+        if parsed.scheme.lower() not in {"http", "https"} or not parsed.netloc:
+            raise ValueError(f"unsafe URL scheme: {value!r}")
+    elif not allow_relative:
+        raise ValueError(f"relative URL not allowed: {value!r}")
+    return html.escape(value, quote=True)
+
+
+def json_for_html(value, **kwargs):
+    """Serialize JSON for an HTML raw-text context.
+
+    JSON string escaping alone does not protect a ``<script>`` element because
+    the HTML parser recognizes ``</script>`` before JavaScript/JSON parsing.
+    Neutralize every HTML-significant character plus JavaScript's historical
+    line separators in one shared helper used by every embedded data block.
+    """
+    encoded = json.dumps(value, **kwargs)
+    for char, replacement in (
+            ("&", "\\u0026"), ("<", "\\u003c"), (">", "\\u003e"),
+            ("\u2028", "\\u2028"), ("\u2029", "\\u2029")):
+        encoded = encoded.replace(char, replacement)
+    return encoded
+
+
+def json_data_script(element_id, value, **kwargs):
+    """An inert, parseable JSON data element safe against ``</script>``."""
+    if not _SAFE_DATA_SCRIPT_ID.fullmatch(element_id):
+        raise ValueError(f"unsafe JSON data element id: {element_id!r}")
+    payload = json_for_html(value, **kwargs)
+    return (f'<script id="{element_id}" type="application/json">'
+            f'{payload}</script>')
 
 # Palette (single source of truth; the CSS :root and the inline SVGs all draw
 # from these). Adopts the Unitary Foundation brand: deep purple as the readable
@@ -1186,8 +1244,7 @@ def plausible_snippet(custom_properties=None):
     options = {"outboundLinks": True, "fileDownloads": True}
     if custom_properties:
         options["customProperties"] = custom_properties
-    encoded = json.dumps(options, sort_keys=True, separators=(",", ":"))
-    encoded = encoded.replace("<", "\\u003c")
+    encoded = json_for_html(options, sort_keys=True, separators=(",", ":"))
     return (
         '<!-- Privacy-friendly analytics by Plausible -->'
         f'<script async src="{html.escape(PLAUSIBLE_SCRIPT_SRC, quote=True)}">'
@@ -1311,6 +1368,8 @@ def load_entries():
     entries = []
     for p in sorted(glob.glob(os.path.join(ROOT, "codes", "*.json"))):
         slug = os.path.splitext(os.path.basename(p))[0]
+        if not _SAFE_SLUG.fullmatch(slug):
+            raise ValueError(f"unsafe code filename: {slug!r}")
         ferr = file_size_error(p)
         if ferr:
             print(f"  warning: {slug}: {ferr}; skipping")
@@ -1950,10 +2009,11 @@ def detail_page(e):
         P.append(f'<div class=kv><b>novelty</b> '
                  f'{html.escape(novelty_label(pr.get("novelty", "unknown")))}</div>')
     P.append(f'<div class=kv><b>construction</b> {mathfmt(pr.get("construction",""))}</div>')
-    if pr.get("model"):
-        mark = f'{CLAUDE_MARK} ' if pr["model"].startswith("Claude") else ""
+    model = _model_str(pr.get("model", ""))
+    if model:
+        mark = f'{CLAUDE_MARK} ' if model.startswith("Claude") else ""
         P.append('<div class=kv><b>model</b> '
-                 f'<span class=modelmark>{mark}</span>{html.escape(pr["model"])} '
+                 f'<span class=modelmark>{mark}</span>{html.escape(model)} '
                  '<span class=claimed>(claimed, not verified)</span></div>')
     elif pr.get("origin") == "baseline":
         P.append('<div class=kv><b>model</b> '
@@ -2497,11 +2557,11 @@ def contributors_panel(entries):
         lbidx.append(seen[sig])
     # Contributor modal: row click opens a summary card; inner links still
     # navigate (profile, filtered board, code pages).
-    cdata = json.dumps({s["handle"]: {
+    cdata = {s["handle"]: {
         "codes": s["codes"], "front": s["front"], "exact": s["exact"],
         "eff": s["eff"], "geo": geo_disp(s["geo"], s["geo_tier"]),
         "list": sorted(s["list"], key=lambda c: -c["eff"])}
-        for _, s in order})
+        for _, s in order}
     cmodal = (
         '<dialog id=cmodal class=cmodal>'
         '<div class=cmhead><img id=cmav alt="">'
@@ -2512,8 +2572,8 @@ def contributors_panel(entries):
         '<div class=cmstats id=cmstats></div>'
         '<div class=cmlist id=cmlist></div>'
         '</dialog>'
-        f'<script id=cmdata type="application/json">{cdata}</script>'
-        '<script>(function(){'
+        + json_data_script("cmdata", cdata)
+        + '<script>(function(){'
         'var D=JSON.parse(document.getElementById("cmdata").textContent);'
         'var dlg=document.getElementById("cmodal");if(!dlg)return;'
         'dlg.addEventListener("click",function(e){if(e.target===dlg)dlg.close();});'
@@ -2566,9 +2626,9 @@ def contributors_panel(entries):
     # data-grank), so this cannot disagree with the Python comparators.
     # Reordering and value swapping only: every (weight cap x metric) ranking is
     # server-computed, so this cannot disagree with the Python comparators.
-    lbdata = json.dumps({"wmin": wmin, "wmax": wmax, "idx": lbidx, "b": lbw})
-    lbjs = ('<script id=lbwdata type="application/json">' + lbdata + '</script>'
-            '<script>(function(){'
+    lbdata = {"wmin": wmin, "wmax": wmax, "idx": lbidx, "b": lbw}
+    lbjs = (json_data_script("lbwdata", lbdata)
+            + '<script>(function(){'
             'var sec=document.getElementById("leaderboard");if(!sec)return;'
             'var D=JSON.parse(document.getElementById("lbwdata").textContent);'
             'var WMIN=D.wmin,WMAX=D.wmax,SPAN=(WMAX-WMIN)||1;'
@@ -2866,6 +2926,7 @@ var plot=document.getElementById('rcplot');if(!plot)return;
 var init=plot.innerHTML, leg=document.getElementById('rclegend'), legInit=leg.innerHTML;
 var MC=['#6d28d9','#0369a1','#b45309','#15803d','#be185d','#475569'];
 var st={m:'record',s:'log',w:'all',y:'eff'};
+function esc(v){return String(v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function mv(r){return st.y==='geo'?r.geo:r.eff;}
 function days(t){return Date.parse(t)/864e5;}
 function windowed(){
@@ -2958,16 +3019,16 @@ function draw(){
    var le=s.rows[s.rows.length-1];
    endlist.push({y:fy(mv(le)),lab:s.lab,eff:mv(le)});}
   P.forEach(function(p){var r=p[2];
-   var tp=('[['+r.n+','+r.k+','+r.d+']] · w='+r.w+' · kd²/n='+r.eff+(r.geo!=null?' · g='+r.geo:'')+' · '+r.t+' · '+r.model).replace(/"/g,'&quot;');
+   var tp=esc('[['+r.n+','+r.k+','+r.d+']] · w='+r.w+' · kd²/n='+r.eff+(r.geo!=null?' · g='+r.geo:'')+' · '+r.t+' · '+r.model);
    body+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="'+(s.step?4:3.4)+'" fill="'+(s.step?'#fff':s.col)+'" fill-opacity="'+(s.step?1:0.55)+'" stroke="'+s.col+'" stroke-width="'+(s.step?2:0)+'" pointer-events="none"/>'
     +'<circle class=hit data-code="'+r.slug+'" data-tip="'+tp+'" cx="'+p[0]+'" cy="'+p[1]+'" r="9" fill="transparent"/>';});
  });
  endlist.sort(function(a,b){return a.y-b.y;});
  for(var i=1;i<endlist.length;i++)if(endlist[i].y-endlist[i-1].y<15)endlist[i].y=endlist[i-1].y+15;
- endlist.forEach(function(e){var lab=e.lab.length>18?e.lab.slice(0,17)+'…':e.lab;
+ endlist.forEach(function(e){var lab=esc(e.lab.length>18?e.lab.slice(0,17)+'…':e.lab);
   ends+='<text x="'+(W-pr+8)+'" y="'+e.y+'" dy="4" font-size="12" fill="#334155">'+lab+' &#183; <tspan font-weight="700">'+e.eff+'</tspan></text>';});
  plot.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto">'+g+body+ends+'</svg>';
- leg.innerHTML=series.map(function(s){return '<span class=ci><span class=cdot style="background:'+s.col+'"></span>'+s.lab+'</span>';}).join('')
+ leg.innerHTML=series.map(function(s){return '<span class=ci><span class=cdot style="background:'+s.col+'"></span>'+esc(s.lab)+'</span>';}).join('')
   +(st.y==='geo'?'<span class=ci title="the surface/toric reference codes sit at the conjectured f ceiling and are drawn as the dashed line, not raced">&#8213; surface code = 1</span>':'');
 }
 document.querySelectorAll('.rcbtn').forEach(function(b){
@@ -3101,8 +3162,7 @@ def record_chart(entries):
              "ref": geo_reference(e),
              "sub": e["origin"] != "baseline"}
             for e in entries if e["date"]]
-    rcjson = json.dumps(data)
-    rcseries = json.dumps([[lab, cap, col] for lab, cap, col in RC_SERIES])
+    rcseries = [[lab, cap, col] for lab, cap, col in RC_SERIES]
     controls = (
         '<div class=rcbar>'
         '<span class=rcgroup>'
@@ -3138,8 +3198,8 @@ def record_chart(entries):
             '<span class=ci title="board-relative: among the seeded literature '
             'baselines and challenge entries listed here">&#9675; new record'
             '</span></div>'
-            f'<script id=rcdata type="application/json">{rcjson}</script>'
-            f'<script id=rcseries type="application/json">{rcseries}</script>'
+            + json_data_script("rcdata", data)
+            + json_data_script("rcseries", rcseries)
             + _RC_JS +
             '</section>')
 
