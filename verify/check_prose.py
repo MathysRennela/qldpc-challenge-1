@@ -12,9 +12,10 @@ and this check refuses all three:
   * an absolute local path (/Users/..., /tmp/...).
 
 The escape hatch is the convention the good notes already use: name the source
-and pin it, e.g. "taken from github.com/a7b/yarn @ 82fb695,
-`processor_codes/mitten/[[300,60,14]]/Hx.npy`". A file that names an external
-source is trusted to be citing that source, not this repo.
+and pin it immediately before the path, e.g. "taken from github.com/a7b/yarn @
+82fb695, `processor_codes/mitten/[[300,60,14]]/Hx.npy`". Only paths in that
+citation are attributed to the external source; a URL elsewhere in the file
+cannot excuse an unrelated path.
 
 Also refuses leftover tool scaffolding (an unedited `qldpc submit` draft footer,
 HTML comments, unticked checklist boxes), session URLs, and -- for a note named
@@ -67,11 +68,46 @@ FILE_EXT = (
 ABSOLUTE_LOCAL = re.compile(
     r"(?:^|[\s(`\"'])((?:/Users/|/home/|/tmp/|/private/tmp/|/var/folders/|~/|C:\\)[\w./\\~-]+)")
 
-# A file may cite an external artifact if it says where that artifact lives.
-EXTERNAL_MARKERS = re.compile(
-    r"https?://|github\.com|gitlab\.com|zenodo|doi\.org|arxiv\.org/abs|"
-    r"upstream repo|authors'? (?:own )?(?:published )?(?:repo|artifact)",
+# An external path is accepted only after a concrete, immutable source. The
+# documented Git form binds the repository and revision in one match so an
+# unrelated URL plus an unrelated SHA cannot be combined into an exemption.
+GIT_REPO = (
+    r"(?:https?://)?(?:www\.)?"
+    r"(?:github\.com|gitlab\.com)/[\w.-]+/[\w.-]+(?:\.git)?"
+)
+SOURCE_END = r"(?=$|[\s,.;:)\]}`/?#>'\"])"
+GIT_SHA = rf"[0-9a-f]{{7,64}}{SOURCE_END}"
+# A source must begin at a prose boundary, not inside an attacker-controlled URL,
+# query parameter, email address, or lookalike hostname.
+SOURCE_START = r"""(?:(?<!\S)|(?<=[(<\['"|>`]))"""
+PINNED_EXTERNAL_SOURCE = re.compile(
+    rf"{SOURCE_START}(?:{GIT_REPO}[)>]?\s*"
+    rf"(?:@|,\s*(?:commit|rev(?:ision)?|sha))\s*`?{GIT_SHA}`?|"
+    rf"{GIT_REPO}/(?:-/(?:blob|tree|commit)|(?:blob|tree|commit))/"
+    rf"{GIT_SHA}|"
+    rf"https?://raw\.githubusercontent\.com/[\w.-]+/[\w.-]+/{GIT_SHA}|"
+    r"https?://(?:dx\.)?doi\.org/10\.\d{4,9}/[^\s<>()`]+?"
+    r"(?=(?:[.;!?][\"')\]}`*]*(?:\s|$))|[,)>]|\s|$)|"
+    rf"(?:https?://)?(?:www\.)?zenodo\.org/(?:record|records)/\d+"
+    rf"{SOURCE_END}|"
+    r"https?://(?:www\.)?arxiv\.org/(?:abs|html|pdf)/"
+    rf"(?:[a-z.-]+/\d{{7}}|\d{{4}}\.\d{{4,5}})v\d+{SOURCE_END})",
     re.I)
+
+# Full URLs are already externally resolvable. TOKEN's bare-path alternative
+# can otherwise start in the middle of one (at ``com/org/file.py``), which was
+# accidentally hidden by the old file-wide external exemption.
+URL = re.compile(r"https?://[^\s<>()`]+", re.I)
+
+# A pinned source applies only to paths that follow in the same citation clause.
+# Sentence endings and Markdown block boundaries stop the attribution.
+CITATION_BREAK = re.compile(
+    r"[.!?;][\"')\]}`*]*(?:[ \t]+|\n+)"
+    r"|\n[ \t]*\n"
+    r"|\n[ \t]*(?:>[ \t]*)+\n"
+    r"|^[ \t]*(?:>[ \t]*)*(?:(?:[-+*]|\d+[.)])[ \t]+|"
+    r"#{1,6}[ \t]+|```|~~~|\|[^\n]*|[^\n|]+\|)",
+    re.M)
 
 SESSION_URL = re.compile(r"claude\.ai/code/session[_/]|chatgpt\.com/c/", re.I)
 
@@ -133,8 +169,19 @@ def resolves(tok, root):
     return False
 
 
+def has_pinned_external_source(text, pos, url_spans):
+    """Whether a pinned source governs the path occurrence at ``pos``."""
+    for source in PINNED_EXTERNAL_SOURCE.finditer(text, 0, pos):
+        # A source-like substring injected into another URL is not a source.
+        # Equality is allowed: a genuine URL source starts with its URL span.
+        if any(start < source.start() < end for start, end in url_spans):
+            continue
+        if not CITATION_BREAK.search(text, source.end(), pos):
+            return True
+    return False
+
+
 def check_text(text, label, root, problems, is_note_slug=None):
-    external_ok = bool(EXTERNAL_MARKERS.search(text))
     # One line per distinct problem: a path repeated through a note should be
     # reported once, and never under two headings at the same time.
     def add(why, detail):
@@ -153,16 +200,17 @@ def check_text(text, label, root, problems, is_note_slug=None):
         if pat.search(text):
             add("leftover scaffolding", why)
 
-    seen = set()
+    url_spans = [(m.start(), m.end()) for m in URL.finditer(text)]
     for m in TOKEN.finditer(text):
         tok = (m.group(1) or m.group(2) or "").strip().rstrip(".,;:)`").lstrip("(")
-        if not is_repo_pathish(tok) or tok in seen or tok in absolute:
+        if (any(start <= m.start() < end for start, end in url_spans)
+                or not is_repo_pathish(tok) or tok in absolute):
             continue
-        seen.add(tok)
         bare = tok.lstrip("./")
         if any(g in bare for g in GITIGNORED):
             add("gitignored working output cited as evidence", tok)
-        elif not resolves(tok, root) and not external_ok:
+        elif (not resolves(tok, root)
+              and not has_pinned_external_source(text, m.start(), url_spans)):
             add("path does not exist in this tree", tok)
 
     if is_note_slug:
@@ -231,9 +279,10 @@ def main(argv):
     print("Prose check failed: the text points at things a reviewer cannot open.\n")
     for label, why, detail in problems:
         print(f"  {label}: {why}\n    {detail}")
-    print("\nFix by pointing at something that exists in this PR, or by naming the")
-    print("external source and pinning it (e.g. 'github.com/org/repo @ abc1234,")
-    print("`path/in/that/repo.py`'). research/candidates/ is gitignored working")
+    print("\nFix by pointing at something that exists in this PR, or by putting a")
+    print("named, pinned external source immediately before the path (e.g.")
+    print("'github.com/org/repo @ abc1234, `path/in/that/repo.py`').")
+    print("research/candidates/ is gitignored working")
     print("output and can never be cited as evidence. See AGENTS.md, 'Writing the")
     print("submission'.")
     return 1

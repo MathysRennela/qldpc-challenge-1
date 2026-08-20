@@ -43,19 +43,80 @@ def main():
         check("file::symbol form resolves",
               problems_for("see `research/kit/group_algebra.py::build_2bga`", tmp) == [])
 
-        check("missing path is caught",
-              problems_for("MILP via `evaluation/distance_milp.py`", tmp)
-              == ["path does not exist in this tree"])
-
-        check("missing path is allowed when an external source is named",
-              problems_for(
-                  "MILP via `evaluation/distance_milp.py` from "
-                  "https://github.com/qiskit-community/qcode-discovery", tmp) == [])
-
         check("pinned external artifact passes",
               problems_for(
                   "taken from github.com/a7b/yarn @ 82fb695, "
                   "`processor_codes/mitten/Hx.npy`", tmp) == [])
+
+        missing = ["path does not exist in this tree"]
+        rejected_external_citations = (
+            ("missing path is caught",
+             "MILP via `evaluation/distance_milp.py`"),
+            ("unpinned external source does not exempt a missing path",
+             "From https://github.com/qiskit-community/qcode-discovery, "
+             "use `evaluation/distance_milp.py`."),
+            ("unrelated URL and SHA do not form a pinned source",
+             "From https://example.com @ 82fb695, use `vendor/tool.py`."),
+            ("lookalike GitHub host does not form a pinned source",
+             "From https://evilgithub.com/a7b/yarn @ 82fb695, "
+             "use `vendor/tool.py`."),
+            ("GitHub-looking URL path does not form a pinned source",
+             "From https://example.com/github.com/a7b/yarn @ 82fb695, "
+             "use `vendor/tool.py`."),
+            ("GitHub-looking query value does not form a pinned source",
+             "From https://example.com/?next=github.com/a7b/yarn @ 82fb695, "
+             "use `vendor/tool.py`."),
+            ("Markdown delimiter inside a URL does not start a source",
+             "From https://example.com/?next=|github.com/a7b/yarn @ 82fb695, "
+             "use `vendor/tool.py`."),
+            ("SHA prefix in a longer revision does not count as a pin",
+             "From github.com/a7b/yarn @ deadbee-main, use `vendor/tool.py`."),
+            ("unrelated URL elsewhere does not exempt a missing path",
+             "Reference: https://arxiv.org/abs/2607.28795\n\n"
+             "Built with `evaluation/distance_milp.py`."),
+            ("unrelated URL in the same paragraph does not exempt a path",
+             "Reference https://arxiv.org/abs/2607.28795; local helper "
+             "`evaluation/distance_milp.py`."),
+            ("pinned source elsewhere does not exempt a missing path",
+             "Source: github.com/a7b/yarn @ 82fb695.\n\n"
+             "Built with `evaluation/distance_milp.py`."),
+            ("pinned source in an earlier clause does not exempt a path",
+             "Source github.com/a7b/yarn @ 82fb695; local helper "
+             "`evaluation/distance_milp.py`."),
+            ("DOI sentence punctuation ends its citation",
+             "Source https://doi.org/10.1234/example. Local helper "
+             "`evaluation/distance_milp.py`."),
+            ("pinned citation exempts only its own paragraph",
+             "From github.com/a7b/yarn @ 82fb695, `vendor/tool.py`.\n\n"
+             "Local helper: `evaluation/distance_milp.py`."),
+            ("source after a path does not retroactively exempt it",
+             "Used `vendor/tool.py` from github.com/a7b/yarn @ 82fb695."),
+            ("same path is rechecked outside its pinned citation",
+             "From github.com/a7b/yarn @ 82fb695, `vendor/tool.py`.\n\n"
+             "Local helper: `vendor/tool.py`."),
+            ("pinned citation does not leak to another list item",
+             "- From github.com/a7b/yarn @ 82fb695: `vendor/tool.py`\n"
+             "- Local helper: `evaluation/distance_milp.py`"),
+            ("pinned citation does not leak between blockquoted bullets",
+             "> - From github.com/a7b/yarn @ 82fb695: `vendor/tool.py`\n"
+             "> - Local helper: `evaluation/distance_milp.py`"),
+            ("pinned citation does not cross a blockquote blank line",
+             "> Source github.com/a7b/yarn @ 82fb695:\n>\n"
+             "> `evaluation/distance_milp.py`"),
+            ("pinned citation does not leak between table rows",
+             "| source | github.com/a7b/yarn @ 82fb695 | `vendor/tool.py` |\n"
+             "| local | none | `evaluation/distance_milp.py` |"),
+            ("pinned citation does not leak in a table without leading pipes",
+             "source | github.com/a7b/yarn @ 82fb695 | `vendor/tool.py`\n"
+             "local | none | `evaluation/distance_milp.py`"),
+        )
+        for name, text in rejected_external_citations:
+            check(name, problems_for(text, tmp) == missing)
+
+        check("path-like text inside a full URL is not a repo path",
+              problems_for(
+                  "See https://github.com/a7b/yarn/blob/82fb695/tools/build.py",
+                  tmp) == [])
 
         check("gitignored dir is caught even with an external source named",
               problems_for(
