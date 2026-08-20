@@ -1797,7 +1797,7 @@ def layout_svg(doc):
     legend.append(f'<span><span class=dt></span>qubit site ({len(mult)})</span>')
     if stacked:
         legend.append('<span><span class=rg></span>2 qubits stacked '
-                      f'({loc.get("layers", 1)} layers)</span>')
+                      f'({loc.get("layers", max(mult.values()))} layers)</span>')
     legend.append('<span>dashed: the pair setting the interaction radius</span>')
     legend.append('<span>hover a check to isolate its qubits; click to pin '
                   '&mdash; repeated clicks cycle through overlapping checks; '
