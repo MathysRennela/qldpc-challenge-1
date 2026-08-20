@@ -317,8 +317,8 @@ def main(argv):
         print("\nAuthorship mismatch: the PR author must be one of a code's "
               "@handle authors, or the change must be exactly a refutation "
               "credited to them in witness_provenance.found_by (issue #611), "
-              "or exactly a first-layout addition that appends them to "
-              "provenance.authors.")
+              "or exactly a first-layout addition credited to them in "
+              "locality.contributed_by.by.")
         for f, hs, extra in violations:
             print(f"  {f}: authors {['@' + h for h in hs]} do not include "
                   f"@{author}" + (f"; {extra}" if extra else ""))
