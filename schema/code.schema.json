@@ -82,6 +82,62 @@
         }
       }
     },
+    "circuit": {
+      "type": "object",
+      "description": "optional circuit tier (RFC 0001, issue #505): the entry ships syndrome-extraction memory circuits under circuits/<slug>/ (memory_x.stim, memory_z.stim, plus their derived .dem files), and claims a witness-backed circuit-level distance per basis. Penalty-only: the recorded d_circ is clamped to <= d and can only discount a score, never inflate it.",
+      "required": [
+        "d_circ",
+        "rounds",
+        "stim_version"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "d_circ": {
+          "type": "object",
+          "required": [
+            "X",
+            "Z"
+          ],
+          "additionalProperties": false,
+          "description": "per-basis circuit-level distance of the memory experiments. Basis S is the S-basis memory circuit (circuits/<slug>/memory_<s>.stim): its witness is an undetected fault set flipping a logical-S observable. The effective d_circ = min(X.value, Z.value).",
+          "properties": {
+            "X": {
+              "$ref": "#/$defs/circuitSideDistance"
+            },
+            "Z": {
+              "$ref": "#/$defs/circuitSideDistance"
+            }
+          }
+        },
+        "rounds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "noisy extraction rounds in each memory circuit; the verifier requires rounds >= the claimed code distance d"
+        },
+        "stim_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "description": "stim version that derived the committed .dem files; the verifier requires it to equal the version pinned in uv.lock and re-derives the .dem byte-for-byte"
+        },
+        "ancilla_coordinates": {
+          "type": "array",
+          "description": "one [x, y] per non-data qubit in circuit index order (qubits n..total-1); required only for the geometric circuit tier (Phase B)",
+          "maxItems": 10000,
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "notes": {
+          "type": "string",
+          "description": "schedule provenance, optional"
+        }
+      }
+    },
     "locality": {
       "type": "object",
       "description": "optional; required only for the 2d-local tracks",
@@ -301,9 +357,55 @@
           }
         }
       }
+    },
+    {
+      "$comment": "the circuit tier is likewise a 0.2 feature",
+      "if": {
+        "required": [
+          "circuit"
+        ]
+      },
+      "then": {
+        "properties": {
+          "schema_version": {
+            "const": "0.2"
+          }
+        }
+      }
     }
   ],
   "$defs": {
+    "circuitSideDistance": {
+      "type": "object",
+      "required": [
+        "value",
+        "confidence",
+        "witness"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "claimed circuit-level distance for this basis; must equal |witness| and be <= the code distance d"
+        },
+        "confidence": {
+          "enum": [
+            "upper_bound"
+          ],
+          "description": "the circuit tier currently has no exact certification path (MILP over H_dem is deferred future work), so every claim is a witness-backed upper bound"
+        },
+        "witness": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "minItems": 1,
+          "description": "sorted 0-based indices of error(...) instructions in this basis's committed flattened .dem, counted in file order. The XOR of their detector sets must vanish (undetected) and the XOR of their observable sets must not (flips a logical): the circuit-tier analogue of the low-weight logical the code tier stores."
+        }
+      }
+    },
     "supportList": {
       "type": "array",
       "description": "one entry per parity check; each entry is the sorted list of distinct qubit indices in that check's support",

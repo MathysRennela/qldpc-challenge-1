@@ -3,9 +3,11 @@ duplicates by permutation-invariant signature. Used by CI. Exit 0 only if all
 pass and no two codes/ entries share a signature.
 
 This runs the cheap structural checks (schema, n/k/CSS/weight, witness validity,
-duplicates) on every entry. Distance refutation is NOT run here -- it is the
-per-submission job of gate_changed.py (changed files) and the weekly job of
-refute_board.py (whole board, random seed)."""
+duplicates) on every entry, plus the circuit-tier fast path (circuit_verify:
+determinism, noise recipe, code binding, DEM + d_circ witness -- all
+deterministic and cheap) on entries declaring one. Distance refutation is NOT
+run here -- it is the per-submission job of gate_changed.py (changed files) and
+the weekly job of refute_board.py (whole board, random seed)."""
 
 import argparse
 import glob
@@ -15,6 +17,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 from qldpc_verify import file_size_error, verify
+from circuit_verify import verify_circuit
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -46,10 +49,20 @@ if __name__ == "__main__":
         with open(p) as f:
             doc = json.load(f)
         rep = verify(doc)   # structural checks; refutation lives in gate_changed / refute_board
+        circ = ""
+        if rep["ok"] and is_code and doc.get("circuit"):
+            slug = os.path.splitext(os.path.basename(p))[0]
+            crep = verify_circuit(doc, os.path.join(code_root, "circuits", slug))
+            if crep["ok"]:
+                circ = (f", d_circ<="
+                        f"{crep['earned_d_circ']['d_circ']['value']}")
+            else:
+                rep["ok"] = False
+                rep["checks"] += [c for c in crep["checks"] if not c["ok"]]
         if rep["ok"]:
             ed = rep["earned_distance"].get("d", {})
             print(f"PASS  {rel}  -> d{ed.get('value','?')} "
-                  f"({ed.get('tier','-')})")
+                  f"({ed.get('tier','-')}){circ}")
             if is_code:
                 if "signature" in rep:
                     sigs.setdefault(rep["signature"]["hash"], []).append(rel)

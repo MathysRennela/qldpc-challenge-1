@@ -56,6 +56,33 @@ Two principles drive the format:
     `survived_samples` is what actually constrains the distance and tells the
     next refuter the budget they need to beat; a deep sweep that finds nothing
     records its null result by raising it.
+- `circuit` (optional; requires `schema_version: "0.2"`; RFC 0001, issue #505):
+  the circuit tier. The entry additionally ships syndrome-extraction memory
+  circuits under `circuits/<slug>/` — `memory_x.stim`, `memory_z.stim`, and
+  their derived `memory_x.dem`, `memory_z.dem` (committed so witnesses are
+  checkable without running stim) — and claims a witness-backed circuit-level
+  distance per basis. The tier is penalty-only: the recorded `d_circ` is
+  clamped to `<= d`.
+  - `d_circ.X`, `d_circ.Z`: per-basis claims, mirroring `distance.X/Z`:
+    - `value`: claimed circuit-level distance of that basis's memory
+      experiment; must equal `|witness|` and be `<= d`.
+    - `confidence`: `"upper_bound"` (the only tier so far; an exact tier via
+      MILP over `H_dem` is deferred future work).
+    - `witness`: sorted 0-based indices of `error(...)` instructions in that
+      basis's committed flattened `.dem`, counted in file order. The XOR of
+      their detector sets must vanish (the fault set is undetected) and the
+      XOR of their observable sets must not (it flips a logical) — the
+      circuit-tier analogue of the low-weight logical the code tier stores.
+  - `rounds`: noisy extraction rounds per memory circuit; must be `>= d`.
+  - `stim_version`: the stim that derived the `.dem` files; must equal the
+    version pinned in `uv.lock` (the verifier re-derives the `.dem`
+    byte-for-byte, so a version bump surfaces as a diff on that artifact).
+  - `ancilla_coordinates` (optional): one `[x, y]` per non-data qubit in
+    circuit index order; required only for the geometric circuit tier
+    (Phase B, not yet checked).
+  - Circuits must be memory experiments with the canonical noise recipe
+    (`verify/circuit_verify.py` documents and enforces it mechanically);
+    noise placement is not a submitter degree of freedom, the schedule is.
 - `locality` (optional): provide a layout and the verifier derives the locality
   class (`local-2d-single`, `local-2d-bilayer`, or `unrestricted`); omit it and
   the code is `unrestricted`.
