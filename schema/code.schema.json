@@ -170,8 +170,8 @@
                 },
                 "failures": {
                   "type": "integer",
-                  "minimum": 0,
-                  "description": "shots where the decoder's predicted observable flips disagreed with the sampled ones"
+                  "minimum": 100,
+                  "description": "shots where the decoder's predicted observable flips disagreed with the sampled ones; at least 100, so the claim carries ~10% statistical error and prefactor comparisons between schedules are resolvable (raise shots until the count is reached)"
                 },
                 "seed": {
                   "type": "integer",
@@ -228,8 +228,8 @@
                 },
                 "failures": {
                   "type": "integer",
-                  "minimum": 0,
-                  "description": "shots where the decoder's predicted observable flips disagreed with the sampled ones"
+                  "minimum": 100,
+                  "description": "shots where the decoder's predicted observable flips disagreed with the sampled ones; at least 100, so the claim carries ~10% statistical error and prefactor comparisons between schedules are resolvable (raise shots until the count is reached)"
                 },
                 "seed": {
                   "type": "integer",

@@ -81,14 +81,16 @@ def test_honest_claim_verifies(artifact):
 
 
 def test_underreported_failures_rejected(artifact):
-    # The gaming direction: claim a fifth of the real failures, i.e. a much
-    # better code than the circuit earns. Arithmetic is kept consistent so
-    # only the replication check can catch it.
+    # The gaming direction: claim HALF the real failures, i.e. a 2x better
+    # code than the circuit earns. Arithmetic is kept consistent and the
+    # count stays above MIN_FAILURES, so only the replication check can
+    # catch it -- and a 2x under-report is precisely the case a fixed-size
+    # replica let through before the replica was sized to discriminate.
     doc, cdir = artifact
     doc = copy.deepcopy(doc)
     for s in ("X", "Z"):
         blk = doc["circuit"]["ler"][s]
-        blk["failures"] = max(1, blk["failures"] // 5)
+        blk["failures"] = max(lt.MIN_FAILURES, blk["failures"] // 2)
         p = blk["failures"] / blk["shots"]
         blk["ler_per_round"] = round(lt.per_round(p, ROUNDS), 9)
         lo, hi = lt.wilson_ci(blk["failures"], blk["shots"])
@@ -137,6 +139,52 @@ def test_measurement_deterministic(artifact):
     dem = ct.derive_dem(circuit)
     assert (lt.measure_failures(dem, 4000, seed=11)
             == lt.measure_failures(dem, 4000, seed=11))
+
+
+def test_failures_floor_rejected(artifact):
+    # A claim below MIN_FAILURES certifies an order of magnitude, not a
+    # comparison; the arithmetic check refuses it outright.
+    doc, cdir = artifact
+    doc = copy.deepcopy(doc)
+    blk = doc["circuit"]["ler"]["X"]
+    blk["shots"], blk["failures"] = 40_000, 30
+    p = blk["failures"] / blk["shots"]
+    blk["ler_per_round"] = round(lt.per_round(p, ROUNDS), 9)
+    lo, hi = lt.wilson_ci(blk["failures"], blk["shots"])
+    blk["ci95"] = [round(lt.per_round(lo, ROUNDS), 9),
+                   round(lt.per_round(hi, ROUNDS), 9)]
+    rep = lv.verify_ler(doc, cdir)
+    bad = {c["check"]: c["detail"] for c in rep["checks"] if not c["ok"]}
+    assert "X_ler_arithmetic" in bad and "below the floor" in bad["X_ler_arithmetic"]
+
+
+def test_budget_truncation_fails_unverifiable(artifact, monkeypatch):
+    # When the wall budget cannot afford a replica that would catch a 2x
+    # under-report, the claim must fail as unverifiable rather than merge
+    # weakly checked (the tier's stated budget-vs-statistics choice).
+    doc, cdir = artifact
+    monkeypatch.setattr(lv, "LER_SECONDS", 0.001)
+    rep = lv.verify_ler(doc, cdir)
+    bad = {c["check"]: c["detail"] for c in rep["checks"] if not c["ok"]}
+    assert any(k.endswith("_ler_replicated") for k in bad)
+    assert any("unverifiable within budget" in v for v in bad.values())
+
+
+def test_replica_sized_to_discriminate(artifact):
+    # The replica targets REPLICA_FAILURES expected failures, so its shot
+    # count must scale with 1/p_claim, not sit at a constant.
+    doc, cdir = artifact
+    rep = lv.verify_ler(doc, cdir)
+    assert rep["ok"]
+    for s in ("X", "Z"):
+        blk = doc["circuit"]["ler"][s]
+        p = blk["failures"] / blk["shots"]
+        want = min(max(lt.MIN_SHOTS,
+                       -(-lv.REPLICA_FAILURES // 1) and
+                       __import__("math").ceil(lv.REPLICA_FAILURES / p)),
+                   lv.REPLICA_SHOTS_CAP)
+        assert rep["computed"][s]["replica_shots"] == want
+        assert rep["computed"][s]["detectable_factor"] <= 2.0
 
 
 def test_conversion_sanity():

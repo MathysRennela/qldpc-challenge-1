@@ -98,19 +98,38 @@ Two principles drive the format:
     - `shots`, `failures`, `seed`: the measurement. The stim sampler is
       seeded, so (shots, seed, stim version) determine the sample; a shot
       fails when the pinned decoder's predicted observable flips disagree
-      with the sampled ones.
+      with the sampled ones. `failures >= 100` is the floor that matters:
+      the tier exists to compare prefactors between schedules with equal
+      d_circ, which differ by 1.2-2x, and 100 failures puts ~10% error on
+      the claim so a factor-1.5 difference is resolvable. Better circuits
+      pay more shots for the same floor; that is the price of claiming a
+      smaller rate. Values at the minimum `rounds = d` also carry a
+      10-30% time-boundary bias relative to the long-round limit; it is
+      the same convention for every entry, so comparisons stand, but treat
+      the absolute number accordingly.
     - `decoder`: `"bposd-cs-10"`, the one pinned decoder (BP+OSD exactly as
       `decode/distance.py` pins it, with the DEM's own probabilities as the
       channel prior). MWPM is deliberately not offered: matching needs a
       decomposable DEM, which the weight-6+ codes this board is about do
-      not produce.
+      not produce -- and pymatching accepts an undecomposed DEM silently,
+      dropping every mechanism above two detectors before decoding, so an
+      MWPM number on these codes answers an easier problem. Expect board
+      values to read ~1.5x better than the decomposed-MWPM numbers familiar
+      from the surface-code literature; that offset is the pinned decoder
+      seeing hyperedges whole, not an error.
     - `ler_per_round`, `ci95`: the per-round rate via the parity-aware
       conversion, and its Wilson 95% interval; both must recompute exactly
       from `failures`/`shots`/`rounds`.
     - Verification (`verify/ler_verify.py`) re-measures with an independent
-      seed and rejects a claim outside sampling error. Statistical by
-      design: BP is float arithmetic, so bit-exact cross-platform
-      replication is not a promise the board can keep, and the gaming
+      seed and rejects a claim outside sampling error. The replica is sized
+      to discriminate (a target expected-failure count, not a fixed shot
+      count), under a wall budget per basis; when the budget cannot afford
+      a replica that would catch a factor-2 under-report, the claim fails
+      as unverifiable within budget instead of merging weakly checked. The
+      tier's statistical meaning wins over gate cost by design: the budget
+      bounds what may merge, never how honestly it is checked. Statistical
+      rather than bit-exact because BP is float arithmetic and cross-
+      platform exactness is not a promise the board can keep; the gaming
       direction -- claiming a lower rate than the circuit earns -- is
       exactly what re-measurement detects.
 - `locality` (optional): provide a layout and the verifier derives the locality

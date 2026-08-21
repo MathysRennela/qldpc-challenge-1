@@ -12,10 +12,16 @@ sampler, decode each shot with the pinned decoder, and count shots where the
 predicted observable flips disagree with the actual ones. The pinned decoder
 is BP+OSD exactly as decode/distance.py pins it (minimum-sum BP, scaling
 0.625, osd_cs at order 10, 30 iterations), with the DEM's own per-mechanism
-probabilities as the channel prior. MWPM is deliberately NOT the pin: matching
-needs a decomposable DEM, and the weight-6+ codes this board is about produce
-mechanisms that do not decompose (the same fact that forced RFC 0001 rev 2
-off shortest_graphlike_error).
+probabilities as the channel prior. MWPM is deliberately NOT the pin, for a
+sharper reason than decomposability in the abstract: pymatching accepts an
+undecomposed DEM without complaint and silently drops every mechanism that
+touches more than two detectors (on the d=5 seed it kept 572 of 1687), then
+returns confident numbers for a different, easier channel. Do not "check" a
+board ler value with pymatching; on these codes it is not decoding the same
+problem. Note also the systematic offset this pin implies: BP+OSD decodes
+hyperedges that decomposed MWPM splits, and measures ~1.5x better on the d=5
+seed, so board values read ~1.5x below the MWPM numbers familiar from the
+literature.
 
 Reproducibility has one honest boundary. The stim sampler is deterministic for
 a given seed and stim version, and the decoder is deterministic on one
@@ -40,7 +46,16 @@ except ImportError:          # surfaced by callers that actually need it
     stim = None
 
 DECODER_ID = "bposd-cs-10"   # the one pinned decoder; an enum in the schema
-MIN_SHOTS = 10_000           # below this a rate claim is noise, not a number
+MIN_SHOTS = 10_000           # absolute floor on sample size
+MIN_FAILURES = 100           # the real floor: the tier exists to compare
+                             # prefactors between schedules with equal d_circ,
+                             # and those differ by 1.2-2x. 100 failures puts
+                             # ~10% sigma on the claim, so a factor-1.5
+                             # difference is resolvable; a shot floor alone
+                             # certifies an order of magnitude, not a
+                             # comparison. Good circuits pay more shots for
+                             # the same floor, which is the honest price of
+                             # claiming a smaller rate.
 Z95 = 1.959963984540054      # two-sided 95% normal quantile, for ci95
 
 
@@ -66,25 +81,31 @@ def make_decoder(H, probs):
                         osd_order=10)
 
 
-def measure_failures(dem, shots, seed):
+def measure_failures(dem, shots, seed, max_seconds=None):
     """Sampled logical failures of a DEM under the pinned decoder.
 
     A shot fails when the decoder's predicted observable flips (L @ e_hat over
-    GF(2)) disagree with the sampled ones on any observable. Returns the
-    failure count; shots/seed fully determine the sample for a given stim
-    version.
+    GF(2)) disagree with the sampled ones on any observable. Returns
+    (failures, shots_done); shots/seed fully determine the sample for a given
+    stim version, and shots_done == shots whenever `max_seconds` does not
+    truncate (the deadline is checked every 1000 shots, so a caller with a
+    wall budget gets a partial but honest sample instead of an overrun).
     """
+    import time
     from circuit_tools import dem_matrices
     H, L = dem_matrices(dem)
     dec = make_decoder(H, dem_probs(dem))
     dets, obs, _ = dem.compile_sampler(seed=seed).sample(shots=shots)
     dets = dets.astype(np.uint8)
+    deadline = (time.monotonic() + max_seconds) if max_seconds else None
     failures = 0
     for i in range(shots):
         e_hat = dec.decode(dets[i])
         if np.any((L @ e_hat) % 2 != obs[i]):
             failures += 1
-    return failures
+        if deadline and i % 1000 == 999 and time.monotonic() > deadline:
+            return failures, i + 1
+    return failures, shots
 
 
 def wilson_ci(failures, shots, z=Z95):
@@ -119,7 +140,7 @@ def ler_block(dem, rounds, shots, seed, p_ref):
     The submitter-side generator and the test fixture builder: runs the pinned
     measurement and packages exactly the fields ler_verify.py re-checks.
     """
-    failures = measure_failures(dem, shots, seed)
+    failures, _ = measure_failures(dem, shots, seed)
     p_shot = failures / shots
     lo, hi = wilson_ci(failures, shots)
     return {
