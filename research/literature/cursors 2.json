@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-16T11:43:02Z",
+  "queries": {
+    "lifted_balanced_product": {
+      "query_definition_sha256": "fe064938d908e997605e72629918a60b4438623663de011e30ee60884b58f1d0",
+      "overlap_days": 7,
+      "last_successful": null,
+      "newest_seen": {"submitted_at": "2026-08-10T01:32:34Z", "canonical_arxiv_id": "2608.08996"},
+      "last_run_at": "2026-08-16T11:43:02Z"
+    },
+    "bicycle_hypergraph_product": {
+      "query_definition_sha256": "0989745e3c61d3aaa65fa2b5b749e0731d101aa17d7ebf133935400a2dbdd21d",
+      "overlap_days": 7,
+      "last_successful": null,
+      "newest_seen": {"submitted_at": "2026-08-10T04:45:08Z", "canonical_arxiv_id": "2608.09115"},
+      "last_run_at": "2026-08-16T11:43:02Z"
+    },
+    "broad_qldpc": {
+      "query_definition_sha256": "9de1d2c0671364f40ac8aed288f731c20d6fe7bd59e1507e0363002f3b009d23",
+      "overlap_days": 7,
+      "last_successful": null,
+      "newest_seen": {"submitted_at": "2026-08-10T18:00:01Z", "canonical_arxiv_id": "2608.10069"},
+      "last_run_at": "2026-08-16T11:43:02Z"
+    }
+  }
+}

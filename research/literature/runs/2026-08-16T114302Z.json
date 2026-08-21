@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "run_at": "2026-08-16T11:43:02Z",
+  "code_revision": "working tree at metadata pilot",
+  "api": "https://export.arxiv.org/api/query",
+  "pdfs_requested": false,
+  "source_archives_requested": false,
+  "queries": [
+    {"name":"lifted_balanced_product","result_count":20,"new_record_count":0},
+    {"name":"bicycle_hypergraph_product","result_count":20,"new_record_count":0},
+    {"name":"broad_qldpc","result_count":20,"new_record_count":0}
+  ],
+  "selected_records": 10,
+  "metadata_records_written": 10,
+  "new_papers": 10,
+  "new_versions": 0,
+  "api_errors": [],
+  "triage_note": "Initial discovery was metadata-only. A separately approved follow-up inspected arXiv HTML for 2608.09115v1, reconstructed [[66,20,7]], and passed the trusted validator; no PDF/source archive was needed. 2608.08996 remains a reconstruction lead."
+}

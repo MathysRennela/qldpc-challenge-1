@@ -1,0 +1,233 @@
+{
+   "sources" : [
+      {
+         "usage" : "toplevel",
+         "filename" : "qt.tex"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x212/HX_108_2_12.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x212/HX_120_2_12.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x212/HX_132_2_14.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x212/HX_168_2_16.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x212/HX_216_2_18.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x212/HX_252_2_20.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x212/HX_60_2_8.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x212/HX_72_2_9.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x212/HX_84_2_10.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x212/HZ_108_2_12.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x212/HZ_120_2_12.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x212/HZ_132_2_14.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x212/HZ_168_2_16.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x212/HZ_216_2_18.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x212/HZ_252_2_20.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x212/HZ_60_2_8.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x212/HZ_72_2_9.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x212/HZ_84_2_10.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x633/HX_C11_396_2_29.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x633/HX_C2C2_144_12_11.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x633/HX_C2C2_144_8_12.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x633/HX_C4rC4_576_28_24.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x633/HX_C6C2_432_20_22.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x633/HX_C6C2_432_24_18.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x633/HX_C6_216_8_18.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x633/HX_C8_288_8_19.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x633/HX_C9_324_4_26.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x633/HX_Q8_288_16_16.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x633/HZ_C11_396_2_29.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x633/HZ_C2C2_144_12_11.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x633/HZ_C2C2_144_8_12.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x633/HZ_C4rC4_576_28_24.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x633/HZ_C6C2_432_20_22.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x633/HZ_C6C2_432_24_18.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x633/HZ_C6_216_8_18.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x633/HZ_C8_288_8_19.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x633/HZ_C9_324_4_26.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "633x633/HZ_Q8_288_16_16.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "844x212/HX_128_2_14.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "844x212/HX_128_6_12.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "844x212/HX_160_2_16.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "844x212/HX_192_2_18.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "844x212/HX_224_2_20.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "844x212/HX_256_2_22.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "844x212/HX_80_2_10.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "844x212/HX_96_2_12.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "844x212/HZ_128_2_14.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "844x212/HZ_128_6_12.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "844x212/HZ_160_2_16.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "844x212/HZ_192_2_18.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "844x212/HZ_224_2_20.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "844x212/HZ_256_2_22.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "844x212/HZ_80_2_10.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "844x212/HZ_96_2_12.mtx"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "README.md"
+      }
+   ],
+   "spec_version" : 1,
+   "texlive_version" : "2025",
+   "process" : {
+      "compiler" : "pdflatex"
+   }
+}

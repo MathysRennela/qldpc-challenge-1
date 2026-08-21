@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "overlap_days": 7,
+  "queries": [
+    {
+      "name": "lifted_balanced_product",
+      "search_query": "all:\"quantum LDPC\" AND (all:\"lifted-product\" OR all:\"balanced-product\")",
+      "category": "quant-ph",
+      "sort_by": "submittedDate",
+      "sort_order": "descending",
+      "page_size": 20
+    },
+    {
+      "name": "bicycle_hypergraph_product",
+      "search_query": "all:\"quantum LDPC\" AND (all:\"bicycle\" OR all:\"hypergraph product\")",
+      "category": "quant-ph",
+      "sort_by": "submittedDate",
+      "sort_order": "descending",
+      "page_size": 20
+    },
+    {
+      "name": "broad_qldpc",
+      "search_query": "cat:quant-ph AND (all:\"quantum LDPC\" OR all:\"quantum low-density parity-check\")",
+      "category": "quant-ph",
+      "sort_by": "submittedDate",
+      "sort_order": "descending",
+      "page_size": 20
+    }
+  ]
+}
