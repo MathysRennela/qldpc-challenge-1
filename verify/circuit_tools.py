@@ -322,15 +322,42 @@ def _rref(M):
     return gf2.rref(np.ascontiguousarray(M))[0]
 
 
-def ris_dem(H, L, trials, seed=0, pair_top=24, max_seconds=None):
+def ris_dem(H, L, trials, seed=0, pair_top=24, max_seconds=None, threads=4):
     """RIS upper-bound search for the lightest undetected logical fault set:
     min |e| with H e = 0, L e != 0. The code-tier searcher on the DEM's
     parity-check matrix -- hyperedge degree is irrelevant to it. Returns
     (weight, sorted column indices) or (None, None). Stops after `trials`
     permutations or `max_seconds` wall-clock, whichever comes first (the time
-    cap keeps the CI gate bounded when the size estimate is off)."""
+    cap keeps the CI gate bounded when the size estimate is off).
+
+    When gf2_fast provides dem_rand_witness, the whole trial loop runs in
+    C++ (kernel packed once, pivot-order permutation instead of physical
+    column moves, `threads` workers) in fixed 64-trial chunks so the wall
+    cap is still enforced between chunks; results are deterministic given
+    (seed, trials, threads) whenever the cap does not truncate. Finds are
+    PROPOSALS either way -- callers validate with witness_errors. The numpy
+    loop below is the fallback and the audited reference implementation."""
     import time
-    K = _kernel_basis(np.asarray(H, dtype=np.int8))
+    H = np.ascontiguousarray(np.asarray(H, dtype=np.int8))
+    L = np.ascontiguousarray(np.asarray(L, dtype=np.int8))
+    if _GF is not None and hasattr(_GF, "dem_rand_witness"):
+        deadline = (time.monotonic() + max_seconds) if max_seconds else None
+        best, wit = None, None
+        done, chunk_i = 0, 0
+        while done < trials:
+            t = min(64, trials - done)
+            w, sup = _GF.dem_rand_witness(H, L, trials=t,
+                                          seed=seed + 7919 * chunk_i,
+                                          pair_depth=pair_top,
+                                          threads=threads)
+            if w is not None and (best is None or w < best):
+                best, wit = int(w), [int(i) for i in sup]
+            done += t
+            chunk_i += 1
+            if deadline and time.monotonic() > deadline:
+                break
+        return best, wit
+    K = _kernel_basis(H)
     m = K.shape[1]
     if K.shape[0] == 0:
         return None, None
