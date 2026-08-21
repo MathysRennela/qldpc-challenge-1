@@ -1,9 +1,12 @@
-# Ruff lint + format check (issue #658). Non-blocking while the codebase is
+# Ruff lint + format check (issue #658). Advisory while the codebase is
 # brought to the configured standard: the config in pyproject.toml is the
-# target, this job reports the distance to it on every PR, and it flips to
-# blocking (drop continue-on-error) after the one-time mechanical
-# `ruff check --fix` + `ruff format` pass lands. The ruff version comes from
-# uv.lock, so lint verdicts cannot drift with upstream releases.
+# target, and this job REPORTS the distance to it (job summary + log) without
+# failing, so a red X never reads as a broken PR while 500+ pre-existing
+# findings are being worked off. After the one-time mechanical
+# `ruff check --fix` + `ruff format` pass lands, delete the two `|| true`
+# suffixes and the summary block to make it a normal blocking check. The ruff
+# version comes from uv.lock, so lint verdicts cannot drift with upstream
+# releases.
 name: lint
 on:
   pull_request:
@@ -16,12 +19,21 @@ on:
 jobs:
   ruff:
     runs-on: ubuntu-latest
-    continue-on-error: true   # advisory until the mechanical pass lands
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - name: ruff check
-        run: uv run --frozen ruff check --output-format github .
-      - name: ruff format check
-        if: always()
-        run: uv run --frozen ruff format --check .
+      - name: ruff check (advisory)
+        run: |
+          uv run --frozen ruff check --output-format github . > ruff-check.txt || true
+          count=$(grep -c "::error" ruff-check.txt || true)
+          echo "## ruff (advisory until the mechanical pass lands)" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- \`ruff check\`: **${count}** finding(s) repo-wide" >> "$GITHUB_STEP_SUMMARY"
+          cat ruff-check.txt
+      - name: ruff format check (advisory)
+        run: |
+          unformatted=$(uv run --frozen ruff format --check --quiet . 2>/dev/null | wc -l || true)
+          echo "- \`ruff format --check\`: **${unformatted}** file(s) would be reformatted" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Run \`uv run ruff check .\` and \`uv run ruff format --check .\` locally; new code should arrive clean (CONTRIBUTING.md)." >> "$GITHUB_STEP_SUMMARY"
+          uv run --frozen ruff format --check . || true
