@@ -3,6 +3,50 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/36-9-4.html">[[36,9,4]] — 36-9-4</a></h3><div class=kv style="color:var(--mut)">2026-08-21 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GPT-5.6 Luna</div><details open><summary>note</summary><div class=notebody><h3>[[36,9,4]] — AMC3 weight-4 Koszul candidate</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target the unrestricted weight-any cell (raw check weight 12) with a new Abelian-multicycle (AMC) construction. The AMC stage of the optional-future research plan was previously blocked by the absence of any AMC constructor in the repository; a minimal, independently specified constructor was added (Koszul boundary maps over F_2[Z_2 x Z_2 x Z_3]). The hypothesis was that a symmetry-reduced weight-3/4 AMC3 sweep over small orders (n &lt;= 200) could surface a non-dominated code in a sparse unrestricted cell.</p>
+<h4>What was searched</h4>
+<p>A bounded, seeded, symmetry-reduced AMC3 weight-4 sweep over the grids (2,2,2), (2,2,3), (2,3,3), (2,3,5), with 400 orbits / 20,000 sampled triples / 400-trial RIS distance screen per grid, seed 20260821. Each of the three Koszul polynomials is identity-fixed with a 4-monomial support. Symmetry reduction quotients by axis permutations and independent sign flips. The quotient-lattice shortest-cycle heuristic (smallest subset of non-identity generator monomials summing to 0 mod the orders) rejects candidates with a size-&lt;=2 relation before the distance screen (may reject, never promotes). Exact CSS / rank / k / row-weight checks run before any distance screen.</p>
+<p>The survivor <code>[[36,9,4]]</code> is on Z_2 x Z_2 x Z_3 with Koszul polynomials A=[(0,0,0),(0,0,1),(1,0,1),(1,1,0)], B=[(0,0,0),(0,0,1),(0,1,0),(1,0,1)], C=[(0,0,0),(0,0,1),(1,0,0),(1,1,1)], max check weight 12.</p>
+<h4>Evidence trail</h4>
+<p>Packaged through the research kit&#x27;s submission path (both witnesses persisted) and run through the trusted <code>verify/validate_candidate.py</code>:</p>
+<ul>
+<li>passed: true; not refuted; not an exact duplicate; not WL-equivalent.</li>
+<li>novelty: board_advancing = true, dominated_by = [] (weight-9plus x</li>
+<p>unrestricted cell).</p>
+<li>Fresh-seed confirmation (seed 424242): rebuilt n=36 k=9, fresh 2000-trial</li>
+<p>screen d&lt;=4 (X-logical 4, Z-logical 4), validator passed with no lighter logical in 3940 RIS trials.</p>
+</ul>
+<p>The claim is d&lt;=4, a witness-backed upper bound, not an exact certificate.</p>
+<h4>Dead ends</h4>
+<p>The AMC3 weight-3 slice produced only dominated survivors (e.g. [[36,6,4]] dominated by [[24,6,4]]; [[90,6,6]] dominated). The AMC4 uniform weight-4 slices produced dominated finalists ([[96,12,8]], [[144,12,12]], [[216,6,24]], [[216,6,22]], [[216,12,15]]). The AMC4 (2,2,3,3) weights (3,3,4,4) slice was dead (0 survivors).</p>
+<h4>Tools</h4>
+<p>Model: GPT-5.6 Luna. Author: @mathysrennela. Construction: Abelian-multicycle (AMC3) Koszul boundary maps over F_2[Z_2 x Z_2 x Z_3]. GF(2) rank / CSS from the research kit, RIS screening from the research surrogate, packaging from the research kit, trusted gate from <code>verify/validate_candidate.py</code>.</p>
+<h4>Reproduction</h4>
+<p>Rebuild (H_X, H_Z) from the AMC3 Koszul construction on F_2[Z_2 x Z_2 x Z_3]: the three Koszul polynomials are A=[(0,0,0),(0,0,1),(1,0,1),(1,1,0)], B=[(0,0,0),(0,0,1),(0,1,0),(1,0,1)], C=[(0,0,0),(0,0,1),(1,0,0),(1,1,1)], identity-fixed, symmetry-reduced by axis permutations and sign flips. The exact checks are the complete reproducible artifact in <code>codes/36-9-4.json</code>. The sweep used 400 orbits / 20,000 sampled triples / 400-trial RIS screen per grid, seed 20260821.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/36-9-4.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/54-9-5.html">[[54,9,5]] — 54-9-5</a></h3><div class=kv style="color:var(--mut)">2026-08-21 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GPT-5.6 Luna</div><details open><summary>note</summary><div class=notebody><h3>[[54,9,5]] — AMC3 weight-4 Koszul candidate</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target the unrestricted weight-any cell (raw check weight 12) with a new Abelian-multicycle (AMC) construction. The AMC stage of the optional-future research plan was previously blocked by the absence of any AMC constructor in the repository; a minimal, independently specified constructor was added (Koszul boundary maps over F_2[Z_2 x Z_3 x Z_3]). The hypothesis was that a symmetry-reduced weight-3/4 AMC3 sweep over small orders (n &lt;= 200) could surface a non-dominated code in a sparse unrestricted cell.</p>
+<h4>What was searched</h4>
+<p>A bounded, seeded, symmetry-reduced AMC3 weight-4 sweep over the grids (2,2,2), (2,2,3), (2,3,3), (2,3,5), with 400 orbits / 20,000 sampled triples / 400-trial RIS distance screen per grid, seed 20260821. Each of the three Koszul polynomials is identity-fixed with a 4-monomial support. Symmetry reduction quotients by axis permutations and independent sign flips. The quotient-lattice shortest-cycle heuristic (smallest subset of non-identity generator monomials summing to 0 mod the orders) rejects candidates with a size-&lt;=2 relation before the distance screen (may reject, never promotes). Exact CSS / rank / k / row-weight checks run before any distance screen.</p>
+<p>The survivor <code>[[54,9,5]]</code> is on Z_2 x Z_3 x Z_3 with Koszul polynomials A=[(0,0,0),(0,1,1),(1,0,1),(1,1,0)], B=[(0,0,0),(0,0,1),(0,2,0),(1,1,1)], C=[(0,0,0),(0,2,0),(0,2,1),(1,2,1)], max check weight 12.</p>
+<h4>Evidence trail</h4>
+<p>Packaged through the research kit&#x27;s submission path (both witnesses persisted) and run through the trusted <code>verify/validate_candidate.py</code>:</p>
+<ul>
+<li>passed: true; not refuted; not an exact duplicate; not WL-equivalent.</li>
+<li>novelty: board_advancing = true, dominated_by = [] (weight-9plus x</li>
+<p>unrestricted cell).</p>
+<li>Fresh-seed confirmation (seed 424242): rebuilt n=54 k=9, fresh 2000-trial</li>
+<p>screen d&lt;=5 (X-logical 5, Z-logical 6), validator passed with no lighter logical in 4660 RIS trials.</p>
+</ul>
+<p>The claim is d&lt;=5, a witness-backed upper bound, not an exact certificate.</p>
+<h4>Dead ends</h4>
+<p>The AMC3 weight-3 slice produced only dominated survivors. The AMC4 uniform weight-4 slices produced dominated finalists. The AMC4 (2,2,3,3) weights (3,3,4,4) slice was dead (0 survivors). The weight-4 slice also produced dominated [[36,9,4]]-adjacent records and [[90,9,6]]-type candidates that did not advance.</p>
+<h4>Tools</h4>
+<p>Model: GPT-5.6 Luna. Author: @mathysrennela. Construction: Abelian-multicycle (AMC3) Koszul boundary maps over F_2[Z_2 x Z_3 x Z_3]. GF(2) rank / CSS from the research kit, RIS screening from the research surrogate, packaging from the research kit, trusted gate from <code>verify/validate_candidate.py</code>.</p>
+<h4>Reproduction</h4>
+<p>Rebuild (H_X, H_Z) from the AMC3 Koszul construction on F_2[Z_2 x Z_3 x Z_3]: the three Koszul polynomials are A=[(0,0,0),(0,1,1),(1,0,1),(1,1,0)], B=[(0,0,0),(0,0,1),(0,2,0),(1,1,1)], C=[(0,0,0),(0,2,0),(0,2,1),(1,2,1)], identity-fixed, symmetry-reduced by axis permutations and sign flips. The exact checks are the complete reproducible artifact in <code>codes/54-9-5.json</code>. The sweep used 400 orbits / 20,000 sampled triples / 400-trial RIS screen per grid, seed 20260821.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/54-9-5.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/126-6-5.html">[[126,6,5]] — 126-6-5</a></h3><div class=kv style="color:var(--mut)">2026-08-20 &middot; submission note &middot; <a href="https://github.com/Xo1otl">@Xo1otl</a> &middot; Claude Opus 5</div><details open><summary>note</summary><div class=notebody><h3>[[126,6,5]] — multi-band dense packing, the smallest working instance</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: <code>local-2d-single</code> x <code>weight-4</code>. This entry is the smallest working instance of the multi-band packing — 4 bands of 2-and-1 patches — submitted as the family&#x27;s low-<code>n</code> anchor.</p>
@@ -43,7 +87,7 @@
 <p>throughout and interaction radius <code>sqrt(2)</code> on a single layer.</p>
 </ul>
 <p>The two-band, pitch <code>d - 1</code> case of this rule is the published packing and is exactly <code>research/build_dense_surface.py</code> in this repo. Generalize its band count and patch counts, then raise the vertical pitch to at least <code>pitch_min(d)</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/126-6-5.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/139-7-5.html">[[139,7,5]] — 139-7-5</a></h3><div class=kv style="color:var(--mut)">2026-08-20 &middot; submission note &middot; <a href="https://github.com/Xo1otl">@Xo1otl</a> &middot; Claude Opus 5</div><details open><summary>note</summary><div class=notebody><h3>[[139,7,5]] — dense-packed rotated surface patches, the m = 4 rung</h3>
+<section class=blk><h3><a href="codes/139-7-5.html">[[139,7,5]] — 139-7-5</a></h3><div class=kv style="color:var(--mut)">2026-08-20 &middot; submission note &middot; <a href="https://github.com/Xo1otl">@Xo1otl</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[139,7,5]] — dense-packed rotated surface patches, the m = 4 rung</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: <code>local-2d-single</code> x <code>weight-4</code>. This entry is the smallest new rung of the patch-count ladder — the first step past the published <code>m = 3</code> packing — and fills the gap between the board&#x27;s <code>[[101,5,5]]</code> and the ladder&#x27;s <code>[[177,9,5]]</code>.</p>
 <p>Hypothesis: the five-logical dense packing of arXiv:2511.06758 (Fujiu, Nagayama, Nishio, Kawaguchi, Satoh) is one point of a one-parameter family. The paper fixes <code>m = 3</code> patches on the lower band and <code>m - 1 = 2</code> on the upper. This entry frees <code>m</code> to 4 at <code>d = 5</code>.</p>
@@ -76,7 +120,7 @@
 <p>throughout and interaction radius <code>sqrt(2)</code> on a single layer.</p>
 </ul>
 <p>The <code>m = 3</code> case of this rule is exactly <code>research/build_dense_surface.py</code> in this repo: generalize its patch counts from <code>(3, 2)</code> to <code>(m, m - 1)</code> and the rest of the mask logic is unchanged.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/139-7-5.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/168-8-5.html">[[168,8,5]] — 168-8-5</a></h3><div class=kv style="color:var(--mut)">2026-08-20 &middot; submission note &middot; <a href="https://github.com/Xo1otl">@Xo1otl</a> &middot; Claude Opus 5</div><details open><summary>note</summary><div class=notebody><h3>[[168,8,5]] — multi-band dense packing at an odd band count</h3>
+<section class=blk><h3><a href="codes/168-8-5.html">[[168,8,5]] — 168-8-5</a></h3><div class=kv style="color:var(--mut)">2026-08-20 &middot; submission note &middot; <a href="https://github.com/Xo1otl">@Xo1otl</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[168,8,5]] — multi-band dense packing at an odd band count</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: <code>local-2d-single</code> x <code>weight-4</code>. This entry is the multi-band packing at <code>rows = 3</code> — the family&#x27;s only odd-band-count submission, filling the gap between its 2-band ladder and its 4-band instances.</p>
 <p>The dense packing of arXiv:2511.06758 (Fujiu, Nagayama, Nishio, Kawaguchi, Satoh) is a pair of bands of rotated surface-code patches. Freeing the band count extends the packing into a second dimension, above a measured band-pitch threshold.</p>
