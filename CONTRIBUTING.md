@@ -243,6 +243,10 @@ accepted and recorded but will not sit on the frontier. See `TRACKS.md`.
 
 ## Tips
 
+- Lint before pushing: `uv run ruff check .` and `uv run ruff format --check .`
+  use the repository's pinned configuration (see `[tool.ruff]` in
+  `pyproject.toml`). The CI job is advisory while the existing code is brought
+  to the standard, but new code should arrive clean.
 - Store `interaction_radius` as the exact measured max check diameter, not a
   rounded value.
 - Do not repeat a qubit index within a single check.

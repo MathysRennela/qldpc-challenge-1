@@ -30,4 +30,54 @@ package = false
 [dependency-groups]
 dev = [
     "pytest>=8",
+    "ruff>=0.16,<0.17",
 ]
+
+# Lint and format: ruff, with vprusso/toqito's configuration as the baseline
+# (issue #658). Adoption is sequenced: this config plus a non-blocking CI job
+# first, one mechanical `ruff check --fix` + `ruff format` pass as its own PR
+# once the open PR queue drains (reformatting verify/ re-pins the integrity
+# manifest, so it must not race a manifest change), then the job turns
+# blocking. Docstring-content rules (D1xx, D417) come last, as their own pass.
+[tool.ruff]
+line-length = 120
+target-version = "py312"    # site/build.py uses 3.12-only f-string
+                            # syntax, so the declared 3.10 floor in
+                            # requires-python is already fictional;
+                            # raising that floor is its own decision
+force-exclude = true
+extend-exclude = [
+    "learn",                # PI's personal study notes, exempt from tooling
+    "build",                # compiled artifacts
+    "docs",                 # generated site output
+]
+
+[tool.ruff.lint]
+select = ["I", "E", "W", "D", "PL", "F"]
+ignore = [
+    # Deferred to the docstring pass (issue #658 step 4): writing missing
+    # docstrings is authoring work, not mechanical cleanup.
+    "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107", "D417",
+    # Deliberate repo idioms, permanent:
+    "PLC0415",  # deferred imports keep the verifier fast path cheap and let
+                # optional deps (ldpc, stim, gf2_fast) stay optional
+    "E402",     # sys.path setup must precede imports: the repo is
+                # deliberately not installable, so scripts bootstrap their
+                # import path first (see conftest.py's docstring)
+    "PLR2004",  # the verifier compares against many honest numeric literals;
+                # naming each would obscure, not clarify
+    "PLR0911", "PLR0912", "PLR0913", "PLR0915", "PLR0917",
+                # complexity caps: verifier checks are long, linear, and
+                # deliberately single-function so they read top to bottom
+    # Formatter/convention conflicts, same picks as toqito:
+    "D203",     # incompatible with D211 (blank line before class docstring)
+    "D213",     # incompatible with D212 (summary on first line)
+    "E203",     # whitespace before ':', conflicts with the formatter
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"       # plain-prose docstrings, no section headers
+
+[tool.ruff.lint.per-file-ignores]
+# Test files assert against literal expected values by design.
+"**/test_*.py" = ["PLR2004"]

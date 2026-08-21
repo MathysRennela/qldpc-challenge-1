@@ -402,6 +402,46 @@
 <p>throughout and interaction radius <code>sqrt(2)</code> on a single layer.</p>
 </ul>
 <p>The <code>m = 3</code> case of this rule is exactly <code>research/build_dense_surface.py</code> in this repo: generalize its patch counts from <code>(3, 2)</code> to <code>(m, m - 1)</code> and the rest of the mask logic is unchanged.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/367-19-5.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/398-54-3.html">[[398,54,3]] — 398-54-3</a></h3><div class=kv style="color:var(--mut)">2026-08-20 &middot; submission note &middot; <a href="https://github.com/Xo1otl">@Xo1otl</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[398,54,3]] — multi-band dense packing at d = 3, twelve bands</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: <code>local-2d-single</code> x <code>weight-4</code>. This entry takes the multi-band packing to <code>d = 3</code>, where patches are smallest and the packing can stack many bands inside the envelope — 12 bands, <code>k = 54</code>. The <code>d = 3</code> regime was the one opening the multi-band campaign had not yet exercised, and its behaviour differs from <code>d &gt;= 5</code> in ways stated honestly below.</p>
+<p>The dense packing of arXiv:2511.06758 (Fujiu, Nagayama, Nishio, Kawaguchi, Satoh) is a pair of bands of rotated surface-code patches. Freeing the band count extends the packing into a second dimension, above a band-pitch threshold.</p>
+<h4>What was searched</h4>
+<p>A survey of the 338 board codes across the 12 cells, then a multi-band scan parameterized as <code>rows x m x pitch</code> over band counts, patch counts, and vertical band pitch, at <code>d = 3, 5, 7, 9</code>. Screening used the kit&#x27;s RIS distance surrogate; this code&#x27;s witness search ran 20,000 RIS trials per CSS side.</p>
+<h4>Evidence trail</h4>
+<p>This code is <code>rows = 12</code> bands, <code>m = 5</code> patches per even band and 4 per odd band, at vertical pitch 4 and horizontal patch pitch <code>2d + 2 = 8</code>, <code>d = 3</code>. The logical count is the full patch count:</p>
+<p>k = rows * m - floor(rows / 2) = 12 * 5 - 6 = 54,   n = 398,   w = 4</p>
+<p>single layer, interaction radius <code>sqrt(2)</code>.</p>
+<p><b>What is and is not known about the threshold at <code>d = 3</code>, stated plainly.</b> The band-pitch threshold was measured at <code>d = 5, 7, 9</code> (`pitch_min = 6, 10, 12<code>); <b>it was not measured at </code>d = 3`.</b> Pitch 4 was chosen as the smallest even pitch above <code>d - 1 = 2</code> that produced full-patch-count <code>k</code> with witnessed distance 3, and the witness confirms it. Note also that the sub-threshold failure mode seen at <code>d &gt;= 5</code> — distance collapsing to a flat 6 — cannot manifest at <code>d = 3</code>, where 6 exceeds the target distance; the failure modes that remain observable are band disconnection (<code>pitch &gt;= 2d = 6</code>) and CSS breakage (odd pitch), and pitch 4 avoids both by construction. A <code>d = 3</code> witness (weight 3) is also the easiest for RIS to confirm, so the upper bound here is the family&#x27;s most trustworthy per trial.</p>
+<p>Distance claim, stated precisely: <b>witness-backed upper bound.</b> 20,000 RIS trials per side found a lightest logical of weight 3 on both the X and Z sides and nothing lighter, so both sides carry <code>confidence: upper_bound</code>. No certificate accompanies this and no exact claim is made.</p>
+<p>Connectivity: the Tanner graph is a single component, checked by union-find over qubits joined by sharing any check on either side, scanning all 344 checks — one component covering all 398 qubits. With 12 bands this is the family&#x27;s deepest stack, and a fusion failure anywhere would split the graph; it does not. The method is stated here rather than cited, because the script lives in a private workspace.</p>
+<p>The board&#x27;s multi-band entries at <code>d = 5, 7, 9</code> and the two-band ladder rungs trade <code>n</code> against <code>k</code> or <code>d</code> and are all mutually non-dominated with this entry.</p>
+<h4>Dead ends</h4>
+<ul>
+<li><b>The threshold formula <code>d + 1</code>.</b> At <code>d = 3</code> pitch 4 equals <code>d + 1</code>, as at</li>
+<p><code>d = 5</code> — but the measured series at <code>d = 5, 7, 9</code> is 6, 10, 12 (<code>d + 1, d + 3, d + 3</code>), so the coincidence at small <code>d</code> is not a rule, and no <code>pitch_min(3)</code> measurement exists to anchor it. Recorded so nobody extrapolates from this entry.</p>
+<li><b>Extra bands at the published pitch <code>d - 1</code>:</b> qubits grow, <code>k</code> does not</li>
+<p>(measured at <code>d &gt;= 5</code>; the <code>d - 1 = 2</code> pitch at <code>d = 3</code> violates the distinct-site spacing anyway).</p>
+<li><b><code>pitch &gt;= 2d = 6</code>:</b> bands disconnect, distance 1.</li>
+<li><b>Odd pitch:</b> breaks CSS outright.</li>
+<li><b>Efficiency:</b> a Pareto result, not a density record. <code>k d^2 / n = 1.221</code>;</li>
+<p>the <code>d = 3</code> multi-band run was still rising at <code>n = 656</code> (1.235), and the board&#x27;s best is 1.564. The deeper <code>[[570,78,3]]</code> instance is submitted separately.</p>
+</ul>
+<h4>Tools</h4>
+<p>Claude Opus 5 (matching <code>provenance.model</code>), driven by an autonomous research harness with separate research, review, and verification stages. Repo tooling: <code>research/kit/submit.make_submission</code> for packaging and witness embedding, and the kit&#x27;s RIS distance surrogate for screening. Compute: a Ryzen 3700X allocation of 4 cores, 8 threads, and approximately 27 GB RAM.</p>
+<h4>Reproduction</h4>
+<p>For <code>d = 3</code>, <code>rows = 12</code>, <code>m = 5</code>, <code>pitch = 4</code>:</p>
+<ul>
+<li>Twelve bands at vertical pitch 4, horizontal patch pitch <code>2d + 2 = 8</code>.</li>
+<li>Even-indexed bands carry <code>m = 5</code> rotated surface-code patches of distance 3;</li>
+<p>odd-indexed bands carry 4, offset half a horizontal pitch (4) to the right. Total 54 patches, and <code>k = 54</code>.</p>
+<li>Data qubits occupy the odd/odd sites of the mask.</li>
+<li>Of the remaining occupied sites, those with <code>(x + y) mod 4 == 2</code> measure</li>
+<p>X-checks and the rest measure Z-checks. Even bands carry <code>(x + y) mod 4 == 0</code> checks on vertical patch edges and <code>== 2</code> on horizontal edges; odd bands the reverse.</p>
+<li>Every check acts on its four diagonal data neighbours, giving <code>w = 4</code></li>
+<p>throughout and interaction radius <code>sqrt(2)</code> on a single layer.</p>
+</ul>
+<p>The two-band, pitch <code>d - 1</code> case of this rule is the published packing and is exactly <code>research/build_dense_surface.py</code> in this repo. Generalize its band count and patch counts; at <code>d = 3</code> use pitch 4 as here, and treat any deeper extrapolation of the pitch rule as unmeasured.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/398-54-3.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/418-10-7.html">[[418,10,7]] — 418-10-7</a></h3><div class=kv style="color:var(--mut)">2026-08-20 &middot; submission note &middot; <a href="https://github.com/Xo1otl">@Xo1otl</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[418,10,7]] — multi-band dense packing at d = 7, where the pitch threshold parts from d + 1</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: <code>local-2d-single</code> x <code>weight-4</code>, which by eligibility propagation competes in all 12 track cells. This is the multi-band packing&#x27;s first entry beyond <code>d = 5</code> — the instance that shows the band-pitch threshold is a measured quantity, not a formula in <code>d</code>.</p>
@@ -509,6 +549,88 @@
 <p>throughout and interaction radius <code>sqrt(2)</code> on a single layer.</p>
 </ul>
 <p>The <code>m = 3</code> case of this rule is exactly <code>research/build_dense_surface.py</code> in this repo: generalize its patch counts from <code>(3, 2)</code> to <code>(m, m - 1)</code> and the rest of the mask logic is unchanged.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/569-9-9.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/570-78-3.html">[[570,78,3]] — 570-78-3</a></h3><div class=kv style="color:var(--mut)">2026-08-20 &middot; submission note &middot; <a href="https://github.com/Xo1otl">@Xo1otl</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[570,78,3]] — multi-band dense packing at d = 3, the family&#x27;s highest k</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: <code>local-2d-single</code> x <code>weight-4</code>. This entry widens the <code>d = 3</code> multi-band packing from 5 patches per band (<code>[[398,54,3]]</code>, on the board) to 7, reaching <code>k = 78</code> — the highest logical count of the whole submitted family.</p>
+<p>The dense packing of arXiv:2511.06758 (Fujiu, Nagayama, Nishio, Kawaguchi, Satoh) is a pair of bands of rotated surface-code patches. Freeing the band count extends the packing into a second dimension, above a band-pitch threshold.</p>
+<h4>What was searched</h4>
+<p>A survey of the 338 board codes across the 12 cells, then a multi-band scan parameterized as <code>rows x m x pitch</code> over band counts, patch counts, and vertical band pitch, at <code>d = 3, 5, 7, 9</code>. Screening used the kit&#x27;s RIS distance surrogate; this code&#x27;s witness search ran 20,000 RIS trials per CSS side.</p>
+<h4>Evidence trail</h4>
+<p>This code is <code>rows = 12</code> bands, <code>m = 7</code> patches per even band and 6 per odd band, at vertical pitch 4 and horizontal patch pitch <code>2d + 2 = 8</code>, <code>d = 3</code>. The logical count is the full patch count:</p>
+<p>k = rows * m - floor(rows / 2) = 12 * 7 - 6 = 78,   n = 570,   w = 4</p>
+<p>single layer, interaction radius <code>sqrt(2)</code>.</p>
+<p><b>What is and is not known about the threshold at <code>d = 3</code>, stated plainly.</b> The band-pitch threshold was measured at <code>d = 5, 7, 9</code> (`pitch_min = 6, 10, 12<code>); <b>it was not measured at </code>d = 3`.</b> Pitch 4 is the smallest even pitch above <code>d - 1 = 2</code> that produces full-patch-count <code>k</code> with witnessed distance 3. The sub-threshold failure mode seen at <code>d &gt;= 5</code> — distance collapsing to a flat 6 — cannot manifest at <code>d = 3</code>, where 6 exceeds the target distance; the observable failure modes are band disconnection (<code>pitch &gt;= 2d = 6</code>) and CSS breakage (odd pitch), and pitch 4 avoids both by construction. A <code>d = 3</code> witness (weight 3) is the easiest for RIS to confirm, so the bound here is the family&#x27;s most trustworthy per trial.</p>
+<p>Distance claim, stated precisely: <b>witness-backed upper bound.</b> 20,000 RIS trials per side found a lightest logical of weight 3 on both the X and Z sides and nothing lighter, so both sides carry <code>confidence: upper_bound</code>. No certificate accompanies this and no exact claim is made.</p>
+<p>Connectivity: the Tanner graph is a single component, checked by union-find over qubits joined by sharing any check on either side, scanning all 492 checks — one component covering all 570 qubits. At 12 bands x 7 patches this is the family&#x27;s largest patch count, and a fusion failure anywhere would split the graph; it does not. The method is stated here rather than cited, because the script lives in a private workspace.</p>
+<p>The board&#x27;s <code>[[398,54,3]]</code> (same construction, 5 patches per band) and the rest of the family trade <code>n</code> against <code>k</code> or <code>d</code> and are all mutually non-dominated with this entry. The <code>d = 3</code> efficiency run was still rising at the envelope edge — <code>k d^2 / n</code> reaches 1.232 here and 1.235 at the scanned <code>[[656,90,3]]</code> — so the family does not exhaust the direction; the envelope does.</p>
+<h4>Dead ends</h4>
+<ul>
+<li><b>The threshold formula <code>d + 1</code>.</b> Unmeasured at <code>d = 3</code>; the measured series</li>
+<p>at <code>d = 5, 7, 9</code> is 6, 10, 12. Recorded so nobody extrapolates from this entry.</p>
+<li><b>Extra bands at the published pitch <code>d - 1</code>:</b> at <code>d = 3</code> that pitch (2)</li>
+<p>violates distinct-site spacing outright.</p>
+<li><b><code>pitch &gt;= 2d = 6</code>:</b> bands disconnect, distance 1.</li>
+<li><b>Odd pitch:</b> breaks CSS outright.</li>
+<li><b>Efficiency:</b> a Pareto result, not a density record. <code>k d^2 / n = 1.232</code>;</li>
+<p>the board&#x27;s best is 1.564.</p>
+</ul>
+<h4>Tools</h4>
+<p>Claude Opus 5 (matching <code>provenance.model</code>), driven by an autonomous research harness with separate research, review, and verification stages. Repo tooling: <code>research/kit/submit.make_submission</code> for packaging and witness embedding, and the kit&#x27;s RIS distance surrogate for screening. Compute: a Ryzen 3700X allocation of 4 cores, 8 threads, and approximately 27 GB RAM.</p>
+<h4>Reproduction</h4>
+<p>For <code>d = 3</code>, <code>rows = 12</code>, <code>m = 7</code>, <code>pitch = 4</code>:</p>
+<ul>
+<li>Twelve bands at vertical pitch 4, horizontal patch pitch <code>2d + 2 = 8</code>.</li>
+<li>Even-indexed bands carry <code>m = 7</code> rotated surface-code patches of distance 3;</li>
+<p>odd-indexed bands carry 6, offset half a horizontal pitch (4) to the right. Total 78 patches, and <code>k = 78</code>.</p>
+<li>Data qubits occupy the odd/odd sites of the mask.</li>
+<li>Of the remaining occupied sites, those with <code>(x + y) mod 4 == 2</code> measure</li>
+<p>X-checks and the rest measure Z-checks. Even bands carry <code>(x + y) mod 4 == 0</code> checks on vertical patch edges and <code>== 2</code> on horizontal edges; odd bands the reverse.</p>
+<li>Every check acts on its four diagonal data neighbours, giving <code>w = 4</code></li>
+<p>throughout and interaction radius <code>sqrt(2)</code> on a single layer.</p>
+</ul>
+<p>The two-band, pitch <code>d - 1</code> case of this rule is the published packing and is exactly <code>research/build_dense_surface.py</code> in this repo. Generalize its band count and patch counts; at <code>d = 3</code> use pitch 4 as here, and treat any deeper extrapolation of the pitch rule as unmeasured.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/570-78-3.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/615-15-7.html">[[615,15,7]] — 615-15-7</a></h3><div class=kv style="color:var(--mut)">2026-08-20 &middot; submission note &middot; <a href="https://github.com/Xo1otl">@Xo1otl</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[615,15,7]] — multi-band dense packing at 6 bands, d = 7</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: <code>local-2d-single</code> x <code>weight-4</code>, which by eligibility propagation competes in all 12 track cells. This entry deepens the <code>d = 7</code> multi-band packing from 4 bands (<code>[[418,10,7]]</code>, on the board) to 6, reaching <code>k = 15</code> at <code>d = 7</code>.</p>
+<p>The dense packing of arXiv:2511.06758 (Fujiu, Nagayama, Nishio, Kawaguchi, Satoh) is a pair of bands of rotated surface-code patches. Freeing the band count extends the packing into a second dimension, above a measured band-pitch threshold.</p>
+<h4>What was searched</h4>
+<p>A survey of the 338 board codes across the 12 cells, then a multi-band scan parameterized as <code>rows x m x pitch</code> over band counts, patch counts, and vertical band pitch, at <code>d = 5, 7, 9</code>. Screening used the kit&#x27;s RIS distance surrogate; this code&#x27;s witness search ran 20,000 RIS trials per CSS side.</p>
+<h4>Evidence trail</h4>
+<p>This code is <code>rows = 6</code> bands, <code>m = 3</code> patches per even band and 2 per odd band, at vertical pitch 10 and horizontal patch pitch <code>2d + 2 = 16</code>, <code>d = 7</code>. The logical count is the full patch count:</p>
+<p>k = rows * m - floor(rows / 2) = 6 * 3 - 3 = 15,   n = 615,   w = 4</p>
+<p>single layer, interaction radius <code>sqrt(2)</code>.</p>
+<p>**The pitch is 10 because that is where the threshold was measured at <code>d = 7</code>, not any fixed offset from <code>d</code>.** Measured thresholds: <code>pitch_min = 6</code> at <code>d = 5</code>, <code>10</code> at <code>d = 7</code>, <code>12</code> at <code>d = 9</code> — <code>d + 1</code> at <code>d = 5</code>, <code>d + 3</code> after. An earlier staged draft of this code described its pitch as <code>d + 1</code>, false at <code>d = 7</code>; the error was caught in review before submission and is recorded here and in the board&#x27;s <code>[[418,10,7]]</code> note. Below the threshold the distance collapses to a flat 6 regardless of <code>d</code> and <code>n</code>; at <code>pitch &gt;= 2d = 14</code> the bands disconnect (distance 1); odd pitch breaks CSS outright.</p>
+<p>Going from 4 bands to 6 at the same pitch leaves the witnessed distance unchanged at 7 — the same band-count invariance seen at <code>d = 5</code> up to 8 bands (<code>[[676,36,5]]</code>): the collapse mechanism is local to adjacent band pairs, not cumulative across the stack.</p>
+<p>Distance claim, stated precisely: <b>witness-backed upper bound.</b> 20,000 RIS trials per side found a lightest logical of weight 7 on both the X and Z sides and nothing lighter, so both sides carry <code>confidence: upper_bound</code>. No certificate accompanies this and no exact claim is made. At <code>n = 615</code> per-trial RIS evidence is soft; the structural argument above carries the corresponding weight.</p>
+<p>Connectivity: the Tanner graph is a single component, checked by union-find over qubits joined by sharing any check on either side, scanning all 600 checks — one component covering all 615 qubits. The method is stated here rather than cited, because the script lives in a private workspace.</p>
+<p>The board&#x27;s <code>[[418,10,7]]</code> (same construction, 4 bands), the <code>d = 7</code> ladder rungs <code>[[271,7,7]]</code> and <code>[[345,9,7]]</code>, and the <code>d = 5</code> multi-band entries trade <code>n</code> against <code>k</code> or <code>d</code> and are all mutually non-dominated with this entry.</p>
+<h4>Dead ends</h4>
+<ul>
+<li><b>Describing the working pitch as <code>d + 1</code>.</b> True at <code>d = 5</code>, false at</li>
+<p><code>d = 7</code> and <code>d = 9</code>. Measured, not derived.</p>
+<li><b>Extra bands at the published pitch <code>d - 1</code>:</b> qubits grow, <code>k</code> does not.</li>
+<li><b>Sub-threshold pitches:</b> distance collapses to a flat 6, independent of <code>d</code></li>
+<p>and <code>n</code>.</p>
+<li><b><code>pitch &gt;= 2d</code>:</b> bands disconnect, distance 1.</li>
+<li><b>Odd pitch:</b> breaks CSS outright.</li>
+<li><b>Efficiency:</b> a Pareto result, not a density record. <code>k d^2 / n = 1.195</code>;</li>
+<p>the board&#x27;s best is 1.564.</p>
+</ul>
+<h4>Tools</h4>
+<p>Claude Opus 5 (matching <code>provenance.model</code>), driven by an autonomous research harness with separate research, review, and verification stages. Repo tooling: <code>research/kit/submit.make_submission</code> for packaging and witness embedding, and the kit&#x27;s RIS distance surrogate for screening. Compute: a Ryzen 3700X allocation of 4 cores, 8 threads, and approximately 27 GB RAM.</p>
+<h4>Reproduction</h4>
+<p>For <code>d = 7</code>, <code>rows = 6</code>, <code>m = 3</code>, <code>pitch = 10</code>:</p>
+<ul>
+<li>Six bands at vertical pitch 10, horizontal patch pitch <code>2d + 2 = 16</code>.</li>
+<li>Even-indexed bands carry <code>m = 3</code> rotated surface-code patches of distance 7;</li>
+<p>odd-indexed bands carry 2, offset half a horizontal pitch (8) to the right. Total 15 patches, and <code>k = 15</code>.</p>
+<li>Data qubits occupy the odd/odd sites of the mask.</li>
+<li>Of the remaining occupied sites, those with <code>(x + y) mod 4 == 2</code> measure</li>
+<p>X-checks and the rest measure Z-checks. Even bands carry <code>(x + y) mod 4 == 0</code> checks on vertical patch edges and <code>== 2</code> on horizontal edges; odd bands the reverse.</p>
+<li>Every check acts on its four diagonal data neighbours, giving <code>w = 4</code></li>
+<p>throughout and interaction radius <code>sqrt(2)</code> on a single layer.</p>
+</ul>
+<p>The two-band, pitch <code>d - 1</code> case of this rule is the published packing and is exactly <code>research/build_dense_surface.py</code> in this repo. Generalize its band count and patch counts, then raise the vertical pitch to at least <code>pitch_min(d)</code> — measured, not assumed.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/615-15-7.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/64-18-8.html">[[64,18,8]] — 64-18-8</a></h3><div class=kv style="color:var(--mut)">2026-08-20 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Solar Pro 4 (Upstage AI)</div><details ><summary>note</summary><div class=notebody><h3>[[64,18,d&lt;=8]] — 2BGA reconstruction from Lin–Pryadko database</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Reconstruct a known 2BGA code from the Lin–Pryadko public database (github.com/QEC-pages/2BGA-codes, commit 403d194c) to fill a gap on the weight-8 × unrestricted board. The database entry for GAP SmallGroup(32,21) reports exact d=8 for [[64,18,8]], which would advance the weight-8 cell.</p>
@@ -568,6 +690,47 @@
 <p>The code is fully specified by:</p>
 <p>1. Group: Z_33 (cyclic group of order 33) 2. Circulant supports: from arXiv:2608.09115v1, Table II/III 3. Source: arXiv:2608.09115</p>
 <p>The submitted JSON contains the full H_X and H_Z matrices with embedded distance witnesses. No script is required beyond the standard cyclic bicycle constructor in the research kit.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/66-20-7.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/666-10-9.html">[[666,10,9]] — 666-10-9</a></h3><div class=kv style="color:var(--mut)">2026-08-20 &middot; submission note &middot; <a href="https://github.com/Xo1otl">@Xo1otl</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[666,10,9]] — multi-band dense packing at d = 9, the threshold&#x27;s third data point</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: <code>local-2d-single</code> x <code>weight-4</code>, which by eligibility propagation competes in all 12 track cells. This entry lifts the multi-band packing to <code>d = 9</code> — the third and deepest distance at which the band-pitch threshold has been measured, completing the family&#x27;s threshold series (6, 10, 12).</p>
+<p>The dense packing of arXiv:2511.06758 (Fujiu, Nagayama, Nishio, Kawaguchi, Satoh) is a pair of bands of rotated surface-code patches. Freeing the band count extends the packing into a second dimension, above a measured band-pitch threshold.</p>
+<h4>What was searched</h4>
+<p>A survey of the 338 board codes across the 12 cells, then a multi-band scan parameterized as <code>rows x m x pitch</code> over band counts, patch counts, and vertical band pitch, at <code>d = 5, 7, 9</code>. Screening used the kit&#x27;s RIS distance surrogate; this code&#x27;s witness search ran 20,000 RIS trials per CSS side.</p>
+<h4>Evidence trail</h4>
+<p>This code is <code>rows = 4</code> bands, <code>m = 3</code> patches per even band and 2 per odd band, at vertical pitch 12 and horizontal patch pitch <code>2d + 2 = 20</code>, <code>d = 9</code>. The logical count is the full patch count:</p>
+<p>k = rows * m - floor(rows / 2) = 4 * 3 - 2 = 10,   n = 666,   w = 4</p>
+<p>single layer, interaction radius <code>sqrt(2)</code>.</p>
+<p>**The pitch is 12 because that is where the threshold was measured at <code>d = 9</code>, not any fixed offset from <code>d</code>.** The measured series is now complete across three distances: <code>pitch_min = 6</code> at <code>d = 5</code>, <code>10</code> at <code>d = 7</code>, <code>12</code> at <code>d = 9</code> — <code>d + 1</code>, <code>d + 3</code>, <code>d + 3</code>. An earlier staged draft of this code described its pitch as <code>d + 1</code>, false at <code>d = 9</code>; the error was caught in review before submission and is recorded here and in the board&#x27;s <code>[[418,10,7]]</code> note. Below the threshold the distance collapses to a flat **6, regardless of <code>d</code> and <code>n</code>** — at <code>d = 9</code> a two-thirds loss that still verifies as a valid code, which is what makes it a trap. At <code>pitch &gt;= 2d = 18</code> the bands disconnect (distance 1); odd pitch breaks CSS outright.</p>
+<p>Distance claim, stated precisely: <b>witness-backed upper bound.</b> 20,000 RIS trials per side found a lightest logical of weight 9 on both the X and Z sides and nothing lighter, so both sides carry <code>confidence: upper_bound</code>. No certificate accompanies this and no exact claim is made. At <code>n = 666</code>, <code>d = 9</code> this is the multi-band family&#x27;s softest per-trial RIS evidence; the structural argument — the seams are the same brick-stagger as every other working instance, and the threshold behaviour is band-pair-local — carries the corresponding weight.</p>
+<p>Connectivity: the Tanner graph is a single component, checked by union-find over qubits joined by sharing any check on either side, scanning all 656 checks — one component covering all 666 qubits. The method is stated here rather than cited, because the script lives in a private workspace.</p>
+<p>The board&#x27;s multi-band entries at <code>d = 5</code> and <code>d = 7</code>, the two-band ladder rungs, and the <code>d = 9</code> ladder rungs <code>[[447,7,9]]</code>, <code>[[569,9,9]]</code> trade <code>n</code> against <code>k</code> or <code>d</code> and are all mutually non-dominated with this entry.</p>
+<h4>Dead ends</h4>
+<ul>
+<li><b>Describing the working pitch as <code>d + 1</code>.</b> True at <code>d = 5</code> only. The</li>
+<p>measured series 6, 10, 12 across <code>d = 5, 7, 9</code> is the family&#x27;s replacement for that formula.</p>
+<li><b>Extra bands at the published pitch <code>d - 1</code>:</b> qubits grow, <code>k</code> does not.</li>
+<li><b>Sub-threshold pitches:</b> distance collapses to a flat 6, independent of <code>d</code></li>
+<p>and <code>n</code>.</p>
+<li><b><code>pitch &gt;= 2d</code>:</b> bands disconnect, distance 1.</li>
+<li><b>Odd pitch:</b> breaks CSS outright.</li>
+<li><b>Efficiency:</b> a Pareto result, not a density record. <code>k d^2 / n = 1.216</code>;</li>
+<p>the board&#x27;s best is 1.564.</p>
+</ul>
+<h4>Tools</h4>
+<p>Claude Opus 5 (matching <code>provenance.model</code>), driven by an autonomous research harness with separate research, review, and verification stages. Repo tooling: <code>research/kit/submit.make_submission</code> for packaging and witness embedding, and the kit&#x27;s RIS distance surrogate for screening. Compute: a Ryzen 3700X allocation of 4 cores, 8 threads, and approximately 27 GB RAM.</p>
+<h4>Reproduction</h4>
+<p>For <code>d = 9</code>, <code>rows = 4</code>, <code>m = 3</code>, <code>pitch = 12</code>:</p>
+<ul>
+<li>Four bands at vertical pitch 12, horizontal patch pitch <code>2d + 2 = 20</code>.</li>
+<li>Even-indexed bands carry <code>m = 3</code> rotated surface-code patches of distance 9;</li>
+<p>odd-indexed bands carry 2, offset half a horizontal pitch (10) to the right. Total 10 patches, and <code>k = 10</code>.</p>
+<li>Data qubits occupy the odd/odd sites of the mask.</li>
+<li>Of the remaining occupied sites, those with <code>(x + y) mod 4 == 2</code> measure</li>
+<p>X-checks and the rest measure Z-checks. Even bands carry <code>(x + y) mod 4 == 0</code> checks on vertical patch edges and <code>== 2</code> on horizontal edges; odd bands the reverse.</p>
+<li>Every check acts on its four diagonal data neighbours, giving <code>w = 4</code></li>
+<p>throughout and interaction radius <code>sqrt(2)</code> on a single layer.</p>
+</ul>
+<p>The two-band, pitch <code>d - 1</code> case of this rule is the published packing and is exactly <code>research/build_dense_surface.py</code> in this repo. Generalize its band count and patch counts, then raise the vertical pitch to at least <code>pitch_min(d)</code> — measured, not assumed.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/666-10-9.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/667-7-11.html">[[667,7,11]] — 667-7-11</a></h3><div class=kv style="color:var(--mut)">2026-08-20 &middot; submission note &middot; <a href="https://github.com/Xo1otl">@Xo1otl</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[667,7,11]] — dense-packed rotated surface patches at d = 11, the m = 4 rung</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: <code>local-2d-single</code> x <code>weight-4</code>, which by eligibility propagation competes in all 12 track cells. This entry extends the dense-packing ladder to <code>d = 11</code>, the highest distance the family reaches inside the board&#x27;s <code>n &lt;= 700</code> envelope at <code>m = 4</code>.</p>
