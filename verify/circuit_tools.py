@@ -322,11 +322,14 @@ def _rref(M):
     return gf2.rref(np.ascontiguousarray(M))[0]
 
 
-def ris_dem(H, L, trials, seed=0, pair_top=24):
+def ris_dem(H, L, trials, seed=0, pair_top=24, max_seconds=None):
     """RIS upper-bound search for the lightest undetected logical fault set:
     min |e| with H e = 0, L e != 0. The code-tier searcher on the DEM's
     parity-check matrix -- hyperedge degree is irrelevant to it. Returns
-    (weight, sorted column indices) or (None, None)."""
+    (weight, sorted column indices) or (None, None). Stops after `trials`
+    permutations or `max_seconds` wall-clock, whichever comes first (the time
+    cap keeps the CI gate bounded when the size estimate is off)."""
+    import time
     K = _kernel_basis(np.asarray(H, dtype=np.int8))
     m = K.shape[1]
     if K.shape[0] == 0:
@@ -334,6 +337,7 @@ def ris_dem(H, L, trials, seed=0, pair_top=24):
     LT = np.asarray(L, dtype=np.int8).T
     rng = np.random.default_rng(seed)
     best, best_v = m + 1, None
+    deadline = (time.monotonic() + max_seconds) if max_seconds else None
 
     def consider(v, perm):
         nonlocal best, best_v
@@ -344,6 +348,8 @@ def ris_dem(H, L, trials, seed=0, pair_top=24):
             best, best_v = w, v[inv].copy()
 
     for _ in range(trials):
+        if deadline and time.monotonic() > deadline:
+            break
         perm = rng.permutation(m)
         R = _rref(K[:, perm])
         sig = (R @ LT[perm]) % 2
