@@ -267,6 +267,17 @@ def verify_circuit(doc, circuits_dir):
                "regenerate it with the pinned stim version")
         if not dem_match:
             continue
+        # step 5.5 (issue #690): structural integrity of the derived DEM,
+        # the substrate every downstream consumer (witness check, refutation
+        # gate, measured-rate decoder prior) takes on faith. Deterministic
+        # linear scans; a malformed model fails here rather than corrupting
+        # a later verdict silently.
+        lint = ct.dem_lint(derived)
+        record(f"{side}_dem_structure", not lint,
+               "; ".join(lint) or "detectability, observable coverage and "
+               "probability bounds all hold")
+        if lint:
+            continue
         werrs = ct.witness_errors(derived, claim["witness"], claim["value"])
         if claim["value"] > d:
             werrs.append(f"claimed d_circ {claim['value']} exceeds code "
