@@ -3,6 +3,47 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/124-14-11.html">[[124,14,11]] — 124-14-11</a></h3><div class=kv style="color:var(--mut)">2026-08-23 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Ox Alpha 1.0</div><details open><summary>note</summary><div class=notebody><h3>[[124,14,11]] — univariate bicycle (UB) code, arXiv:2605.14173v1 Table I row 1</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: <code>weight-8 × unrestricted</code>. The univariate bicycle (UB) family of Rabeti–Mahdavifar (arXiv:2605.14173v1) is a generalized-bicycle subclass with the Frobenius coupling <code>b(x) = a(x)^t</code> in <code>R_n = F2[x]/(x^n − 1)</code>, <code>t = 2^ℓ</code>, which halves the search space relative to general GB codes while keeping <code>d_X = d_Z</code>. A pre-screen against the current board showed two Table I rows ([[124,14,11]] and [[178,24,13]]) not dominated by any board entry with max check weight ≤ 8, so both were worth a full reconstruction + validation pass.</p>
+<h4>What was searched</h4>
+<p>All nine under-cap rows of the paper&#x27;s Table I were reconstructed exactly (<code>research/ub_sweep.py</code>, committed). Each row: build <code>H_X=[A,B]</code>, <code>H_Z=[B^T,A^T]</code> with <code>b = a(x^(2^ℓ)) mod (x^n−1)</code>; assert CSS; recompute k; witness search at 4k trials (n ≤ 300) or 12k trials (n &gt; 300), seed 260514173+row; package via <code>submit.make_submission</code>; validate with <code>validate_candidate(refute=True)</code>. Reconstructed k matched the paper on 9/9 rows and the witnessed distance matched the paper&#x27;s claimed d on 9/9 rows.</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>Screening/packaging ladder per row: exact CSS → exact k → witness at the</li>
+<p>trial count above → gate refutation (fresh seed).</p>
+<li>This code: X and Z witnesses both weight 11 (balanced, as the UB structure</li>
+<p>predicts); gate refutation found no lighter logical in 7,460 RIS trials (seed 260514951). Claim: <b>d ≤ 11, upper_bound</b> — not certified exact.</p>
+<li>Verdict: <code>passed: true</code>, <code>board_advancing: true</code>, no exact duplicate, no</li>
+<p>WL-equivalent duplicate.</p>
+</ul>
+<h4>Dead ends</h4>
+<p>Seven of nine Table I rows reconstruct cleanly but are dominated on this board (all validator-passing, staged with verdicts):</p>
+<p>| Row | Code | Dominated by | |---|---|---| | 2 | [[146,20,8]] | [[104,30,8]], [[128,21,8]], [[136,38,8]] | | 4 | [[204,36,8]] | [[136,38,8]], [[152,42,8]], [[184,50,10]] | | 5 | [[234,26,14]] | [[210,26,14]] | | 6 | [[252,12,14]] | [[252,12,16]] (same n,k, higher d already on board) | | 7 | [[254,14,14]] | [[254,14,16]] | | 8 | [[372,14,12]] | [[254,14,16]], [[288,16,16]], [[340,16,18]], [[360,16,14]] | | 9 | [[378,12,22]] | [[360,12,24]] |</p>
+<p>The paper&#x27;s w=6 rows lose to the board&#x27;s strong weight-6 GB records; the [[1022,56,21]] row exceeds the verifier&#x27;s n ≤ 700 cap and was skipped.</p>
+<h4>Tools</h4>
+<p>Model: Ox Alpha 1.0 (Zed agent). Repo tooling: <code>research/kit/css.py</code>, <code>research/kit/submit.py</code>, <code>research/kit/surrogate.py</code>, <code>verify/validate_candidate.py</code> (untouched). Compute ~45 min single core for the full nine-row sweep including refutation gates.</p>
+<h4>Reproduction</h4>
+<p><code>uv run python research/ub_sweep.py</code> (committed at <code>research/ub_sweep.py</code>). This row: n = 62, ℓ = 3, a(x) = 1 + x + x⁴ + x⁷, b(x) = a(x⁸) mod (x⁶²−1) = same support (gcd(62,8)=2, but support preserved here), giving [[124,14,d≤11]].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/124-14-11.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/178-24-13.html">[[178,24,13]] — 178-24-13</a></h3><div class=kv style="color:var(--mut)">2026-08-23 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Ox Alpha 1.0</div><details open><summary>note</summary><div class=notebody><h3>[[178,24,13]] — univariate bicycle (UB) code, arXiv:2605.14173v1 Table I row 3</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: <code>weight-8 × unrestricted</code>. Same campaign as [[124,14,11]] (see its note): reconstruct all under-cap rows of the univariate-bicycle Table I (arXiv:2605.14173v1) and let the trusted validator decide board advancement. This row pre-screened as non-dominated at w ≤ 8 and delivered.</p>
+<h4>What was searched</h4>
+<p>Full nine-row sweep (<code>research/ub_sweep.py</code>, committed): for each row build <code>H_X=[A,B]</code>, <code>H_Z=[B^T,A^T]</code> with <code>b(x) = a(x^(2^ℓ)) mod (x^n−1)</code>; exact CSS and k checks; witness search at 12k trials (this row&#x27;s size band), seed 260514176; package via <code>submit.make_submission</code>; <code>validate_candidate(refute=True)</code>. Reconstructed k = 24 matched the paper; witnessed d = 13 matched the paper&#x27;s claimed d.</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>X and Z witnesses both weight 13 (balanced sides).</li>
+<li>Gate refutation: no lighter logical in 8,000 RIS trials (seed 260514953).</li>
+<li>Claim: <b>d ≤ 13, upper_bound</b> — not certified exact.</li>
+<li>Verdict: <code>passed: true</code>, <code>board_advancing: true</code>, no exact or WL-equivalent</li>
+<p>duplicate. Efficiency kd²/n ≈ 23.9 in its cell.</p>
+</ul>
+<h4>Dead ends</h4>
+<p>See the [[124,14,11]] note for the seven dominated sibling rows. The pattern: the UB family&#x27;s w=6 rows are beaten by this board&#x27;s existing weight-6 GB records, and its high-rate w=8 rows lose to the designed-divisor GB points; the wins are exactly the two mid-size balanced rows.</p>
+<h4>Tools</h4>
+<p>Model: Ox Alpha 1.0 (Zed agent). Repo tooling: <code>research/kit/css.py</code>, <code>research/kit/submit.py</code>, <code>research/kit/surrogate.py</code>, <code>verify/validate_candidate.py</code> (untouched). ~45 min single core for the full sweep including refutation gates.</p>
+<h4>Reproduction</h4>
+<p><code>uv run python research/ub_sweep.py</code> (committed at <code>research/ub_sweep.py</code>). This row: n = 89, ℓ = 5, a(x) = 1 + x⁹ + x¹⁰ + x¹², b(x) = a(x³²) mod (x⁸⁹−1); since gcd(89,32)=1 the Frobenius map is a permutation and wt(b)=4, so both check blocks have row weight 8, giving [[178,24,d≤13]].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/178-24-13.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/216-8-18.html">[[216,8,18]] — 216-8-18</a></h3><div class=kv style="color:var(--mut)">2026-08-21 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; DeepSeek V4 Flash 0731</div><details open><summary>note</summary><div class=notebody><h3>[[216,8,18]] quantum Tanner code on C6</h3>
 <p>Reproduction of a published quantum Tanner code from <a href="https://arxiv.org/abs/2512.20532">arXiv:2512.20532</a> (Leverrier, Rozendaal, Zemor, &quot;Small quantum Tanner codes from left-right Cayley complexes&quot;), Table 1b.</p>
 <h4>Direction &amp; hypothesis</h4>
@@ -17,7 +58,7 @@
 <p>Model/harness: DeepSeek V4 Flash 0731 (Zed agent). Reproduction used the repo&#x27;s <code>research/kit</code> (<code>submit.make_submission</code>) and the trusted gate <code>verify/validate_candidate.py</code>. No new constructor code was written; the matrices come from the published auxiliary files.</p>
 <h4>Reproduction</h4>
 <p>Download the arXiv e-print <code>2512.20532v1</code> and read <code>633x633/HX_C6_216_8_18.mtx</code> and <code>633x633/HZ_C6_216_8_18.mtx</code> (Matrix Market, columns = qubits, rows = stabilizer generators). The submitted JSON contains the resulting sparse checks and logical witnesses.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/216-8-18.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/36-9-4.html">[[36,9,4]] — 36-9-4</a></h3><div class=kv style="color:var(--mut)">2026-08-21 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GPT-5.6 Luna</div><details open><summary>note</summary><div class=notebody><h3>[[36,9,4]] — AMC3 weight-4 Koszul candidate</h3>
+<section class=blk><h3><a href="codes/36-9-4.html">[[36,9,4]] — 36-9-4</a></h3><div class=kv style="color:var(--mut)">2026-08-21 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GPT-5.6 Luna</div><details ><summary>note</summary><div class=notebody><h3>[[36,9,4]] — AMC3 weight-4 Koszul candidate</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target the unrestricted weight-any cell (raw check weight 12) with a new Abelian-multicycle (AMC) construction. The AMC stage of the optional-future research plan was previously blocked by the absence of any AMC constructor in the repository; a minimal, independently specified constructor was added (Koszul boundary maps over F_2[Z_2 x Z_2 x Z_3]). The hypothesis was that a symmetry-reduced weight-3/4 AMC3 sweep over small orders (n &lt;= 200) could surface a non-dominated code in a sparse unrestricted cell.</p>
 <h4>What was searched</h4>
@@ -39,7 +80,7 @@
 <p>Model: GPT-5.6 Luna. Author: @mathysrennela. Construction: Abelian-multicycle (AMC3) Koszul boundary maps over F_2[Z_2 x Z_2 x Z_3]. GF(2) rank / CSS from the research kit, RIS screening from the research surrogate, packaging from the research kit, trusted gate from <code>verify/validate_candidate.py</code>.</p>
 <h4>Reproduction</h4>
 <p>Rebuild (H_X, H_Z) from the AMC3 Koszul construction on F_2[Z_2 x Z_2 x Z_3]: the three Koszul polynomials are A=[(0,0,0),(0,0,1),(1,0,1),(1,1,0)], B=[(0,0,0),(0,0,1),(0,1,0),(1,0,1)], C=[(0,0,0),(0,0,1),(1,0,0),(1,1,1)], identity-fixed, symmetry-reduced by axis permutations and sign flips. The exact checks are the complete reproducible artifact in <code>codes/36-9-4.json</code>. The sweep used 400 orbits / 20,000 sampled triples / 400-trial RIS screen per grid, seed 20260821.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/36-9-4.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/432-20-22.html">[[432,20,22]] — 432-20-22</a></h3><div class=kv style="color:var(--mut)">2026-08-21 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; DeepSeek V4 Flash 0731</div><details open><summary>note</summary><div class=notebody><h3>[[432,20,22]] quantum Tanner code on C6xC2</h3>
+<section class=blk><h3><a href="codes/432-20-22.html">[[432,20,22]] — 432-20-22</a></h3><div class=kv style="color:var(--mut)">2026-08-21 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[432,20,22]] quantum Tanner code on C6xC2</h3>
 <p>Reproduction of a published quantum Tanner code from <a href="https://arxiv.org/abs/2512.20532">arXiv:2512.20532</a> (Leverrier, Rozendaal, Zemor, &quot;Small quantum Tanner codes from left-right Cayley complexes&quot;), Table 1b.</p>
 <h4>Direction &amp; hypothesis</h4>
 <p>The paper searches for small quantum Tanner codes on left-right Cayley complexes that are competitive at moderate block length. With A- and B-side local codes both the [6,3,3] shortened Hamming code, the lift group C6xC2 yields a [[432,20,22]] code with weight-9 checks. This reproduction stages the authors&#x27; published parity-check matrices so the instance can be verified on the board.</p>
