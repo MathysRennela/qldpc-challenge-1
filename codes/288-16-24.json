@@ -4124,7 +4124,7 @@
   "construction": "Two-block group-algebra code on Z_12 x Z_6 x Z_2; random weight-6 supports a=[9,79,18,12,31,87], b=[56,97,16,96,73,80]; RIS-screened search over all abelian groups of order 100-200.",
   "origin": "submission",
   "date": "2026-08-23",
-  "model": "ox-alpha 1.0 (Zed agent)"
+  "model": "Ox Alpha 1.0"
  },
  "family": "generalized-bicycle"
 }
