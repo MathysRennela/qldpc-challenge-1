@@ -268,6 +268,53 @@ def dem_columns(dem):
     return cols
 
 
+def dem_lint(dem):
+    """Structural-integrity errors of a derived DEM, [] iff well formed.
+
+    The three error-severity properties from emlint's check taxonomy
+    (github.com/MathysRennela/emlint; implemented here on dem_columns rather
+    than imported, so the trusted closure gains no dependency -- issue #690):
+
+    - detectability: a mechanism that flips an observable while firing no
+      detector is a weight-1 undetected logical, i.e. the circuit has
+      d_circ = 1 regardless of any claim. The refutation gate finds these
+      probabilistically; this makes the verdict deterministic and extends it
+      to every fast-path run.
+    - observable coverage: a declared observable no mechanism flips is a
+      miswired OBSERVABLE_INCLUDE; the code-binding check counts observables
+      but does not confirm reachability.
+    - probability bounds: every mechanism probability must be a finite value
+      in (0, 1). d_circ never reads probabilities, but the measured-rate
+      tier hands them to the pinned decoder as its channel prior, where a
+      NaN corrupts silently.
+
+    All three are single linear scans over the sparse columns; distance
+    enters only through DEM length, which MAX_DEM_MECHANISMS bounds.
+    """
+    errs = []
+    cols = dem_columns(dem)
+    probs = [inst.args_copy()[0] for inst in dem.flattened()
+             if inst.type == "error"]
+    bad_det = [j for j, (ds, ls) in enumerate(cols) if not ds and ls]
+    if bad_det:
+        errs.append(f"detectability: mechanism(s) {bad_det[:8]} flip an "
+                    f"observable with no detector (weight-1 undetected "
+                    f"logicals: the circuit has d_circ = 1)")
+    covered = set()
+    for _, ls in cols:
+        covered.update(ls)
+    missing = sorted(set(range(dem.num_observables)) - covered)
+    if missing:
+        errs.append(f"observable_coverage: observable(s) {missing} are "
+                    f"flipped by no mechanism (miswired OBSERVABLE_INCLUDE)")
+    bad_p = [j for j, p in enumerate(probs)
+             if not (p == p and 0.0 < p < 1.0)]
+    if bad_p:
+        errs.append(f"probability_bounds: mechanism(s) {bad_p[:8]} carry "
+                    f"probabilities outside (0, 1) or NaN")
+    return errs
+
+
 def dem_matrices(dem):
     """Dense (H_dem, L): detectors x mechanisms and observables x mechanisms.
     The search substrate; the witness CHECK never needs it (witness_errors is
