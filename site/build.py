@@ -459,7 +459,10 @@ flex-wrap:wrap;
 padding:16px 20px;background:var(--soft);border-bottom:1px solid var(--ln)}}
 .lbh{{font-size:16px;margin:0;font-family:'Space Mono',ui-monospace,monospace;
 text-transform:uppercase;letter-spacing:.03em}}
-.lbsub{{margin:4px 0 0;font-size:13px;color:var(--mut)}}
+.lbsub{{margin:4px 0 0;font-size:13px;color:var(--mut);
+/* cap the title block so the long geo sentence can't stretch it and push the
+   hero cards ("best g") onto a second row on desktop */
+max-width:min(46ch,100%);flex:1 1 auto;min-width:0}}
 .lbcta{{flex:0 0 auto;font-size:13px;font-weight:700;color:#fff;
 font-family:'Space Mono',ui-monospace,monospace;
 background:var(--ac);border:none;border-radius:8px;padding:8px 14px;
