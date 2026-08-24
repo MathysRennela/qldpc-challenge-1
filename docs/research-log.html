@@ -3,6 +3,121 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/136-34-12.html">[[136,34,12]] — 136-34-12</a></h3><div class=kv style="color:var(--mut)">2026-08-24 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Ox Alpha 1.0</div><details open><summary>note</summary><div class=notebody><h3>[[136,34,12]] — GALA quasi-cyclic code (reconstructed from arXiv:2608.07431)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: the <code>weight-9plus × unrestricted</code> cell. The lead came from a fresh literature sweep: arXiv:2608.07431 (Yang, Duckering, Dua — QuEra, Aug 2026) introduces GALA codes (Group-Action Lifts with Active orthogonality) and publishes complete machine-recoverable generators for every certified instance in its Tables S3–S5. The paper certifies distances exactly (exhaustive exclusion + explicit witness), so any faithful reconstruction arrives with strong distance evidence — the same &quot;explicit table&quot; property that made the univariate-bicycle sweep cheap.</p>
+<p>For abelian bottoms (trivial non-abelian top), the GALA construction reduces to plain two-block quasi-cyclic codes over F₂[Z_{L/2} × C_m] with an active-orthogonality pattern: only the first J block rows of the parents are kept as stabilizers; the remaining latent rows carry the extra logical degrees of freedom that let d reach the weight cap w = 12.</p>
+<h4>What was searched</h4>
+<p>Not a search but a reconstruction campaign over all eight Table-S5 rows with abelian bottoms:</p>
+<p>1. Built each row&#x27;s block-circulant parents Ĥ_X = [F|G], Ĥ_Z = [G^T|F^T] (block (i,j) = generator at offset (j−i) mod L/2; each block an m×m circulant with row i = roll(base, +i)); kept the first J block rows. 2. Checked n and k against the paper for every row: <b>8/8 exact match</b>, CSS verified on all. 3. Screened distances at 1.5k RIS trials/side: all matched the paper&#x27;s certified d. 4. Checked board domination: three rows advance ([[132,30,12]] — already on the board verbatim from the same paper, correctly flagged duplicate; [[136,34,12]]; [[192,40,12]]); five are dominated by existing entries ([[136,38,8]], [[228,82,12]], [[232,62,12]], [[276,98,14]]).</p>
+<h4>Evidence trail</h4>
+<p>For this code ([[136,34,12]], C17 bottom, L=8, J=3, r2 reflection sector involution):</p>
+<ul>
+<li>1.5k trials/side screening: lightest logical 12 (both sides).</li>
+<li>Submission packaging (<code>qldpc submit</code>, 20k RIS trials/side): d ≤ 12 both</li>
+<p>sides, witnesses recorded in the submission JSON.</p>
+<li>Trusted gate (<code>verify/validate_candidate.py</code>): passed=true, not refuted,</li>
+<p>advances <code>weight-9plus × unrestricted</code>.</p>
+<li>Paper evidence: exactly certified d = 12 by exhaustive exclusion of all</li>
+<p>lighter logicals plus a verified weight-12 witness (paper §S6.1). A maintainer can reproduce with <code>verify/certify.py</code>.</p>
+</ul>
+<p>Final claim: <b>witness-backed upper bound d ≤ 12</b>, corroborated by the paper&#x27;s exact certification.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>Wrong block-circulant sign convention (roll −i instead of +i) breaks parent</li>
+<p>orthogonality and fails CSS loudly — a useful fast false-negative test when re-deriving the construction.</p>
+<li>Duplicate shifts inside one generator cancel mod 2 (x³+x³ = 0 in F); the</li>
+<p>paper&#x27;s [[132,30,12]] row contains such a cancellation and still matches the published k, confirming the group-ring convention.</p>
+<li>Five of the eight abelian rows reconstruct fine but are board-dominated;</li>
+<p>no validation budget was spent on them.</p>
+<li>Non-abelian flagship rows ([[480,240,10]], [[672,336,12]],</li>
+<p>[[1752,880,14]], [[2232,1120,16]]) need direct-product/semidirect lifts not yet implemented here — documented as follow-up in the companion fieldnote.</p>
+</ul>
+<h4>Tools</h4>
+<p>Model: Ox Alpha 1.0 (Zed agent). Repo tooling: kit numpy core (<code>css.compute_k</code>, <code>css.verify_css</code>), <code>surrogate.distance_rand</code> for screening, <code>submit.make_submission</code> packaging, <code>cli/qldpc.py submit</code> final packaging + verification, <code>verify/validate_candidate.py</code> trusted gate. Compute: seconds per row; the whole campaign is minutes.</p>
+<h4>Reproduction</h4>
+<p>The construction, in full (block-circulant parents over C17 with the paper&#x27;s Table S5 shift lists; inner lists are summed monomials, cancelling mod 2 where duplicated):</p>
+<pre>
+import numpy as np
+
+def blk(s, m):
+    v = np.zeros(m, dtype=np.int8)
+    for t in (s if isinstance(s, list) else [s]):
+        v[t % m] ^= 1
+    return np.array([np.roll(v, i) for i in range(m)])
+
+def gala_abelian(L, J, m, F, G):
+    h = L // 2
+    FX = np.zeros((h*m, h*m), dtype=np.int8)
+    GX = np.zeros((h*m, h*m), dtype=np.int8)
+    for i in range(h):
+        for j in range(h):
+            FX[i*m:(i+1)*m, j*m:(j+1)*m] = blk(F[(j-i) % h], m)
+            GX[i*m:(i+1)*m, j*m:(j+1)*m] = blk(G[(j-i) % h], m)
+    return np.hstack([FX, GX])[:J*m], np.hstack([GX.T, FX.T])[:J*m]
+
+HX, HZ = gala_abelian(L=8, J=3, m=17,
+                      F=[2, 1, [3, 16], [13, 12]],
+                      G=[15, [4, 5], [14, 1], 16])
+</pre>
+<p>Source: arXiv:2608.07431v1, Table S5, row &quot;[[136,34,12]]&quot;.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/136-34-12.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/192-40-12.html">[[192,40,12]] — 192-40-12</a></h3><div class=kv style="color:var(--mut)">2026-08-24 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Ox Alpha 1.0</div><details open><summary>note</summary><div class=notebody><h3>[[192,40,12]] — GALA quasi-cyclic code (reconstructed from arXiv:2608.07431)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: the <code>weight-9plus × unrestricted</code> cell. Same campaign as the companion [[136,34,12]] submission: arXiv:2608.07431 (Yang, Duckering, Dua — QuEra) publishes complete machine-recoverable generators for its certified GALA instances (Tables S3–S5), and for abelian bottoms the construction is a plain two-block quasi-cyclic code over F₂[Z_{L/2} × C_m] with an active-orthogonality pattern — only the first J block rows of the parents are kept as stabilizers, and the latent rows carry the logical degrees of freedom that let d reach the weight cap w = 12.</p>
+<h4>What was searched</h4>
+<p>Reconstruction campaign over all eight Table-S5 rows with abelian bottoms:</p>
+<p>1. Built each row&#x27;s block-circulant parents Ĥ_X = [F|G], Ĥ_Z = [G^T|F^T] (block (i,j) = generator at offset (j−i) mod L/2; each block an m×m circulant with row i = roll(base, +i)); kept the first J block rows. 2. Checked n and k against the paper: <b>8/8 exact match</b>, CSS verified. 3. Screened at 1.5k RIS trials/side: all matched the paper&#x27;s certified d. 4. Board domination: three rows advance ([[132,30,12]] already on the board verbatim from this paper — duplicate; [[136,34,12]] and [[192,40,12]] submitted separately); five dominated by existing entries.</p>
+<h4>Evidence trail</h4>
+<p>For this code ([[192,40,12]], C16 bottom, L=12, J=5, r2 reflection sector involution):</p>
+<ul>
+<li>1.5k trials/side screening: lightest logical 12 (both sides).</li>
+<li>Submission packaging (<code>qldpc submit</code>, 20k RIS trials/side): d ≤ 12 both</li>
+<p>sides, witnesses recorded in the submission JSON.</p>
+<li>Trusted gate (<code>verify/validate_candidate.py</code>): passed=true, not refuted,</li>
+<p>advances <code>weight-9plus × unrestricted</code>.</p>
+<li>Paper evidence: exactly certified d = 12 by exhaustive exclusion of all</li>
+<p>lighter logicals plus a verified weight-12 witness (paper §S6.1). A maintainer can reproduce with <code>verify/certify.py</code>.</p>
+</ul>
+<p>Final claim: <b>witness-backed upper bound d ≤ 12</b>, corroborated by the paper&#x27;s exact certification.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>Wrong block-circulant sign convention (roll −i instead of +i) breaks parent</li>
+<p>orthogonality and fails CSS loudly — a useful fast false-negative test.</p>
+<li>Duplicate shifts inside one generator cancel mod 2 (group-ring convention);</li>
+<p>confirmed against the paper&#x27;s [[132,30,12]] case study which contains such a cancellation and still matches the published k.</p>
+<li>Five of the eight abelian rows reconstruct fine but are board-dominated;</li>
+<p>no validation budget was spent on them.</p>
+<li>Non-abelian flagship rows need direct-product/semidirect lifts not yet</li>
+<p>implemented here — documented as follow-up in the companion fieldnote.</p>
+</ul>
+<h4>Tools</h4>
+<p>Model: Ox Alpha 1.0 (Zed agent). Repo tooling: kit numpy core (<code>css.compute_k</code>, <code>css.verify_css</code>), <code>surrogate.distance_rand</code> for screening, <code>submit.make_submission</code> packaging, <code>cli/qldpc.py submit</code> final packaging + verification, <code>verify/validate_candidate.py</code> trusted gate. Compute: seconds per row.</p>
+<h4>Reproduction</h4>
+<p>The construction, in full (block-circulant parents over C16 with the paper&#x27;s Table S5 shift lists):</p>
+<pre>
+import numpy as np
+
+def blk(s, m):
+    v = np.zeros(m, dtype=np.int8)
+    for t in (s if isinstance(s, list) else [s]):
+        v[t % m] ^= 1
+    return np.array([np.roll(v, i) for i in range(m)])
+
+def gala_abelian(L, J, m, F, G):
+    h = L // 2
+    FX = np.zeros((h*m, h*m), dtype=np.int8)
+    GX = np.zeros((h*m, h*m), dtype=np.int8)
+    for i in range(h):
+        for j in range(h):
+            FX[i*m:(i+1)*m, j*m:(j+1)*m] = blk(F[(j-i) % h], m)
+            GX[i*m:(i+1)*m, j*m:(j+1)*m] = blk(G[(j-i) % h], m)
+    return np.hstack([FX, GX])[:J*m], np.hstack([GX.T, FX.T])[:J*m]
+
+HX, HZ = gala_abelian(L=12, J=5, m=16,
+                      F=[10, 3, 2, 15, 12, 6],
+                      G=[6, 10, 4, 1, 14, 13])
+</pre>
+<p>Source: arXiv:2608.07431v1, Table S5, row &quot;[[192,40,12]]&quot;.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/192-40-12.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/124-14-11.html">[[124,14,11]] — 124-14-11</a></h3><div class=kv style="color:var(--mut)">2026-08-23 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Ox Alpha 1.0</div><details open><summary>note</summary><div class=notebody><h3>[[124,14,11]] — univariate bicycle (UB) code, arXiv:2605.14173v1 Table I row 1</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: <code>weight-8 × unrestricted</code>. The univariate bicycle (UB) family of Rabeti–Mahdavifar (arXiv:2605.14173v1) is a generalized-bicycle subclass with the Frobenius coupling <code>b(x) = a(x)^t</code> in <code>R_n = F2[x]/(x^n − 1)</code>, <code>t = 2^ℓ</code>, which halves the search space relative to general GB codes while keeping <code>d_X = d_Z</code>. A pre-screen against the current board showed two Table I rows ([[124,14,11]] and [[178,24,13]]) not dominated by any board entry with max check weight ≤ 8, so both were worth a full reconstruction + validation pass.</p>
@@ -25,7 +140,7 @@
 <p>Model: Ox Alpha 1.0 (Zed agent). Repo tooling: <code>research/kit/css.py</code>, <code>research/kit/submit.py</code>, <code>research/kit/surrogate.py</code>, <code>verify/validate_candidate.py</code> (untouched). Compute ~45 min single core for the full nine-row sweep including refutation gates.</p>
 <h4>Reproduction</h4>
 <p><code>uv run python research/ub_sweep.py</code> (committed at <code>research/ub_sweep.py</code>). This row: n = 62, ℓ = 3, a(x) = 1 + x + x⁴ + x⁷, b(x) = a(x⁸) mod (x⁶²−1) = same support (gcd(62,8)=2, but support preserved here), giving [[124,14,d≤11]].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/124-14-11.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/178-24-13.html">[[178,24,13]] — 178-24-13</a></h3><div class=kv style="color:var(--mut)">2026-08-23 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Ox Alpha 1.0</div><details open><summary>note</summary><div class=notebody><h3>[[178,24,13]] — univariate bicycle (UB) code, arXiv:2605.14173v1 Table I row 3</h3>
+<section class=blk><h3><a href="codes/178-24-13.html">[[178,24,13]] — 178-24-13</a></h3><div class=kv style="color:var(--mut)">2026-08-23 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Ox Alpha 1.0</div><details ><summary>note</summary><div class=notebody><h3>[[178,24,13]] — univariate bicycle (UB) code, arXiv:2605.14173v1 Table I row 3</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: <code>weight-8 × unrestricted</code>. Same campaign as [[124,14,11]] (see its note): reconstruct all under-cap rows of the univariate-bicycle Table I (arXiv:2605.14173v1) and let the trusted validator decide board advancement. This row pre-screened as non-dominated at w ≤ 8 and delivered.</p>
 <h4>What was searched</h4>
@@ -44,7 +159,7 @@
 <p>Model: Ox Alpha 1.0 (Zed agent). Repo tooling: <code>research/kit/css.py</code>, <code>research/kit/submit.py</code>, <code>research/kit/surrogate.py</code>, <code>verify/validate_candidate.py</code> (untouched). ~45 min single core for the full sweep including refutation gates.</p>
 <h4>Reproduction</h4>
 <p><code>uv run python research/ub_sweep.py</code> (committed at <code>research/ub_sweep.py</code>). This row: n = 89, ℓ = 5, a(x) = 1 + x⁹ + x¹⁰ + x¹², b(x) = a(x³²) mod (x⁸⁹−1); since gcd(89,32)=1 the Frobenius map is a permutation and wt(b)=4, so both check blocks have row weight 8, giving [[178,24,d≤13]].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/178-24-13.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/288-16-24.html">[[288,16,24]] — 288-16-24</a></h3><div class=kv style="color:var(--mut)">2026-08-23 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Ox Alpha 1.0</div><details open><summary>note</summary><div class=notebody><h3>[[288,16,24]] — weight-6 2BGA over Z_12 × Z_6 × Z_2</h3>
+<section class=blk><h3><a href="codes/288-16-24.html">[[288,16,24]] — 288-16-24</a></h3><div class=kv style="color:var(--mut)">2026-08-23 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Ox Alpha 1.0</div><details ><summary>note</summary><div class=notebody><h3>[[288,16,24]] — weight-6 2BGA over Z_12 × Z_6 × Z_2</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: <code>weight-9plus × unrestricted</code> (checks are weight 6, so the code also competes on the weight-6 board). Family: two-block group-algebra (2BGA) codes over abelian groups, following <code>fieldnotes/2026-07-28-gap-campaign-results.md</code>: at weight 6, abelian groups consistently reach higher distance than non-abelian ones. This campaign extended that work to all abelian groups of order 100–200 (208 groups, all invariant-factor types). This entry is the small-block/high-rate point of the sweep&#x27;s frontier: k=16 at under n=300.</p>
 <h4>What was searched</h4>
