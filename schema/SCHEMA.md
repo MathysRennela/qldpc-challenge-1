@@ -127,7 +127,16 @@ Two principles drive the format:
       a replica that would catch a factor-2 under-report, the claim fails
       as unverifiable within budget instead of merging weakly checked. The
       tier's statistical meaning wins over gate cost by design: the budget
-      bounds what may merge, never how honestly it is checked. Statistical
+      bounds what may merge, never how honestly it is checked. Two honest
+      limits of that guarantee: the printed detection factor is the
+      50%-power point of the difference statistic, so under-reports
+      between it and the factor-2 admissibility bound sit in a gray zone
+      where a lucky draw can survive (admissibility itself demands ~98%
+      power at factor 2, so the zone is bounded); and the per-shot decode cost sets
+      what the tier can admit at all -- at the pinned decoder's current
+      speed, d = 5 memory circuits verify within budget and the d = 7 and
+      d = 9 seeds do not (their honest claims alone would cost hours), so
+      they fail closed until the decode loop gets faster. Statistical
       rather than bit-exact because BP is float arithmetic and cross-
       platform exactness is not a promise the board can keep; the gaming
       direction -- claiming a lower rate than the circuit earns -- is

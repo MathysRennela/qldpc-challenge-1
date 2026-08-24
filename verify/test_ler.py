@@ -180,7 +180,6 @@ def test_replica_sized_to_discriminate(artifact):
         blk = doc["circuit"]["ler"][s]
         p = blk["failures"] / blk["shots"]
         want = min(max(lt.MIN_SHOTS,
-                       -(-lv.REPLICA_FAILURES // 1) and
                        __import__("math").ceil(lv.REPLICA_FAILURES / p)),
                    lv.REPLICA_SHOTS_CAP)
         assert rep["computed"][s]["replica_shots"] == want

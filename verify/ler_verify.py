@@ -53,18 +53,26 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import circuit_tools as ct
 import ler_tools as lt
 
-REPLICA_FAILURES = 150       # expected failures the replica targets: puts
-                             # 4 sigma at ~1.33x, so a 1.5x prefactor
-                             # difference (the comparison the tier exists
-                             # for) is detected with margin
+REPLICA_FAILURES = 150       # expected failures the replica targets. With
+                             # a floor claim (100 failures) and a full
+                             # replica, the combined-variance 50%-power
+                             # detection point lands near 1.5x; the
+                             # admissibility bound below (2x) is the hard
+                             # line the gate enforces
 REPLICA_SHOTS_CAP = 2_000_000
 LER_SECONDS = 120.0          # wall budget per basis, mirroring the circuit
                              # gate's refutation target
 REPLICA_SEED_SALT = 0x5EED1E12
 Z_GATE = 4.0
-MAX_DETECTABLE_FACTOR = 2.0  # if the truncated replica cannot catch even
-                             # this under-report at Z_GATE, fail as
-                             # unverifiable within budget
+MAX_DETECTABLE_FACTOR = 2.0  # admissibility: a factor-2 under-report must
+                             # be caught with high power, not merely at even
+                             # money, or the claim fails as unverifiable
+                             # within budget
+POWER_SIGMA = 2.0            # power margin for the admissibility test: the
+                             # alternative's own spread (which scales like
+                             # sqrt(f) of the null's replica term) must also
+                             # clear the gate, so a boundary tamper is
+                             # caught ~97.7% of the time, not ~50%
 
 
 def verify_ler(doc, circuits_dir):
@@ -160,14 +168,30 @@ def verify_ler(doc, circuits_dir):
         rep_fail, rep_done = lt.measure_failures(dem, rep_shots, rep_seed,
                                                  max_seconds=LER_SECONDS)
         p_rep = rep_fail / rep_done
-        sigma = math.sqrt(max(p_claim * (1 - p_claim), 1.0 / rep_done)
-                          / rep_done)
-        # The under-report factor the achieved replica can catch at Z_GATE:
-        # a claim of p_true/f differs from truth by p_claim (f-1), caught
-        # when that exceeds Z_GATE sigma.
+        # Variance of the DIFFERENCE statistic under an honest claim: both
+        # the claim and the replica are binomial draws, so both contribute.
+        # Omitting the claim's term (an earlier version did) turns the
+        # nominal 4 sigma into ~2.5 sigma of the real statistic at the
+        # failure floor, i.e. ~1% false alarms per basis instead of
+        # per-mille.
+        var = max(p_claim * (1 - p_claim), 1.0 / rep_done)             * (1.0 / shots + 1.0 / rep_done)
+        sigma = math.sqrt(var)
+        # The under-report factor whose detection is even money at Z_GATE:
+        # a claim of p_true/f sits (f-1) p_claim below truth, so the mean
+        # crosses the gate at f = 1 + Z_GATE sigma / p_claim. This is the
+        # 50%-power point, not a guarantee; factors between it and
+        # MAX_DETECTABLE_FACTOR can survive on a lucky draw (the gray zone
+        # SCHEMA.md documents), and the admissibility bound below is what
+        # the gate actually enforces.
         margin = Z_GATE * sigma / p_claim
-        detectable = (1.0 / (1.0 - margin)) if margin < 1.0 else math.inf
-        if detectable > MAX_DETECTABLE_FACTOR:
+        detectable = 1.0 + margin
+        # Admissibility with power: a factor-f tamper's replica fluctuates
+        # around f * p_claim with spread ~sqrt(f) * sigma, so demanding
+        # (f - 1) p >= Z_GATE sigma + POWER_SIGMA sqrt(f) sigma makes the
+        # boundary factor caught with ~97.7% power rather than 50%.
+        f = MAX_DETECTABLE_FACTOR
+        needed = (Z_GATE + POWER_SIGMA * math.sqrt(f)) * sigma / p_claim
+        if needed > (f - 1.0):
             record(f"{side}_ler_replicated", False,
                    f"unverifiable within budget: the {LER_SECONDS:.0f}s "
                    f"replica ran {rep_done} shots ({rep_fail} failures), "
