@@ -164,11 +164,18 @@ codes. Goal: find a CSS qLDPC code that advances a frontier, and submit it.
 
 5. Submit: ./qldpc submit yourcode.npz --authors @yourhandle --family <family>
    --model "<exact model version, e.g. Claude Opus 4.8>". It finds the witness,
-   runs the verifier (which computes the locality and weight classes), and opens
-   the PR. CI re-verifies. The PR body is drafted from the submission,
-   including a computed "what frontier does this advance?" section (the track
-   cells the code lands in and the existing entries it dominates). Review it
-   before the PR is ready for review.
+   runs the verifier (which computes the locality and weight classes), runs
+   verify/check_prose.py on the drafted PR body before opening anything, and
+   only then opens the PR. CI re-verifies. The PR body is drafted from the
+   submission, including a computed "what frontier does this advance?"
+   section. Before requesting review you MUST finish it by hand:
+     - replace every parenthetical prompt in the body with real content;
+     - tick each checklist box only once it is actually true — the
+       "equivalent to an existing entry" box needs a provenance.notes entry
+       or a deliberate "checked, not equivalent";
+     - if no research note was staged, add notes/<n>-<k>-<d>.md.
+   Then re-run: uv run python verify/check_prose.py --body-file <body.md>
+   --files codes/<n>-<k>-<d>.json — it must exit 0 before review.
 
 Report the [[n,k,d]], which track it advances, and that the distance held under
 deep re-verification.

@@ -201,6 +201,20 @@ def _descriptor(args):
     return ""
 
 
+def body_has_scaffolding(body):
+    """Report whether the body still carries scaffolding the checker rejects.
+
+    That means: draft footer, HTML comment, unticked box, TODO/FIXME. Used to
+    gate --open-pr so a PR never ships a body the CI prose check would fail.
+    """
+    import re
+    return bool(
+        re.search(r"edit before requesting review", body, re.I)
+        or "<!--" in body
+        or re.search(r"^\s*[-*]\s*\[ \]", body, re.M)
+        or re.search(r"\b(TODO|FIXME|TBD)\b", body))
+
+
 def _repo_path(path):
     """Repo-relative path when the file is inside the repo, else absolute.
     Keeps the body readable when --out points somewhere else entirely."""
@@ -238,6 +252,11 @@ def pr_body(doc, report, args, out, note_out=None):
     if args.family:
         lines += [f"Family tag: {args.family} (a self-declared filter, never "
                   f"used for ranking).", ""]
+    # Checklist boxes are ticked only when the tool can vouch for them. The
+    # construction box reflects whether --construction was given; the
+    # equivalence box stays unticked by design — judging equivalence to an
+    # existing entry needs human eyes, so an unedited draft is deliberately
+    # not ready for review (the prose gate enforces exactly that).
     lines += [
         "### Checklist",
         box(True, "One JSON file under `codes/`, conforming to "
@@ -245,20 +264,21 @@ def pr_body(doc, report, args, out, note_out=None):
         box(True, "Distance witness(es) included for each reported side"),
         box(True, f"`python verify/qldpc_verify.py {rel_out}` passes locally"),
         box(bool((args.construction or "").strip()),
-            "Construction and references filled in under `provenance`"),
+            "Construction and references filled in under `provenance`")
+        if (args.construction or "").strip() else None,
         box(False, "If this may be equivalent to an existing entry, noted in "
                    "`provenance.notes`"),
         "",
         "### What frontier does this advance?",
-        "<!-- Computed by `qldpc submit` against the current board; review and "
-        "edit. -->",
+        "(Computed by `qldpc submit` against the current board; review and "
+        "edit.)",
     ]
     front = frontier_summary(doc, report)
     if front:
         lines += front
     else:
-        lines += ["<!-- TODO: name the track and the existing entry this beats "
-                  "or extends, and on which axis. -->"]
+        lines += ["(Name the track and the existing entry this beats or "
+                  "extends, and on which axis.)"]
     lines += [
         f"Score kd^2/n = {round(k * d * d / n, 3)}, max check weight {wmax}, "
         f"locality class {comp.get('locality_class', 'unknown')}.",
@@ -269,11 +289,11 @@ def pr_body(doc, report, args, out, note_out=None):
     if note_out:
         lines += [f"Research note: `{_repo_path(note_out)}`", ""]
     else:
-        lines += ["<!-- TODO: add a research note (notes/{}.md, see "
-                  "notes/TEMPLATE.md). -->".format(f"{n}-{k}-{d}"), ""]
-    lines += ["---",
-              "Drafted by `qldpc submit`; edit before requesting review."]
-    return "\n".join(lines)
+        lines += [f"(Add a research note at notes/{n}-{k}-{d}.md; see "
+                  f"notes/TEMPLATE.md.)", ""]
+    # No draft footer: 'edit before requesting review' is itself a scaffolding
+    # marker the prose check rejects. The reminder lives in the CLI output.
+    return "\n".join(ln for ln in lines if ln is not None)
 
 
 def write_pr_body(slug, body):
@@ -419,7 +439,8 @@ def cmd_submit(args):
     body_file = write_pr_body(slug, pr_body(doc, report, args, out, note_out))
 
     if args.open_pr:
-        return open_pr(slug, out, note_out, title, body_file)
+        return open_pr(slug, out, note_out, title, body_file,
+                       root=_ROOT)
     print("\nnext: open a PR with this file")
     print(f"  git checkout -b submit-{slug}")
     print(f"  git add {out}" + (f" {note_out}" if note_out else ""))
@@ -434,10 +455,28 @@ def cmd_submit(args):
     return 0
 
 
-def open_pr(slug, out, note_out=None, title=None, body_file=None):
+def open_pr(slug, out, note_out=None, title=None, body_file=None, root=None):
     n_k_d = slug.replace("-", ",")
     branch = f"submit-{slug}"
     title = title or f"Add [[{n_k_d}]]"
+    # Pre-flight: run the same prose check CI runs, on the drafted body and
+    # the staged files, BEFORE any git command touches the working tree. A
+    # body the gate would reject stops here with the checker's own output.
+    root = root or _ROOT
+    if body_file:
+        checker = os.path.join(root, "verify", "check_prose.py")
+        if os.path.exists(checker):
+            files = [os.path.relpath(out, root)] + (
+                [os.path.relpath(note_out, root)] if note_out else [])
+            pre = subprocess.run(
+                [sys.executable, os.path.relpath(checker, root),
+                 "--root", root, "--body-file", body_file, "--files", *files],
+                cwd=root, check=False)
+            if pre.returncode != 0:
+                print(f"\nprose pre-flight FAILED ({pre.returncode}); no PR "
+                      f"was opened. Fix the issues above (the drafted body is "
+                      f"at {body_file}) and re-run with --open-pr.")
+                return 1
     add = ["git", "add", out] + ([note_out] if note_out else [])
     # --title/--body-file rather than --fill: the body is the filled-in
     # pull request template, which the commit message does not carry (#404).
