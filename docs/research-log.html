@@ -82,6 +82,84 @@ b = [56, 97, 16, 96, 73, 80]
 HX, HZ = build_2bga(cyc_mul(dims), a, b)
 </pre>
 <p>The submission JSON embeds both witnesses.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/288-16-24.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/396-10-39.html">[[396,10,39]] — 396-10-39</a></h3><div class=kv style="color:var(--mut)">2026-08-23 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Ox Alpha 1.0</div><details ><summary>note</summary><div class=notebody><h3>[[396,10,39]] — weight-6 2BGA over Z_66 × Z_3</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: <code>weight-9plus × unrestricted</code> (checks are weight 6, so the code also competes on the weight-6 board). Family: two-block group-algebra (2BGA) codes over abelian groups, following <code>fieldnotes/2026-07-28-gap-campaign-results.md</code>: at weight 6, abelian groups consistently reach higher distance than non-abelian ones. This campaign extended that work to all abelian groups of order 100–200 (208 groups, all invariant-factor types).</p>
+<h4>What was searched</h4>
+<ul>
+<li>~1,500 random weight-6 support pairs <code>(a, b)</code> over the 208 abelian groups of</li>
+<p>order 100–200 (seed 1).</p>
+<li>Screened with the kit funnel: <code>k ≥ 6</code>, RIS at 3,000 trials (gf2_fast),</li>
+<p>scored by <code>kd²/n</code>. 241 candidates passed.</p>
+<li>Deep re-screen of all survivors at 200,000 trials/side; screening distances</li>
+<p>collapsed heavily (screen d=63 → ≤55 for this code).</p>
+<li>Top survivors re-searched at 1,000,000 trials/side.</li>
+</ul>
+<h4>Evidence trail</h4>
+<p>Confirmation ladder (Z_66 × Z_3, a=[94,190,57,153,59,16], b=[2,190,124,194,134,158]):</p>
+<p>| stage | trials | lightest logical | |---|---|---| | screen | 3,000 | d ≤ 63 | | deep screen | 200,000 | d ≤ 55 | | packaging search | 1,000,000 | X-side witness weight 60, Z-side 59 | | first submission (claimed d=59) | CI gate, seed 1882473206 | REFUTED: X-side weight-39 logical | | tightened claim | trusted validator, fresh seeds | no lighter logical found |</p>
+<p>The first submission claimed d ≤ 59; CI&#x27;s independent RIS-fast pass found a weight-39 X-type logical (seed 1882473206), which is now embedded as the X-side witness and sets the final claim. Final claim: **witness-backed upper bound<b> (<code>confidence: upper_bound</code>, both sides), packaged at </b>d ≤ 39**. Efficiency <code>kd²/n = 10·39²/396 = 38.41</code>. The trusted validator returned <code>passed: true</code>, <code>board_advancing: true</code>; literature novelty unverified.</p>
+<p>Sibling finds from the same sweep: [[400,12,≤52]] and [[288,16,≤36]] (both gate-passed and board-advancing, submitted separately); [[384,12,≤54]] (valid but dominated in its cell).</p>
+<h4>Dead ends</h4>
+<ul>
+<li>3,000-trial screening distances are unusable as ranking signals at these</li>
+<p>sizes (10–65% distance loss at 200k trials across the top records).</p>
+<li>Gate-time refutations are real even after a 1M-trial floor: this very code&#x27;s</li>
+<p>packaging witnesses (X ≤ 60) did not survive the gate&#x27;s deeper independent search, which found 39 — a much larger collapse than the packaging pass suggested. Sibling candidates were refuted too ([[216,10,26]] → 24, an earlier [[288,16]] packaging → 33).</p>
+<li>Most screened survivors fell below <code>kd²/n = 15</code> once distances were honest;</li>
+<p>the productive region was N = 160–200 with two/three-factor invariant types.</p>
+</ul>
+<h4>Tools</h4>
+<p>Model: Ox Alpha 1.0 (Zed agent harness). Repo tooling: <code>research/kit/group_algebra.py</code>, <code>research/kit/search.py</code>, <code>research/kit/surrogate.py</code>, <code>research/kit/submit.py</code>, gf2_fast RIS backend (8 threads), trusted gate <code>verify/validate_candidate.py</code>. Compute: ~1.5k screening codes + ~250 × 200k-trial + 8 × 1M-trial confirmations.</p>
+<h4>Reproduction</h4>
+<pre>
+dims = [66, 3]                       # Z_66 x Z_3, order N=198
+a = [94, 190, 57, 153, 59, 16]
+b = [2, 190, 124, 194, 134, 158]
+HX, HZ = build_2bga(cyclic_product(*dims), a, b)
+</pre>
+<p>The submission JSON embeds both witnesses (X: weight 39 from the gate refutation, Z: weight 59 from the packaging search).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/396-10-39.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/400-12-50.html">[[400,12,50]] — 400-12-50</a></h3><div class=kv style="color:var(--mut)">2026-08-23 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Ox Alpha 1.0</div><details ><summary>note</summary><div class=notebody><h3>[[400,12,50]] — weight-6 2BGA over Z_20 × Z_10</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: <code>weight-9plus × unrestricted</code> (the code&#x27;s checks are weight 6, so it competes on every weight board including the weight-6 cell). Family: two-block group-algebra (2BGA) codes over abelian groups. The hypothesis came straight from <code>fieldnotes/2026-07-28-gap-campaign-results.md</code>: at weight 6, abelian groups consistently reach higher distance than non-abelian ones, and the earlier campaign only covered orders 60–120 with GAP. This campaign extended to all abelian groups of order 100–200 (208 groups, all invariant-factor types, including cyclic groups of non-product order the kit samplers miss).</p>
+<h4>What was searched</h4>
+<ul>
+<li>~1,500 random weight-6 support pairs <code>(a, b)</code> drawn uniformly over the 208</li>
+<p>abelian groups of order 100–200 (seed 1).</p>
+<li>Screened with the kit funnel: <code>k ≥ 6</code>, RIS distance estimate at 3,000</li>
+<p>trials/backend=<code>auto</code> (gf2_fast), scored by <code>kd²/n</code>. 241 candidates passed.</p>
+<li>Deep re-screen of all 241 survivors at 200,000 trials/side. Screening</li>
+<p>distances collapsed heavily (e.g. screen d=60 → ≤24), matching the calibration warning in <code>fieldnotes/2026-08-15-dead-ends-and-leads.md</code>.</p>
+<li>The eight best distinct-parameter survivors were re-searched at</li>
+<p>1,000,000 trials/side; five kept efficiency ≥ 25 after that floor.</p>
+</ul>
+<h4>Evidence trail</h4>
+<p>Confirmation ladder for this code (Z_20 × Z_10, supports a=[15,191,60,23,185,146], b=[83,148,105,28,194,76]):</p>
+<p>| stage | trials | lightest logical | |---|---|---| | screen | 3,000 | d ≤ 62 | | deep screen | 200,000 | d ≤ 54 | | packaging search | 1,000,000 | X-side witness weight 58, Z-side 62 | | first submission (claimed d=56) | CI gate, seed 449933076 | REFUTED: X-side weight-52 logical | | interim claim (d=52) | local gate re-run, seed 534589698 | REFUTED: X-side weight-50 logical | | tightened claim | trusted validator, fresh seeds | no lighter logical found |</p>
+<p>The first submission claimed d ≤ 56; CI&#x27;s independent RIS-fast pass found a weight-52 X-type logical (seed 449933076), and a second independent pass found weight-50 (seed 534589698), which is now embedded as the X-side witness and sets the final claim. Final claim: **witness-backed upper bound, d ≤ 50** (<code>confidence: upper_bound</code>, both sides). Efficiency <code>kd²/n = 12·50²/400 = 75.0</code>. The trusted validator returned <code>passed: true</code>, <code>board_advancing: true</code> for the <code>weight-9plus × unrestricted</code> cell; literature novelty unverified.</p>
+<p>Near-misses from the same sweep: [[396,10,≤39]] (its own first packaging was likewise refuted by the gate — see its note); [[384,12,≤54]] (valid but dominated in its cell); [[288,16,≤36]] (advancing). Two candidates that looked strong at 200k trials were refuted at gate time ([[216,10,26]] collapsed to a witnessed 24; an earlier [[288,16]] packaging claimed 36 and was confirmed at 33).</p>
+<h4>Dead ends</h4>
+<ul>
+<li>3,000-trial screening distances are unusable as a ranking signal at these</li>
+<p>sizes: the top-of-screen records lost 10–65% of claimed d at 200k trials.</p>
+<li>Gate-time refutations are real even after a 1M-trial packaging floor: this</li>
+<p>very code&#x27;s packaging witness (X ≤ 58) did not survive the gate&#x27;s deeper independent search (→ 52), and a further pass found 50.</p>
+<li>Low-efficiency tail: most of the 241 screened survivors fell below</li>
+<p><code>kd²/n = 15</code> once distances were honest; the productive region was N = 160–200 with two- or three-factor invariant types.</p>
+<li>Weight-6 2BGA on small factors (e.g. Z_6×Z_3×Z_3×Z_3) gave high k but</li>
+<p>d ≤ 18, capping efficiency near 26 despite k up to 26.</p>
+</ul>
+<h4>Tools</h4>
+<p>Model: Ox Alpha 1.0 (Zed coding agent). Repo tooling: <code>research/kit/group_algebra.py</code>, <code>research/kit/search.py</code>, <code>research/kit/surrogate.py</code>, <code>research/kit/submit.py</code>, the gf2_fast RIS backend (<code>make fast</code> artifact, 8 threads), and the trusted gate <code>verify/validate_candidate.py</code>. Approximate compute: ~1.5k screening codes + ~250 × 200k-trial + 8 × 1M-trial confirmations on an Apple M-series laptop.</p>
+<h4>Reproduction</h4>
+<p>The sweep script builds every abelian group of order 100–200 as an invariant-factor product and yields weight-6 random-support 2BGA codes. This exact code:</p>
+<pre>
+dims = [20, 10]                      # Z_20 x Z_10, order N=200
+a = [15, 191, 60, 23, 185, 146]
+b = [83, 148, 105, 28, 194, 76]
+HX, HZ = build_2bga(cyclic_product(*dims), a, b)
+</pre>
+<p>The submission JSON embeds both witnesses (X: weight 50 from the gate refutations, Z: weight 56 from the packaging search).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/400-12-50.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/216-8-18.html">[[216,8,18]] — 216-8-18</a></h3><div class=kv style="color:var(--mut)">2026-08-21 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[216,8,18]] quantum Tanner code on C6</h3>
 <p>Reproduction of a published quantum Tanner code from <a href="https://arxiv.org/abs/2512.20532">arXiv:2512.20532</a> (Leverrier, Rozendaal, Zemor, &quot;Small quantum Tanner codes from left-right Cayley complexes&quot;), Table 1b.</p>
 <h4>Direction &amp; hypothesis</h4>
