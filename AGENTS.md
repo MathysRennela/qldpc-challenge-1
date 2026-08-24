@@ -75,7 +75,10 @@ Two more, same reason:
   not put a distance in the filename that the JSON does not support.
 - Delete the drafting scaffolding before asking for review: the `qldpc submit` footer, HTML
   comments, unticked checklist boxes, session URLs. If a checklist box is not true, make it
-  true or say why.
+  true or say why. The drafted body also carries parenthetical prompts (e.g. "(Name the
+  track and the existing entry this beats…)"): replace each with real content. Then run
+  `uv run python verify/check_prose.py --body-file <body.md> --files <changed .md files>`
+  locally; it must exit 0 before you request review.
 
 A note named `<n>-<k>-<d>.md` must state its own `[[n,k,d]]` first. Follow
 `notes/TEMPLATE.md`; its sections are what a later searcher reads.

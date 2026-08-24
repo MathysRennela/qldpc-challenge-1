@@ -252,17 +252,22 @@ def pr_body(doc, report, args, out, note_out=None):
     if args.family:
         lines += [f"Family tag: {args.family} (a self-declared filter, never "
                   f"used for ranking).", ""]
-    # Checklist boxes are only emitted ticked: an unticked `- [ ]` is exactly
-    # what verify/check_prose.py rejects as leftover scaffolding, and the
-    # equivalent-to-existing question belongs in provenance.notes either way.
+    # Checklist boxes are ticked only when the tool can vouch for them. The
+    # construction box reflects whether --construction was given; the
+    # equivalence box stays unticked by design — judging equivalence to an
+    # existing entry needs human eyes, so an unedited draft is deliberately
+    # not ready for review (the prose gate enforces exactly that).
     lines += [
         "### Checklist",
         box(True, "One JSON file under `codes/`, conforming to "
                   "`schema/code.schema.json`"),
         box(True, "Distance witness(es) included for each reported side"),
         box(True, f"`python verify/qldpc_verify.py {rel_out}` passes locally"),
-        box(True, "Construction and references filled in under `provenance`")
+        box(bool((args.construction or "").strip()),
+            "Construction and references filled in under `provenance`")
         if (args.construction or "").strip() else None,
+        box(False, "If this may be equivalent to an existing entry, noted in "
+                   "`provenance.notes`"),
         "",
         "### What frontier does this advance?",
         "(Computed by `qldpc submit` against the current board; review and "
