@@ -1125,6 +1125,11 @@ document.addEventListener('click',e=>{
    switch(m[2]){case'>=':return x>=v;case'<=':return x<=v;
     case'>':return x>v;case'<':return x<v;default:return x===v;}}
   if(t==='record'||t==='frontier')return r.dataset.record==='1';
+  // Distance provenance. 'exact' keeps only entries whose distance is proved
+  // by a committed certificate; 'upper-bound' keeps the rest, which are the
+  // ones a refutation could still move.
+  if(t==='exact'||t==='certified')return r.dataset.tier==='exact';
+  if(t==='upper-bound'||t==='unproven')return r.dataset.tier!=='exact';
   // cell:<locality>~<weight> keeps only the members of one primary-track cell,
   // honoring nesting via the row's precomputed data-cells list.
   if(t.slice(0,5)==='cell:')return (' '+(r.dataset.cells||'')+' ').indexOf(' '+t.slice(5)+' ')>=0;
@@ -3529,7 +3534,9 @@ def board_controls(entries, records):
             '<code>eff&gt;=5</code> <code>g&gt;=0.1</code>; <code>record</code> '
             'keeps only frontier rows; <code>literature</code> / '
             '<code>submitted</code> filter by origin; <code>with-layout</code> '
-            '/ <code>no-layout</code> filter by layout status.</p>'
+            '/ <code>no-layout</code> filter by layout status; '
+            '<code>exact</code> / <code>upper-bound</code> filter by whether '
+            'the distance is proved.</p>'
             '</section>')
 
 
@@ -3665,6 +3672,7 @@ def board_table(entries, records):
             f'data-tracks="{html.escape(search_terms)}" '
             f'data-cells="{html.escape(cell_keys)}" '
             f'data-record="{1 if fr else 0}" '
+            f'data-tier="{e["tier"]}" '
             f'data-origin="{"literature" if e["origin"] == "baseline" else "submitted"}" '
             f'data-model="{html.escape(e["model"].lower())}" '
             f'data-date="{html.escape(e["date"])}" '
