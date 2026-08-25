@@ -34,6 +34,7 @@ import argparse
 import datetime
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -549,6 +550,69 @@ def open_pr(slug, out, note_out=None, title=None, body_file=None, root=None):
     return 0
 
 
+def cmd_targets(args):
+    """Print per-cell occupancy and frontier, so a newcomer can see what to aim at.
+
+    Reuses the site's own cells() and pareto(), the pair that decides records on
+    the published board, so these are the board's numbers rather than a second
+    opinion about them.
+    """
+    entries = _load_board_entries()
+    if not entries:
+        raise SystemExit("could not load the board; run this from a checkout")
+
+    by_cell = {}
+    for e in entries:
+        for cell in cells(e):
+            by_cell.setdefault(cell, []).append(e)
+
+    def matches(L, W):
+        if not args.cell:
+            return True
+        toks = [x for x in re.split(r"[/, ]+", args.cell.lower()) if x]
+        hay = f"{L} {W} {LOCALITY_LABEL.get(L, L)} {WEIGHT_LABEL.get(W, W)}".lower()
+        return all(tok in hay for tok in toks)
+
+    def eff(e):
+        return e["k"] * e["d"] ** 2 / e["n"]
+
+    rows = [(c, v) for c, v in sorted(by_cell.items()) if matches(*c)]
+    if not rows:
+        raise SystemExit(f"no cell matched {args.cell!r}. Weight classes: "
+                         f"{sorted({c[1] for c in by_cell})}; locality classes: "
+                         f"{sorted({c[0] for c in by_cell})}")
+
+    for (L, W), peers in rows:
+        front = [peers[i] for i in sorted(pareto(peers))]
+        print(f"\n{LOCALITY_LABEL.get(L, L)} / {WEIGHT_LABEL.get(W, W)}")
+        print(f"  {len(peers)} codes, {len(front)} nondominated, "
+              f"best kd2/n {max(eff(e) for e in peers):.2f}")
+        if args.n:
+            near = [e for e in front if e["n"] <= args.n]
+            if not near:
+                print(f"  nothing at n <= {args.n}: any verified code here "
+                      f"lands on the frontier")
+            else:
+                print(f"  at n <= {args.n}, {len(near)} entries to get past; "
+                      f"the ones to beat:")
+                for e in sorted(near, key=eff, reverse=True)[:args.top]:
+                    print(f"    [[{e['n']},{e['k']},{e['d']}]] w={e['w']} "
+                          f"kd2/n={eff(e):.2f}")
+                continue
+        for e in sorted(front, key=eff, reverse=True)[:args.top]:
+            print(f"    [[{e['n']},{e['k']},{e['d']}]] w={e['w']} "
+                  f"kd2/n={eff(e):.2f}")
+        if len(front) > args.top:
+            print(f"    ... {len(front) - args.top} more nondominated")
+
+    print(f"\n{len(entries)} codes across {len(by_cell)} populated cells. "
+          f"A code counts in every cell it qualifies for (the classes nest), "
+          f"so these counts overlap by design.")
+    print("Nondominated means no other code in the cell beats it on all of "
+          "n, k, d and check weight at once, which is what earns a record star.")
+    return 0
+
+
 def cmd_recent(args):
     """What moved on the board recently: codes merged, research notes, and
     fieldnotes, from git history. The 'stay current' step — read this (and
@@ -653,6 +717,17 @@ def main(argv=None):
                                       "search)")
     r.add_argument("--days", type=int, default=14)
     r.set_defaults(func=cmd_recent)
+
+    g = sub.add_parser("targets", help="which track cells are open: occupancy "
+                                       "and frontier per cell (read before you "
+                                       "build)")
+    g.add_argument("--cell", default=None,
+                   help="focus one cell, e.g. 'weight-6/unrestricted'")
+    g.add_argument("--n", type=int, default=None,
+                   help="what a code at this blocklength would need")
+    g.add_argument("--top", type=int, default=6,
+                   help="frontier entries to list per cell (default 6)")
+    g.set_defaults(func=cmd_targets)
 
     args = p.parse_args(argv)
     return args.func(args)
