@@ -136,6 +136,27 @@ def build_submission(HX, HZ, args):
     if dX is None or dZ is None:
         raise SystemExit("RIS found no logical operator on one side; "
                          "cannot certify a distance")
+    # Let the C++ accelerator tighten the claim when it can. The Python search
+    # slows sharply with n, so on a large code it stops far above the lightest
+    # logical and the entry would claim a distance the submitter can already
+    # disprove. Anything the accelerator returns is checked by gf2 before it is
+    # used, and it is only adopted when it is strictly lighter.
+    if hd._fast is not None and args.fast_trials > 0:
+        print(f"  accelerator pass ({args.fast_trials} trials)...", flush=True)
+        wf, side, sup = hd._fast.distance_rand_witness(
+            HX, HZ, args.fast_trials, args.seed, 8, 8)
+        if wf is not None and side in ("X", "Z"):
+            v = np.zeros(n, dtype=np.int8)
+            v[list(sup)] = 1
+            H_ker, H_row = (HZ, HX) if side == "X" else (HX, HZ)
+            cur = dX if side == "X" else dZ
+            if int(v.sum()) < cur and hd._valid_logical(v, H_ker, H_row):
+                if side == "X":
+                    dX, witX = int(v.sum()), v
+                else:
+                    dZ, witZ = int(v.sum()), v
+                print(f"    accelerator tightened d_{side} to {int(v.sum())}",
+                      flush=True)
     d = min(dX, dZ)
     print(f"  distance (RIS upper bound) d<={d}  (d_X<={dX}, d_Z<={dZ})",
           flush=True)
@@ -638,6 +659,9 @@ def main(argv=None):
                         "(1 = single layer, 2 = bilayer); default 1")
     s.add_argument("--trials", type=int, default=20000,
                    help="RIS trials for the distance witness search")
+    s.add_argument("--fast-trials", type=int, default=2_000_000,
+                   help="gf2_fast trials used to tighten the claim "
+                        "(0 disables the accelerator)")
     s.add_argument("--seed", type=int, default=0)
     s.add_argument("--out", default=os.path.join(_ROOT, "codes"))
     s.add_argument("--force", action="store_true",

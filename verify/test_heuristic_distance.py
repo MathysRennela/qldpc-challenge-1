@@ -19,6 +19,8 @@ import glob
 import json
 import os
 import sys
+import numpy as np
+
 import heuristic_distance as H
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -141,3 +143,45 @@ def test_main():
 
 if __name__ == "__main__":
     main(sys.argv[1:])
+
+
+def test_accelerator_witness_is_recorded_and_valid():
+    """Check that an accelerator find is recorded with a valid witness.
+
+    When the accelerator finds a lighter logical, the verdict must carry a
+    witness at that weight, and the witness must survive gf2 validation.
+    """
+    doc = json.load(open(os.path.join(ROOT, "codes", "144-12-12.json")))
+    if H._fast is None:
+        print("  gf2_fast unavailable; skipping")
+        return
+    res = H.estimate(doc, trials=200, seed=0, fast_trials=200_000)
+    assert res["method"] == "ris+gf2_fast"
+    d = res["d_heuristic"]
+    assert d is not None
+    backed = [s for s, blk in res["sides"].items()
+              if blk.get("witness") and blk.get("lightest_found") == d]
+    assert backed, f"no witness recorded at the reported weight {d}: {res['sides']}"
+    n = doc["n"]
+    HX = H._matrix(doc["checks"]["X"], n)
+    HZ = H._matrix(doc["checks"]["Z"], n)
+    for side in backed:
+        v = np.zeros(n, dtype=np.int8)
+        v[res["sides"][side]["witness"]] = 1
+        H_ker, H_row = (HZ, HX) if side == "X" else (HX, HZ)
+        assert H._valid_logical(v, H_ker, H_row), f"{side} witness invalid"
+    print(f"  accelerator witness ok: d={d}, sides backed={backed}")
+
+
+def test_valid_logical_rejects_stabilizer_and_nonkernel():
+    """Reject a stabilizer row and a vector outside the kernel."""
+    doc = json.load(open(os.path.join(ROOT, "codes", "144-12-12.json")))
+    n = doc["n"]
+    HX = H._matrix(doc["checks"]["X"], n)
+    HZ = H._matrix(doc["checks"]["Z"], n)
+    assert not H._valid_logical(HX[0].astype(np.int8), HZ, HX), "stabilizer accepted"
+    bad = np.zeros(n, dtype=np.int8)
+    bad[0] = 1
+    if ((HZ @ bad) % 2).any():
+        assert not H._valid_logical(bad, HZ, HX), "non-kernel vector accepted"
+    assert not H._valid_logical(np.zeros(n, dtype=np.int8), HZ, HX), "zero accepted"
