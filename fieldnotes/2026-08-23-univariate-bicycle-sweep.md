@@ -22,16 +22,20 @@ and **two advance the `weight-8 × unrestricted` board**:
 - **[[178,24,13]]** — a(x)=1+x⁹+x¹⁰+x¹² over R₈₉, ℓ=5; kd²/n ≈ 23.9
 
 Both are witness-backed upper bounds (gate refutation at ~8k RIS trials found
-nothing lighter); no exact or WL-equivalent duplicates. Staged under
-`research/candidates/ub-*` with verdicts; reconstruction script committed at
-`research/ub_sweep.py`. Not promoted to `codes/`, no PR — human review decides.
+nothing lighter); no exact or WL-equivalent duplicates. The reconstruction
+script is committed on the board at `research/ub_sweep.py` (merged via the
+[[178,24,13]] submission, github.com/unitaryfoundation/qldpc-challenge @
+1beea345). Both advancing rows were later promoted to `codes/` with full notes:
+see `notes/124-14-11.md` and `notes/178-24-13.md`.
 
 ## What worked
 
-- The resumable arXiv metadata harvester (`research/literature/`) caught this
-  paper on its first incremental run after a 7-day gap; the abstract's
-  "single-polynomial search" framing plus an explicit Table I with exact
-  supports made it a cheap, high-confidence reconstruction target.
+- The resumable arXiv metadata harvester (committed alongside the pilot's
+  other working output in github.com/MathysRennela/qldpc-challenge-1 @
+  1c226252, branch quarantine/research-2026-08-21, `research/literature/`)
+  caught this paper on its first incremental run after a 7-day gap; the
+  abstract's "single-polynomial search" framing plus an explicit Table I with
+  exact supports made it a cheap, high-confidence reconstruction target.
 - Pre-screening dominance *before* validation (same-(n,k) board check, then
   full Pareto at the row's weight class) correctly predicted 7 of 7
   dominated rows and both advances, so no validation budget was wasted.

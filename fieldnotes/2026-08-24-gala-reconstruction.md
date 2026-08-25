@@ -26,9 +26,10 @@ exactly; **three advance their board cell and two passed the trusted gate**
 
 All distances are witness-backed upper bounds agreeing with the paper's
 exactly certified values; a maintainer can re-certify with
-`verify/certify.py`. Staged under `research/candidates/gala/` with verdicts;
-reconstruction script at `research/candidates/gala_recon.py`. Not promoted to
-`codes/`, no PR — human review decides.
+`verify/certify.py`. The two advancing rows were subsequently promoted to
+`codes/` with full notes and the complete reconstruction recipe embedded in
+each: see `notes/136-34-12.md` (Reproduction section) and
+`notes/192-40-12.md`.
 
 ## What worked
 
