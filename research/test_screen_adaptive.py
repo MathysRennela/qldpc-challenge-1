@@ -120,3 +120,53 @@ def test_adaptive_without_a_target_drops_nothing():
                 S.screen_adaptive(_fixed_candidates(), stages=(120, 2_000),
                                   target=None, seed=0)}
     assert flat == adaptive
+
+
+def test_prepared_search_returns_what_the_plain_one_does():
+    """Caching the bases must not change any answer.
+
+    The bases depend only on the check matrices, so a prepared search is the
+    same computation with the setup hoisted; if this ever diverges, the cache
+    is being written through somewhere.
+    """
+    from bb import KNOWN, build_bb
+    from surrogate import distance_rand, prepare_distance_search
+    p = KNOWN["[[72,12,6]]"]
+    HX, HZ = build_bb(p["l"], p["m"], p["A"], p["B"])
+    prep = prepare_distance_search(HX, HZ)
+    for trials in (20, 60):
+        for seed in (1, 2, 3):
+            assert (distance_rand(HX, HZ, trials=trials, seed=seed)
+                    == distance_rand(prepared=prep, trials=trials, seed=seed))
+
+
+def test_prepared_object_survives_repeated_use():
+    """One prepared object, many searches: no state may leak between calls."""
+    from bb import KNOWN, build_bb
+    from surrogate import distance_rand, prepare_distance_search
+    p = KNOWN["[[72,12,6]]"]
+    HX, HZ = build_bb(p["l"], p["m"], p["A"], p["B"])
+    prep = prepare_distance_search(HX, HZ)
+    first = distance_rand(prepared=prep, trials=40, seed=5)
+    for _ in range(4):
+        distance_rand(prepared=prep, trials=40, seed=9)
+    assert distance_rand(prepared=prep, trials=40, seed=5) == first
+
+
+def test_staged_screen_never_reports_a_worse_bound_than_a_stage_found():
+    """A deeper stage must not discard a better bound an earlier one proved.
+
+    Stages draw independently, so a later one can come back higher. Every
+    reading is a valid upper bound, so the reported value must be the best of
+    them; reporting the latest would throw away a proved result.
+    """
+    pool = _fixed_candidates()
+    staged = {r["fingerprint"]: r["d"] for r in
+              S.screen_adaptive(pool, stages=(60, 300), target=None, seed=0)}
+    for st in ((60,), (300,)):
+        single = S.screen_adaptive(pool, stages=st, target=None, seed=0)
+        for r in single:
+            if r["fingerprint"] in staged:
+                assert staged[r["fingerprint"]] <= r["d"], (
+                    f"staged reported {staged[r['fingerprint']]} where a "
+                    f"{st[0]}-trial stage alone found {r['d']}")
