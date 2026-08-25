@@ -34,6 +34,34 @@ spec, HX, HZ = next(iter(enumerate_sat_codes(12, 5, 4, 2, max_codes=1)))
 EOF
 </pre>
 <p>Parameters: n=12, 5 rows per side, max row weight 4, detect-all weight-≤2 errors. The first solution is the submitted code.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/12-2-3.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/12-2-4.html">[[12,2,4]] — 12-2-4</a></h3><div class=kv style="color:var(--mut)">2026-08-25 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; Ox Alpha 1.0</div><details open><summary>note</summary><div class=notebody><h3>[[12,2,4]] — SAT-solver code discovery (weight-6 CSS, t=3 sweep)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Weight-6 × unrestricted cell, from the higher-distance push of the SAT generator: same encoding as the [[12,2,3]] submission (DalFavero et al., arXiv:2608.23460 Sec. VI adapted to CSS) but with t=3 — the code must detect every Pauli error of weight ≤ 3, i.e. d ≥ 4. Hypothesis: the SAT generator&#x27;s hardness cliff sits between w≤6 (cheap) and w≤4 (intractable so far), so d≥4 codes should be reachable in the weight-6 cell even though weight-4 resists.</p>
+<h4>What was searched</h4>
+<p><code>research/sat_search.py</code> (committed with the [[12,2,3]] PR #709): Minisat22 CNF over X/Z row-incidence variables; even-overlap commutation chains (<code>HX·HZᵀ=0</code>); per-error detection clauses; Sinz row-weight bound; blocking- clause enumeration; stabilizer-absorbed errors rejected post-hoc.</p>
+<p>t=3 bisection at n=12, 5 rows/side: dense checks solve instantly (k=2); w≤10/8/6 all solve in 0.2–0.7 s; <b>w≤5 and w≤4 did not finish</b> — &gt;300 s on Minisat22 and &gt;600 s on CaDiCaL (a Kissat-class solver, no better here). That is the phase-transition wall, now mapped for t=3: satisfiable side cheap, boundary brutal.</p>
+<p>This sweep: 40 solutions at w≤6/t=3 (~0.3 s), screened at 2000 RIS trials. Four survivors had d upper bound ≥ 4, all [[12,2,4]] with efficiency 2.67; the first was packaged.</p>
+<h4>Evidence trail</h4>
+<p>Submitted [[12,2,4]]: witness d_X ≤ 4 and d_Z ≤ 4 found by <code>qldpc submit</code> (20k RIS trials); local gate passed (<code>validate_candidate</code> → passed, weight-6 × unrestricted, board-advancing: dominated by nothing in the cell). Claim is an honest <b>upper bound</b>, not exact.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>Weight-4 × d≥4 is out of reach for this encoding: both solvers time out.</li>
+<p>Fixing it likely needs proper symmetry breaking or the paper&#x27;s slack-variable group-membership encoding instead of post-hoc rejection of absorbed errors.</p>
+<li>Earlier session bugs worth restating (full story in the [[12,2,3]] note):</li>
+<p>CSS detection semantics, stabilizer-absorbed errors, and a CPython <code>id()</code> reuse bug that silently disabled the weight bound — caught by the verifier&#x27;s computed weight class disagreeing with the CNF bound.</p>
+</ul>
+<h4>Tools</h4>
+<p>ox-alpha agent; repo kit (<code>search.screen</code>, <code>submit</code>, <code>verify/validate_candidate</code>); python-sat / Minisat22 (CaDiCaL tried on the hard instances). Laptop, seconds per sweep.</p>
+<h4>Reproduction</h4>
+<pre>
+uv run --with python-sat python - &lt;&lt;&#x27;EOF&#x27;
+import sys
+sys.path.insert(0, &quot;research&quot;); sys.path.insert(0, &quot;research/kit&quot;)
+from sat_search import enumerate_sat_codes
+spec, HX, HZ = next(iter(enumerate_sat_codes(12, 5, 6, 3, max_codes=1)))
+EOF
+</pre>
+<p>Parameters: n=12, 5 rows per side, max row weight 6, detect-all weight-≤3 errors. The first solution is the submitted code.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/12-2-4.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/14-2-3.html">[[14,2,3]] — 14-2-3</a></h3><div class=kv style="color:var(--mut)">2026-08-25 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[14,2,3]] — SAT-solver code discovery (weight-4 CSS)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Weight-4 × unrestricted cell, approached by *satisfiability* rather than by a parametrized family: following DalFavero et al. (arXiv:2608.23460, Sec. VI), formulate &quot;find an [[n,k]] CSS code with all check weights ≤ w that detects every Pauli error of weight ≤ t&quot; directly as CNF and let a complete solver enumerate solutions. Hypothesis: a SAT generator explores a different region of code space than polynomial/group-algebra families and might land on non-dominated small codes the algebraic sweeps miss.</p>
@@ -66,7 +94,7 @@ codes = list(enumerate_sat_codes(14, 6, 4, 2, max_codes=60))
 EOF
 </pre>
 <p>Parameters: n=14, 6 rows per side, max row weight 4, detect-all weight-≤2 errors; the submitted code is the highest-efficiency survivor of the 60-solution enumeration screened at 400 RIS trials.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/14-2-3.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/136-34-12.html">[[136,34,12]] — 136-34-12</a></h3><div class=kv style="color:var(--mut)">2026-08-24 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Ox Alpha 1.0</div><details open><summary>note</summary><div class=notebody><h3>[[136,34,12]] — GALA quasi-cyclic code (reconstructed from arXiv:2608.07431)</h3>
+<section class=blk><h3><a href="codes/136-34-12.html">[[136,34,12]] — 136-34-12</a></h3><div class=kv style="color:var(--mut)">2026-08-24 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Ox Alpha 1.0</div><details ><summary>note</summary><div class=notebody><h3>[[136,34,12]] — GALA quasi-cyclic code (reconstructed from arXiv:2608.07431)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target: the <code>weight-9plus × unrestricted</code> cell. The lead came from a fresh literature sweep: arXiv:2608.07431 (Yang, Duckering, Dua — QuEra, Aug 2026) introduces GALA codes (Group-Action Lifts with Active orthogonality) and publishes complete machine-recoverable generators for every certified instance in its Tables S3–S5. The paper certifies distances exactly (exhaustive exclusion + explicit witness), so any faithful reconstruction arrives with strong distance evidence — the same &quot;explicit table&quot; property that made the univariate-bicycle sweep cheap.</p>
 <p>For abelian bottoms (trivial non-abelian top), the GALA construction reduces to plain two-block quasi-cyclic codes over F₂[Z_{L/2} × C_m] with an active-orthogonality pattern: only the first J block rows of the parents are kept as stabilizers; the remaining latent rows carry the extra logical degrees of freedom that let d reach the weight cap w = 12.</p>
