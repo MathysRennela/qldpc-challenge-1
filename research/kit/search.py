@@ -92,6 +92,92 @@ def screen(candidates, *, min_k=1, min_d=1, trials=400, seed=0,
     return out[:keep] if keep else out
 
 
+def screen_adaptive(candidates, *, stages=(400, 20_000, 200_000), target=None,
+                    min_k=1, min_d=1, metric=efficiency, keep=None,
+                    seed=0, backend="numpy", threads=1, audit=None,
+                    verbose=False):
+    """Screen in widening stages, dropping what cannot reach ``target``.
+
+    ``screen`` spends its whole trial budget on every candidate, including the
+    ones a hundred trials would have settled. This runs the cheapest stage on
+    everything and promotes only what is still worth paying for.
+
+    The rejection is sound rather than heuristic, and that rests on the
+    direction of the error: ``distance_rand`` returns an UPPER bound on d. A
+    candidate whose stage reading already scores below ``target`` therefore has
+    true d at most that reading and true score at most that score, and no
+    deeper stage can rescue it, since widening the search can only lower d.
+    Nothing that could have beaten the target is dropped.
+
+    ``target`` is a score in the units of ``metric`` (kd^2/n by default); with
+    ``target=None`` nothing is dropped for score and the stages only refine the
+    estimate. Candidates on the running Pareto frontier over (n, k, d) are
+    promoted whether or not they clear the target, since the board rewards
+    frontier membership separately from score.
+
+    Pass ``audit`` as a dict to receive per-stage ``promoted`` and ``rejected``
+    counts, plus ``trials_spent`` against ``trials_flat``, the budget a flat
+    ``screen`` at the deepest stage would have spent.
+    """
+    tally = audit if audit is not None else {}
+    tally.setdefault("promoted", [])
+    tally.setdefault("rejected", [])
+    tally.setdefault("trials_spent", 0)
+
+    live, seen = [], set()
+    for spec, HX, HZ in candidates:
+        if not verify_css(HX, HZ):
+            continue
+        k = compute_k(HX, HZ)
+        if k < min_k:
+            continue
+        fp = fingerprint(HX, HZ)
+        if fp in seen:
+            continue
+        seen.add(fp)
+        live.append({"spec": spec, "HX": HX, "HZ": HZ, "k": int(k),
+                     "n": int(HX.shape[1]), "fp": fp, "d": None})
+
+    for si, trials in enumerate(stages):
+        if not live:
+            break
+        for c in live:
+            c["d"] = int(distance_rand(
+                c["HX"], c["HZ"], trials=trials,
+                seed=seed + si * 7919 + int(c["fp"], 16),
+                backend=backend, threads=threads))
+            tally["trials_spent"] += trials
+        live = [c for c in live if c["d"] != float("inf") and c["d"] >= min_d]
+        if target is not None and si < len(stages) - 1:
+            scored = [{"n": c["n"], "k": c["k"], "d": c["d"], "_c": c}
+                      for c in live]
+            front_fps = {r["_c"]["fp"] for r in pareto_frontier(scored)}
+            keepers, dropped = [], 0
+            for c in live:
+                if (metric(c["n"], c["k"], c["d"]) >= target
+                        or c["fp"] in front_fps):
+                    keepers.append(c)
+                else:
+                    dropped += 1
+            tally["promoted"].append(len(keepers))
+            tally["rejected"].append(dropped)
+            live = keepers
+            if verbose:
+                print(f"  stage {si} ({trials} trials): {len(keepers)} kept, "
+                      f"{dropped} rejected")
+
+    tally["trials_flat"] = len(seen) * (stages[-1] if stages else 0)
+    out = []
+    for c in live:
+        w = int(max(*(int(r.sum()) for r in c["HX"]),
+                    *(int(r.sum()) for r in c["HZ"])))
+        out.append({"spec": c["spec"], "n": c["n"], "k": c["k"], "d": c["d"],
+                    "w": w, "fingerprint": c["fp"],
+                    "efficiency": round(float(metric(c["n"], c["k"], c["d"])), 4)})
+    out.sort(key=lambda r: r["efficiency"], reverse=True)
+    return out[:keep] if keep else out
+
+
 def pareto_frontier(records):
     """The Pareto-optimal records over (n smaller, k larger, d larger): those
     not dominated by any other (no other has n' <= n, k' >= k, d' >= d with at
@@ -137,28 +223,66 @@ def update_leaderboard(path, records):
 # ---------------------------------------------------------------------------
 #  Ready-made samplers (all yield (spec, HX, HZ); point ``screen`` at any)
 # ---------------------------------------------------------------------------
-def sample_bb(num, *, l_range=(4, 12), m_range=(3, 10), weight=3, seed=0):
+def bb_shape(l, m, A, B):  # noqa: E741
+    """Return (n, w) for a bivariate-bicycle candidate without building it.
+
+    Both are exact rather than bounds: n = 2lm by construction, and every check
+    row is one A monomial block beside one B block, so the max row weight is
+    |A| + |B| whenever the supports are distinct (which the samplers ensure).
+    Cheap enough to run on every candidate before the dense build.
+    """
+    return 2 * l * m, len(A) + len(B)
+
+
+def sample_bb(num, *, l_range=(4, 12), m_range=(3, 10), weight=3, seed=0,
+              n_range=None, max_weight=None, audit=None):
     """Yield ``num`` random bivariate-bicycle candidates ``(spec, HX, HZ)``.
 
     Each picks a random torus Z_l x Z_m and two sets of ``weight`` distinct
     monomials (distinct so the supports do not cancel mod 2). ``spec`` is a dict
     ``{"family": "bb", "l", "m", "A", "B"}`` -- pass it straight to ``build_bb``
     to rebuild the code.
+
+    ``n_range`` and ``max_weight`` reject a candidate before ``build_bb`` runs,
+    using the exact (n, w) that ``bb_shape`` reads off the parameters. Both are
+    facts about the construction rather than estimates, so nothing that could
+    have passed is discarded. Pass ``audit`` as a dict to receive counts under
+    ``sampled``, ``rejected_n``, ``rejected_w`` and ``built``.
+
+    Deliberately absent: a k prefilter via ``surrogate.mixed_volume``. That is
+    a heuristic here, not a bound. Measured against recomputed k on random
+    candidates whose supports contain (0,0), true k exceeds it in about 2.6% of
+    cases on small tori (l, m in [3,5]; worst observed k = 12 against a bound
+    of 0 at l = m = 3), 0.1% for l, m in [6,9], and in none of 700 samples at
+    [10,14]. Rejecting on it would silently drop real codes, so it is left to
+    callers who want a lossy filter and know the rate.
     """
     rng = np.random.default_rng(seed)
+    tally = audit if audit is not None else {}
+    for key in ("sampled", "rejected_n", "rejected_w", "built"):
+        tally.setdefault(key, 0)
 
-    def distinct_monomials(l, m):
+    def distinct_monomials(l, m):  # noqa: E741
         grid = [(a, b) for a in range(l) for b in range(m)]
         idx = rng.choice(len(grid), size=min(weight, len(grid)), replace=False)
         return [grid[i] for i in idx]
 
     for _ in range(num):
-        l = int(rng.integers(l_range[0], l_range[1] + 1))
+        l = int(rng.integers(l_range[0], l_range[1] + 1))  # noqa: E741
         m = int(rng.integers(m_range[0], m_range[1] + 1))
         if l * m < weight:
             continue
         A = distinct_monomials(l, m)
         B = distinct_monomials(l, m)
+        tally["sampled"] += 1
+        n, w = bb_shape(l, m, A, B)
+        if n_range is not None and not (n_range[0] <= n <= n_range[1]):
+            tally["rejected_n"] += 1
+            continue
+        if max_weight is not None and w > max_weight:
+            tally["rejected_w"] += 1
+            continue
+        tally["built"] += 1
         HX, HZ = build_bb(l, m, A, B)
         yield ({"family": "bb", "l": l, "m": m, "A": A, "B": B}, HX, HZ)
 
