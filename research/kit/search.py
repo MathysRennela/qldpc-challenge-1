@@ -51,9 +51,49 @@ def fingerprint(HX, HZ):
     return hashlib.sha256(b).hexdigest()[:16]
 
 
+def _screen_one(job):
+    """Score one candidate. Module level so a process pool can pickle it.
+
+    The seed is derived from the code's own fingerprint, so a candidate gets
+    the same trials wherever it runs and whatever order it arrives in.
+    """
+    spec, HX, HZ, min_k, min_d, trials, seed, backend, threads = job
+    if not verify_css(HX, HZ):
+        return None
+    k = compute_k(HX, HZ)
+    if k < min_k:
+        return None
+    fp = fingerprint(HX, HZ)
+    d = distance_rand(HX, HZ, trials=trials, seed=seed + int(fp, 16),
+                      backend=backend, threads=threads)
+    if d == float("inf") or d < min_d:
+        return None
+    n = int(HX.shape[1])
+    w = int(max(max((int(r.sum()) for r in HX), default=0),
+                max((int(r.sum()) for r in HZ), default=0)))
+    return {"spec": spec, "n": n, "k": int(k), "d": int(d), "w": w,
+            "fingerprint": fp}
+
+
+def _batches(it, size):
+    """Yield lists of at most ``size`` items, pulling lazily.
+
+    Candidates are generated on demand and handed out in bounded batches, so a
+    sweep of a million never materializes a million dense matrices.
+    """
+    batch = []
+    for item in it:
+        batch.append(item)
+        if len(batch) >= size:
+            yield batch
+            batch = []
+    if batch:
+        yield batch
+
+
 def screen(candidates, *, min_k=1, min_d=1, trials=400, seed=0,
            metric=efficiency, keep=None, verbose=False, backend="numpy",
-           threads=1):
+           threads=1, workers=1, threads_per_candidate=None, batch=64):
     """Screen an iterable of ``(spec, HX, HZ)`` candidates.
 
     ``spec`` is any JSON-serializable description of how the code was built (a
@@ -64,31 +104,71 @@ def screen(candidates, *, min_k=1, min_d=1, trials=400, seed=0,
     ``{spec, n, k, d, efficiency, fingerprint}`` sorted by score (best first),
     deduplicated by fingerprint, truncated to ``keep`` if given. ``backend`` and
     ``threads`` control the optional accelerated distance screen.
+
+    ``workers`` > 1 scores candidates in parallel processes. Candidates are
+    independent, so this is the axis to scale for a broad sweep;
+    ``threads_per_candidate`` (default 1 when parallel) is the other axis, for
+    a few finalists rather than many candidates. Turning up both oversubscribes
+    the machine, so passing both greater than 1 raises rather than quietly
+    thrashing.
+
+    The result does not depend on the worker count. Each candidate's trials are
+    seeded from its own fingerprint, deduplication happens in the parent, and
+    ties in score break on fingerprint, so a parallel run returns exactly what a
+    serial one does. Candidates are pulled lazily in batches of ``batch``, so a
+    long generator never has to be materialized.
     """
-    seen = {}
-    for spec, HX, HZ in candidates:
-        if not verify_css(HX, HZ):          # constructors guarantee this; stay safe
-            continue
-        k = compute_k(HX, HZ)
-        if k < min_k:
-            continue
-        fp = fingerprint(HX, HZ)
-        if fp in seen:
-            continue
-        n = int(HX.shape[1])
-        d = distance_rand(
-            HX, HZ, trials=trials, seed=seed + int(fp, 16),
-            backend=backend, threads=threads)
-        if d == float("inf") or d < min_d:
-            continue
-        w = int(max((HX.shape[0] and max((int(r.sum()) for r in HX), default=0)),
-                    (HZ.shape[0] and max((int(r.sum()) for r in HZ), default=0))))
-        rec = {"spec": spec, "n": n, "k": int(k), "d": int(d), "w": w,
-               "efficiency": round(float(metric(n, k, d)), 4), "fingerprint": fp}
-        seen[fp] = rec
+    if workers < 1:
+        raise ValueError("workers must be at least 1")
+    if threads_per_candidate is None:
+        threads_per_candidate = 1 if workers > 1 else threads
+    if workers > 1 and threads_per_candidate > 1:
+        raise ValueError(
+            "workers and threads_per_candidate both > 1 oversubscribes the "
+            "machine; parallelize across candidates for a sweep, or across "
+            "threads for a few finalists, not both")
+
+    def _record(rec):
+        rec["efficiency"] = round(float(metric(rec["n"], rec["k"], rec["d"])), 4)
         if verbose:
-            print(f"  [[{n},{k},{d}]] eff={rec['efficiency']:.3f}  {spec}")
-    out = sorted(seen.values(), key=lambda r: r["efficiency"], reverse=True)
+            print(f"  [[{rec['n']},{rec['k']},{rec['d']}]] "
+                  f"eff={rec['efficiency']:.3f}  {rec['spec']}")
+        return rec
+
+    seen = {}
+    jobs = ((spec, HX, HZ, min_k, min_d, trials, seed, backend,
+             threads_per_candidate) for spec, HX, HZ in candidates)
+
+    if workers == 1:
+        for job in jobs:
+            rec = _screen_one(job)
+            if rec is not None and rec["fingerprint"] not in seen:
+                seen[rec["fingerprint"]] = _record(rec)
+    else:
+        import multiprocessing as mp
+        try:
+            ctx = mp.get_context("fork")
+        except ValueError:
+            ctx = mp.get_context("spawn")
+        try:
+            with ctx.Pool(processes=workers) as pool:
+                for chunk in _batches(jobs, max(1, batch)):
+                    for rec in pool.map(_screen_one, chunk):
+                        if rec is not None and rec["fingerprint"] not in seen:
+                            seen[rec["fingerprint"]] = _record(rec)
+        except (OSError, RuntimeError, ValueError, ImportError):
+            # An unguarded caller under spawn, or a sandbox without processes:
+            # fall back rather than fail, since the serial path is the same
+            # computation.
+            for job in jobs:
+                rec = _screen_one(job)
+                if rec is not None and rec["fingerprint"] not in seen:
+                    seen[rec["fingerprint"]] = _record(rec)
+
+    # Fingerprint breaks ties so the order does not depend on arrival order,
+    # which it otherwise would once candidates are scored out of sequence.
+    out = sorted(seen.values(),
+                 key=lambda r: (-r["efficiency"], r["fingerprint"]))
     return out[:keep] if keep else out
 
 
