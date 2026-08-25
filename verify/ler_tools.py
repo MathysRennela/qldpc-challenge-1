@@ -81,31 +81,119 @@ def make_decoder(H, probs):
                         osd_order=10)
 
 
-def measure_failures(dem, shots, seed, max_seconds=None):
+_WORKER = {}
+
+
+def _worker_init(H, probs, L):
+    """Build one decoder per worker process and keep it for every chunk.
+
+    Decoder construction is the fixed cost the benchmark separates out, so it
+    must not be paid per chunk; a pool initializer pays it once per worker.
+    """
+    _WORKER["dec"] = make_decoder(H, probs)
+    _WORKER["L"] = L
+
+
+def _decode_chunk(args):
+    """Failures in one chunk of shots. Order-independent, so chunking cannot
+    change the total."""
+    dets, obs = args
+    dec, L = _WORKER["dec"], _WORKER["L"]
+    failures = 0
+    for i in range(dets.shape[0]):
+        e_hat = dec.decode(dets[i])
+        if np.any((L @ e_hat) % 2 != obs[i]):
+            failures += 1
+    return failures
+
+
+def measure_failures(dem, shots, seed, max_seconds=None, workers=None):
     """Sampled logical failures of a DEM under the pinned decoder.
 
     A shot fails when the decoder's predicted observable flips (L @ e_hat over
     GF(2)) disagree with the sampled ones on any observable. Returns
     (failures, shots_done); shots/seed fully determine the sample for a given
     stim version, and shots_done == shots whenever `max_seconds` does not
-    truncate (the deadline is checked every 1000 shots, so a caller with a
-    wall budget gets a partial but honest sample instead of an overrun).
+    truncate.
+
+    Shots are independent, so decoding distributes across processes. Sampling
+    stays in the parent under the given seed and only the decode loop is
+    split, which keeps an untruncated run bit-identical to the serial one:
+    each shot's verdict depends on its own syndrome alone, and the total is a
+    sum, so neither chunk size nor completion order can move it.
+
+    Under `max_seconds` the result is timing-dependent, in the parallel path
+    because the set of finished chunks depends on wall clock, and in the
+    serial path because the loop stops at whichever shot the deadline lands
+    on. That was already true before this was parallel, and it is why a claim
+    is only admitted when its budget is not truncating.
+
+    `workers` defaults to one per available core, capped by the chunk count.
+    Pass 1 to force the serial path, which the tests use as the reference.
     """
+    import os
     import time
+
     from circuit_tools import dem_matrices
     H, L = dem_matrices(dem)
-    dec = make_decoder(H, dem_probs(dem))
     dets, obs, _ = dem.compile_sampler(seed=seed).sample(shots=shots)
     dets = dets.astype(np.uint8)
     deadline = (time.monotonic() + max_seconds) if max_seconds else None
-    failures = 0
-    for i in range(shots):
-        e_hat = dec.decode(dets[i])
-        if np.any((L @ e_hat) % 2 != obs[i]):
-            failures += 1
-        if deadline and i % 1000 == 999 and time.monotonic() > deadline:
-            return failures, i + 1
-    return failures, shots
+
+    if workers is None:
+        workers = max(1, (os.cpu_count() or 1))
+    # Chunks are sized so every worker gets several, which keeps a slow chunk
+    # from deciding the wall time, and so a truncated run stops on a chunk
+    # boundary rather than mid-flight.
+    target_chunks = max(1, workers * 4)
+    chunk = max(1, -(-shots // target_chunks))
+    if workers == 1 or shots <= chunk:
+        dec = make_decoder(H, dem_probs(dem))
+        failures = 0
+        for i in range(shots):
+            e_hat = dec.decode(dets[i])
+            if np.any((L @ e_hat) % 2 != obs[i]):
+                failures += 1
+            if deadline and i % 1000 == 999 and time.monotonic() > deadline:
+                return failures, i + 1
+        return failures, shots
+
+    import multiprocessing as mp
+    pieces = [(dets[i:i + chunk], obs[i:i + chunk])
+              for i in range(0, shots, chunk)]
+    probs = dem_probs(dem)
+    # Threads are useless here: the decoder holds the GIL through decode
+    # (measured at 1.03x on four threads), so parallelism has to be processes.
+    # Prefer fork, which needs no __main__ guard in the caller; a library that
+    # crashes when imported from an unguarded script is worse than a slow one,
+    # so any failure to build the pool falls back to the serial loop rather
+    # than propagating.
+    try:
+        ctx = mp.get_context("fork")
+    except ValueError:
+        ctx = mp.get_context("spawn")
+    try:
+        with ctx.Pool(processes=min(workers, len(pieces)),
+                      initializer=_worker_init,
+                      initargs=(H, probs, L)) as pool:
+            failures, done = 0, 0
+            for got, piece in zip(pool.imap(_decode_chunk, pieces), pieces):
+                failures += got
+                done += piece[0].shape[0]
+                if deadline and time.monotonic() > deadline:
+                    pool.terminate()
+                    break
+            return failures, done
+    except (OSError, RuntimeError, ValueError, ImportError):
+        dec = make_decoder(H, probs)
+        failures = 0
+        for i in range(shots):
+            e_hat = dec.decode(dets[i])
+            if np.any((L @ e_hat) % 2 != obs[i]):
+                failures += 1
+            if deadline and i % 1000 == 999 and time.monotonic() > deadline:
+                return failures, i + 1
+        return failures, shots
 
 
 def wilson_ci(failures, shots, z=Z95):

@@ -199,3 +199,43 @@ def test_main():
     """pytest entry point kept for run_tests.py parity; the suite body is the
     granular tests above."""
     assert True
+
+
+def _dem_from(cdir):
+    circuit = stim.Circuit.from_file(os.path.join(cdir, "memory_x.stim"))
+    return ct.derive_dem(circuit)
+
+
+def test_parallel_decode_matches_serial_exactly(artifact):
+    """Distributing the decode loop must not move the answer.
+
+    Shots are independent and the total is a sum, so neither the worker count
+    nor the chunking can change the result. This is the property that lets the
+    tier parallelize at all: a claim is reproducible from its seed, and that
+    guarantee cannot depend on how many cores the verifier happened to have.
+    """
+    _doc, cdir = artifact
+    dem = _dem_from(cdir)
+    serial = lt.measure_failures(dem, 400, 11, workers=1)
+    for w in (2, 3, 8):
+        assert lt.measure_failures(dem, 400, 11, workers=w) == serial, (
+            f"{w} workers disagreed with serial: "
+            f"{lt.measure_failures(dem, 400, 11, workers=w)} != {serial}")
+
+
+def test_parallel_is_reproducible_across_runs(artifact):
+    """Same seed, same answer, twice, on the parallel path."""
+    _doc, cdir = artifact
+    dem = _dem_from(cdir)
+    first = lt.measure_failures(dem, 400, 5)
+    second = lt.measure_failures(dem, 400, 5)
+    assert first == second
+
+
+def test_worker_count_does_not_change_shots_done(artifact):
+    """An untruncated run reports every shot regardless of worker count."""
+    _doc, cdir = artifact
+    dem = _dem_from(cdir)
+    for w in (1, 2, 5):
+        _, done = lt.measure_failures(dem, 250, 3, workers=w)
+        assert done == 250
