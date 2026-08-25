@@ -459,7 +459,17 @@ flex-wrap:wrap;
 padding:16px 20px;background:var(--soft);border-bottom:1px solid var(--ln)}}
 .lbh{{font-size:16px;margin:0;font-family:'Space Mono',ui-monospace,monospace;
 text-transform:uppercase;letter-spacing:.03em}}
-.lbsub{{margin:4px 0 0;font-size:13px;color:var(--mut)}}
+.lbsub{{margin:4px 0 0;font-size:13px;color:var(--mut);
+/* cap the title block so the long geo sentence can't stretch it (issue #666).
+   A plain length, deliberately: a percentage arm (min(38ch,100%)) is a cyclic
+   reference during intrinsic sizing, so the whole max-width is IGNORED for
+   the flex line-breaking decision and the row sees the unwrapped sentence --
+   which is exactly the bug. 38ch + the .lbscore cap clear the row at 1024px;
+   below 38ch of viewport the block just fills the container. */
+max-width:38ch}}
+/* the title wrapper is the actual flex item; without min-width:0 its
+   min-content locks the row even when .lbsub wraps */
+.lbhead>div{{min-width:0}}
 .lbcta{{flex:0 0 auto;font-size:13px;font-weight:700;color:#fff;
 font-family:'Space Mono',ui-monospace,monospace;
 background:var(--ac);border:none;border-radius:8px;padding:8px 14px;
@@ -535,7 +545,13 @@ background:#fef3c7;color:#92400e;border-radius:999px;padding:3px 11px;
 cursor:pointer;vertical-align:3px}}
 .qchip b{{font-weight:700}}
 .qchip:hover{{background:#fde68a}}
-.lbscore{{text-align:right;margin-right:14px}}
+.lbscore{{text-align:right;margin-right:14px;
+/* cap the card: in a wrapping flex row, line-breaking happens at each item's
+   hypothetical (max-content) size before flex-shrink ever runs, so the hero
+   card's one-line subtitle (~330px) decided the wrap regardless of any title
+   cap -- this is what actually pushed "best g" down (issue #666). Capped, the
+   subtitle wraps inside the card and the row holds to ~1024px. */
+max-width:260px}}
 .lbscore .lbsv{{font-size:30px;font-weight:800;line-height:1;
 font-variant-numeric:tabular-nums;color:var(--ink)}}
 .lbscore .lbsl{{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
