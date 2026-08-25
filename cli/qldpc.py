@@ -358,8 +358,13 @@ def frontier_summary(doc, report):
 # submit command
 # ----------------------------------------------------------------------------
 def validate_authors(authors, anonymous=False):
-    """Fail fast when submit would produce an unbound authorship record."""
+    """Return normalized authors or fail before producing an unbound record."""
     normalized = [str(author).strip() for author in authors]
+    if any(not author for author in normalized):
+        raise SystemExit(
+            "Author values must not be empty or whitespace-only. Remove the "
+            "empty value or replace it with a name or @handle."
+        )
     malformed = [
         author for author in normalized
         if author.startswith("@") and HANDLE.fullmatch(author) is None
@@ -378,7 +383,7 @@ def validate_authors(authors, anonymous=False):
             "--anonymous to keep the submission bound to that account."
         )
     if has_handle:
-        return
+        return normalized
 
     if not anonymous:
         raise SystemExit(
@@ -392,10 +397,11 @@ def validate_authors(authors, anonymous=False):
         "recorded as anonymous and will not be bound to a GitHub account.",
         flush=True,
     )
+    return normalized
 
 
 def cmd_submit(args):
-    validate_authors(args.authors, args.anonymous)
+    args.authors = validate_authors(args.authors, args.anonymous)
     HX, HZ, coords, _draft = load_checks(args.code)
     if args.coords:                      # explicit coords file overrides
         cz = np.load(args.coords) if args.coords.endswith(".npz") else None

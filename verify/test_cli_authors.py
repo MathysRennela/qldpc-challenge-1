@@ -35,6 +35,38 @@ def test_submit_checks_every_author_value(monkeypatch):
         ])
 
 
+def test_submit_rejects_whitespace_only_author_before_loading_code(monkeypatch):
+    monkeypatch.setattr(qldpc, "load_checks", _fail_if_code_is_loaded)
+
+    with pytest.raises(SystemExit, match=r"empty or whitespace-only"):
+        qldpc.main([
+            "submit", "must-not-be-loaded.npz",
+            "--authors", "@vprusso", "   ",
+        ])
+
+
+def test_submit_persists_normalized_author_values(monkeypatch):
+    captured = []
+
+    monkeypatch.setattr(
+        qldpc, "load_checks", lambda _path: (None, None, None, None)
+    )
+
+    def capture_build(_hx, _hz, args):
+        captured.extend(args.authors)
+        raise RuntimeError("build reached")
+
+    monkeypatch.setattr(qldpc, "build_submission", capture_build)
+
+    with pytest.raises(RuntimeError, match="build reached"):
+        qldpc.main([
+            "submit", "must-not-be-loaded.npz",
+            "--authors", "  @vprusso  ", "  Jane Roe  ",
+        ])
+
+    assert captured == ["@vprusso", "Jane Roe"]
+
+
 def test_valid_handle_and_plain_name_reach_code_loading(monkeypatch):
     reached = []
 
