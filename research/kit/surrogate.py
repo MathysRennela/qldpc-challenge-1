@@ -140,7 +140,51 @@ def _rref_perm(M, perm):
     return M[:r]
 
 
-def _search_lightest(Hself, Hopp, trials, seed, pair_depth=10):
+class PreparedSearch:
+    """Reusable GF(2) state for repeated distance searches on one code.
+
+    ``kernel_basis`` and ``logical_basis`` depend only on the check matrices, so
+    a workflow that searches the same code at several budgets (a staged screen,
+    a ladder that widens until it converges) recomputes them every time for no
+    reason. Building this once and passing it to ``distance_rand`` keeps the
+    per-call work to the trials themselves.
+
+    The bases are treated as immutable: each search allocates its own scratch
+    and never writes through them, so one prepared object is safe to reuse
+    across calls and across budgets.
+    """
+
+    __slots__ = ("HX", "HZ", "n", "_sides")
+
+    def __init__(self, HX, HZ):
+        self.HX = np.asarray(HX, dtype=np.int8) % 2
+        self.HZ = np.asarray(HZ, dtype=np.int8) % 2
+        self.n = int(self.HX.shape[1])
+        self._sides = {}
+        for tag, Hself, Hopp in (("X", self.HX, self.HZ),
+                                 ("Z", self.HZ, self.HX)):
+            K = kernel_basis(Hopp)
+            LO = logical_basis(Hself, Hopp)
+            self._sides[tag] = (Hself, Hopp, K, LO)
+
+    def side(self, tag):
+        """Return (Hself, Hopp, kernel basis, opposite-logical basis).
+
+        ``tag`` is 'X' or 'Z'.
+        """
+        return self._sides[tag]
+
+
+def prepare_distance_search(HX, HZ):
+    """Precompute the GF(2) bases ``distance_rand`` would rebuild on every call.
+
+    Pass the result as ``distance_rand(..., prepared=obj)``. Worth it when the
+    same code is searched more than once, which is what a staged screen does.
+    """
+    return PreparedSearch(HX, HZ)
+
+
+def _search_lightest(Hself, Hopp, trials, seed, pair_depth=10, bases=None):
     """Randomized upper-bound search for the lightest nontrivial logical of one
     type: a vector v with v in ker(Hopp) (commutes with the opposite checks) but
     v not in rowspace(Hself) (not a stabilizer product). Returns
@@ -154,8 +198,11 @@ def _search_lightest(Hself, Hopp, trials, seed, pair_depth=10):
     Hself = np.asarray(Hself, dtype=np.int8) % 2
     Hopp = np.asarray(Hopp, dtype=np.int8) % 2
     n = Hself.shape[1]
-    K = kernel_basis(Hopp)            # operators commuting with the opposite checks
-    LO = logical_basis(Hself, Hopp)   # opposite-type logicals -> nontriviality test
+    if bases is None:
+        K = kernel_basis(Hopp)        # operators commuting with the opposite checks
+        LO = logical_basis(Hself, Hopp)   # opposite-type logicals -> nontriviality
+    else:
+        K, LO = bases                 # prepared once; never written through here
     if K.size == 0 or LO.size == 0:
         return float("inf"), []
     rng = np.random.default_rng(seed)
@@ -194,7 +241,8 @@ def lightest_logical(Hself, Hopp, trials=8000, seed=0):
     return _search_lightest(Hself, Hopp, trials, seed)
 
 
-def distance_rand(HX, HZ, trials=2000, seed=0, *, backend="numpy", threads=1):
+def distance_rand(HX=None, HZ=None, trials=2000, seed=0, *,
+                  backend="numpy", threads=1, prepared=None):
     """Return a randomized upper bound on ``d = min(d_X, d_Z)``.
 
     ``backend`` is ``"numpy"`` (portable), ``"fast"`` (requires ``make fast``),
@@ -202,17 +250,33 @@ def distance_rand(HX, HZ, trials=2000, seed=0, *, backend="numpy", threads=1):
     validated by Python; this remains an upper-bound search, not a proof.
     ``trials`` counts different search operations in the two backends, so the
     same value is not a comparable screening budget across backends.
+
+    Pass ``prepared`` (from :func:`prepare_distance_search`) to skip rebuilding
+    the GF(2) bases, which is worth doing when the same code is searched at
+    more than one budget. ``HX``/``HZ`` may then be omitted. The bases do not
+    depend on ``trials`` or ``seed``, so a prepared search returns exactly what
+    the unprepared one would for the same arguments.
     """
     if backend not in ("numpy", "fast", "auto"):
         raise ValueError("backend must be 'numpy', 'fast', or 'auto'")
     if threads < 1:
         raise ValueError("threads must be at least 1")
+    if prepared is not None:
+        HX, HZ = prepared.HX, prepared.HZ
+    elif HX is None or HZ is None:
+        raise TypeError("distance_rand needs HX and HZ, or prepared=")
     if backend in ("fast", "auto") and _fast is not None:
         return _distance_rand_fast(HX, HZ, trials, seed, threads)
     if backend == "fast":
         raise ImportError("gf2_fast is unavailable; run `make fast` to build it")
-    wx, _ = _search_lightest(HX, HZ, trials, seed)
-    wz, _ = _search_lightest(HZ, HX, trials, seed)
+    if prepared is None:
+        wx, _ = _search_lightest(HX, HZ, trials, seed)
+        wz, _ = _search_lightest(HZ, HX, trials, seed)
+    else:
+        hx_self, hx_opp, kx, lx = prepared.side("X")
+        hz_self, hz_opp, kz, lz = prepared.side("Z")
+        wx, _ = _search_lightest(hx_self, hx_opp, trials, seed, bases=(kx, lx))
+        wz, _ = _search_lightest(hz_self, hz_opp, trials, seed, bases=(kz, lz))
     return min(wx, wz)
 
 
