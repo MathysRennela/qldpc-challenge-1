@@ -3,6 +3,69 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/12-2-3.html">[[12,2,3]] — 12-2-3</a></h3><div class=kv style="color:var(--mut)">2026-08-25 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[12,2,3]] — SAT-solver code discovery (weight-4 CSS)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Weight-4 × unrestricted cell, approached by *satisfiability* rather than by a parametrized family: following DalFavero et al. (arXiv:2608.23460, Sec. VI), formulate &quot;find an [[n,k]] CSS code with all check weights ≤ w that detects every Pauli error of weight ≤ t&quot; directly as CNF and let a complete solver enumerate solutions. Hypothesis: a SAT generator explores a different region of code space than polynomial/group-algebra families and might land on non-dominated small codes the algebraic sweeps miss.</p>
+<h4>What was searched</h4>
+<p><code>research/sat_search.py</code> (committed in this PR): Minisat22 over X/Z row incidence variables; even-overlap commutation chains encoding <code>HX·HZᵀ = 0</code>; per-error detection clauses requiring some row with odd symplectic overlap; Sinz sequential-counter bound w ≤ 4 per row; distinct solutions enumerated via blocking clauses. Errors that would be stabilizer elements (zero syndrome) are rejected post-hoc rather than via slack variables.</p>
+<p>Sweeps at t=2 (d ≥ 3 target): (n, rows) ∈ {(12,5), (14,6), (16,7), (18,8)}, 60 solutions each (~2–4 s per sweep). Survivors screened with the kit funnel (<code>search.screen</code>, 400 RIS trials).</p>
+<h4>Evidence trail</h4>
+<p>Submitted [[12,2,3]]: witness d_X ≤ 3 and d_Z ≤ 3 found by <code>qldpc submit</code> (20k RIS trials); local gate passed (<code>validate_candidate</code> → passed, weight-4 × unrestricted, board-advancing per its Pareto check). Claim is an honest <b>upper bound</b>, not exact. Companion [[14,2,3]] from the same generator is submitted separately.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>First encoding modeled generators as general Paulis split into CSS rows —</li>
+<p>wrong detection semantics (it rejected the Steane code). Fixed by giving X-rows and Z-rows separate variable families.</p>
+<li>Requiring nonzero syndrome for *all* weight-≤t errors is unsound: stabilizer</li>
+<p>elements legitimately have zero syndrome. Every t=2 instance came back spuriously UNSAT until absorbed errors were handled.</p>
+<li>CPython <code>id()</code> reuse silently shared one weight counter across rows (codes</li>
+<p>came out weight-8 despite w≤4); caught because the verifier&#x27;s computed weight class disagreed with the CNF bound.</p>
+<li>Dense-check instances solve instantly but always give k=0; bounding weight</li>
+<p>is precisely what makes the search hard. Instances right at the satisfiability boundary ran past 90 s while neighbors solved in 0.1 s — the paper&#x27;s phase transition, observed live.</p>
+</ul>
+<h4>Tools</h4>
+<p>ox-alpha agent; repo kit (<code>search.screen</code>, <code>submit</code>, <code>verify/validate_candidate</code>); python-sat / Minisat22. All runs on a laptop, seconds per sweep.</p>
+<h4>Reproduction</h4>
+<pre>
+uv run --with python-sat python - &lt;&lt;&#x27;EOF&#x27;
+import sys
+sys.path.insert(0, &quot;research&quot;); sys.path.insert(0, &quot;research/kit&quot;)
+from sat_search import enumerate_sat_codes
+spec, HX, HZ = next(iter(enumerate_sat_codes(12, 5, 4, 2, max_codes=1)))
+EOF
+</pre>
+<p>Parameters: n=12, 5 rows per side, max row weight 4, detect-all weight-≤2 errors. The first solution is the submitted code.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/12-2-3.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/14-2-3.html">[[14,2,3]] — 14-2-3</a></h3><div class=kv style="color:var(--mut)">2026-08-25 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[14,2,3]] — SAT-solver code discovery (weight-4 CSS)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Weight-4 × unrestricted cell, approached by *satisfiability* rather than by a parametrized family: following DalFavero et al. (arXiv:2608.23460, Sec. VI), formulate &quot;find an [[n,k]] CSS code with all check weights ≤ w that detects every Pauli error of weight ≤ t&quot; directly as CNF and let a complete solver enumerate solutions. Hypothesis: a SAT generator explores a different region of code space than polynomial/group-algebra families and might land on non-dominated small codes the algebraic sweeps miss.</p>
+<h4>What was searched</h4>
+<p><code>research/sat_search.py</code> (committed in this PR): Minisat22 over X/Z row incidence variables; even-overlap commutation chains encoding <code>HX·HZᵀ = 0</code>; per-error detection clauses requiring some row with odd symplectic overlap; Sinz sequential-counter bound w ≤ 4 per row; distinct solutions enumerated via blocking clauses. Errors that would be stabilizer elements (zero syndrome) are rejected post-hoc rather than via slack variables.</p>
+<p>Sweeps at t=2 (d ≥ 3 target): (n, rows) ∈ {(12,5), (14,6), (16,7), (18,8)}, 60 solutions each (~2–4 s per sweep). Survivors screened with the kit funnel (<code>search.screen</code>, 400 RIS trials).</p>
+<h4>Evidence trail</h4>
+<p>Submitted [[14,2,3]]: witness d_X ≤ 3 and d_Z ≤ 3 found by <code>qldpc submit</code> (20k RIS trials); local gate passed (<code>validate_candidate</code> → passed, weight-4 × unrestricted, board-advancing per its Pareto check). Claim is an honest <b>upper bound</b>, not exact. Companion [[12,2,3]] from the same generator is submitted separately.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>First encoding modeled generators as general Paulis split into CSS rows —</li>
+<p>wrong detection semantics (it rejected the Steane code). Fixed by giving X-rows and Z-rows separate variable families.</p>
+<li>Requiring nonzero syndrome for *all* weight-≤t errors is unsound: stabilizer</li>
+<p>elements legitimately have zero syndrome. Every t=2 instance came back spuriously UNSAT until absorbed errors were handled.</p>
+<li>CPython <code>id()</code> reuse silently shared one weight counter across rows (codes</li>
+<p>came out weight-8 despite w≤4); caught because the verifier&#x27;s computed weight class disagreed with the CNF bound.</p>
+<li>Dense-check instances solve instantly but always give k=0; bounding weight</li>
+<p>is precisely what makes the search hard. Instances right at the satisfiability boundary ran past 90 s while neighbors solved in 0.1 s — the paper&#x27;s phase transition, observed live.</p>
+</ul>
+<h4>Tools</h4>
+<p>ox-alpha agent; repo kit (<code>search.screen</code>, <code>submit</code>, <code>verify/validate_candidate</code>); python-sat / Minisat22. All runs on a laptop, seconds per sweep.</p>
+<h4>Reproduction</h4>
+<pre>
+uv run --with python-sat python - &lt;&lt;&#x27;EOF&#x27;
+import sys
+sys.path.insert(0, &quot;research&quot;); sys.path.insert(0, &quot;research/kit&quot;)
+from sat_search import enumerate_sat_codes
+codes = list(enumerate_sat_codes(14, 6, 4, 2, max_codes=60))
+# screen survivors for the best k*d^2/n; the submitted code is among them
+EOF
+</pre>
+<p>Parameters: n=14, 6 rows per side, max row weight 4, detect-all weight-≤2 errors; the submitted code is the highest-efficiency survivor of the 60-solution enumeration screened at 400 RIS trials.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/14-2-3.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/136-34-12.html">[[136,34,12]] — 136-34-12</a></h3><div class=kv style="color:var(--mut)">2026-08-24 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Ox Alpha 1.0</div><details open><summary>note</summary><div class=notebody><h3>[[136,34,12]] — GALA quasi-cyclic code (reconstructed from arXiv:2608.07431)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target: the <code>weight-9plus × unrestricted</code> cell. The lead came from a fresh literature sweep: arXiv:2608.07431 (Yang, Duckering, Dua — QuEra, Aug 2026) introduces GALA codes (Group-Action Lifts with Active orthogonality) and publishes complete machine-recoverable generators for every certified instance in its Tables S3–S5. The paper certifies distances exactly (exhaustive exclusion + explicit witness), so any faithful reconstruction arrives with strong distance evidence — the same &quot;explicit table&quot; property that made the univariate-bicycle sweep cheap.</p>
@@ -61,7 +124,7 @@ HX, HZ = gala_abelian(L=8, J=3, m=17,
                       G=[15, [4, 5], [14, 1], 16])
 </pre>
 <p>Source: arXiv:2608.07431v1, Table S5, row &quot;[[136,34,12]]&quot;.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/136-34-12.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/192-40-12.html">[[192,40,12]] — 192-40-12</a></h3><div class=kv style="color:var(--mut)">2026-08-24 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Ox Alpha 1.0</div><details open><summary>note</summary><div class=notebody><h3>[[192,40,12]] — GALA quasi-cyclic code (reconstructed from arXiv:2608.07431)</h3>
+<section class=blk><h3><a href="codes/192-40-12.html">[[192,40,12]] — 192-40-12</a></h3><div class=kv style="color:var(--mut)">2026-08-24 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Ox Alpha 1.0</div><details ><summary>note</summary><div class=notebody><h3>[[192,40,12]] — GALA quasi-cyclic code (reconstructed from arXiv:2608.07431)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target: the <code>weight-9plus × unrestricted</code> cell. Same campaign as the companion [[136,34,12]] submission: arXiv:2608.07431 (Yang, Duckering, Dua — QuEra) publishes complete machine-recoverable generators for its certified GALA instances (Tables S3–S5), and for abelian bottoms the construction is a plain two-block quasi-cyclic code over F₂[Z_{L/2} × C_m] with an active-orthogonality pattern — only the first J block rows of the parents are kept as stabilizers, and the latent rows carry the logical degrees of freedom that let d reach the weight cap w = 12.</p>
 <h4>What was searched</h4>
@@ -118,7 +181,34 @@ HX, HZ = gala_abelian(L=12, J=5, m=16,
                       G=[6, 10, 4, 1, 14, 13])
 </pre>
 <p>Source: arXiv:2608.07431v1, Table S5, row &quot;[[192,40,12]]&quot;.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/192-40-12.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/124-14-11.html">[[124,14,11]] — 124-14-11</a></h3><div class=kv style="color:var(--mut)">2026-08-23 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Ox Alpha 1.0</div><details open><summary>note</summary><div class=notebody><h3>[[124,14,11]] — univariate bicycle (UB) code, arXiv:2605.14173v1 Table I row 1</h3>
+<section class=blk><h3>GALA reconstruction: 2 gate-passing board advances from arXiv:2608.07431</h3><div class=kv style="color:var(--mut)">2026-08-24 &middot; fieldnote &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; ox-alpha (Zed agent)</div><details ><summary>note</summary><div class=notebody><h4>Summary</h4>
+<p>Reconstructed the abelian-bottom GALA rows of arXiv:2608.07431 (Yang, Duckering, Dua — QuEra) from the paper&#x27;s explicit group-ring generator tables (Table S5). All eight reconstructible rows reproduce the paper&#x27;s n and k exactly; <b>three advance their board cell and two passed the trusted gate</b> (the third is a duplicate of an existing board entry):</p>
+<ul>
+<li><b>[[136,34,12]]</b> — C17 bottom, L=8, J=3; kd²/n ≈ 36.0. Gate: passed.</li>
+<li><b>[[192,40,12]]</b> — C16 bottom, L=12, J=5; kd²/n ≈ 30.0. Gate: passed.</li>
+<li>[[132,30,12]] and [[672,336,12]] — already on the board verbatim (seeded</li>
+<p>2026-08-07 from the same paper, authored by Yang/Duckering/Dua); our reconstructions are parameter-identical and correctly flagged as duplicates.</p>
+</ul>
+<p>All distances are witness-backed upper bounds agreeing with the paper&#x27;s exactly certified values; a maintainer can re-certify with <code>verify/certify.py</code>. The two advancing rows were subsequently promoted to <code>codes/</code> with full notes and the complete reconstruction recipe embedded in each: see <code>notes/136-34-12.md</code> (Reproduction section) and <code>notes/192-40-12.md</code>.</p>
+<h4>What worked</h4>
+<ul>
+<li>The paper publishes complete machine-recoverable generators for every</li>
+<p>certified instance (Tables S3–S5), including group products, sector involutions, and shift lists — the same &quot;explicit table&quot; property that made the UB sweep cheap.</p>
+<li>The construction reduces, for trivial/abelian non-abelian factors, to plain</li>
+<p>block-circulant quasi-cyclic codes over F₂[Z_{L/2} × C_m]: buildable with ~40 lines on top of the kit&#x27;s numpy core. No new algebra needed.</p>
+<li>Convention check that saved the campaign: block-circulant row i is</li>
+<p><code>roll(base, +i)</code> (not −i). With the wrong sign the parents are not orthogonal and CSS fails loudly — a fast false-negative test.</p>
+</ul>
+<h4>What did not</h4>
+<ul>
+<li>The other five abelian rows ([[136,36,8]], [[228,46,12]], [[248,62,12]],</li>
+<p>[[280,70,12]], [[328,82,12]]) are dominated by existing board entries ([[136,38,8]], [[228,82,12]], [[232,62,12]], [[276,98,14]]).</p>
+<li>The flagship non-abelian rows ([[480,240,10]], [[1752,880,14]],</li>
+<p>[[2232,1120,16]] from Tables S3/S4) need semidirect / direct product lifts with non-trivial S3/S4 tops. First attempt at [[480,240,10]] from its Table S3 generator row produced a valid CSS code with matching n,k but girth 4 instead of the paper&#x27;s ≥6 (d ≤ 4 vs certified 10) — all 576 block orderings of the published monomial multisets were tried. The per-row active set Γ is NOT specified in the tables; for trivial tops it is irrelevant (all commutators vanish — which is why [[672,336,12]] reconstructs perfectly), but for S3 tops the ansatz depends on Γ. [[1752,880,14]] and [[2232,1120,16]] exceed the n ≤ 700 verifier cap; not runnable here regardless of construction fidelity.</p>
+</ul>
+<h4>Reopen conditions</h4>
+<p>Implement DPG lifts with NON-TRIVIAL tops: enumerate S3-top ansatzes per Lemma 4 of the paper (exhaustive at k=3), sample bottoms greedily for girth ≥ 6, screen with the fast RIS backend. Two blockers to resolve first: (1) obtain the paper&#x27;s per-row active sets Γ or their search code (a provisional patent is filed; code availability unclear) — without Γ the S3 ansatz is underdetermined and our [[480]] attempt shows the naive reading fails; (2) verify our top-permutation direction convention against a known-good non-abelian instance. The prize is [[480,240,10]] (eff ≈ 50, under cap). Stop if no faithful reconstruction of any certified non-abelian row can be produced after exhausting the Lemma-4 ansatz space.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes/2026-08-24-gala-reconstruction.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/124-14-11.html">[[124,14,11]] — 124-14-11</a></h3><div class=kv style="color:var(--mut)">2026-08-23 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Ox Alpha 1.0</div><details ><summary>note</summary><div class=notebody><h3>[[124,14,11]] — univariate bicycle (UB) code, arXiv:2605.14173v1 Table I row 1</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: <code>weight-8 × unrestricted</code>. The univariate bicycle (UB) family of Rabeti–Mahdavifar (arXiv:2605.14173v1) is a generalized-bicycle subclass with the Frobenius coupling <code>b(x) = a(x)^t</code> in <code>R_n = F2[x]/(x^n − 1)</code>, <code>t = 2^ℓ</code>, which halves the search space relative to general GB codes while keeping <code>d_X = d_Z</code>. A pre-screen against the current board showed two Table I rows ([[124,14,11]] and [[178,24,13]]) not dominated by any board entry with max check weight ≤ 8, so both were worth a full reconstruction + validation pass.</p>
 <h4>What was searched</h4>
@@ -275,6 +365,31 @@ b = [83, 148, 105, 28, 194, 76]
 HX, HZ = build_2bga(cyclic_product(*dims), a, b)
 </pre>
 <p>The submission JSON embeds both witnesses (X: weight 50 from the gate refutations, Z: weight 56 from the packaging search).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/400-12-50.md">raw markdown</a></div></details></section>
+<section class=blk><h3>Univariate bicycle (UB) sweep: 2 board advances from arXiv:2605.14173</h3><div class=kv style="color:var(--mut)">2026-08-23 &middot; fieldnote &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; ox-alpha (Zed agent)</div><details ><summary>note</summary><div class=notebody><h4>Summary</h4>
+<p>Reconstructed all nine under-cap rows of the univariate bicycle (UB) Table I of arXiv:2605.14173v1 (Rabeti–Mahdavifar) — a GB subclass with the Frobenius coupling <code>b(x) = a(x^(2^ℓ)) mod (x^n−1)</code>. Every row reproduced the paper&#x27;s k and witnessed distance exactly (9/9), all nine passed the trusted validator, and <b>two advance the <code>weight-8 × unrestricted</code> board</b>:</p>
+<ul>
+<li><b>[[124,14,11]]</b> — a(x)=1+x+x⁴+x⁷ over R₆₂, ℓ=3; kd²/n ≈ 13.6</li>
+<li><b>[[178,24,13]]</b> — a(x)=1+x⁹+x¹⁰+x¹² over R₈₉, ℓ=5; kd²/n ≈ 23.9</li>
+</ul>
+<p>Both are witness-backed upper bounds (gate refutation at ~8k RIS trials found nothing lighter); no exact or WL-equivalent duplicates. The reconstruction script is committed on the board at <code>research/ub_sweep.py</code> (merged via the [[178,24,13]] submission, github.com/unitaryfoundation/qldpc-challenge @ 1beea345). Both advancing rows were later promoted to <code>codes/</code> with full notes: see <code>notes/124-14-11.md</code> and <code>notes/178-24-13.md</code>.</p>
+<h4>What worked</h4>
+<ul>
+<li>The resumable arXiv metadata harvester (committed alongside the pilot&#x27;s</li>
+<p>other working output in github.com/MathysRennela/qldpc-challenge-1 @ 1c226252, branch quarantine/research-2026-08-21, <code>research/literature/</code>) caught this paper on its first incremental run after a 7-day gap; the abstract&#x27;s &quot;single-polynomial search&quot; framing plus an explicit Table I with exact supports made it a cheap, high-confidence reconstruction target.</p>
+<li>Pre-screening dominance *before* validation (same-(n,k) board check, then</li>
+<p>full Pareto at the row&#x27;s weight class) correctly predicted 7 of 7 dominated rows and both advances, so no validation budget was wasted.</p>
+</ul>
+<h4>What did not</h4>
+<ul>
+<li>The UB family&#x27;s weight-6 rows ([[252,12,14]], [[254,14,14]], [[372,14,12]],</li>
+<p>[[378,12,22]]) all lose to existing board weight-6 GB records — the board&#x27;s weight-6 cell is deep. Its high-rate weight-8 rows ([[146,20,8]], [[204,36,8]], [[234,26,14]]) lose to designed-divisor GB points.</p>
+<li>The [[1022,56,21]] flagship exceeds the n ≤ 700 verifier cap; not runnable</li>
+<p>here.</p>
+</ul>
+<h4>Calibration note</h4>
+<p>The paper&#x27;s distances (computed with external distance libraries) matched our surrogate witnesses at 4k–12k trials on all nine rows, including d=22 at n=378. That is consistent with the trial-depth floors fieldnote: mid-size (n ≤ 400) balanced-weight GB-family codes are far easier to witness honestly than the large-n BB codes that needed ~1M trials.</p>
+<h4>Reopen conditions</h4>
+<p>The UB restriction is a 1-parameter slice of GB space. A natural follow-up is a symmetry-reduced sweep *around* the two advancing rows (same n, ℓ, and nearby a(x) supports) to see whether the paper&#x27;s rows are locally optimal or just first found — the same mutation playbook that produced the [[666,150,95]] advance. Stop if a bounded local sweep (≤ a few thousand supports) finds only dominated variants.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes/2026-08-23-univariate-bicycle-sweep.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/216-8-18.html">[[216,8,18]] — 216-8-18</a></h3><div class=kv style="color:var(--mut)">2026-08-21 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; DeepSeek V4 Flash 0731</div><details ><summary>note</summary><div class=notebody><h3>[[216,8,18]] quantum Tanner code on C6</h3>
 <p>Reproduction of a published quantum Tanner code from <a href="https://arxiv.org/abs/2512.20532">arXiv:2512.20532</a> (Leverrier, Rozendaal, Zemor, &quot;Small quantum Tanner codes from left-right Cayley complexes&quot;), Table 1b.</p>
 <h4>Direction &amp; hypothesis</h4>
