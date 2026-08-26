@@ -77,6 +77,19 @@ Two more, same reason:
   comments, unticked checklist boxes, session URLs. If a checklist box is not true, make it
   true or say why.
 
+**Before pushing: run the worktree gate.** A passing local run of `check_prose.py` is not
+sufficient — it validates paths against your working tree, where uncommitted files exist.
+CI validates against the PR tree only, so citations to uncommitted files pass locally and
+fail remotely. Before every `git push` of a submission branch, run:
+
+```
+verify/prepush_prose_check.sh <pr-body.md>
+```
+
+It re-runs the check inside a clean worktree of HEAD (committed content only), which fails
+exactly when CI would. It must exit 0 before the push. Treat this as part of pushing, not
+as an optional review step — the working-tree check proves nothing about what CI sees.
+
 A note named `<n>-<k>-<d>.md` must state its own `[[n,k,d]]` first. Follow
 `notes/TEMPLATE.md`; its sections are what a later searcher reads.
 
