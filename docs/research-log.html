@@ -3,6 +3,31 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/50-6-3.html">[[50,6,3]] — 50-6-3</a></h3><div class=kv style="color:var(--mut)">2026-08-26 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; ox-alpha 1.0</div><details open><summary>note</summary><div class=notebody><h3>[[50,6,3]] — SAT-found punctured rotated surface code</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: <code>weight-4 × local-2d-single</code>, scored on geometric efficiency g = 4kd²/(nρ²r⁴). A board-wide g sweep showed the entire g &gt; 1 frontier lives at r = √2, weight-4, single layer: the surface code (g = 1.0) and a handful of hole-punched rotated-surface variants up to [[197,5,7]] at g ≈ 1.24. All are hand-designed defect layouts; none were search products. Hypothesis: encoding the punctured-RSC grammar directly as CNF and letting a complete solver pick the hole pattern would find (k, d) trade-offs the hand designs missed.</p>
+<h4>What was searched</h4>
+<p><code>research/probe_once.py</code> (not committed; available from the authors) builds the CNF described below and solves it with CaDiCaL: qubits on an integer grid, checks anchored at plaquette centers with weight ≤ 4 (r = √2 by construction), per-check boundary-truncation variables, commutation as even-overlap parity chains, and detection of every weight-≤ t Pauli error encoded as CNF. One-shot solves (no enumeration) across boards 4×4 through 8×7 with t = 1 and t = 2, scanning the min-present cardinality to trace the SAT/UNSAT boundary per size. The submitted code is the 8×7 board, n ≥ 50 instance.</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>Screening surrogate: lightest logicals weight 3 on both sides (upper bound).</li>
+<li>Exact confirmation: scipy/HiGHS MILP via <code>kit/distance.exact_distance</code>,</li>
+<p>d_X = 3 exact (&quot;no logical &lt; 3 exists&quot;), d_Z = 3 exact.</p>
+<li>Trusted gate <code>verify/validate_candidate.py</code>: passed=true; refute gate found</li>
+<p>no lighter logical in 4500 RIS trials (seed 1902354559); dedup clean; board_advancing = true for weight-4 × local-2d-single.</p>
+<li>Claim: d = 3 exact (MILP-certified); submission confidence upper_bound.</li>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Free-form locality-constrained SAT (arbitrary incidence + anchor variables)</li>
+<p>hit UNSAT walls at t = 2 even on 4×4 grids; that experiment is not committed (only its conclusion survived into this grammar). Fixing the grammar (plaquette checks, truncation-only freedom) was what made instances tractable.</p>
+<li>Two encoding bugs produced silent UNSAT before the fix: a Sinz at-least-k</li>
+<p>built by negating literals of an at-most-k (under-constrained), and the &quot;≥2 kept if check exists&quot; cardinality applied unconditionally to both sides of every anchor, contradicting one-side-per-anchor. The working form is the direct clause family [-side] + [inc_r for r != q].</p>
+</ul>
+<h4>Tools</h4>
+<p>ox-alpha agent; repo kit (<code>css</code>, <code>surrogate</code>, <code>distance</code>, <code>submit</code>, <code>verify/validate_candidate</code>); python-sat / CaDiCaL153; scipy HiGHS MILP. Single laptop, seconds per solve.</p>
+<h4>Reproduction</h4>
+<p>The search script (<code>research/probe_once.py</code>, not committed — pinned: github.com/MathysRennela/qldpc-challenge @ e066be39, <code>research/probe_once.py</code>) encodes the grammar below and solves with CaDiCaL. Invocation for the submitted instance: <code>probe_once.py 8 7 2 50</code> (Lx=8, Ly=7, t=2, min_present=50). Solver is deterministic at this size; no seed needed. Package the resulting matrices with <code>./qldpc submit</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/50-6-3.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/12-2-3.html">[[12,2,3]] — 12-2-3</a></h3><div class=kv style="color:var(--mut)">2026-08-25 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[12,2,3]] — SAT-solver code discovery (weight-4 CSS)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Weight-4 × unrestricted cell, approached by *satisfiability* rather than by a parametrized family: following DalFavero et al. (arXiv:2608.23460, Sec. VI), formulate &quot;find an [[n,k]] CSS code with all check weights ≤ w that detects every Pauli error of weight ≤ t&quot; directly as CNF and let a complete solver enumerate solutions. Hypothesis: a SAT generator explores a different region of code space than polynomial/group-algebra families and might land on non-dominated small codes the algebraic sweeps miss.</p>
@@ -62,7 +87,7 @@ spec, HX, HZ = next(iter(enumerate_sat_codes(12, 5, 6, 3, max_codes=1)))
 EOF
 </pre>
 <p>Parameters: n=12, 5 rows per side, max row weight 6, detect-all weight-≤3 errors. The first solution is the submitted code.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/12-2-4.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/14-2-3.html">[[14,2,3]] — 14-2-3</a></h3><div class=kv style="color:var(--mut)">2026-08-25 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[14,2,3]] — SAT-solver code discovery (weight-4 CSS)</h3>
+<section class=blk><h3><a href="codes/14-2-3.html">[[14,2,3]] — 14-2-3</a></h3><div class=kv style="color:var(--mut)">2026-08-25 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details ><summary>note</summary><div class=notebody><h3>[[14,2,3]] — SAT-solver code discovery (weight-4 CSS)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Weight-4 × unrestricted cell, approached by *satisfiability* rather than by a parametrized family: following DalFavero et al. (arXiv:2608.23460, Sec. VI), formulate &quot;find an [[n,k]] CSS code with all check weights ≤ w that detects every Pauli error of weight ≤ t&quot; directly as CNF and let a complete solver enumerate solutions. Hypothesis: a SAT generator explores a different region of code space than polynomial/group-algebra families and might land on non-dominated small codes the algebraic sweeps miss.</p>
 <h4>What was searched</h4>
