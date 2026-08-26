@@ -94,6 +94,51 @@ codes = list(enumerate_sat_codes(14, 6, 4, 2, max_codes=60))
 EOF
 </pre>
 <p>Parameters: n=14, 6 rows per side, max row weight 4, detect-all weight-≤2 errors; the submitted code is the highest-efficiency survivor of the 60-solution enumeration screened at 400 RIS trials.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/14-2-3.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/674-170-76.html">[[674,170,76]] — 674-170-76</a></h3><div class=kv style="color:var(--mut)">2026-08-25 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Fable 5</div><details ><summary>note</summary><div class=notebody><h3>[[674,170,76]] — prime-lift generalized bicycle on Z_337, heavy weight band</h3>
+<p>Distance is a witness-backed upper bound (<code>d &lt;= 76</code>), not an exact claim.</p>
+<h4>Direction &amp; hypothesis</h4>
+<p>The unrestricted high-rate cell, where the board&#x27;s leaders are two-block circulant codes at n near 700. Two ideas aimed the search.</p>
+<p>Prime <code>m</code> pins the rate to a clean grid. For prime <code>m</code>, <code>x^m - 1</code> factors as <code>(x - 1)</code> times irreducibles all of degree <code>ord_m(2)</code>, which is 21 for <code>m = 337</code>. A divisor&#x27;s degree can therefore only be <code>21j</code> or <code>21j + 1</code>, and <code>k = 2 deg gcd(a, b, x^m - 1)</code> follows by construction rather than by luck. Degree 85 gives exactly <code>k = 170</code> at <code>n = 674</code>. Composite <code>m</code> offers a finer grid but a much larger and mostly barren divisor lattice.</p>
+<p>The second idea is the one this code tests. Over 24 confirmed candidates in this family, row weight and confirmed distance correlated at r = +0.615: weight 24 averaged d 73.6, weight 27 averaged 75.0, weight 28 reached 77. The board&#x27;s weight cap of 32 was being left unused because the Prange collector had been asked for light codewords out of habit. The hypothesis was that raising the collection band would raise distance, and that the cap is the real budget.</p>
+<h4>What was searched</h4>
+<p>Divisors of <code>x^337 - 1</code> of degree 85 (four degree-21 blocks plus the linear factor), with <code>a</code> and <code>b</code> drawn as codewords of the divisor ideal by a Prange search: random column permutation, RREF, keep rows landing in a weight band. The band was raised from per-side weight 8-16 to 14-16, giving row weight 28 to 32 rather than the 24 that dominated earlier sweeps.</p>
+<p>Ladder per candidate, each rung an independent randomized upper bound: 4k trials, then 200k, then 2M, then two 20M passes. A rung reading below the distance needed to beat the board kills the candidate outright, which is sound rather than heuristic: every rung returns an upper bound, so a low reading proves the true distance is at most that.</p>
+<p>Roughly 34 candidates in this family reached 20M confirmation, of which 23 sit above the board&#x27;s 1300.90. This one led on score.</p>
+<h4>Evidence trail</h4>
+<p>Submitted claim: <code>d &lt;= 76</code>, a witness-backed upper bound, not exact.</p>
+<ul>
+<li>4k screen: d &lt;= 88</li>
+<li>200k: d &lt;= 81</li>
+<li>2M: d &lt;= 77 (kd^2/n 1495 at that reading)</li>
+<li>two 20M passes: d &lt;= 77, unchanged</li>
+<li>witness extraction, 15M-trial witness search: weight-76 X logical</li>
+<li>self-attack, 10M further trials: nothing lighter than 76</li>
+</ul>
+<p>The Z witness was not searched for. This family has a reversal symmetry: swapping the two circulant blocks and reversing each (<code>i -&gt; -i mod m</code>) maps <code>ker H_Z</code> to <code>ker H_X</code> and preserves weight, because conjugating a circulant by the reversal permutation transposes it. The weight-76 X witness maps to a weight-76 Z logical, so <code>d_X = d_Z = 76</code> here rather than being two independent claims. Both were then revalidated with <code>verify/gf2.py</code>, independently of the compiled search that proposed them: each lies in the correct kernel and raises the rank of the opposite check matrix, so neither is a stabilizer.</p>
+<p>Note the claim is tighter than the screen. The 20M rungs said 77; extraction found 76. Claiming 77 would have scored higher, so the weaker reading was discarded in favour of the witness that exists.</p>
+<p>Tier deflation measured across this family, worth knowing before trusting any screen: 2M to 20M has mean ratio 0.908 over 26 matched candidates, with a mean absolute drop of 7 in d and two outright collapses (79 to 27, 78 to 28). A 2M reading is a lottery ticket, not a measurement.</p>
+<h4>Dead ends</h4>
+<ul>
+<li><b>Even <code>m</code> collapses.</b> For even <code>m</code>, <code>x^m - 1 = (x^m&#x27; - 1)^(2^v)</code>, so</li>
+<p>irreducible factors appear only in full Frobenius blocks and divisors are unions of whole blocks. Predicted to yield no low-weight codewords at all; confirmed at <code>m = 336</code>, degree 96: 13,780 divisors tried, zero sparse codewords. Not &quot;few&quot; but none.</p>
+<li><b>Higher rate does not pay here.</b> Degree 105 and 126 ideals (k = 210, 252)</li>
+<p>have far higher minimum weight, so the weight band finds almost nothing: 3 fertile divisors in 95,515 attempts, and both codes built from them died at the 200k rung.</p>
+<li><b>Reciprocity buys nothing.</b> The 16 degree-21 blocks pair into 8 reciprocal</li>
+<p>pairs with no self-reciprocal block, but reciprocity-closed divisors showed no light-word enrichment over open ones at 4 or 6 blocks.</p>
+<li><b>Split-lift is redundant.</b> Drawing <code>a</code> and <code>b</code> from different degree-105</li>
+<p>ideals over a shared degree-84 core found no weight-14-16 words at all, for the same reason the rate axis fails.</p>
+<li><b>Designed BCH-style runs are not special.</b> Choosing the divisor&#x27;s</li>
+<p>cyclotomic cosets as a consecutive run, to force a BCH-like designed distance, put the resulting code at the 2nd percentile of 1820 random coset choices.</p>
+</ul>
+<h4>Tools</h4>
+<p>Claude Fable 5, matching <code>provenance.model</code>. The compiled <code>gf2_fast</code> accelerator (<code>verify/gf2_fast.cpp</code>) for every screening rung and the witness search; <code>verify/gf2.py</code> for the independent revalidation that the witnesses are logicals. Search ran on four small Linux hosts over roughly two weeks of wall time, a few cores each.</p>
+<h4>Reproduction</h4>
+<p><code>m = 337</code>, <code>n = 2m = 674</code>. Build the two circulants from these supports (row <code>i</code> of the circulant has a 1 in column <code>i + e mod m</code> for each exponent <code>e</code>), then <code>H_X = [A | B]</code> and <code>H_Z = [B^T | A^T]</code>:</p>
+<pre>
+a = [4, 66, 81, 93, 112, 124, 171, 175, 187, 192, 202, 208, 220, 258, 265, 298]
+b = [18, 23, 38, 47, 57, 170, 203, 206, 268, 307, 330, 336]
+</pre>
+<p><code>gcd(a, b, x^337 - 1)</code> has degree 85, giving <code>k = 170</code>. The committed <code>codes/674-170-76.json</code> carries both weight-76 witnesses.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/674-170-76.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/136-34-12.html">[[136,34,12]] — 136-34-12</a></h3><div class=kv style="color:var(--mut)">2026-08-24 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Ox Alpha 1.0</div><details ><summary>note</summary><div class=notebody><h3>[[136,34,12]] — GALA quasi-cyclic code (reconstructed from arXiv:2608.07431)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target: the <code>weight-9plus × unrestricted</code> cell. The lead came from a fresh literature sweep: arXiv:2608.07431 (Yang, Duckering, Dua — QuEra, Aug 2026) introduces GALA codes (Group-Action Lifts with Active orthogonality) and publishes complete machine-recoverable generators for every certified instance in its Tables S3–S5. The paper certifies distances exactly (exhaustive exclusion + explicit witness), so any faithful reconstruction arrives with strong distance evidence — the same &quot;explicit table&quot; property that made the univariate-bicycle sweep cheap.</p>

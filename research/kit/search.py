@@ -28,7 +28,7 @@ import os
 import numpy as np
 
 from css import compute_k, verify_css, rref
-from surrogate import distance_rand
+from surrogate import distance_rand, prepare_distance_search
 from bb import build_bb
 from group_algebra import build_2bga, dihedral, metacyclic
 from products import (hypergraph_product, lifted_product, balanced_product,
@@ -216,16 +216,24 @@ def screen_adaptive(candidates, *, stages=(400, 20_000, 200_000), target=None,
             continue
         seen.add(fp)
         live.append({"spec": spec, "HX": HX, "HZ": HZ, "k": int(k),
-                     "n": int(HX.shape[1]), "fp": fp, "d": None})
+                     "n": int(HX.shape[1]), "fp": fp, "d": None,
+                     "prep": None})
 
     for si, trials in enumerate(stages):
         if not live:
             break
         for c in live:
-            c["d"] = int(distance_rand(
+            if c["prep"] is None and backend == "numpy":
+                c["prep"] = prepare_distance_search(c["HX"], c["HZ"])
+            got = int(distance_rand(
                 c["HX"], c["HZ"], trials=trials,
                 seed=seed + si * 7919 + int(c["fp"], 16),
-                backend=backend, threads=threads))
+                backend=backend, threads=threads, prepared=c["prep"]))
+            # Every stage returns a valid upper bound, and the stages draw
+            # independently, so a later one can come back worse. Keep the best
+            # bound seen rather than the latest, or a deeper stage could report
+            # a weaker result than the shallower one already proved.
+            c["d"] = got if c["d"] is None else min(c["d"], got)
             tally["trials_spent"] += trials
         live = [c for c in live if c["d"] != float("inf") and c["d"] >= min_d]
         if target is not None and si < len(stages) - 1:
