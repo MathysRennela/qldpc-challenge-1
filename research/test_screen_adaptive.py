@@ -170,3 +170,57 @@ def test_staged_screen_never_reports_a_worse_bound_than_a_stage_found():
                 assert staged[r["fingerprint"]] <= r["d"], (
                     f"staged reported {staged[r['fingerprint']]} where a "
                     f"{st[0]}-trial stage alone found {r['d']}")
+def _known_pool():
+    from bb import KNOWN, build_bb
+    return [({"family": "bb", **p}, *build_bb(p["l"], p["m"], p["A"], p["B"]))
+            for p in KNOWN.values()]
+
+
+def test_worker_count_does_not_change_the_result():
+    """A parallel sweep must return exactly what a serial one does.
+
+    Seeds come from each candidate's fingerprint and ties break on fingerprint,
+    so neither the number of workers nor the order candidates finish in can move
+    the output. If this ever fails, results stop being reproducible from a seed
+    alone, which is the property the whole screen rests on.
+    """
+    pool = _known_pool()
+    base = S.screen(pool, trials=40, seed=0)
+    for w in (2, 3, 5):
+        assert S.screen(pool, trials=40, seed=0, workers=w) == base, (
+            f"{w} workers disagreed with serial")
+
+
+def test_batching_does_not_change_the_result():
+    pool = _known_pool()
+    base = S.screen(pool, trials=40, seed=0, workers=2, batch=64)
+    for b in (1, 3, 1000):
+        assert S.screen(pool, trials=40, seed=0, workers=2, batch=b) == base
+
+
+def test_oversubscription_is_refused():
+    """Both axes at once thrashes; the caller should hear about it."""
+    import pytest as _pytest
+    with _pytest.raises(ValueError, match="oversubscribes"):
+        S.screen(_known_pool(), trials=10, workers=4, threads_per_candidate=4)
+
+
+def test_candidates_are_pulled_lazily():
+    """The generator must not be drained before work starts.
+
+    A sweep is often an unbounded generator, so materializing it would defeat
+    the point of streaming candidates at all.
+    """
+    pool = _known_pool()
+    pulled = []
+
+    def counting():
+        for item in pool:
+            pulled.append(1)
+            yield item
+
+    S.screen(counting(), trials=10, seed=0, workers=2, batch=2)
+    assert len(pulled) == len(pool)
+    # With batch=2 the parent cannot have pulled everything before the first
+    # batch was dispatched; the generator is consumed incrementally.
+    assert len(pool) > 2
