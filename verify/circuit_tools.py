@@ -268,6 +268,53 @@ def dem_columns(dem):
     return cols
 
 
+def dem_lint(dem):
+    """Structural-integrity errors of a derived DEM, [] iff well formed.
+
+    The three error-severity properties from emlint's check taxonomy
+    (github.com/MathysRennela/emlint; implemented here on dem_columns rather
+    than imported, so the trusted closure gains no dependency -- issue #690):
+
+    - detectability: a mechanism that flips an observable while firing no
+      detector is a weight-1 undetected logical, i.e. the circuit has
+      d_circ = 1 regardless of any claim. The refutation gate finds these
+      probabilistically; this makes the verdict deterministic and extends it
+      to every fast-path run.
+    - observable coverage: a declared observable no mechanism flips is a
+      miswired OBSERVABLE_INCLUDE; the code-binding check counts observables
+      but does not confirm reachability.
+    - probability bounds: every mechanism probability must be a finite value
+      in (0, 1). d_circ never reads probabilities, but the measured-rate
+      tier hands them to the pinned decoder as its channel prior, where a
+      NaN corrupts silently.
+
+    All three are single linear scans over the sparse columns; distance
+    enters only through DEM length, which MAX_DEM_MECHANISMS bounds.
+    """
+    errs = []
+    cols = dem_columns(dem)
+    probs = [inst.args_copy()[0] for inst in dem.flattened()
+             if inst.type == "error"]
+    bad_det = [j for j, (ds, ls) in enumerate(cols) if not ds and ls]
+    if bad_det:
+        errs.append(f"detectability: mechanism(s) {bad_det[:8]} flip an "
+                    f"observable with no detector (weight-1 undetected "
+                    f"logicals: the circuit has d_circ = 1)")
+    covered = set()
+    for _, ls in cols:
+        covered.update(ls)
+    missing = sorted(set(range(dem.num_observables)) - covered)
+    if missing:
+        errs.append(f"observable_coverage: observable(s) {missing} are "
+                    f"flipped by no mechanism (miswired OBSERVABLE_INCLUDE)")
+    bad_p = [j for j, p in enumerate(probs)
+             if not (p == p and 0.0 < p < 1.0)]
+    if bad_p:
+        errs.append(f"probability_bounds: mechanism(s) {bad_p[:8]} carry "
+                    f"probabilities outside (0, 1) or NaN")
+    return errs
+
+
 def dem_matrices(dem):
     """Dense (H_dem, L): detectors x mechanisms and observables x mechanisms.
     The search substrate; the witness CHECK never needs it (witness_errors is
@@ -322,18 +369,65 @@ def _rref(M):
     return gf2.rref(np.ascontiguousarray(M))[0]
 
 
-def ris_dem(H, L, trials, seed=0, pair_top=24):
+def ris_dem(H, L, trials, seed=0, pair_top=24, max_seconds=None, threads=4):
     """RIS upper-bound search for the lightest undetected logical fault set:
     min |e| with H e = 0, L e != 0. The code-tier searcher on the DEM's
     parity-check matrix -- hyperedge degree is irrelevant to it. Returns
-    (weight, sorted column indices) or (None, None)."""
-    K = _kernel_basis(np.asarray(H, dtype=np.int8))
+    (weight, sorted column indices) or (None, None). Stops after `trials`
+    permutations or `max_seconds` wall-clock, whichever comes first (the time
+    cap keeps the CI gate bounded when the size estimate is off).
+
+    When gf2_fast provides dem_rand_witness, the whole trial loop runs in
+    C++ (kernel packed once, pivot-order permutation instead of physical
+    column moves, `threads` workers), handed out in chunks. A chunk cannot
+    be aborted, so the wall cap is enforced by PROJECTION, not just by
+    checking between chunks (vprusso's #684 review: a blind 64-trial chunk
+    overshot a 0.5 s cap by ~140x at m~12k): the loop opens with a small
+    8-trial chunk to measure this machine's per-trial cost, then sizes every
+    later chunk to what the remaining budget can pay for (floor `threads`,
+    else stop), so the worst overshoot is one small chunk rather than one
+    arbitrarily expensive one. An unconstrained run always uses the fixed
+    (8, 64, 64, ...) sequence, so results stay deterministic given (seed,
+    trials, threads) whenever the cap does not truncate. Finds are PROPOSALS
+    either way -- callers validate with witness_errors. The numpy loop below
+    is the fallback and the audited reference implementation."""
+    import time
+    H = np.ascontiguousarray(np.asarray(H, dtype=np.int8))
+    L = np.ascontiguousarray(np.asarray(L, dtype=np.int8))
+    if _GF is not None and hasattr(_GF, "dem_rand_witness"):
+        deadline = (time.monotonic() + max_seconds) if max_seconds else None
+        best, wit = None, None
+        done, chunk_i = 0, 0
+        per_trial = None            # measured; conservative running max
+        while done < trials:
+            t = min(8 if chunk_i == 0 else 64, trials - done)
+            if deadline is not None and per_trial is not None:
+                afford = int((deadline - time.monotonic()) / per_trial)
+                if afford < max(threads, 1):
+                    break
+                t = min(t, afford)
+            t0 = time.monotonic()
+            w, sup = _GF.dem_rand_witness(H, L, trials=t,
+                                          seed=seed + 7919 * chunk_i,
+                                          pair_depth=pair_top,
+                                          threads=threads)
+            per_trial = max(per_trial or 0.0,
+                            (time.monotonic() - t0) / t, 1e-9)
+            if w is not None and (best is None or w < best):
+                best, wit = int(w), [int(i) for i in sup]
+            done += t
+            chunk_i += 1
+            if deadline and time.monotonic() > deadline:
+                break
+        return best, wit
+    K = _kernel_basis(H)
     m = K.shape[1]
     if K.shape[0] == 0:
         return None, None
     LT = np.asarray(L, dtype=np.int8).T
     rng = np.random.default_rng(seed)
     best, best_v = m + 1, None
+    deadline = (time.monotonic() + max_seconds) if max_seconds else None
 
     def consider(v, perm):
         nonlocal best, best_v
@@ -344,6 +438,8 @@ def ris_dem(H, L, trials, seed=0, pair_top=24):
             best, best_v = w, v[inv].copy()
 
     for _ in range(trials):
+        if deadline and time.monotonic() > deadline:
+            break
         perm = rng.permutation(m)
         R = _rref(K[:, perm])
         sig = (R @ LT[perm]) % 2

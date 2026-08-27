@@ -11,6 +11,13 @@ submission.
 
 (or, without the launcher shim: `uv run python cli/qldpc.py submit ...`)
 
+The `@` in `@yourhandle` is required: it is what binds the submission to
+your GitHub account and prevents another account from editing the entry as its
+author. Plain names are still valid for co-authors without GitHub accounts,
+provided at least one author is an `@handle`. To intentionally submit with no
+GitHub handle, pass `--anonymous`; the CLI warns that the resulting entry will
+not be bound to an account.
+
 `mycode.npz` holds your parity checks under keys `hx` and `hz` (dense 0/1
 arrays or scipy sparse). The tool:
 
@@ -36,6 +43,8 @@ Useful flags:
   class (single / bilayer / unrestricted) from it, you do not declare a track.
   `layers` is required alongside the coordinates (the CLI defaults it to 1);
 - `--open-pr` create the branch, commit, push, and open the PR for you;
+- `--anonymous` explicitly proceed without an `@handle` (the submission will
+  not be bound to a GitHub account);
 - `--dry-run` build and verify without writing.
 
 Either way — `--open-pr`, or the commands it prints for you to run — the PR
@@ -164,11 +173,18 @@ codes. Goal: find a CSS qLDPC code that advances a frontier, and submit it.
 
 5. Submit: ./qldpc submit yourcode.npz --authors @yourhandle --family <family>
    --model "<exact model version, e.g. Claude Opus 4.8>". It finds the witness,
-   runs the verifier (which computes the locality and weight classes), and opens
-   the PR. CI re-verifies. The PR body is drafted from the submission,
-   including a computed "what frontier does this advance?" section (the track
-   cells the code lands in and the existing entries it dominates). Review it
-   before the PR is ready for review.
+   runs the verifier (which computes the locality and weight classes), runs
+   verify/check_prose.py on the drafted PR body before opening anything, and
+   only then opens the PR. CI re-verifies. The PR body is drafted from the
+   submission, including a computed "what frontier does this advance?"
+   section. Before requesting review you MUST finish it by hand:
+     - replace every parenthetical prompt in the body with real content;
+     - tick each checklist box only once it is actually true — the
+       "equivalent to an existing entry" box needs a provenance.notes entry
+       or a deliberate "checked, not equivalent";
+     - if no research note was staged, add notes/<n>-<k>-<d>.md.
+   Then re-run: uv run python verify/check_prose.py --body-file <body.md>
+   --files codes/<n>-<k>-<d>.json — it must exit 0 before review.
 
 Report the [[n,k,d]], which track it advances, and that the distance held under
 deep re-verification.
@@ -243,6 +259,10 @@ accepted and recorded but will not sit on the frontier. See `TRACKS.md`.
 
 ## Tips
 
+- Lint before pushing: `uv run ruff check .` and `uv run ruff format --check .`
+  use the repository's pinned configuration (see `[tool.ruff]` in
+  `pyproject.toml`). The CI job is advisory while the existing code is brought
+  to the standard, but new code should arrive clean.
 - Store `interaction_radius` as the exact measured max check diameter, not a
   rounded value.
 - Do not repeat a qubit index within a single check.

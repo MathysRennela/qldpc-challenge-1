@@ -55,6 +55,17 @@ from qldpc_verify import _matrix
 
 MAX_CIRCUIT_FILE_BYTES = 5_000_000
 
+# Verification-budget cap for the circuit tier (the RFC's "cap the tier by
+# n*rounds", enforced on the actual cost driver): the refutation gate searches
+# ker(H_dem) by RIS, and per-trial cost fits ~2e-13 * mechanisms^3 seconds
+# with the in-C++ trial loop (gf2_fast.dem_rand_witness, measured 2026-08-21;
+# the 2026-08-20 numpy-orchestrated loop this cap was first sized against was
+# ~6x slower). At the cap a trial is ~3.1 s, so the gate's 120 s/basis target
+# buys ~38 trials -- searchable at full depth, keeping a circuit entry within
+# the same ~10-minute budget a deep code claim gets. Raise-only, as the
+# search stack improves (GPU RIS is the known route up).
+MAX_DEM_MECHANISMS = 25_000
+
 SIDE_FILES = {"X": "memory_x", "Z": "memory_z"}
 SIDE_READOUT = {"X": "MX", "Z": "M"}
 
@@ -241,6 +252,13 @@ def verify_circuit(doc, circuits_dir):
                f"k observables, checks, and rounds bound to the declared code")
 
         derived = ct.derive_dem(circuit)        # step 5: witness
+        record(f"{side}_dem_within_budget",
+               derived.num_errors <= MAX_DEM_MECHANISMS,
+               f"{derived.num_errors} mechanisms (cap {MAX_DEM_MECHANISMS}: "
+               f"verification-budget rule; the refutation gate must be able "
+               f"to search this DEM)")
+        if derived.num_errors > MAX_DEM_MECHANISMS:
+            continue
         dem_match = ct.dem_matches(derived, committed)
         record(f"{side}_dem_reproduces", dem_match,
                "committed .dem re-derives mechanism-for-mechanism (exact "
@@ -249,6 +267,17 @@ def verify_circuit(doc, circuits_dir):
                "committed .dem differs from the pinned re-derivation -- "
                "regenerate it with the pinned stim version")
         if not dem_match:
+            continue
+        # step 5.5 (issue #690): structural integrity of the derived DEM,
+        # the substrate every downstream consumer (witness check, refutation
+        # gate, measured-rate decoder prior) takes on faith. Deterministic
+        # linear scans; a malformed model fails here rather than corrupting
+        # a later verdict silently.
+        lint = ct.dem_lint(derived)
+        record(f"{side}_dem_structure", not lint,
+               "; ".join(lint) or "detectability, observable coverage and "
+               "probability bounds all hold")
+        if lint:
             continue
         werrs = ct.witness_errors(derived, claim["witness"], claim["value"])
         if claim["value"] > d:

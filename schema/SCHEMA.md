@@ -141,6 +141,9 @@ limits are:
 - At most 200000 total support entries across all checks.
 - At most 600 locality coordinate entries.
 - Dense verifier intermediates capped at 50000000 cells.
+- Circuit tier: at most 25000 DEM error mechanisms per memory circuit
+  (verification-budget rule: the refutation gate must be able to search the
+  DEM; raise-only as the search stack improves).
 
 These are far above the current board entries. A larger code should be handled
 through a maintainer-run path until the verifier is sparse end-to-end.

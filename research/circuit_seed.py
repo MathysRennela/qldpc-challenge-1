@@ -97,6 +97,11 @@ def main():
     ap.add_argument("--quick-trials", type=int, default=60)
     ap.add_argument("--deep-trials", type=int, default=1500)
     ap.add_argument("--deep-seeds", type=int, default=3)
+    ap.add_argument("--pattern-x", choices=sorted(PATTERNS), default=None,
+                    help="pin the X-plaquette zigzag pattern (skip the scan); "
+                         "the geometry is family-wide, so a pair that is "
+                         "full-distance at one d transfers to the others")
+    ap.add_argument("--pattern-z", choices=sorted(PATTERNS), default=None)
     args = ap.parse_args()
 
     doc = json.load(open(args.code_json))
@@ -114,7 +119,13 @@ def main():
     print(f"{args.code_json}: n={n} d={d} rounds={rounds} "
           f"X-plaquette parity {parity_x}")
     candidates = []
-    for px in sorted(PATTERNS):
+    if args.pattern_x and args.pattern_z:
+        lay_x = geometric_layers(doc["checks"]["X"], coords, args.pattern_x,
+                                 parity_x)
+        lay_z = geometric_layers(doc["checks"]["Z"], coords, args.pattern_z,
+                                 1 - parity_x)
+        candidates.append((args.pattern_x, args.pattern_z, lay_x, lay_z))
+    for px in ([] if candidates else sorted(PATTERNS)):
         for pz in sorted(PATTERNS):
             lay_x = geometric_layers(doc["checks"]["X"], coords, px, parity_x)
             lay_z = geometric_layers(doc["checks"]["Z"], coords, pz,

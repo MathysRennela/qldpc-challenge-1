@@ -1,6 +1,6 @@
 {
- "schema_version": "0.1",
- "name": "[[40,12,4]]",
+ "schema_version": "0.2",
+ "name": "[[40,12,4]], 2D-local bilayer layout",
  "code_type": "CSS",
  "n": 40,
  "k": 12,
@@ -320,7 +320,181 @@
   "construction": "Reconstructed from qecdb.org record (see provenance.references); H-field X/Z row split, k recomputed, witnesses from the kit's random search.",
   "origin": "submission",
   "date": "2026-08-15",
-  "model": "DeepSeek V4 Flash 0731"
+  "model": "DeepSeek V4 Flash 0731",
+  "notes": " LAYOUT added 2026-08-20: a 1-layer planar layout with measured interaction radius 6.4031 (integer-grid sites, min site spacing 1.0, at most 1 qubits per site), placing the code in the local-2d-bilayer class with geometric efficiency g = 0.0114. Layout credit and method are recorded in locality.contributed_by; the code, its distance claims, and its authorship are unchanged. Part of the layout-filling effort (issue #654 discussion)."
  },
- "family": "generalized-bicycle"
+ "family": "generalized-bicycle",
+ "locality": {
+  "coordinates": [
+   [
+    4.0,
+    4.0
+   ],
+   [
+    7.0,
+    6.0
+   ],
+   [
+    4.0,
+    9.0
+   ],
+   [
+    3.0,
+    10.0
+   ],
+   [
+    6.0,
+    9.0
+   ],
+   [
+    7.0,
+    9.0
+   ],
+   [
+    5.0,
+    9.0
+   ],
+   [
+    3.0,
+    5.0
+   ],
+   [
+    2.0,
+    9.0
+   ],
+   [
+    6.0,
+    10.0
+   ],
+   [
+    5.0,
+    6.0
+   ],
+   [
+    2.0,
+    10.0
+   ],
+   [
+    5.0,
+    5.0
+   ],
+   [
+    7.0,
+    10.0
+   ],
+   [
+    2.0,
+    7.0
+   ],
+   [
+    7.0,
+    8.0
+   ],
+   [
+    4.0,
+    10.0
+   ],
+   [
+    6.0,
+    6.0
+   ],
+   [
+    5.0,
+    10.0
+   ],
+   [
+    3.0,
+    9.0
+   ],
+   [
+    3.0,
+    4.0
+   ],
+   [
+    2.0,
+    6.0
+   ],
+   [
+    4.0,
+    7.0
+   ],
+   [
+    5.0,
+    4.0
+   ],
+   [
+    2.0,
+    5.0
+   ],
+   [
+    5.0,
+    7.0
+   ],
+   [
+    4.0,
+    8.0
+   ],
+   [
+    4.0,
+    11.0
+   ],
+   [
+    4.0,
+    5.0
+   ],
+   [
+    3.0,
+    7.0
+   ],
+   [
+    6.0,
+    5.0
+   ],
+   [
+    6.0,
+    8.0
+   ],
+   [
+    7.0,
+    7.0
+   ],
+   [
+    3.0,
+    6.0
+   ],
+   [
+    3.0,
+    8.0
+   ],
+   [
+    2.0,
+    8.0
+   ],
+   [
+    6.0,
+    7.0
+   ],
+   [
+    7.0,
+    5.0
+   ],
+   [
+    8.0,
+    8.0
+   ],
+   [
+    4.0,
+    6.0
+   ]
+  ],
+  "layers": 1,
+  "interaction_radius": 6.4032,
+  "contributed_by": {
+   "by": [
+    "@willzeng"
+   ],
+   "date": "2026-08-20",
+   "method": "Tier-0/1 pipeline: spectral (Laplacian eigenvector) initialization snapped to an integer grid, then simulated annealing over site assignments (single-qubit relocations + pair swaps, max-diameter objective, 2-3 seeds). Search driven by Claude Fable 5."
+  }
+ }
 }

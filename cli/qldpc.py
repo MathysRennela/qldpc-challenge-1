@@ -34,6 +34,7 @@ import argparse
 import datetime
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -47,6 +48,7 @@ sys.path.insert(0, os.path.join(_ROOT, "site"))
 
 import gf2                       # noqa: E402
 import heuristic_distance as hd  # noqa: E402
+from check_authorship import HANDLE  # noqa: E402
 from qldpc_verify import verify  # noqa: E402
 # Reuse the site's computed-cell + Pareto-frontier helpers so the PR body
 # states exactly what the board will show (no drift between the two).
@@ -135,6 +137,27 @@ def build_submission(HX, HZ, args):
     if dX is None or dZ is None:
         raise SystemExit("RIS found no logical operator on one side; "
                          "cannot certify a distance")
+    # Let the C++ accelerator tighten the claim when it can. The Python search
+    # slows sharply with n, so on a large code it stops far above the lightest
+    # logical and the entry would claim a distance the submitter can already
+    # disprove. Anything the accelerator returns is checked by gf2 before it is
+    # used, and it is only adopted when it is strictly lighter.
+    if hd._fast is not None and args.fast_trials > 0:
+        print(f"  accelerator pass ({args.fast_trials} trials)...", flush=True)
+        wf, side, sup = hd._fast.distance_rand_witness(
+            HX, HZ, args.fast_trials, args.seed, 8, 8)
+        if wf is not None and side in ("X", "Z"):
+            v = np.zeros(n, dtype=np.int8)
+            v[list(sup)] = 1
+            H_ker, H_row = (HZ, HX) if side == "X" else (HX, HZ)
+            cur = dX if side == "X" else dZ
+            if int(v.sum()) < cur and hd._valid_logical(v, H_ker, H_row):
+                if side == "X":
+                    dX, witX = int(v.sum()), v
+                else:
+                    dZ, witZ = int(v.sum()), v
+                print(f"    accelerator tightened d_{side} to {int(v.sum())}",
+                      flush=True)
     d = min(dX, dZ)
     print(f"  distance (RIS upper bound) d<={d}  (d_X<={dX}, d_Z<={dZ})",
           flush=True)
@@ -201,6 +224,20 @@ def _descriptor(args):
     return ""
 
 
+def body_has_scaffolding(body):
+    """Report whether the body still carries scaffolding the checker rejects.
+
+    That means: draft footer, HTML comment, unticked box, TODO/FIXME. Used to
+    gate --open-pr so a PR never ships a body the CI prose check would fail.
+    """
+    import re
+    return bool(
+        re.search(r"edit before requesting review", body, re.I)
+        or "<!--" in body
+        or re.search(r"^\s*[-*]\s*\[ \]", body, re.M)
+        or re.search(r"\b(TODO|FIXME|TBD)\b", body))
+
+
 def _repo_path(path):
     """Repo-relative path when the file is inside the repo, else absolute.
     Keeps the body readable when --out points somewhere else entirely."""
@@ -238,6 +275,11 @@ def pr_body(doc, report, args, out, note_out=None):
     if args.family:
         lines += [f"Family tag: {args.family} (a self-declared filter, never "
                   f"used for ranking).", ""]
+    # Checklist boxes are ticked only when the tool can vouch for them. The
+    # construction box reflects whether --construction was given; the
+    # equivalence box stays unticked by design — judging equivalence to an
+    # existing entry needs human eyes, so an unedited draft is deliberately
+    # not ready for review (the prose gate enforces exactly that).
     lines += [
         "### Checklist",
         box(True, "One JSON file under `codes/`, conforming to "
@@ -245,20 +287,21 @@ def pr_body(doc, report, args, out, note_out=None):
         box(True, "Distance witness(es) included for each reported side"),
         box(True, f"`python verify/qldpc_verify.py {rel_out}` passes locally"),
         box(bool((args.construction or "").strip()),
-            "Construction and references filled in under `provenance`"),
+            "Construction and references filled in under `provenance`")
+        if (args.construction or "").strip() else None,
         box(False, "If this may be equivalent to an existing entry, noted in "
                    "`provenance.notes`"),
         "",
         "### What frontier does this advance?",
-        "<!-- Computed by `qldpc submit` against the current board; review and "
-        "edit. -->",
+        "(Computed by `qldpc submit` against the current board; review and "
+        "edit.)",
     ]
     front = frontier_summary(doc, report)
     if front:
         lines += front
     else:
-        lines += ["<!-- TODO: name the track and the existing entry this beats "
-                  "or extends, and on which axis. -->"]
+        lines += ["(Name the track and the existing entry this beats or "
+                  "extends, and on which axis.)"]
     lines += [
         f"Score kd^2/n = {round(k * d * d / n, 3)}, max check weight {wmax}, "
         f"locality class {comp.get('locality_class', 'unknown')}.",
@@ -269,11 +312,11 @@ def pr_body(doc, report, args, out, note_out=None):
     if note_out:
         lines += [f"Research note: `{_repo_path(note_out)}`", ""]
     else:
-        lines += ["<!-- TODO: add a research note (notes/{}.md, see "
-                  "notes/TEMPLATE.md). -->".format(f"{n}-{k}-{d}"), ""]
-    lines += ["---",
-              "Drafted by `qldpc submit`; edit before requesting review."]
-    return "\n".join(lines)
+        lines += [f"(Add a research note at notes/{n}-{k}-{d}.md; see "
+                  f"notes/TEMPLATE.md.)", ""]
+    # No draft footer: 'edit before requesting review' is itself a scaffolding
+    # marker the prose check rejects. The reminder lives in the CLI output.
+    return "\n".join(ln for ln in lines if ln is not None)
 
 
 def write_pr_body(slug, body):
@@ -356,7 +399,51 @@ def frontier_summary(doc, report):
 # ----------------------------------------------------------------------------
 # submit command
 # ----------------------------------------------------------------------------
+def validate_authors(authors, anonymous=False):
+    """Return normalized authors or fail before producing an unbound record."""
+    normalized = [str(author).strip() for author in authors]
+    if any(not author for author in normalized):
+        raise SystemExit(
+            "Author values must not be empty or whitespace-only. Remove the "
+            "empty value or replace it with a name or @handle."
+        )
+    malformed = [
+        author for author in normalized
+        if author.startswith("@") and HANDLE.fullmatch(author) is None
+    ]
+    if malformed:
+        values = ", ".join(repr(author) for author in malformed)
+        raise SystemExit(
+            f"Invalid author {values}. GitHub authors must use @yourhandle "
+            "with letters, numbers, or hyphens only."
+        )
+
+    has_handle = any(HANDLE.fullmatch(author) for author in normalized)
+    if has_handle and anonymous:
+        raise SystemExit(
+            "--anonymous cannot be combined with a GitHub @handle; remove "
+            "--anonymous to keep the submission bound to that account."
+        )
+    if has_handle:
+        return normalized
+
+    if not anonymous:
+        raise SystemExit(
+            "No GitHub @handle found in --authors. Add @yourhandle (the @ is "
+            "required), or pass --anonymous to confirm that the submission "
+            "will not be bound to a GitHub account."
+        )
+
+    print(
+        "  WARNING: no GitHub @handle was provided. This submission will be "
+        "recorded as anonymous and will not be bound to a GitHub account.",
+        flush=True,
+    )
+    return normalized
+
+
 def cmd_submit(args):
+    args.authors = validate_authors(args.authors, args.anonymous)
     HX, HZ, coords, _draft = load_checks(args.code)
     if args.coords:                      # explicit coords file overrides
         cz = np.load(args.coords) if args.coords.endswith(".npz") else None
@@ -419,7 +506,8 @@ def cmd_submit(args):
     body_file = write_pr_body(slug, pr_body(doc, report, args, out, note_out))
 
     if args.open_pr:
-        return open_pr(slug, out, note_out, title, body_file)
+        return open_pr(slug, out, note_out, title, body_file,
+                       root=_ROOT)
     print("\nnext: open a PR with this file")
     print(f"  git checkout -b submit-{slug}")
     print(f"  git add {out}" + (f" {note_out}" if note_out else ""))
@@ -434,10 +522,28 @@ def cmd_submit(args):
     return 0
 
 
-def open_pr(slug, out, note_out=None, title=None, body_file=None):
+def open_pr(slug, out, note_out=None, title=None, body_file=None, root=None):
     n_k_d = slug.replace("-", ",")
     branch = f"submit-{slug}"
     title = title or f"Add [[{n_k_d}]]"
+    # Pre-flight: run the same prose check CI runs, on the drafted body and
+    # the staged files, BEFORE any git command touches the working tree. A
+    # body the gate would reject stops here with the checker's own output.
+    root = root or _ROOT
+    if body_file:
+        checker = os.path.join(root, "verify", "check_prose.py")
+        if os.path.exists(checker):
+            files = [os.path.relpath(out, root)] + (
+                [os.path.relpath(note_out, root)] if note_out else [])
+            pre = subprocess.run(
+                [sys.executable, os.path.relpath(checker, root),
+                 "--root", root, "--body-file", body_file, "--files", *files],
+                cwd=root, check=False)
+            if pre.returncode != 0:
+                print(f"\nprose pre-flight FAILED ({pre.returncode}); no PR "
+                      f"was opened. Fix the issues above (the drafted body is "
+                      f"at {body_file}) and re-run with --open-pr.")
+                return 1
     add = ["git", "add", out] + ([note_out] if note_out else [])
     # --title/--body-file rather than --fill: the body is the filled-in
     # pull request template, which the commit message does not carry (#404).
@@ -462,6 +568,69 @@ def open_pr(slug, out, note_out=None, title=None, body_file=None):
     print("\nthe PR body was drafted from the verified submission; fill in the"
           "\n'what frontier does this advance?' section before review "
           "(gh pr edit).")
+    return 0
+
+
+def cmd_targets(args):
+    """Print per-cell occupancy and frontier, so a newcomer can see what to aim at.
+
+    Reuses the site's own cells() and pareto(), the pair that decides records on
+    the published board, so these are the board's numbers rather than a second
+    opinion about them.
+    """
+    entries = _load_board_entries()
+    if not entries:
+        raise SystemExit("could not load the board; run this from a checkout")
+
+    by_cell = {}
+    for e in entries:
+        for cell in cells(e):
+            by_cell.setdefault(cell, []).append(e)
+
+    def matches(L, W):
+        if not args.cell:
+            return True
+        toks = [x for x in re.split(r"[/, ]+", args.cell.lower()) if x]
+        hay = f"{L} {W} {LOCALITY_LABEL.get(L, L)} {WEIGHT_LABEL.get(W, W)}".lower()
+        return all(tok in hay for tok in toks)
+
+    def eff(e):
+        return e["k"] * e["d"] ** 2 / e["n"]
+
+    rows = [(c, v) for c, v in sorted(by_cell.items()) if matches(*c)]
+    if not rows:
+        raise SystemExit(f"no cell matched {args.cell!r}. Weight classes: "
+                         f"{sorted({c[1] for c in by_cell})}; locality classes: "
+                         f"{sorted({c[0] for c in by_cell})}")
+
+    for (L, W), peers in rows:
+        front = [peers[i] for i in sorted(pareto(peers))]
+        print(f"\n{LOCALITY_LABEL.get(L, L)} / {WEIGHT_LABEL.get(W, W)}")
+        print(f"  {len(peers)} codes, {len(front)} nondominated, "
+              f"best kd2/n {max(eff(e) for e in peers):.2f}")
+        if args.n:
+            near = [e for e in front if e["n"] <= args.n]
+            if not near:
+                print(f"  nothing at n <= {args.n}: any verified code here "
+                      f"lands on the frontier")
+            else:
+                print(f"  at n <= {args.n}, {len(near)} entries to get past; "
+                      f"the ones to beat:")
+                for e in sorted(near, key=eff, reverse=True)[:args.top]:
+                    print(f"    [[{e['n']},{e['k']},{e['d']}]] w={e['w']} "
+                          f"kd2/n={eff(e):.2f}")
+                continue
+        for e in sorted(front, key=eff, reverse=True)[:args.top]:
+            print(f"    [[{e['n']},{e['k']},{e['d']}]] w={e['w']} "
+                  f"kd2/n={eff(e):.2f}")
+        if len(front) > args.top:
+            print(f"    ... {len(front) - args.top} more nondominated")
+
+    print(f"\n{len(entries)} codes across {len(by_cell)} populated cells. "
+          f"A code counts in every cell it qualifies for (the classes nest), "
+          f"so these counts overlap by design.")
+    print("Nondominated means no other code in the cell beats it on all of "
+          "n, k, d and check weight at once, which is what earns a record star.")
     return 0
 
 
@@ -521,6 +690,9 @@ def main(argv=None):
                                 ".json draft")
     s.add_argument("--authors", nargs="+", required=True,
                    help="one or more: @github-handle and/or 'First Last'")
+    s.add_argument("--anonymous", action="store_true",
+                   help="explicitly submit without a GitHub @handle; the "
+                        "entry will not be bound to an account")
     s.add_argument("--construction", default="",
                    help="how the code was built (family, polynomials, search)")
     s.add_argument("--model", default="",
@@ -551,6 +723,9 @@ def main(argv=None):
                         "(1 = single layer, 2 = bilayer); default 1")
     s.add_argument("--trials", type=int, default=20000,
                    help="RIS trials for the distance witness search")
+    s.add_argument("--fast-trials", type=int, default=2_000_000,
+                   help="gf2_fast trials used to tighten the claim "
+                        "(0 disables the accelerator)")
     s.add_argument("--seed", type=int, default=0)
     s.add_argument("--out", default=os.path.join(_ROOT, "codes"))
     s.add_argument("--force", action="store_true",
@@ -566,6 +741,17 @@ def main(argv=None):
                                       "search)")
     r.add_argument("--days", type=int, default=14)
     r.set_defaults(func=cmd_recent)
+
+    g = sub.add_parser("targets", help="which track cells are open: occupancy "
+                                       "and frontier per cell (read before you "
+                                       "build)")
+    g.add_argument("--cell", default=None,
+                   help="focus one cell, e.g. 'weight-6/unrestricted'")
+    g.add_argument("--n", type=int, default=None,
+                   help="what a code at this blocklength would need")
+    g.add_argument("--top", type=int, default=6,
+                   help="frontier entries to list per cell (default 6)")
+    g.set_defaults(func=cmd_targets)
 
     args = p.parse_args(argv)
     return args.func(args)
