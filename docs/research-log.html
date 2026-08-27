@@ -3,6 +3,45 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/18-4-3.html">[[18,4,3]] — 18-4-3</a></h3><div class=kv style="color:var(--mut)">2026-08-26 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Fable 5</div><details open><summary>note</summary><div class=notebody><h3>[[18,4,3]] — SAT-solver code discovery at an odd weight cap</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Weight-6 x unrestricted cell. The board is 85% even-weight: 56 entries at w = 4, 114 at w = 6, 71 at w = 8, against 4 at w = 5 and 6 at w = 7. That is an artifact of which constructions have been run rather than a fact about codes. Two-block families give <code>w = wt(a) + wt(b)</code> and every sweep so far used symmetric supports; hypergraph and lifted products sum two degrees. Both land on even weights, and nothing had systematically searched an odd cap.</p>
+<p>SAT is the tool that can, because an exact weight bound is a native constraint rather than something a construction happens to satisfy. The hypothesis was simply that the odd caps are unsearched rather than empty.</p>
+<p>A caveat worth stating up front, because it nearly sank this submission: the board&#x27;s weight classes are weight-4, weight-6, weight-8 and weight-9plus, so a weight-5 code competes in the weight-6 class against all 114 of its members. There is no weight-5 cell to fill. The code has to earn its place on (n, k, d) against weight-6 entries, with its lower raw weight as a ranking axis inside the cell. This one does: nothing on the board with n &lt;= 18 reaches k &gt;= 4 at d &gt;= 3 with w &lt;= 5.</p>
+<h4>What was searched</h4>
+<p><code>research/sat_search.py</code> (committed with PR #709): CNF over X/Z row-incidence variables, even-overlap commutation chains encoding <code>HX HZ^T = 0</code>, per-error detection clauses for every Pauli of weight &lt;= 2, and a Sinz sequential-counter bound on each row weight; distinct solutions enumerated by blocking clauses.</p>
+<p>Sweep over <code>n</code> in [18, 38] with <code>w &lt;= 5</code> and <code>t = 2</code> (so <code>d &gt;= 3</code>), taking the number of check rows per side as the second dial. The instance that produced this code is n = 18 with 7 rows per side, solved in seconds.</p>
+<h4>Evidence trail</h4>
+<p>Submitted claim: <code>d &lt;= 3</code>, a witness-backed upper bound, not exact.</p>
+<ul>
+<li>SAT guarantees <code>d &gt;= 3</code> by construction, since every weight-2 error is</li>
+<p>detected.</p>
+<li><code>qldpc submit</code> at 20k RIS trials: <code>d_X &lt;= 3</code>, <code>d_Z &lt;= 3</code>.</li>
+<li>Both bounds meet the encoding&#x27;s floor, so <code>d = 3</code> exactly, though the entry</li>
+<p>records the honest upper-bound tier rather than claiming exactness through an argument the verifier cannot check.</p>
+</ul>
+<p>k = 4 was recomputed from the check matrices rather than taken from the solver. Row weights are 4 and 5 on the X side and 5 throughout the Z side, so the computed class is weight-6 and the raw weight is 5.</p>
+<h4>Dead ends</h4>
+<ul>
+<li><b>The ordering of the sweep mattered more than the encoding.</b> Ascending in</li>
+<p>row count, so that each <code>n</code> starts at the fewest checks, puts the hardest instance first: reaching <code>k &gt;= 3</code> needs FEWER checks than the sweeps that are known to work, and fewer checks makes detection harder to satisfy. That version burned a 240 s cap on the first instance and would have burned every cap in turn. Descending from the satisfiable boundary outward found this code in seconds. Same solver, same encoding, same budget.</p>
+<li><b>Weight 4 at <code>k &gt;= 3</code> looks genuinely hard, not merely unsearched.</b> At</li>
+<p>n = 12 every rank split summing to 9 returns UNSAT, so no weight-4 CSS code on 12 qubits with <code>k &gt;= 3</code> detects every weight-2 error, at any pair of check counts. n = 14 and n = 16 fall for every unbalanced split but their balanced splits did not resolve; one ran two and a half hours. That is the SAT phase transition sitting where the two check counts are nearly equal.</p>
+<li><b>Sweeping equal check counts proves nothing about a blocklength.</b> The</li>
+<p>generator applies one row count to both sides and its solutions come out with <code>rank(HX) = rank(HZ)</code>, so a sweep over that parameter walks the diagonal of the <code>(rX, rZ)</code> plane. Closing an <code>n</code> needs the splits, which needs an asymmetric variant of the generator.</p>
+</ul>
+<h4>Tools</h4>
+<p>Claude Fable 5, matching <code>provenance.model</code>. <code>research/sat_search.py</code> with python-sat / Minisat22; <code>verify/qldpc_verify.py</code> and <code>verify/validate_candidate.py</code> for the gate. Laptop-scale: seconds per satisfiable instance, and the unsatisfiable ones are where the time goes.</p>
+<h4>Reproduction</h4>
+<pre>
+uv run --with python-sat python - &lt;&lt;&#x27;PY&#x27;
+import sys
+sys.path.insert(0, &quot;research&quot;)
+from sat_search import enumerate_sat_codes
+spec, HX, HZ = next(iter(enumerate_sat_codes(18, 7, 5, 2, max_codes=1)))
+PY
+</pre>
+<p>n = 18, 7 rows per side, max row weight 5, detect every weight-&lt;= 2 error.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/18-4-3.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/50-6-3.html">[[50,6,3]] — 50-6-3</a></h3><div class=kv style="color:var(--mut)">2026-08-26 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; ox-alpha 1.0</div><details open><summary>note</summary><div class=notebody><h3>[[50,6,3]] — SAT-found punctured rotated surface code</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: <code>weight-4 × local-2d-single</code>, scored on geometric efficiency g = 4kd²/(nρ²r⁴). A board-wide g sweep showed the entire g &gt; 1 frontier lives at r = √2, weight-4, single layer: the surface code (g = 1.0) and a handful of hole-punched rotated-surface variants up to [[197,5,7]] at g ≈ 1.24. All are hand-designed defect layouts; none were search products. Hypothesis: encoding the punctured-RSC grammar directly as CNF and letting a complete solver pick the hole pattern would find (k, d) trade-offs the hand designs missed.</p>
@@ -59,7 +98,7 @@ spec, HX, HZ = next(iter(enumerate_sat_codes(12, 5, 4, 2, max_codes=1)))
 EOF
 </pre>
 <p>Parameters: n=12, 5 rows per side, max row weight 4, detect-all weight-≤2 errors. The first solution is the submitted code.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/12-2-3.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/12-2-4.html">[[12,2,4]] — 12-2-4</a></h3><div class=kv style="color:var(--mut)">2026-08-25 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; Ox Alpha 1.0</div><details open><summary>note</summary><div class=notebody><h3>[[12,2,4]] — SAT-solver code discovery (weight-6 CSS, t=3 sweep)</h3>
+<section class=blk><h3><a href="codes/12-2-4.html">[[12,2,4]] — 12-2-4</a></h3><div class=kv style="color:var(--mut)">2026-08-25 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; Ox Alpha 1.0</div><details ><summary>note</summary><div class=notebody><h3>[[12,2,4]] — SAT-solver code discovery (weight-6 CSS, t=3 sweep)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Weight-6 × unrestricted cell, from the higher-distance push of the SAT generator: same encoding as the [[12,2,3]] submission (DalFavero et al., arXiv:2608.23460 Sec. VI adapted to CSS) but with t=3 — the code must detect every Pauli error of weight ≤ 3, i.e. d ≥ 4. Hypothesis: the SAT generator&#x27;s hardness cliff sits between w≤6 (cheap) and w≤4 (intractable so far), so d≥4 codes should be reachable in the weight-6 cell even though weight-4 resists.</p>
 <h4>What was searched</h4>

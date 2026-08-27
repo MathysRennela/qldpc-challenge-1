@@ -186,12 +186,23 @@ def validate_candidate(doc, *, seed=None, refute=True):
             if (b["n"] <= n and b["k"] >= k and b["d"] >= d and bw <= w
                     and (b["n"] < n or b["k"] > k or b["d"] > d or bw < w)):
                 dominators.append(f"[[{b['n']},{b['k']},{b['d']}]] w={bw} {b['name']}")
-    board_advancing = not dominators and not exact_dup
+    # Novelty against a board that already contains this exact code is not a
+    # well-posed question, so say which condition fired rather than reporting a
+    # verdict that was never reached. Validating a file already sitting in
+    # codes/ compares it with itself, and the old label ("does not advance its
+    # board cell", with an empty dominator list) reads as a rejection on
+    # merit -- which cost a real submission that was in fact board-advancing.
+    board_advancing = None if exact_dup else not dominators
     g["novelty"] = {"cell": [wc, lc], "board_advancing": board_advancing,
                     "dominated_by": dominators, "literature_novelty": "unverified"}
-    verdict["labels"].append(
-        f"advances the {wc} x {lc} board" if board_advancing
-        else "does not advance its board cell")
+    if exact_dup:
+        verdict["labels"].append(
+            "novelty not assessed: this code is already on the board "
+            f"as {exact_dup}")
+    else:
+        verdict["labels"].append(
+            f"advances the {wc} x {lc} board" if board_advancing
+            else "does not advance its board cell")
     verdict["labels"].append("literature novelty UNVERIFIED")
 
     verdict["passed"] = bool(verify_ok and not refuted and not exact_dup)

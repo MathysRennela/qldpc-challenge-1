@@ -56,6 +56,8 @@ TRUSTED = (
     "verify/gate_changed.py",
     "verify/gf2.py",
     "verify/heuristic_distance.py",
+    "verify/ler_tools.py",
+    "verify/ler_verify.py",
     "verify/qldpc_verify.py",
     "verify/refute_board.py",
     "verify/validate_candidate.py",
