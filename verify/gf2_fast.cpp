@@ -2,13 +2,14 @@
  * gf2_fast.cpp — Bit-packed GF(2) linear algebra for quantum code search.
  *
  * OPTIONAL accelerator for the RIS hot paths (code-tier heuristic_distance,
- * circuit-tier circuit_tools.ris_dem). NOT part of the trusted validation
- * stack: everything here only PROPOSES candidates -- a find counts as a
- * refutation or witness only after the pinned Python stack validates it
- * (gate_changed._fast_refute, circuit_tools.witness_errors), and every gate
- * degrades to the pure-Python search when this extension is absent (CI
- * builds it via `make fast`, but a missing or broken build can only make
- * the gate shallower-and-warned, never wrong).
+ * circuit-tier circuit_tools.ris_dem). It is pinned as a build/runtime input
+ * to the production validation closure, but everything here only PROPOSES
+ * candidates -- a find counts as a refutation or witness only after the
+ * pinned Python stack validates it (gate_changed._fast_refute,
+ * circuit_tools.witness_errors). Every gate degrades to the pure-Python
+ * search when this extension is absent (CI builds it via `make fast`, but a
+ * missing or broken build can only make the gate shallower-and-warned, never
+ * wrong).
  *
  * Build:  make fast        (or: python verify/setup_gf2_fast.py build_ext
  *                           --build-lib verify)
