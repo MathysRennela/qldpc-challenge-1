@@ -66,6 +66,27 @@ def main():
     check("computed cell is weight-6 x unrestricted",
           vg["gates"]["novelty"]["cell"] == ["weight-6", "unrestricted"])
 
+    print("1b. a code compared against ITSELF reports no novelty verdict:")
+    # Validating a doc already on the board (issue #728) makes the dedup gate
+    # fire. Reporting that as "does not advance its board cell" with an empty
+    # dominator list describes a rejection on merit that never happened, and it
+    # cost a real submission that was in fact board-advancing.
+    import glob
+    onboard = sorted(glob.glob(os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "codes", "*.json")))
+    if onboard:
+        with open(onboard[0]) as f:
+            dup = json.load(f)
+        vd = V.validate_candidate(dup, seed=SEED)
+        check("dedup fires", vd["gates"]["dedup"]["exact_duplicate_of"] is not None)
+        check("novelty verdict withheld, not falsified",
+              vd["gates"]["novelty"]["board_advancing"] is None)
+        check("label names the duplicate, not a cell failure",
+              any("already on the board" in x for x in vd["labels"])
+              and not any("does not advance" in x for x in vd["labels"]))
+        check("still fails the gate", not vd["passed"])
+
     print("2. an OVER-CLAIM (same checks, inflated witnesses) is rejected:")
     vx = heavy_witness(HX, HZ, n, 20, 1)
     vz = heavy_witness(HZ, HX, n, 20, 2)
