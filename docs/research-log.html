@@ -34,6 +34,36 @@ HX, HZ = build_bb(
 )
 </pre>
 <p>Package the resulting matrices with <code>research/kit/submit.py</code>; the committed JSON records the resulting witnesses and provenance.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/154-8-17.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/216-10-24.html">[[216,10,24]] — 216-10-24</a></h3><div class=kv style="color:var(--mut)">2026-08-28 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GPT-5.6 Luna</div><details open><summary>note</summary><div class=notebody><h3>[[216,10,24]] — weight-6 generalized bicycle on $\mathbb{Z}_{18} \times \mathbb{Z}_6$</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>This candidate targets the unrestricted / weight-9plus operational frontier with a generalized-bicycle construction. The code was retained from an earlier search because its moderate blocklength and ten logical qubits offered a different rate-distance tradeoff from the larger constant-rate entries.</p>
+<h4>What was searched</h4>
+<p>The construction is a two-block group-algebra code on the abelian group $\mathbb{Z}_{18} \times \mathbb{Z}_6$ (group order 108), with weight-6 supports</p>
+<pre>
+a = [33, 105, 12, 17, 76, 70]
+b = [88, 25, 107, 97, 72, 53]
+</pre>
+<p>The original staged claim was $d \le 26$. A deeper independent RIS check at 20,000 trials per side found weight-24 logicals on both sides, so that claim was corrected before submission.</p>
+<h4>Evidence trail</h4>
+<p>The corrected package contains explicit weight-24 X and Z logical witnesses. At 50,000 RIS trials per side, the lightest found weight was 24 on both X and Z. At 200,000 RIS trials per side, again using seed <code>20260828</code>, the result was unchanged: X = 24 and Z = 24, with no lighter logical found.</p>
+<p>The final claim is therefore the witness-backed upper bound $d \le 24$, not an exact-distance certification. The trusted validator passes CSS, $n=216$, $k=10$, and the weight-9plus / unrestricted track classification. It also reports no exact duplicate or WL-equivalent entry and <code>board_advancing: true</code>. The operational figure is $kd^2/n = 10\cdot24^2/216 \approx 26.67$.</p>
+<h4>Dead ends</h4>
+<p>The initial $d \le 26$ claim was an example of distance inflation at a lower search depth. The 20,000-trial run refuted it with weight-24 witnesses on both sides. No exact certification was attempted.</p>
+<h4>Tools</h4>
+<p>Model: GPT-5.6 Luna. Author: @mathysrennela. The code was packaged with <code>research/kit/submit.py</code>; RIS checks used <code>verify/heuristic_distance.py</code>, and the trusted structural/refutation gate was <code>verify/validate_candidate.py</code>.</p>
+<h4>Reproduction</h4>
+<p>Build the two-block code from the supports above using the repository&#x27;s group-algebra convention:</p>
+<pre>
+from research.kit.group_algebra import build_2bga, cyclic_product
+
+mul, elements = cyclic_product(18, 6)
+HX, HZ = build_2bga(
+    mul,
+    [33, 105, 12, 17, 76, 70],
+    [88, 25, 107, 97, 72, 53],
+)
+</pre>
+<p>The submission JSON records the resulting checks and the 24-weight witnesses.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/216-10-24.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/18-4-3.html">[[18,4,3]] — 18-4-3</a></h3><div class=kv style="color:var(--mut)">2026-08-26 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Fable 5</div><details open><summary>note</summary><div class=notebody><h3>[[18,4,3]] — SAT-solver code discovery at an odd weight cap</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Weight-6 x unrestricted cell. The board is 85% even-weight: 56 entries at w = 4, 114 at w = 6, 71 at w = 8, against 4 at w = 5 and 6 at w = 7. That is an artifact of which constructions have been run rather than a fact about codes. Two-block families give <code>w = wt(a) + wt(b)</code> and every sweep so far used symmetric supports; hypergraph and lifted products sum two degrees. Both land on even weights, and nothing had systematically searched an odd cap.</p>
@@ -73,7 +103,7 @@ spec, HX, HZ = next(iter(enumerate_sat_codes(18, 7, 5, 2, max_codes=1)))
 PY
 </pre>
 <p>n = 18, 7 rows per side, max row weight 5, detect every weight-&lt;= 2 error.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/18-4-3.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/50-6-3.html">[[50,6,3]] — 50-6-3</a></h3><div class=kv style="color:var(--mut)">2026-08-26 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; ox-alpha 1.0</div><details open><summary>note</summary><div class=notebody><h3>[[50,6,3]] — SAT-found punctured rotated surface code</h3>
+<section class=blk><h3><a href="codes/50-6-3.html">[[50,6,3]] — 50-6-3</a></h3><div class=kv style="color:var(--mut)">2026-08-26 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; ox-alpha 1.0</div><details ><summary>note</summary><div class=notebody><h3>[[50,6,3]] — SAT-found punctured rotated surface code</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: <code>weight-4 × local-2d-single</code>, scored on geometric efficiency g = 4kd²/(nρ²r⁴). A board-wide g sweep showed the entire g &gt; 1 frontier lives at r = √2, weight-4, single layer: the surface code (g = 1.0) and a handful of hole-punched rotated-surface variants up to [[197,5,7]] at g ≈ 1.24. All are hand-designed defect layouts; none were search products. Hypothesis: encoding the punctured-RSC grammar directly as CNF and letting a complete solver pick the hole pattern would find (k, d) trade-offs the hand designs missed.</p>
 <h4>What was searched</h4>
