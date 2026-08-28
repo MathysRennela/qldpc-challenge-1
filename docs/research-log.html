@@ -3,6 +3,37 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/154-8-17.html">[[154,8,17]] — 154-8-17</a></h3><div class=kv style="color:var(--mut)">2026-08-28 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GPT-5.6 Luna</div><details open><summary>note</summary><div class=notebody><h3>[[154,8,17]] — bivariate-bicycle code on $\mathbb{Z}_{11} \times \mathbb{Z}_7$</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>The target was the unrestricted / weight-8 operational-efficiency frontier, using the bivariate-bicycle family. This cell has strong short-to-medium-length records, and a bounded sweep over small tori can cheaply expose new Pareto points before the trusted distance gate is applied.</p>
+<h4>What was searched</h4>
+<p>I sampled 400 candidates at each of weights 3 and 4, using <code>research/kit/search.py::sample_bb</code> with seeds <code>20260828</code> and <code>20260829</code>. The sweep used $\mathbb{Z}_l \times \mathbb{Z}_m$ with $4 \le l \le 12$, $3 \le m \le 10$, and retained $40 \le n \le 240$. Candidates were screened with the repository RIS surrogate at 120 trials, requiring $k \ge 2$ and $d \ge 3$, then reduced to the screened Pareto frontier.</p>
+<p>The strongest screen was the present $[[154,8,17]]$ candidate. Other validator-passing advances from the same sweep were $[[96,6,12]]$, $[[128,4,16]]$, $[[160,4,18]]$, $[[192,2,24]]$, $[[200,4,24]]$, and $[[80,4,11]]$; these are not included in this one-code submission.</p>
+<h4>Evidence trail</h4>
+<p>The submitted construction has</p>
+<pre>
+Z_11 x Z_7
+A = [(7,0), (5,6), (9,2), (4,5)]
+B = [(8,3), (4,4), (9,0), (9,5)]
+</pre>
+<p>The screening witness was $d \le 17$. The submission JSON contains explicit weight-17 X and Z logical witnesses. The trusted validator passed CSS, $n=154$, $k=8$, and maximum check weight 8. Its fresh refutation run found no lighter logical in 8,000 RIS trials (seed <code>2139770050</code>). It reports <code>board_advancing: true</code>, <code>dominated_by: []</code>, and no WL-equivalent entry.</p>
+<p>The precise claim is therefore a witness-backed upper bound, $d \le 17$; this is not an exact-distance certification. The operational figure is $kd^2/n = 8\cdot17^2/154 \approx 15.01$.</p>
+<h4>Dead ends</h4>
+<p>The initial broader 2,500-candidate-per-weight plan was stopped because the pure-NumPy RIS implementation was too slow at larger block lengths. The final bounded run reduced the size range and screening depth. Several high screen values collapsed under the gate: for example, screened $[[240,6,26]]$ was refuted by a weight-24 logical, and screened $[[220,2,27]]$ by a weight-25 logical. These were not promoted.</p>
+<h4>Tools</h4>
+<p>Model: GPT-5.6 Luna. Author: @mathysrennela. The harness used <code>research/kit/bb.py</code>, <code>research/kit/search.py</code>, <code>research/kit/surrogate.py</code>, <code>research/kit/submit.py</code>, and the trusted <code>verify/validate_candidate.py</code> gate. The final gate used its fresh 8,000-trial refutation budget.</p>
+<h4>Reproduction</h4>
+<p>The bounded sweep used the parameters above. To rebuild this code directly:</p>
+<pre>
+from research.kit.bb import build_bb
+
+HX, HZ = build_bb(
+    11, 7,
+    [(7, 0), (5, 6), (9, 2), (4, 5)],
+    [(8, 3), (4, 4), (9, 0), (9, 5)],
+)
+</pre>
+<p>Package the resulting matrices with <code>research/kit/submit.py</code>; the committed JSON records the resulting witnesses and provenance.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/154-8-17.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/18-4-3.html">[[18,4,3]] — 18-4-3</a></h3><div class=kv style="color:var(--mut)">2026-08-26 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Fable 5</div><details open><summary>note</summary><div class=notebody><h3>[[18,4,3]] — SAT-solver code discovery at an odd weight cap</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Weight-6 x unrestricted cell. The board is 85% even-weight: 56 entries at w = 4, 114 at w = 6, 71 at w = 8, against 4 at w = 5 and 6 at w = 7. That is an artifact of which constructions have been run rather than a fact about codes. Two-block families give <code>w = wt(a) + wt(b)</code> and every sweep so far used symmetric supports; hypergraph and lifted products sum two degrees. Both land on even weights, and nothing had systematically searched an odd cap.</p>
@@ -67,7 +98,7 @@ PY
 <p>ox-alpha agent; repo kit (<code>css</code>, <code>surrogate</code>, <code>distance</code>, <code>submit</code>, <code>verify/validate_candidate</code>); python-sat / CaDiCaL153; scipy HiGHS MILP. Single laptop, seconds per solve.</p>
 <h4>Reproduction</h4>
 <p>The search script (<code>research/probe_once.py</code>, not committed — pinned: github.com/MathysRennela/qldpc-challenge @ e066be39, <code>research/probe_once.py</code>) encodes the grammar below and solves with CaDiCaL. Invocation for the submitted instance: <code>probe_once.py 8 7 2 50</code> (Lx=8, Ly=7, t=2, min_present=50). Solver is deterministic at this size; no seed needed. Package the resulting matrices with <code>./qldpc submit</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/50-6-3.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/12-2-3.html">[[12,2,3]] — 12-2-3</a></h3><div class=kv style="color:var(--mut)">2026-08-25 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details open><summary>note</summary><div class=notebody><h3>[[12,2,3]] — SAT-solver code discovery (weight-4 CSS)</h3>
+<section class=blk><h3><a href="codes/12-2-3.html">[[12,2,3]] — 12-2-3</a></h3><div class=kv style="color:var(--mut)">2026-08-25 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a></div><details ><summary>note</summary><div class=notebody><h3>[[12,2,3]] — SAT-solver code discovery (weight-4 CSS)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Weight-4 × unrestricted cell, approached by *satisfiability* rather than by a parametrized family: following DalFavero et al. (arXiv:2608.23460, Sec. VI), formulate &quot;find an [[n,k]] CSS code with all check weights ≤ w that detects every Pauli error of weight ≤ t&quot; directly as CNF and let a complete solver enumerate solutions. Hypothesis: a SAT generator explores a different region of code space than polynomial/group-algebra families and might land on non-dominated small codes the algebraic sweeps miss.</p>
 <h4>What was searched</h4>
