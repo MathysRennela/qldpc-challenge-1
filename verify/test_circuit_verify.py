@@ -263,3 +263,64 @@ def test_search_matches_witness_check():
     w, wit = ct.ris_dem(H, L, trials=8, seed=3)
     assert w is not None and w <= 5      # rounds-truncated: can only be <= d
     assert ct.witness_errors(dem, wit, w) == []
+
+
+def test_dem_lint_clean_on_reference():
+    """The reference builder's DEM must pass all three structural checks
+    (issue #690); a false positive here would block every honest entry."""
+    HX = _matrix(BASE_DOC["checks"]["X"], N)
+    HZ = _matrix(BASE_DOC["checks"]["Z"], N)
+    dem = ct.derive_dem(ct.apply_noise(
+        ct.build_css_memory(HX, HZ, rounds=2, basis="Z"), N))
+    assert ct.dem_lint(dem) == []
+
+
+def test_dem_lint_detectability():
+    # a mechanism flipping an observable with no detector = d_circ 1
+    dem = stim.DetectorErrorModel("""
+        error(0.001) D0 L0
+        error(0.001) L0
+        error(0.001) D0
+    """)
+    errs = ct.dem_lint(dem)
+    assert any(e.startswith("detectability") and "[1]" in e for e in errs), errs
+
+
+def test_dem_lint_observable_coverage():
+    # L1 declared (via the max observable index) but never flipped
+    dem = stim.DetectorErrorModel("""
+        error(0.001) D0 L0
+        detector D1
+        logical_observable L1
+    """)
+    errs = ct.dem_lint(dem)
+    assert any(e.startswith("observable_coverage") and "[1]" in e
+               for e in errs), errs
+
+
+def test_dem_lint_probability_bounds():
+    # stim refuses NaN at parse time, so construct the edge cases it allows:
+    # an exact-zero and an exact-one probability are both meaningless priors.
+    dem = stim.DetectorErrorModel("""
+        error(0) D0 L0
+        error(1) D0
+        error(0.001) D0 L0
+    """)
+    errs = ct.dem_lint(dem)
+    assert any(e.startswith("probability_bounds") and "[0, 1]" in e
+               for e in errs), errs
+
+
+def test_dem_lint_gates_the_verifier(seed, monkeypatch):
+    """A structurally broken derived DEM must fail circuit_verify at the new
+    step 5.5 and stop before the witness check."""
+    doc, cdir = seed
+    monkeypatch.setattr(ct, "dem_lint",
+                        lambda dem: ["detectability: injected failure"])
+    rep = cv.verify_circuit(doc, cdir)
+    assert not rep["ok"]
+    bad = {c["check"]: c["detail"] for c in rep["checks"] if not c["ok"]}
+    assert any(k.endswith("_dem_structure") for k in bad), bad
+    checked = [c["check"] for c in rep["checks"]]
+    assert not any(k.endswith("_witness_valid") for k in checked), (
+        "witness check ran on a malformed DEM")

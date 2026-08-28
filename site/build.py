@@ -459,7 +459,17 @@ flex-wrap:wrap;
 padding:16px 20px;background:var(--soft);border-bottom:1px solid var(--ln)}}
 .lbh{{font-size:16px;margin:0;font-family:'Space Mono',ui-monospace,monospace;
 text-transform:uppercase;letter-spacing:.03em}}
-.lbsub{{margin:4px 0 0;font-size:13px;color:var(--mut)}}
+.lbsub{{margin:4px 0 0;font-size:13px;color:var(--mut);
+/* cap the title block so the long geo sentence can't stretch it (issue #666).
+   A plain length, deliberately: a percentage arm (min(38ch,100%)) is a cyclic
+   reference during intrinsic sizing, so the whole max-width is IGNORED for
+   the flex line-breaking decision and the row sees the unwrapped sentence --
+   which is exactly the bug. 38ch + the .lbscore cap clear the row at 1024px;
+   below 38ch of viewport the block just fills the container. */
+max-width:38ch}}
+/* the title wrapper is the actual flex item; without min-width:0 its
+   min-content locks the row even when .lbsub wraps */
+.lbhead>div{{min-width:0}}
 .lbcta{{flex:0 0 auto;font-size:13px;font-weight:700;color:#fff;
 font-family:'Space Mono',ui-monospace,monospace;
 background:var(--ac);border:none;border-radius:8px;padding:8px 14px;
@@ -535,7 +545,13 @@ background:#fef3c7;color:#92400e;border-radius:999px;padding:3px 11px;
 cursor:pointer;vertical-align:3px}}
 .qchip b{{font-weight:700}}
 .qchip:hover{{background:#fde68a}}
-.lbscore{{text-align:right;margin-right:14px}}
+.lbscore{{text-align:right;margin-right:14px;
+/* cap the card: in a wrapping flex row, line-breaking happens at each item's
+   hypothetical (max-content) size before flex-shrink ever runs, so the hero
+   card's one-line subtitle (~330px) decided the wrap regardless of any title
+   cap -- this is what actually pushed "best g" down (issue #666). Capped, the
+   subtitle wraps inside the card and the row holds to ~1024px. */
+max-width:260px}}
 .lbscore .lbsv{{font-size:30px;font-weight:800;line-height:1;
 font-variant-numeric:tabular-nums;color:var(--ink)}}
 .lbscore .lbsl{{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
@@ -657,6 +673,12 @@ font-variant-numeric:tabular-nums}}
 max-width:220px}}
 .etal{{color:var(--mut)}}
 .hexwrap{{display:inline-flex;align-items:center;margin-left:8px}}
+/* circuit-tier chip (issue #505): gear + min d_circ on rows whose
+   entry ships verified memory circuits */
+.circchip{{display:inline-flex;align-items:center;margin-left:8px;
+font-size:11px;color:var(--mut);border:1px solid var(--ln);
+border-radius:999px;padding:0 7px;line-height:16px;
+font-variant-numeric:tabular-nums}}
 .hexmark{{color:var(--ac);vertical-align:-2px}}
 .novelty{{display:inline-block;margin-left:7px;font-size:10px;line-height:1;
 padding:3px 6px;border-radius:5px;background:#fef3c7;color:#92400e;
@@ -1103,6 +1125,11 @@ document.addEventListener('click',e=>{
    switch(m[2]){case'>=':return x>=v;case'<=':return x<=v;
     case'>':return x>v;case'<':return x<v;default:return x===v;}}
   if(t==='record'||t==='frontier')return r.dataset.record==='1';
+  // Distance provenance. 'exact' keeps only entries whose distance is proved
+  // by a committed certificate; 'upper-bound' keeps the rest, which are the
+  // ones a refutation could still move.
+  if(t==='exact'||t==='certified')return r.dataset.tier==='exact';
+  if(t==='upper-bound'||t==='unproven')return r.dataset.tier!=='exact';
   // cell:<locality>~<weight> keeps only the members of one primary-track cell,
   // honoring nesting via the row's precomputed data-cells list.
   if(t.slice(0,5)==='cell:')return (' '+(r.dataset.cells||'')+' ').indexOf(' '+t.slice(5)+' ')>=0;
@@ -1418,6 +1445,12 @@ def load_entries():
             "date": doc["provenance"].get("date", ""),
             "construction": doc["provenance"].get("construction", ""),
             "note_md": load_note(slug),
+            # circuit tier (issue #505): min d_circ when the entry ships
+            # verified memory circuits, plus whether a measured rate exists.
+            "d_circ": (min(v["value"] for v in
+                           (doc.get("circuit", {}).get("d_circ") or {}).values())
+                       if doc.get("circuit") else None),
+            "has_ler": bool((doc.get("circuit") or {}).get("ler")),
             "doc": doc, "cert": cert,
         })
     return entries
@@ -1973,6 +2006,59 @@ def detail_page(e):
                  '<span class=cert-no>none yet &middot; distance stands as a '
                  'self-certified upper bound (d &le;)</span></div>')
     P.append('</section>')
+
+    # circuit tier (RFC 0001, issue #505): the entry ships syndrome-extraction
+    # memory circuits and a witness-backed circuit-level distance; render what
+    # the verifier established, in the same shape as the distance section.
+    circ = doc.get("circuit")
+    if circ:
+        P.append('<section class=blk><h3>Circuit tier</h3>')
+        P.append('<div class=kv style="color:var(--mut)">syndrome-extraction '
+                 'memory circuits committed under '
+                 f'<a href="{REPO}/circuits/{e["slug"]}">circuits/'
+                 f'{e["slug"]}/</a> &middot; canonical noise recipe, '
+                 f'{circ.get("rounds")} rounds, stim '
+                 f'{html.escape(str(circ.get("stim_version", "?")))}</div>')
+        dc = circ.get("d_circ") or {}
+        vals = [dc[s]["value"] for s in ("X", "Z") if s in dc]
+        if vals:
+            eff_c = min(vals)
+            P.append(f'<div class=kv><b>d_circ</b> &le; {eff_c} '
+                     '<span class=claimed>(min over bases; penalty-only, '
+                     'clamped to &le; d)</span></div>')
+        for s in ("X", "Z"):
+            claim = dc.get(s)
+            if not claim:
+                continue
+            wit = claim.get("witness") or []
+            P.append(f'<div class=kv><b>d_circ^{s}</b> {claim["value"]} '
+                     f'&middot; fault-set witness of {len(wit)} mechanisms '
+                     f'({"claimed " + claim.get("confidence", "?")})</div>')
+            P.append(f'<details><summary>witness fault set (mechanism '
+                     f'indices in the committed .dem, {len(wit)})</summary>'
+                     f'<div class=wit>{wit}</div></details>')
+        ler = circ.get("ler")
+        if ler:
+            # measured logical error rate: the prefactor d_circ cannot see.
+            # Values verified by independent re-measurement (ler_verify).
+            for s in ("X", "Z"):
+                blk = ler.get(s)
+                if not blk:
+                    continue
+                lo, hi = blk.get("ci95", ["?", "?"])
+                P.append(
+                    f'<div class=kv><b>ler/round ({s})</b> '
+                    f'{blk["ler_per_round"]:.3g} '
+                    f'<span class=claimed>95% CI [{lo:.3g}, {hi:.3g}] '
+                    f'&middot; {blk["failures"]}/{sci_int(blk["shots"])} '
+                    f'shots &middot; decoder {html.escape(blk["decoder"])} '
+                    f'at p={blk["p"]}</span></div>')
+        else:
+            P.append('<div class=kv style="color:var(--mut)">no measured '
+                     'logical error rate yet; d_circ is a floor, and the '
+                     'measured tier records the prefactor it cannot see'
+                     '</div>')
+        P.append('</section>')
 
     # verified 2D layout (issue #289): draw the layout the locality class was
     # earned from, not just its numbers
@@ -3448,7 +3534,9 @@ def board_controls(entries, records):
             '<code>eff&gt;=5</code> <code>g&gt;=0.1</code>; <code>record</code> '
             'keeps only frontier rows; <code>literature</code> / '
             '<code>submitted</code> filter by origin; <code>with-layout</code> '
-            '/ <code>no-layout</code> filter by layout status.</p>'
+            '/ <code>no-layout</code> filter by layout status; '
+            '<code>exact</code> / <code>upper-bound</code> filter by whether '
+            'the distance is proved.</p>'
             '</section>')
 
 
@@ -3584,6 +3672,7 @@ def board_table(entries, records):
             f'data-tracks="{html.escape(search_terms)}" '
             f'data-cells="{html.escape(cell_keys)}" '
             f'data-record="{1 if fr else 0}" '
+            f'data-tier="{e["tier"]}" '
             f'data-origin="{"literature" if e["origin"] == "baseline" else "submitted"}" '
             f'data-model="{html.escape(e["model"].lower())}" '
             f'data-date="{html.escape(e["date"])}" '
@@ -3595,6 +3684,11 @@ def board_table(entries, records):
                f'not a novelty claim">{HEX_MARK}</span>'
                if e["origin"] != "baseline" else "")
             + novelty
+            + ((f'<span class=circchip title="circuit tier: verified '
+                f'syndrome-extraction circuits, d_circ&le;{e["d_circ"]}'
+                f'{" + measured logical error rate" if e["has_ler"] else ""}'
+                f'">&#9881;{e["d_circ"]}</span>')
+               if e["d_circ"] is not None else "")
             + f'</td><td class="typecell col-type" data-label="type">{chips(e)}</td>'
             f'<td class="num col-n" data-label="n">{e["n"]}</td>'
             f'<td class="num col-k" data-label="k">{e["k"]}</td>'

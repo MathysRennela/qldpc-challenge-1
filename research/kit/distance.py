@@ -8,6 +8,9 @@ tools the repo already ships:
 
 * ``exact_distance``  -> ``verify/certify.py`` (scipy/HiGHS MILP, the ``d=``
   tier): proves no lighter nontrivial logical exists, per side. Needs **scipy**.
+* ``sat_exact_distance`` -> ``verify/sat_certify.py`` (SAT, the same ``d=``
+  tier): the same proof by a different route, and the one to reach for as k
+  grows. Needs **pycryptosat** and **python-sat**.
 * ``decoder_distance`` -> ``decode/distance.py`` (BP+OSD residual witnesses): an
   independent upper-bound mechanism (a decoder's mistakes, not linear algebra);
   agreement with the surrogate strengthens corroboration. Needs **ldpc**.
@@ -76,6 +79,40 @@ def exact_distance(HX, HZ, tlim=600, trials=4000, seed=0, d_upper=None):
         doc["distance"]["d"] = int(min(doc["distance"][s]["value"]
                                        for s in ("X", "Z") if s in doc["distance"]))
     return certify.certify(doc, tlim=tlim)
+
+
+def sat_exact_distance(HX, HZ, tlim=600, trials=4000, seed=0, d_upper=None):
+    """Exact distance certification via ``verify/sat_certify.py`` (SAT).
+
+    Same question and same contract as :func:`exact_distance`, different
+    machinery: parity constraints go to a SAT solver as native XOR clauses and
+    only the weight bound is encoded. Prefer this one as k grows. The MILP path
+    and the per-generator SAT form both pay a solve per logical generator per
+    side, while this asks once using selector variables, and on board entries at
+    W = d - 1 that is 2.5x at k = 6, 5.5x at k = 8, and the difference between
+    closing and not closing at k = 28.
+
+    Returns the same shape as :func:`exact_distance`, plus a per-side ``status``
+    and, when a claim is refuted, the witness that refutes it. Requires
+    pycryptosat and python-sat.
+    """
+    try:
+        sat_certify = _load_module(os.path.join(_VERIFY, "sat_certify.py"),
+                                   "_qldpc_sat_certify")
+    except ImportError as e:
+        raise ImportError(
+            "sat_exact_distance needs pycryptosat and python-sat "
+            "(verify/sat_certify.py). Install them, e.g. `uv run --with "
+            "pycryptosat --with python-sat python your_script.py`. "
+            f"Underlying error: {e}")
+    doc = _throwaway_doc(HX, HZ, trials, seed)
+    if d_upper:
+        for side, val in d_upper.items():
+            if side in doc["distance"]:
+                doc["distance"][side]["value"] = int(val)
+        doc["distance"]["d"] = int(min(doc["distance"][s]["value"]
+                                       for s in ("X", "Z") if s in doc["distance"]))
+    return sat_certify.certify(doc, tlim=tlim)
 
 
 def decoder_distance(HX, HZ, trials=200000, seed=0, max_seconds=None,

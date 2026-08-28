@@ -28,7 +28,7 @@ import os
 import numpy as np
 
 from css import compute_k, verify_css, rref
-from surrogate import distance_rand
+from surrogate import distance_rand, prepare_distance_search
 from bb import build_bb
 from group_algebra import build_2bga, dihedral, metacyclic
 from products import (hypergraph_product, lifted_product, balanced_product,
@@ -51,9 +51,49 @@ def fingerprint(HX, HZ):
     return hashlib.sha256(b).hexdigest()[:16]
 
 
+def _screen_one(job):
+    """Score one candidate. Module level so a process pool can pickle it.
+
+    The seed is derived from the code's own fingerprint, so a candidate gets
+    the same trials wherever it runs and whatever order it arrives in.
+    """
+    spec, HX, HZ, min_k, min_d, trials, seed, backend, threads = job
+    if not verify_css(HX, HZ):
+        return None
+    k = compute_k(HX, HZ)
+    if k < min_k:
+        return None
+    fp = fingerprint(HX, HZ)
+    d = distance_rand(HX, HZ, trials=trials, seed=seed + int(fp, 16),
+                      backend=backend, threads=threads)
+    if d == float("inf") or d < min_d:
+        return None
+    n = int(HX.shape[1])
+    w = int(max(max((int(r.sum()) for r in HX), default=0),
+                max((int(r.sum()) for r in HZ), default=0)))
+    return {"spec": spec, "n": n, "k": int(k), "d": int(d), "w": w,
+            "fingerprint": fp}
+
+
+def _batches(it, size):
+    """Yield lists of at most ``size`` items, pulling lazily.
+
+    Candidates are generated on demand and handed out in bounded batches, so a
+    sweep of a million never materializes a million dense matrices.
+    """
+    batch = []
+    for item in it:
+        batch.append(item)
+        if len(batch) >= size:
+            yield batch
+            batch = []
+    if batch:
+        yield batch
+
+
 def screen(candidates, *, min_k=1, min_d=1, trials=400, seed=0,
            metric=efficiency, keep=None, verbose=False, backend="numpy",
-           threads=1):
+           threads=1, workers=1, threads_per_candidate=None, batch=64):
     """Screen an iterable of ``(spec, HX, HZ)`` candidates.
 
     ``spec`` is any JSON-serializable description of how the code was built (a
@@ -64,10 +104,109 @@ def screen(candidates, *, min_k=1, min_d=1, trials=400, seed=0,
     ``{spec, n, k, d, efficiency, fingerprint}`` sorted by score (best first),
     deduplicated by fingerprint, truncated to ``keep`` if given. ``backend`` and
     ``threads`` control the optional accelerated distance screen.
+
+    ``workers`` > 1 scores candidates in parallel processes. Candidates are
+    independent, so this is the axis to scale for a broad sweep;
+    ``threads_per_candidate`` (default 1 when parallel) is the other axis, for
+    a few finalists rather than many candidates. Turning up both oversubscribes
+    the machine, so passing both greater than 1 raises rather than quietly
+    thrashing.
+
+    The result does not depend on the worker count. Each candidate's trials are
+    seeded from its own fingerprint, deduplication happens in the parent, and
+    ties in score break on fingerprint, so a parallel run returns exactly what a
+    serial one does. Candidates are pulled lazily in batches of ``batch``, so a
+    long generator never has to be materialized.
     """
+    if workers < 1:
+        raise ValueError("workers must be at least 1")
+    if threads_per_candidate is None:
+        threads_per_candidate = 1 if workers > 1 else threads
+    if workers > 1 and threads_per_candidate > 1:
+        raise ValueError(
+            "workers and threads_per_candidate both > 1 oversubscribes the "
+            "machine; parallelize across candidates for a sweep, or across "
+            "threads for a few finalists, not both")
+
+    def _record(rec):
+        rec["efficiency"] = round(float(metric(rec["n"], rec["k"], rec["d"])), 4)
+        if verbose:
+            print(f"  [[{rec['n']},{rec['k']},{rec['d']}]] "
+                  f"eff={rec['efficiency']:.3f}  {rec['spec']}")
+        return rec
+
     seen = {}
+    jobs = ((spec, HX, HZ, min_k, min_d, trials, seed, backend,
+             threads_per_candidate) for spec, HX, HZ in candidates)
+
+    if workers == 1:
+        for job in jobs:
+            rec = _screen_one(job)
+            if rec is not None and rec["fingerprint"] not in seen:
+                seen[rec["fingerprint"]] = _record(rec)
+    else:
+        import multiprocessing as mp
+        try:
+            ctx = mp.get_context("fork")
+        except ValueError:
+            ctx = mp.get_context("spawn")
+        try:
+            with ctx.Pool(processes=workers) as pool:
+                for chunk in _batches(jobs, max(1, batch)):
+                    for rec in pool.map(_screen_one, chunk):
+                        if rec is not None and rec["fingerprint"] not in seen:
+                            seen[rec["fingerprint"]] = _record(rec)
+        except (OSError, RuntimeError, ValueError, ImportError):
+            # An unguarded caller under spawn, or a sandbox without processes:
+            # fall back rather than fail, since the serial path is the same
+            # computation.
+            for job in jobs:
+                rec = _screen_one(job)
+                if rec is not None and rec["fingerprint"] not in seen:
+                    seen[rec["fingerprint"]] = _record(rec)
+
+    # Fingerprint breaks ties so the order does not depend on arrival order,
+    # which it otherwise would once candidates are scored out of sequence.
+    out = sorted(seen.values(),
+                 key=lambda r: (-r["efficiency"], r["fingerprint"]))
+    return out[:keep] if keep else out
+
+
+def screen_adaptive(candidates, *, stages=(400, 20_000, 200_000), target=None,
+                    min_k=1, min_d=1, metric=efficiency, keep=None,
+                    seed=0, backend="numpy", threads=1, audit=None,
+                    verbose=False):
+    """Screen in widening stages, dropping what cannot reach ``target``.
+
+    ``screen`` spends its whole trial budget on every candidate, including the
+    ones a hundred trials would have settled. This runs the cheapest stage on
+    everything and promotes only what is still worth paying for.
+
+    The rejection is sound rather than heuristic, and that rests on the
+    direction of the error: ``distance_rand`` returns an UPPER bound on d. A
+    candidate whose stage reading already scores below ``target`` therefore has
+    true d at most that reading and true score at most that score, and no
+    deeper stage can rescue it, since widening the search can only lower d.
+    Nothing that could have beaten the target is dropped.
+
+    ``target`` is a score in the units of ``metric`` (kd^2/n by default); with
+    ``target=None`` nothing is dropped for score and the stages only refine the
+    estimate. Candidates on the running Pareto frontier over (n, k, d) are
+    promoted whether or not they clear the target, since the board rewards
+    frontier membership separately from score.
+
+    Pass ``audit`` as a dict to receive per-stage ``promoted`` and ``rejected``
+    counts, plus ``trials_spent`` against ``trials_flat``, the budget a flat
+    ``screen`` at the deepest stage would have spent.
+    """
+    tally = audit if audit is not None else {}
+    tally.setdefault("promoted", [])
+    tally.setdefault("rejected", [])
+    tally.setdefault("trials_spent", 0)
+
+    live, seen = [], set()
     for spec, HX, HZ in candidates:
-        if not verify_css(HX, HZ):          # constructors guarantee this; stay safe
+        if not verify_css(HX, HZ):
             continue
         k = compute_k(HX, HZ)
         if k < min_k:
@@ -75,20 +214,55 @@ def screen(candidates, *, min_k=1, min_d=1, trials=400, seed=0,
         fp = fingerprint(HX, HZ)
         if fp in seen:
             continue
-        n = int(HX.shape[1])
-        d = distance_rand(
-            HX, HZ, trials=trials, seed=seed + int(fp, 16),
-            backend=backend, threads=threads)
-        if d == float("inf") or d < min_d:
-            continue
-        w = int(max((HX.shape[0] and max((int(r.sum()) for r in HX), default=0)),
-                    (HZ.shape[0] and max((int(r.sum()) for r in HZ), default=0))))
-        rec = {"spec": spec, "n": n, "k": int(k), "d": int(d), "w": w,
-               "efficiency": round(float(metric(n, k, d)), 4), "fingerprint": fp}
-        seen[fp] = rec
-        if verbose:
-            print(f"  [[{n},{k},{d}]] eff={rec['efficiency']:.3f}  {spec}")
-    out = sorted(seen.values(), key=lambda r: r["efficiency"], reverse=True)
+        seen.add(fp)
+        live.append({"spec": spec, "HX": HX, "HZ": HZ, "k": int(k),
+                     "n": int(HX.shape[1]), "fp": fp, "d": None,
+                     "prep": None})
+
+    for si, trials in enumerate(stages):
+        if not live:
+            break
+        for c in live:
+            if c["prep"] is None and backend == "numpy":
+                c["prep"] = prepare_distance_search(c["HX"], c["HZ"])
+            got = int(distance_rand(
+                c["HX"], c["HZ"], trials=trials,
+                seed=seed + si * 7919 + int(c["fp"], 16),
+                backend=backend, threads=threads, prepared=c["prep"]))
+            # Every stage returns a valid upper bound, and the stages draw
+            # independently, so a later one can come back worse. Keep the best
+            # bound seen rather than the latest, or a deeper stage could report
+            # a weaker result than the shallower one already proved.
+            c["d"] = got if c["d"] is None else min(c["d"], got)
+            tally["trials_spent"] += trials
+        live = [c for c in live if c["d"] != float("inf") and c["d"] >= min_d]
+        if target is not None and si < len(stages) - 1:
+            scored = [{"n": c["n"], "k": c["k"], "d": c["d"], "_c": c}
+                      for c in live]
+            front_fps = {r["_c"]["fp"] for r in pareto_frontier(scored)}
+            keepers, dropped = [], 0
+            for c in live:
+                if (metric(c["n"], c["k"], c["d"]) >= target
+                        or c["fp"] in front_fps):
+                    keepers.append(c)
+                else:
+                    dropped += 1
+            tally["promoted"].append(len(keepers))
+            tally["rejected"].append(dropped)
+            live = keepers
+            if verbose:
+                print(f"  stage {si} ({trials} trials): {len(keepers)} kept, "
+                      f"{dropped} rejected")
+
+    tally["trials_flat"] = len(seen) * (stages[-1] if stages else 0)
+    out = []
+    for c in live:
+        w = int(max(*(int(r.sum()) for r in c["HX"]),
+                    *(int(r.sum()) for r in c["HZ"])))
+        out.append({"spec": c["spec"], "n": c["n"], "k": c["k"], "d": c["d"],
+                    "w": w, "fingerprint": c["fp"],
+                    "efficiency": round(float(metric(c["n"], c["k"], c["d"])), 4)})
+    out.sort(key=lambda r: r["efficiency"], reverse=True)
     return out[:keep] if keep else out
 
 
@@ -137,28 +311,66 @@ def update_leaderboard(path, records):
 # ---------------------------------------------------------------------------
 #  Ready-made samplers (all yield (spec, HX, HZ); point ``screen`` at any)
 # ---------------------------------------------------------------------------
-def sample_bb(num, *, l_range=(4, 12), m_range=(3, 10), weight=3, seed=0):
+def bb_shape(l, m, A, B):  # noqa: E741
+    """Return (n, w) for a bivariate-bicycle candidate without building it.
+
+    Both are exact rather than bounds: n = 2lm by construction, and every check
+    row is one A monomial block beside one B block, so the max row weight is
+    |A| + |B| whenever the supports are distinct (which the samplers ensure).
+    Cheap enough to run on every candidate before the dense build.
+    """
+    return 2 * l * m, len(A) + len(B)
+
+
+def sample_bb(num, *, l_range=(4, 12), m_range=(3, 10), weight=3, seed=0,
+              n_range=None, max_weight=None, audit=None):
     """Yield ``num`` random bivariate-bicycle candidates ``(spec, HX, HZ)``.
 
     Each picks a random torus Z_l x Z_m and two sets of ``weight`` distinct
     monomials (distinct so the supports do not cancel mod 2). ``spec`` is a dict
     ``{"family": "bb", "l", "m", "A", "B"}`` -- pass it straight to ``build_bb``
     to rebuild the code.
+
+    ``n_range`` and ``max_weight`` reject a candidate before ``build_bb`` runs,
+    using the exact (n, w) that ``bb_shape`` reads off the parameters. Both are
+    facts about the construction rather than estimates, so nothing that could
+    have passed is discarded. Pass ``audit`` as a dict to receive counts under
+    ``sampled``, ``rejected_n``, ``rejected_w`` and ``built``.
+
+    Deliberately absent: a k prefilter via ``surrogate.mixed_volume``. That is
+    a heuristic here, not a bound. Measured against recomputed k on random
+    candidates whose supports contain (0,0), true k exceeds it in about 2.6% of
+    cases on small tori (l, m in [3,5]; worst observed k = 12 against a bound
+    of 0 at l = m = 3), 0.1% for l, m in [6,9], and in none of 700 samples at
+    [10,14]. Rejecting on it would silently drop real codes, so it is left to
+    callers who want a lossy filter and know the rate.
     """
     rng = np.random.default_rng(seed)
+    tally = audit if audit is not None else {}
+    for key in ("sampled", "rejected_n", "rejected_w", "built"):
+        tally.setdefault(key, 0)
 
-    def distinct_monomials(l, m):
+    def distinct_monomials(l, m):  # noqa: E741
         grid = [(a, b) for a in range(l) for b in range(m)]
         idx = rng.choice(len(grid), size=min(weight, len(grid)), replace=False)
         return [grid[i] for i in idx]
 
     for _ in range(num):
-        l = int(rng.integers(l_range[0], l_range[1] + 1))
+        l = int(rng.integers(l_range[0], l_range[1] + 1))  # noqa: E741
         m = int(rng.integers(m_range[0], m_range[1] + 1))
         if l * m < weight:
             continue
         A = distinct_monomials(l, m)
         B = distinct_monomials(l, m)
+        tally["sampled"] += 1
+        n, w = bb_shape(l, m, A, B)
+        if n_range is not None and not (n_range[0] <= n <= n_range[1]):
+            tally["rejected_n"] += 1
+            continue
+        if max_weight is not None and w > max_weight:
+            tally["rejected_w"] += 1
+            continue
+        tally["built"] += 1
         HX, HZ = build_bb(l, m, A, B)
         yield ({"family": "bb", "l": l, "m": m, "A": A, "B": B}, HX, HZ)
 

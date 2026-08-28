@@ -92,6 +92,18 @@ def ris_min_logical(HX, HZ, trials, seed, pair_depth=8, max_seconds=None):
     return best, wit
 
 
+def _valid_logical(v, H_ker, H_row):
+    """Report whether v is a nontrivial logical operator.
+
+    True when v lies in ker(H_ker) and outside rowspace(H_row). Used to check
+    anything the C++ accelerator hands back before it is recorded, so an
+    accelerator bug cannot put an unbacked witness into a verdict.
+    """
+    if v.sum() == 0 or ((H_ker @ v) % 2).any():
+        return False
+    return gf2.rank(np.vstack([H_row, v[None, :]])) > gf2.rank(H_row)
+
+
 def estimate(doc, trials=20000, seed=0, fast_trials=400000, max_seconds=None):
     """Heuristic distance verdict for a submission `doc`.
 
@@ -129,16 +141,28 @@ def estimate(doc, trials=20000, seed=0, fast_trials=400000, max_seconds=None):
               f"(fast_trials=0 disables it deliberately)", file=sys.stderr)
     # Optional C++ accelerator: a larger overall search (min over both sides).
     if _fast is not None and fast_trials > trials:
-        d_fast = int(_fast.distance_rand_parallel(HX, HZ, fast_trials, seed, 8, 8))
-        if d_heur is None or d_fast < d_heur:
-            d_heur = d_fast                # a lighter logical exists; python re-finds
-            # extract a witness at the tighter weight via a focused python pass
-            for H_a, H_b, key in ((HX, HZ, "X"), (HZ, HX, "Z")):
-                w, wit = ris_min_logical(H_a, H_b, trials * 4, seed + 7)
-                if w is not None and w <= d_fast:
-                    sides.setdefault(key, {})
-                    sides[key].update(lightest_found=w,
-                                      witness=sorted(int(j) for j in np.nonzero(wit)[0]))
+        # Take the witness straight from the accelerator rather than asking the
+        # Python pass to re-find it. The re-find never worked at large n: the
+        # accelerator is orders of magnitude faster per trial, so a budget that
+        # lets it reach weight w leaves the Python pass far short of w, and the
+        # tighter weight was recorded with no witness to back it.
+        d_fast, side, sup = _fast.distance_rand_witness(HX, HZ, fast_trials,
+                                                        seed, 8, 8)
+        d_fast = int(d_fast) if d_fast is not None else None
+        if d_fast is not None and (d_heur is None or d_fast < d_heur):
+            d_heur = d_fast
+            if side in ("X", "Z"):
+                wit = np.zeros(n, dtype=np.int8)
+                wit[list(sup)] = 1
+                # Validate before recording: the accelerator is not the trusted
+                # stack, so a witness only counts once gf2 agrees it is in the
+                # right kernel and outside the opposite rowspace.
+                H_ker, H_row = (HZ, HX) if side == "X" else (HX, HZ)
+                if _valid_logical(wit, H_ker, H_row):
+                    sides.setdefault(side, {})
+                    sides[side].update(
+                        lightest_found=int(wit.sum()),
+                        witness=sorted(int(j) for j in np.nonzero(wit)[0]))
         method = "ris+gf2_fast"
         trials = max(trials, fast_trials)
 
