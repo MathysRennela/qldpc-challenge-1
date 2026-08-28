@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <string>
 #include <vector>
@@ -585,6 +586,46 @@ struct Input {
     std::vector<uint64_t> w_logical;
 };
 
+struct DeviceBuffers {
+    uint64_t *d_null = nullptr, *d_logical = nullptr, *d_vec = nullptr;
+    int *d_best = nullptr, *d_flag = nullptr, *d_done = nullptr;
+    int32_t *d_perm = nullptr;
+    size_t null_capacity = 0, logical_capacity = 0, vec_capacity = 0;
+    int perm_capacity = 0;
+};
+
+/* Kept at process scope so batch requests reuse allocations.  A larger
+   request grows only the affected buffer; smaller requests reuse it. */
+static DeviceBuffers device_buffers;
+
+static void ensure_device_buffers(const Input& in) {
+    size_t null_words = in.w_null.size();
+    size_t logical_words = in.w_logical.size();
+    if (null_words > device_buffers.null_capacity) {
+        if (device_buffers.d_null) CUDA_CHECK(cudaFree(device_buffers.d_null));
+        CUDA_CHECK(cudaMalloc(&device_buffers.d_null, null_words * 8));
+        device_buffers.null_capacity = null_words;
+    }
+    if (logical_words > device_buffers.logical_capacity) {
+        if (device_buffers.d_logical) CUDA_CHECK(cudaFree(device_buffers.d_logical));
+        CUDA_CHECK(cudaMalloc(&device_buffers.d_logical, logical_words * 8));
+        device_buffers.logical_capacity = logical_words;
+    }
+    if (in.nw > (int)device_buffers.vec_capacity) {
+        if (device_buffers.d_vec) CUDA_CHECK(cudaFree(device_buffers.d_vec));
+        CUDA_CHECK(cudaMalloc(&device_buffers.d_vec, (size_t)in.nw * 8));
+        device_buffers.vec_capacity = in.nw;
+    }
+    if (in.n > device_buffers.perm_capacity) {
+        if (device_buffers.d_perm) CUDA_CHECK(cudaFree(device_buffers.d_perm));
+        CUDA_CHECK(cudaMalloc(&device_buffers.d_perm, (size_t)in.n * 4));
+        device_buffers.perm_capacity = in.n;
+    }
+    if (!device_buffers.d_best) CUDA_CHECK(cudaMalloc(&device_buffers.d_best, 4));
+    if (!device_buffers.d_flag) CUDA_CHECK(cudaMalloc(&device_buffers.d_flag, 4));
+    if (!device_buffers.d_done) CUDA_CHECK(cudaMalloc(&device_buffers.d_done, 4));
+}
+
 static Input read_input(const char* path) {
     FILE* f = fopen(path, "rb");
     if (!f) { fprintf(stderr, "cannot open %s\n", path); exit(2); }
@@ -613,6 +654,15 @@ static Input read_input(const char* path) {
     fclose(f);
     return in;
 }
+
+static bool read_exact(FILE* f, void* data, size_t size) {
+    return fread(data, 1, size, f) == size;
+}
+
+/* The Python wrapper owns JSON.  CUDA receives this compact stream so the
+   process/context stays alive for the whole campaign.  Each request is
+   translated to the existing single-input path, preserving its semantics. */
+static int run_batch_file(const char* path, int argc, char** argv);
 
 static int shmem_bytes_for(int n, int nw, int k_sub, bool recover) {
     int perm_bytes = (n * 2 + 7) & ~7;
@@ -651,6 +701,8 @@ static void usage(const char* argv0) {
 }
 
 int main(int argc, char** argv) {
+    if (argc == 3 && !strcmp(argv[1], "--batch-input"))
+        return run_batch_file(argv[2], argc, argv);
     const char* path = nullptr;
     long long trials = 50000000;
     int batch = 50000;
@@ -732,16 +784,12 @@ int main(int argc, char** argv) {
             cudaFuncCachePreferShared));
     }
 
-    uint64_t *d_null, *d_logical, *d_vec;
-    int *d_best, *d_flag, *d_done;
-    int32_t *d_perm;
-    CUDA_CHECK(cudaMalloc(&d_null, in.w_null.size() * 8));
-    CUDA_CHECK(cudaMalloc(&d_logical, in.w_logical.size() * 8));
-    CUDA_CHECK(cudaMalloc(&d_best, 4));
-    CUDA_CHECK(cudaMalloc(&d_flag, 4));
-    CUDA_CHECK(cudaMalloc(&d_done, 4));
-    CUDA_CHECK(cudaMalloc(&d_vec, (size_t)nw * 8));
-    CUDA_CHECK(cudaMalloc(&d_perm, (size_t)n * 4));
+    ensure_device_buffers(in);
+    uint64_t *d_null = device_buffers.d_null, *d_logical = device_buffers.d_logical,
+             *d_vec = device_buffers.d_vec;
+    int *d_best = device_buffers.d_best, *d_flag = device_buffers.d_flag,
+        *d_done = device_buffers.d_done;
+    int32_t *d_perm = device_buffers.d_perm;
     CUDA_CHECK(cudaMemcpy(d_null, in.w_null.data(), in.w_null.size() * 8,
                           cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(d_logical, in.w_logical.data(), in.w_logical.size() * 8,
@@ -828,4 +876,74 @@ int main(int argc, char** argv) {
         printf("\n");
     }
     return 0;
+}
+
+static int run_batch_file(const char* path, int argc, char** argv) {
+    (void)argc; (void)argv;
+    FILE* f = fopen(path, "rb");
+    if (!f) { fprintf(stderr, "cannot open batch input %s\n", path); return 2; }
+    char magic[9]; int32_t version = 0, count = 0;
+    if (!read_exact(f, magic, 9) || memcmp(magic, "RISBATCH1", 9) != 0 ||
+        !read_exact(f, &version, 4) || !read_exact(f, &count, 4) ||
+        version != 1 || count <= 0) {
+        fprintf(stderr, "%s: invalid RISBATCH1 header\n", path);
+        fclose(f); return 2;
+    }
+    int status = 0;
+    for (int item = 0; item < count; item++) {
+        int32_t h[9], mode = 0, pair_depth = 0;
+        uint64_t seed = 0;
+        if (!read_exact(f, h, sizeof(h)) || !read_exact(f, &seed, 8) ||
+            !read_exact(f, &mode, 4) || !read_exact(f, &pair_depth, 4)) {
+            fprintf(stderr, "%s: truncated request %d\n", path, item);
+            status = 2; break;
+        }
+        int request_id = h[0], n = h[1], k_null = h[2], k_logical = h[3], nw = h[4];
+        size_t words = (size_t)k_null * nw + (size_t)k_logical * nw;
+        std::vector<uint64_t> matrices(words);
+        if (!read_exact(f, matrices.data(), words * 8)) {
+            fprintf(stderr, "%s: truncated matrices for request %d\n", path, item);
+            status = 2; break;
+        }
+        char temp[128];
+        snprintf(temp, sizeof(temp), "/tmp/risgpu-%d-%d.risgpu", (int)getpid(), item);
+        FILE* out = fopen(temp, "wb");
+        if (!out) { fprintf(stderr, "cannot create temporary request\n"); status = 2; break; }
+        fwrite("RISGPU01", 1, 8, out);
+        int32_t ih[4] = {n, k_null, k_logical, nw};
+        fwrite(ih, 4, 4, out);
+        fwrite(matrices.data(), 8, words, out);
+        fclose(out);
+
+        char id_buf[32], trials_buf[32], batch_buf[32], seed_buf[32], ksub_buf[32], target_buf[32], pair_buf[32];
+        snprintf(id_buf, sizeof(id_buf), "%d", request_id);
+        snprintf(trials_buf, sizeof(trials_buf), "%d", h[5]);
+        snprintf(batch_buf, sizeof(batch_buf), "%d", h[6]);
+        snprintf(seed_buf, sizeof(seed_buf), "%llu", (unsigned long long)seed);
+        snprintf(ksub_buf, sizeof(ksub_buf), "%d", h[7]);
+        snprintf(target_buf, sizeof(target_buf), "%d", h[8]);
+        snprintf(pair_buf, sizeof(pair_buf), "%d", pair_depth);
+        char* sub_argv[20];
+        int sub_argc = 0;
+        sub_argv[sub_argc++] = argv[0]; sub_argv[sub_argc++] = temp;
+        sub_argv[sub_argc++] = (char*)"--mode";
+        sub_argv[sub_argc++] = mode ? (char*)"recover" : (char*)"estimate";
+        sub_argv[sub_argc++] = (char*)"--trials"; sub_argv[sub_argc++] = trials_buf;
+        sub_argv[sub_argc++] = (char*)"--batch"; sub_argv[sub_argc++] = batch_buf;
+        sub_argv[sub_argc++] = (char*)"--seed"; sub_argv[sub_argc++] = seed_buf;
+        /* Zero means omitted: deep mode then gets its existing full-basis
+           default, while shallow mode retains the normal default of 64. */
+        if (h[7] > 0) {
+            sub_argv[sub_argc++] = (char*)"--k-sub"; sub_argv[sub_argc++] = ksub_buf;
+        }
+        sub_argv[sub_argc++] = (char*)"--target"; sub_argv[sub_argc++] = target_buf;
+        sub_argv[sub_argc++] = (char*)"--pair-depth"; sub_argv[sub_argc++] = pair_buf;
+        sub_argv[sub_argc] = nullptr;
+        printf("request_id=%d\n", request_id);
+        int rc = main(sub_argc, sub_argv);
+        unlink(temp);
+        if (rc != 0) status = rc;
+    }
+    fclose(f);
+    return status;
 }
