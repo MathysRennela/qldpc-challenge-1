@@ -34,6 +34,19 @@ HX, HZ = build_bb(
 )
 </pre>
 <p>Package the resulting matrices with <code>research/kit/submit.py</code>; the committed JSON records the resulting witnesses and provenance.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/154-8-17.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/224-22-16.html">[[224,22,16]] — 224-22-16</a></h3><div class=kv style="color:var(--mut)">2026-08-28 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; human</div><details open><summary>note</summary><div class=notebody><h3>[[224,22,16]] — abelian lifted-product reconstruction</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Targeted the unrestricted weight-8 frontier using a directly reproducible row from arXiv:2608.08996v1.</p>
+<h4>What was searched</h4>
+<p>No parameter sweep: quotient the paper&#x27;s normal-subgroup construction to Z_28 x Z_4 and rebuild its two group-algebra supports.</p>
+<h4>Evidence trail</h4>
+<p>The matrices recompute to n=224, k=22, max check weight 8, and CSS commutation. The paper reports d=16. Pure-Python RIS found no lighter logical in 20,000 trials per side (seed 20260828). The claim remains a witness-backed upper bound, not an exact proof.</p>
+<h4>Dead ends</h4>
+<p>None for this reconstruction.</p>
+<h4>Tools</h4>
+<p>Python 3, the repository group-algebra constructor, submit builder, and trusted verifier.</p>
+<h4>Reproduction</h4>
+<p>Over Z_28 x Z_4, use A={(0,2),(1,0),(2,3),(5,2)} and B={(0,1),(5,0),(17,1),(20,3)}, from the Supplementary Information of <a href="https://arxiv.org/html/2608.08996v1">arXiv:2608.08996v1</a>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/224-22-16.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/288-24-18.html">[[288,24,18]] — 288-24-18</a></h3><div class=kv style="color:var(--mut)">2026-08-28 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; human</div><details open><summary>note</summary><div class=notebody><h3>[[288,24,18]] — lifted-product reconstruction</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Targeted the unrestricted weight-8 frontier using a directly reproducible row from arXiv:2608.08996v1.</p>
@@ -47,7 +60,7 @@ HX, HZ = build_bb(
 <p>Python 3, the repository group-algebra constructor, submit builder, and trusted verifier.</p>
 <h4>Reproduction</h4>
 <p>Over Z_12 x Z_12, use A={(0,2),(0,7),(1,1),(3,0),(11,11)} and B={(0,3),(1,0),(2,0)}, from the Supplementary Information of <a href="https://arxiv.org/html/2608.08996v1">arXiv:2608.08996v1</a>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/288-24-18.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/336-24-24.html">[[336,24,24]] — 336-24-24</a></h3><div class=kv style="color:var(--mut)">2026-08-28 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; human</div><details open><summary>note</summary><div class=notebody><h3>[[336,24,24]] — abelian lifted-product reconstruction</h3>
+<section class=blk><h3><a href="codes/336-24-24.html">[[336,24,24]] — 336-24-24</a></h3><div class=kv style="color:var(--mut)">2026-08-28 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; human</div><details ><summary>note</summary><div class=notebody><h3>[[336,24,24]] — abelian lifted-product reconstruction</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Targeted the unrestricted weight-8 frontier using a directly reproducible row from arXiv:2608.08996v1.</p>
 <h4>What was searched</h4>
