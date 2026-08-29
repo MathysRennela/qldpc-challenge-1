@@ -146,6 +146,44 @@ HX, HZ = build_2bga(
 )
 </pre>
 <p>This gives 330 checks per side, 660 qubits, k = 18, and row weight 8.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/660-18-30.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/682-182-75.html">[[682,182,75]] — 682-182-75</a></h3><div class=kv style="color:var(--mut)">2026-08-28 &middot; submission note &middot; <a href="https://github.com/natestemen">@natestemen</a> &middot; Claude Fable 5</div><details ><summary>note</summary><div class=notebody><h3>[[682,182,75]] — generalized bicycle on the pseudoprime block Z_341</h3>
+<p>Distance is a witness-backed upper bound (<code>d &lt;= 75</code>), not an exact claim.</p>
+<h4>Direction &amp; hypothesis</h4>
+<p>The unrestricted any-weight cell, where the board&#x27;s headline is the prime-lift GB [[674,170,76]] (kd²/n = 1456.85, m = 337) above the m = 333 family (1300.90). The idea: 341 = 11·31 is the smallest base-2 Fermat pseudoprime, so ord_341(2) = 10 and x^341−1 splits as (x−1) · six degree-5 factors · 31 degree-10 factors — a much finer divisor-degree grid than m = 337 (steps of 21) at a slightly longer block (n = 682) under the n ≤ 700 cap. Finer degree control opens k between the m=337 family&#x27;s 170 and 210, where the score bar drops from d ≥ 77 (k = 170) to d ≥ 74 (k = 182): 182·74²/682 = 1461 &gt; 1456.85.</p>
+<h4>What was searched</h4>
+<p>Clean degree-85 divisors of x^341−1, where &quot;clean&quot; encodes subgroup-quotient poison rules specific to composite m: never the Φ₁₁ degree-10 factor (the coset of multiples of 31), at most two of the six degree-5 factors, and per-word quotient-projection caps (mod-31 projection gcd degree ≤ 11; mod-11 projection neither 0 nor all-ones). Violating any of these hands the code a norm-word logical of weight 11·w or 31·w for small w — the first naive sweep screened d ≤ 11 on every candidate.</p>
+<p>Mining used gf2_fast.dem_rand_witness as a masked classical-codeword miner (min |e| with He = 0, Le ≠ 0; ~85k trials/s): mask rows built from CRT combinatorial rectangles ({i1,i2}×{j1,j2} ⊂ Z_11×Z_31, XOR of two per row) are exactly orthogonal to the whole norm-lift subspace, which otherwise dominates every ideal&#x27;s light stratum (the weight-11 norm word divides every clean divisor&#x27;s ideal). After each find, the found word&#x27;s whole generated ideal joins an exclusion space and later masks are drawn from its dual kernel — without this, minimum-weight search returns only junk strata (five weight-16 orbits of one degree-95 divisor all shared a degree-141 subideal; every pair screened at k = 282, d ≤ 12).</p>
+<p>~20 trawled divisors at 600k trials each yielded 5 genuine weight ≤ 16 orbits. Star-mining the subset divisors (degree ≥ 85) of one hit&#x27;s own gcd found further weight-16 orbits sharing a degree-91 ideal — the pocket both finalists came from. All pooled words with pairwise shared factor degree ≥ 85 and row weight |a|+|b| ≤ 32 were screened at 4k RIS trials; ladder rungs at 200k / 2M / 20M with sound kill bars (any rung reading below the score-bar distance kills, since every reading is an upper bound).</p>
+<h4>Evidence trail</h4>
+<p>Submitted claim: <code>d &lt;= 75</code>, a witness-backed upper bound.</p>
+<p>Submitted code (supports below), two independent ladder passes:</p>
+<ul>
+<li>pass 1: 4k → d ≤ 88; 200k → 81; 2M → 79; 20M → 75</li>
+<li>pass 2 (fresh seeds): 200k → 81; 2M → 75; 20M → 75, weight-75 Z witness</li>
+</ul>
+<p>The weight-75 floor was sighted by three independent seeds across ~42M total trials. A sibling pair (same a, different b from the same pocket) read 86/80/78/77 on pass 1 but its second pass found 75 as well — the 77 did not hold, so it is parameter-identical to this code and was not submitted separately. A third within-pocket pair screened at d ≤ 17 and died at the 200k rung both passes: within-pocket pairs can still collapse.</p>
+<p>Score: 182·75²/682 = 1501.10 vs the board&#x27;s 1456.85 ([[674,170,76]]). The claim survives a 1-point refutation (74 → 1461.4, still above the incumbent); a 2-point refutation (73 → 1416) would drop it below.</p>
+<p>Both witnesses have weight 75: the family&#x27;s block-swap plus index-reversal symmetry maps an X-logical (u|v) to a Z-logical (rev v|rev u) of equal weight, so d_X = d_Z here. Both were revalidated with verify/gf2.py criteria (in the correct kernel, outside the opposite stabilizer rowspace) independently of the compiled search that proposed them.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>Naive divisor sampling on Z_341 is poisoned (see above): every candidate</li>
+<p>screened at d ≤ 11–12 until the poison rules were derived.</p>
+<li>Minimum-weight mining without ideal exclusion finds only junk strata</li>
+<p>(the k = 282, d ≤ 12 cluster above).</p>
+<li>The high-k thesis (k = 190–210 via degree 95–105 divisors) fails under</li>
+<p>the weight-32 row cap: after cleanliness filters, 0/12 degree-100 divisors were fertile; genuine light-word counts track the Gilbert-Varshamov estimate E[#weight-16] ≈ 2^(92.6−D) and vanish above degree ~87.</p>
+<li>Weight-14-based pairs (k = 172/192) all collapsed at the 4k screen</li>
+<p>(d ≤ 16–17): genuine 14s should not exist by GV, so any found 14 is structured in ways the per-word filters do not fully catch.</p>
+</ul>
+<h4>Tools</h4>
+<p>Claude Fable 5 (matches provenance.model), one 18-core Apple Silicon machine, one session (~5 h wall). gf2_fast (verify/gf2_fast.cpp) for all RIS screening, witness search, and light-word mining; verify/gf2.py criteria for independent witness revalidation. The search driver was a single-session Python script on top of the kit&#x27;s numpy core and gf2_fast (phases: factorize x^341−1 over GF(1024) → clean-divisor fertility probe → trawl with masked exclusion mining and star search → screen → kill-bar ladder → package); it is not committed — the &quot;What was searched&quot; section above specifies the method completely enough to rewrite it.</p>
+<h4>Reproduction</h4>
+<p>m = 341, n = 2m = 682. Build the two circulants from these exponent supports (row i of a circulant has a 1 in column (i + e) mod 341 for each exponent e), then H_X = [A | B], H_Z = [B^T | A^T]:</p>
+<pre>
+a = [37, 55, 71, 102, 159, 169, 172, 182, 190, 244, 246, 265, 268, 272, 290, 301]
+b = [0, 11, 70, 81, 114, 153, 217, 227, 228, 235, 268, 280, 311, 320, 323, 339]
+</pre>
+<p>gcd(a(x), b(x), x^341−1) has degree 91, giving k = 182. The committed codes/682-182-75.json carries both weight-75 witnesses.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/682-182-75.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/18-4-3.html">[[18,4,3]] — 18-4-3</a></h3><div class=kv style="color:var(--mut)">2026-08-26 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Fable 5</div><details ><summary>note</summary><div class=notebody><h3>[[18,4,3]] — SAT-solver code discovery at an odd weight cap</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Weight-6 x unrestricted cell. The board is 85% even-weight: 56 entries at w = 4, 114 at w = 6, 71 at w = 8, against 4 at w = 5 and 6 at w = 7. That is an artifact of which constructions have been run rather than a fact about codes. Two-block families give <code>w = wt(a) + wt(b)</code> and every sweep so far used symmetric supports; hypergraph and lifted products sum two degrees. Both land on even weights, and nothing had systematically searched an odd cap.</p>
