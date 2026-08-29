@@ -34,37 +34,72 @@ HX, HZ = build_bb(
 )
 </pre>
 <p>Package the resulting matrices with <code>research/kit/submit.py</code>; the committed JSON records the resulting witnesses and provenance.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/154-8-17.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/216-10-24.html">[[216,10,24]] — 216-10-24</a></h3><div class=kv style="color:var(--mut)">2026-08-28 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GPT-5.6 Luna</div><details open><summary>note</summary><div class=notebody><h3>[[216,10,24]] — weight-6 generalized bicycle on $\mathbb{Z}_{18} \times \mathbb{Z}_6$</h3>
+<section class=blk><h3><a href="codes/336-24-24.html">[[336,24,24]] — 336-24-24</a></h3><div class=kv style="color:var(--mut)">2026-08-28 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; human</div><details open><summary>note</summary><div class=notebody><h3>[[336,24,24]] — abelian lifted-product reconstruction</h3>
 <h4>Direction &amp; hypothesis</h4>
-<p>This candidate targets the unrestricted / weight-9plus operational frontier with a generalized-bicycle construction. The code was retained from an earlier search because its moderate blocklength and ten logical qubits offered a different rate-distance tradeoff from the larger constant-rate entries.</p>
+<p>Targeted the unrestricted weight-8 frontier using a directly reproducible row from arXiv:2608.08996v1.</p>
 <h4>What was searched</h4>
-<p>The construction is a two-block group-algebra code on the abelian group $\mathbb{Z}_{18} \times \mathbb{Z}_6$ (group order 108), with weight-6 supports</p>
-<pre>
-a = [33, 105, 12, 17, 76, 70]
-b = [88, 25, 107, 97, 72, 53]
-</pre>
-<p>The original staged claim was $d \le 26$. A deeper independent RIS check at 20,000 trials per side found weight-24 logicals on both sides, so that claim was corrected before submission.</p>
+<p>No parameter sweep: rebuild the paper&#x27;s free-action row over Z_4 x Z_42.</p>
 <h4>Evidence trail</h4>
-<p>The corrected package contains explicit weight-24 X and Z logical witnesses. At 50,000 RIS trials per side, the lightest found weight was 24 on both X and Z. At 200,000 RIS trials per side, again using seed <code>20260828</code>, the result was unchanged: X = 24 and Z = 24, with no lighter logical found.</p>
-<p>The final claim is therefore the witness-backed upper bound $d \le 24$, not an exact-distance certification. The trusted validator passes CSS, $n=216$, $k=10$, and the weight-9plus / unrestricted track classification. It also reports no exact duplicate or WL-equivalent entry and <code>board_advancing: true</code>. The operational figure is $kd^2/n = 10\cdot24^2/216 \approx 26.67$.</p>
+<p>The matrices recompute to n=336, k=24, max check weight 8, and CSS commutation. The paper reports d&lt;=24. Pure-Python RIS found no lighter logical than 24 in 20,000 trials per side (seed 20260828). The claim remains a witness-backed upper bound, not an exact proof.</p>
 <h4>Dead ends</h4>
-<p>The initial $d \le 26$ claim was an example of distance inflation at a lower search depth. The 20,000-trial run refuted it with weight-24 witnesses on both sides. No exact certification was attempted.</p>
+<p>None for this reconstruction.</p>
 <h4>Tools</h4>
-<p>Model: GPT-5.6 Luna. Author: @mathysrennela. The code was packaged with <code>research/kit/submit.py</code>; RIS checks used <code>verify/heuristic_distance.py</code>, and the trusted structural/refutation gate was <code>verify/validate_candidate.py</code>.</p>
+<p>Python 3, the repository group-algebra constructor, submit builder, and trusted verifier.</p>
 <h4>Reproduction</h4>
-<p>Build the two-block code from the supports above using the repository&#x27;s group-algebra convention:</p>
+<p>Over Z_4 x Z_42, use A={(0,0),(1,2),(2,5),(3,6)} and B={(0,0),(1,13),(2,9),(3,19)}, from the Supplementary Information of <a href="https://arxiv.org/html/2608.08996v1">arXiv:2608.08996v1</a>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/336-24-24.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/336-28-20.html">[[336,28,20]] — 336-28-20</a></h3><div class=kv style="color:var(--mut)">2026-08-28 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; human</div><details open><summary>note</summary><div class=notebody><h3>[[336,28,20]] — abelian lifted-product reconstruction</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Targeted the unrestricted weight-8 frontier using a directly reproducible row from arXiv:2608.08996v1.</p>
+<h4>What was searched</h4>
+<p>No parameter sweep: rebuild the paper&#x27;s free-action row over Z_2 x Z_2 x Z_42.</p>
+<h4>Evidence trail</h4>
+<p>The matrices recompute to n=336, k=28, max check weight 8, and CSS commutation. The paper reports d&lt;=20. Pure-Python RIS found no lighter logical than 20 in 20,000 trials per side (seed 20260828). The claim remains a witness-backed upper bound, not an exact proof.</p>
+<h4>Dead ends</h4>
+<p>None for this reconstruction.</p>
+<h4>Tools</h4>
+<p>Python 3, the repository group-algebra constructor, submit builder, and trusted verifier.</p>
+<h4>Reproduction</h4>
+<p>Over Z_2 x Z_2 x Z_42, use A={(0,0,0),(0,1,5),(1,0,2),(1,1,6)} and B={(0,0,0),(0,1,9),(1,0,13),(1,1,19)}, from the Supplementary Information of <a href="https://arxiv.org/html/2608.08996v1">arXiv:2608.08996v1</a>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/336-28-20.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/372-44-18.html">[[372,44,18]] — 372-44-18</a></h3><div class=kv style="color:var(--mut)">2026-08-28 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; human</div><details ><summary>note</summary><div class=notebody><h3>[[372,44,18]] — abelian lifted-product reconstruction</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Targeted the unrestricted weight-9+ frontier using a directly reproducible row from arXiv:2608.08996v1.</p>
+<h4>What was searched</h4>
+<p>No parameter sweep: rebuild the paper&#x27;s free-action row over Z_31 x Z_6.</p>
+<h4>Evidence trail</h4>
+<p>The matrices recompute to n=372, k=44, max check weight 10, and CSS commutation. The paper reports d=18. Pure-Python RIS found no lighter logical than 18 in 20,000 trials per side (seed 20260828). The claim remains a witness-backed upper bound, not an exact proof.</p>
+<h4>Dead ends</h4>
+<p>None for this reconstruction.</p>
+<h4>Tools</h4>
+<p>Python 3, the repository group-algebra constructor, submit builder, and trusted verifier.</p>
+<h4>Reproduction</h4>
+<p>Over Z_31 x Z_6, use A={(5,1),(5,3),(7,2),(18,2),(30,2)} and B={(10,1),(10,3),(21,5),(24,5),(26,5)}, from the Supplementary Information of <a href="https://arxiv.org/html/2608.08996v1">arXiv:2608.08996v1</a>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/372-44-18.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/660-18-30.html">[[660,18,30]] — 660-18-30</a></h3><div class=kv style="color:var(--mut)">2026-08-28 &middot; submission note &middot; <a href="https://github.com/edoaltamura">@edoaltamura</a> &middot; GPT-5</div><details ><summary>note</summary><div class=notebody><h3>[[660,18,30]] - metacyclic generalized-bicycle code</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>The target was the unrestricted / weight-8 frontier. The board contains [[672,18,30]] with the same k, witnessed d, and maximum check weight, so a code with the same three quantities at smaller n would advance that frontier. The search used the non-abelian metacyclic 2BGA/lifted-product family because its group action provides more generator choices than an abelian bicycle while keeping CSS commutation automatic.</p>
+<h4>What was searched</h4>
+<p>The generator was the regular two-block construction H_X = [L(a) | R(b)] and H_Z = [R(b)^T | L(a)^T] over C_22 semidirect C_15 with action r = 5. I drew 1,200 distinct weight-4 support pairs from 2,024 metacyclic parameter triples with group order 60 through 350. Every candidate was checked for CSS commutation, recomputed k, maximum check weight, and screened with the accelerated RIS surrogate at 120 trials. A persistent archive was deduplicated by the verifier-compatible stabilizer fingerprint; 660 candidates survived the screen with k &gt;= 4 and d &gt;= 8. The submitted support pair was the best screen record after the non-dominated archive was formed.</p>
+<h4>Evidence trail</h4>
+<p>All distance values below are upper bounds from explicit logical witnesses.</p>
+<p>| RIS trials | lightest d found | | ---: | ---: | | 120 screen | 103 | | 10,000 | 90 | | 100,000 | 42 | | 1,000,000 | 36 | | 2,000,000 | 30 | | 5,000,000 | 30 |</p>
+<p>The 1M run still returned 36. The independent 2M and 5M runs used separate seeds and both returned a weight-30 Z-type logical, so the bound settled at d &lt;= 30 by 2M and held at 5M. The final CLI packaging search independently extracted witnesses for both CSS sides, then the repository verifier checked n = 660, k = 18, CSS commutation, maximum check weight 8, and witness validity. The submitted confidence is upper_bound: the evidence is d &lt;= 30, not an exact distance proof.</p>
+<h4>Dead ends</h4>
+<p>The shallow leaders were not promoted. At 100k trials, the best screen records collapsed to distances 14, 18, 22, 24, 30, and 36. This is consistent with the repository&#x27;s warning that large-block RIS readings inflate at low trial depth. The metacyclic route was therefore narrowed to the one candidate that remained frontier-relevant after the 1M, 2M, and 5M ladder.</p>
+<h4>Tools</h4>
+<p>Model: GPT-5. Repo tooling: the metacyclic and 2BGA constructors in research/kit/group_algebra.py, the accelerated RIS surrogate, the qldpc submission CLI, and the trusted verifier. No files under verify/ were changed.</p>
+<h4>Reproduction</h4>
+<p>Build the group and supports with:</p>
 <pre>
-from research.kit.group_algebra import build_2bga, cyclic_product
+from research.kit.group_algebra import build_2bga, metacyclic
 
-mul, elements = cyclic_product(18, 6)
+mul, _ = metacyclic(22, 15, 5)
 HX, HZ = build_2bga(
     mul,
-    [33, 105, 12, 17, 76, 70],
-    [88, 25, 107, 97, 72, 53],
+    [18, 142, 163, 293],
+    [73, 147, 201, 215],
 )
 </pre>
-<p>The submission JSON records the resulting checks and the 24-weight witnesses.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/216-10-24.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/18-4-3.html">[[18,4,3]] — 18-4-3</a></h3><div class=kv style="color:var(--mut)">2026-08-26 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Fable 5</div><details open><summary>note</summary><div class=notebody><h3>[[18,4,3]] — SAT-solver code discovery at an odd weight cap</h3>
+<p>This gives 330 checks per side, 660 qubits, k = 18, and row weight 8.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/660-18-30.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/18-4-3.html">[[18,4,3]] — 18-4-3</a></h3><div class=kv style="color:var(--mut)">2026-08-26 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Fable 5</div><details ><summary>note</summary><div class=notebody><h3>[[18,4,3]] — SAT-solver code discovery at an odd weight cap</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Weight-6 x unrestricted cell. The board is 85% even-weight: 56 entries at w = 4, 114 at w = 6, 71 at w = 8, against 4 at w = 5 and 6 at w = 7. That is an artifact of which constructions have been run rather than a fact about codes. Two-block families give <code>w = wt(a) + wt(b)</code> and every sweep so far used symmetric supports; hypergraph and lifted products sum two degrees. Both land on even weights, and nothing had systematically searched an odd cap.</p>
 <p>SAT is the tool that can, because an exact weight bound is a native constraint rather than something a construction happens to satisfy. The hypothesis was simply that the odd caps are unsearched rather than empty.</p>
