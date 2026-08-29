@@ -3,6 +3,27 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/540-12-28.html">[[540,12,28]] — 540-12-28</a></h3><div class=kv style="color:var(--mut)">2026-08-29 &middot; submission note &middot; <a href="https://github.com/edoaltamura">@edoaltamura</a> &middot; GPT-5</div><details open><summary>note</summary><div class=notebody><h3>[[540,12,28]] - metacyclic generalized-bicycle code</h3>
+<h4>Direction and hypothesis</h4>
+<p>The reference-bar context was the unrestricted, weight-8 any-connectivity board, whose seeded paper bar is [[168,20,14]] (arXiv:2606.17268). The fresh search focused on the stricter weight-6 cell nested inside that board. The current live weight-6 frontier included [[360,12,24]] and [[510,16,24]]. A three-term 2BGA over a non-abelian metacyclic group was chosen to keep every check at weight 6 while seeking a larger distance at moderate rate.</p>
+<h4>Construction and search</h4>
+<p>The generator is the regular two-block construction H_X = [L(a) | R(b)] and H_Z = [R(b)^T | L(a)^T] over C_9 semidirect C_30 with action r = 5. The selected supports are a = [122, 199, 264] and b = [19, 123, 265]. The group has order 270, so the code has n = 540 and maximum check weight 6.</p>
+<p>The archive contains 3,200 unique support mutations sampled from a roster of 2,114 valid metacyclic parameter triples with group order 60 through 350. Every candidate was checked for CSS commutation, recomputed k, and maximum check weight, then screened with 180 accelerated RIS trials. The archive kept 523 candidates with k &gt;= 4 and a screen witness d &gt;= 6, and a non-dominated frontier was written after merging each progress checkpoint.</p>
+<h4>Distance evidence</h4>
+<p>All distances below are upper bounds from explicit logical witnesses, not exact proofs.</p>
+<p>| RIS trials | lightest witness found | | ---: | ---: | | 180 screen | 42 | | 100,000 | 30 | | 1,000,000 | 28 | | 2,000,000 | 28 | | 5,000,000 | 28 |</p>
+<p>The 1M, 2M, and 5M runs used independent seeds. Each returned a valid Z-type weight-28 logical, checked by the repository GF(2) routines for commutation and non-membership in the stabilizer row space. The final submission packaging also extracts and verifies witnesses for both CSS sides. The reported confidence is upper_bound, so the honest claim is d &lt;= 28.</p>
+<p>The shallow leaders were not promoted: the apparent [[620,10,60]] screen leader fell to d &lt;= 26 at 100k and d &lt;= 24 at 1M, while other high screen values in the top-16 audit fell into the 24-44 range. This is why the selected code was retained only after the deeper ladder stabilized at 28.</p>
+<h4>Board advance</h4>
+<p>The code qualifies for unrestricted / weight-6 and the nested unrestricted / weight-8 and unrestricted / any-weight cells. In the weight-6 cell it is frontier-relevant: compared with [[360,12,24]], it trades 180 more qubits for the same k and a distance upper bound four higher; compared with [[510,16,24]], it trades 30 more qubits and four fewer logical qubits for the same distance upper-bound improvement. The verifier and board comparison determine the final frontier label; literature novelty is unverified.</p>
+<h4>Reproduction</h4>
+<pre>
+from group_algebra import build_2bga, metacyclic
+
+mul, _ = metacyclic(9, 30, 5)
+HX, HZ = build_2bga(mul, [122, 199, 264], [19, 123, 265])
+</pre>
+<p>The campaign generator and screen archive are in the accompanying local research log. No files under verify/ were changed.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/540-12-28.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/154-8-17.html">[[154,8,17]] — 154-8-17</a></h3><div class=kv style="color:var(--mut)">2026-08-28 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GPT-5.6 Luna</div><details open><summary>note</summary><div class=notebody><h3>[[154,8,17]] — bivariate-bicycle code on $\mathbb{Z}_{11} \times \mathbb{Z}_7$</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>The target was the unrestricted / weight-8 operational-efficiency frontier, using the bivariate-bicycle family. This cell has strong short-to-medium-length records, and a bounded sweep over small tori can cheaply expose new Pareto points before the trusted distance gate is applied.</p>
@@ -47,7 +68,7 @@ HX, HZ = build_bb(
 <p>Python 3, the repository group-algebra constructor, submit builder, and trusted verifier.</p>
 <h4>Reproduction</h4>
 <p>Over Z_28 x Z_4, use A={(0,2),(1,0),(2,3),(5,2)} and B={(0,1),(5,0),(17,1),(20,3)}, from the Supplementary Information of <a href="https://arxiv.org/html/2608.08996v1">arXiv:2608.08996v1</a>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/224-22-16.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/288-24-18.html">[[288,24,18]] — 288-24-18</a></h3><div class=kv style="color:var(--mut)">2026-08-28 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; human</div><details open><summary>note</summary><div class=notebody><h3>[[288,24,18]] — lifted-product reconstruction</h3>
+<section class=blk><h3><a href="codes/288-24-18.html">[[288,24,18]] — 288-24-18</a></h3><div class=kv style="color:var(--mut)">2026-08-28 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; human</div><details ><summary>note</summary><div class=notebody><h3>[[288,24,18]] — lifted-product reconstruction</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Targeted the unrestricted weight-8 frontier using a directly reproducible row from arXiv:2608.08996v1.</p>
 <h4>What was searched</h4>
