@@ -2818,7 +2818,9 @@
     "construction": "multi-band dense-packed surface code, rows=6 m=5 pitch=6 (raised-pitch generalization of arXiv:2511.06758)",
     "references": [],
     "date": "2026-08-31",
-    "notes": ""
+    "notes": "",
+    "model": "GLM 5.3 Flash",
+    "origin": "submission"
   },
   "family": "local-2d-single",
   "locality": {
