@@ -7027,7 +7027,7 @@
     ],
     "origin": "submission",
     "novelty": "unknown",
-    "construction": "Two-block group-algebra CSS code over Aff(F_19) = C_19 semidirect C_18 with action r=2, using H_X=[L(a)|R(b)] and H_Z=[R(b)^T|L(a)^T]. Element index is (x exponent)*18+(y exponent), with a=[182,323,322,217] and b=[176,208,142,68]. The generator is research/affine_2bga_684_12_77.py.",
+    "construction": "Two-block group-algebra CSS code over Aff(F_19) = C_19 semidirect C_18 with action r=2, using H_X=[L(a)|R(b)] and H_Z=[R(b)^T|L(a)^T]. Element index is (x exponent)*18+(y exponent), with a=[182,323,322,217] and b=[176,208,142,68].",
     "references": [
       "arXiv:2306.16400"
     ],
