@@ -7043,7 +7043,7 @@
     ],
     "origin": "submission",
     "date": "2026-08-30",
-    "model": "GPT-5 Codex",
+    "model": "GPT-5.6 Luna",
     "notes": "Equivalence check: checked against the current board entries and their published construction data; not equivalent to an existing entry. Screening used 100 RIS trials over 3,000 one- and two-support mutations around the affine [[684,8,85]] point, followed by 2,000-trial confirmation of 80 finalists. Deep re-verification used three independent 1,000,000-trial RIS passes with pair depths 24, 32, and 48; the minimum returned was 73. The X witness of weight 73 and the Z witness of weight 94 were independently checked in the opposite-check kernels and outside the stabilizer row spaces."
   }
 }
