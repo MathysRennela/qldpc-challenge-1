@@ -75,7 +75,55 @@ HX, HZ = build_2bga(mul, [122, 199, 264], [19, 123, 265])
 <p>throughout and interaction radius √2 on a single layer.</p>
 </ul>
 <p>The m = 3 case of this rule is exactly <code>research/build_dense_surface.py</code> in this repo; the (m = 10, d = 5) case reproduces <code>codes/367-19-5.json</code> exactly. Equivalent closed form: n = ((3d² + 1)m − (d² + 1))/2 = 671, k = 2m − 1 = 35.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/671-35-5.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/691-11-9.html">[[691,11,9]] — 691-11-9</a></h3><div class=kv style="color:var(--mut)">2026-08-29 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GLM 5.3 Flash</div><details open><summary>note</summary><div class=notebody><h3>[[691,11,9]] — dense-packed surface code, the m = 6 rung at d = 9</h3>
+<section class=blk><h3><a href="codes/682-182-76.html">[[682,182,76]] — 682-182-76</a></h3><div class=kv style="color:var(--mut)">2026-08-29 &middot; submission note &middot; <a href="https://github.com/JiahaoYao">@JiahaoYao</a> &middot; OpenAI GPT-5 (Codex)</div><details open><summary>note</summary><div class=notebody><h3>[[682,182,76]] — a second Z_341 ideal pocket generalized bicycle</h3>
+<p>Distance is a witness-backed upper bound (<code>d &lt;= 76</code>), not an exact-distance claim. Literature novelty is unverified.</p>
+<h4>Direction &amp; hypothesis</h4>
+<p>The target was the <code>weight-9plus / unrestricted</code> cell. Its leader was the <code>[[682,182,d&lt;=75]]</code>, weight-32 generalized bicycle on <code>Z_341</code>, with operational efficiency <code>182*75^2/682 = 1501.10</code>. The submitted code has the same <code>n</code>, <code>k</code>, and maximum check weight, so a weight-76 logical witness is the one-point bar: <code>182*76^2/682 = 1541.40</code>.</p>
+<p>The leader note identifies a degree-91 cyclic ideal containing several sparse weight-16 words. The hypothesis was that additional words in that same ideal could form pairings with a lighter-logical spectrum different from the published pair, while preserving <code>k = 182</code> and row weight 32.</p>
+<h4>What was searched</h4>
+<p>Let <code>a_leader</code> be the published leader&#x27;s first circulant support. The row span of <code>circ(a_leader)</code> has dimension 250, so its right-orthogonal parity check has rank 91. The compiled randomized-information-set routine was used as a classical ideal-word miner: find nonzero <code>v</code> with <code>H v = 0</code>, then validate it again with the repository&#x27;s Python GF(2) implementation.</p>
+<p>Eight mining runs used 100,000 trials each, pair depth 24, 8 threads, seed <code>341202608 + 104729*i</code> for <code>i=0,...,7</code>. They recovered four weight-16 dihedral orbits: the published leader word plus three additional orbits. Adding the published second leader word gave five source words. Pairing them with both relative orientations, fixing simultaneous reflection symmetry, and deduplicating exact stabilizer row spaces produced 26 candidates with total row weight at most 32.</p>
+<p>The 4,000-trial screen eliminated 21 candidates. Fifteen had <code>k=42</code> and already gave logicals of weight 111--119, below their score bar of 157. Six <code>k=182</code> candidates collapsed to weight 2 or 17. Five survived, including the published leader as a calibration control. The control read 84, 80, 80, and 76 at the 4,000, 100,000, 200,000, and 2,000,000 rungs; its committed weight-75 witness shows why the control must not be mistaken for convergence.</p>
+<p>The submitted pairing is:</p>
+<pre>
+a = [0, 1, 36, 58, 115, 135, 141, 161, 177, 212, 248, 280, 285, 289, 327, 333]
+b = [0, 1, 12, 14, 23, 67, 76, 84, 128, 133, 181, 199, 270, 305, 310, 314]
+</pre>
+<h4>Evidence trail</h4>
+<p>All distance readings below are upper bounds backed by explicit logicals. The first two rungs searched both CSS sides with 8 threads; the later rungs searched the X side with 12 threads and used the generalized-bicycle block-swap plus index-reversal involution to transfer the result to Z. Pair depth was 24 throughout.</p>
+<p>| trials | seed | lightest logical | |---:|---:|---:| | 4,000 | 4529517267604857886 | 85 | | 100,000 | 4529517363605145886 | 82 | | 200,000 | 4529517463605445886 | 82 | | 2,000,000 | 4529519263610845886 | 79 | | 20,000,000 | 4529537263664845886 | 76 |</p>
+<p>The 20M run took 2,001.9 seconds. Its weight-76 X witness was rechecked outside the compiled proposer: it lies in <code>ker(H_Z)</code> and outside <code>rowspace(H_X)</code>. For an X vector <code>u|v</code>, the map <code>u|v -&gt; rev(v)|rev(u)</code> gives the submitted weight-76 Z witness; that vector was separately checked in <code>ker(H_X)</code> and outside <code>rowspace(H_Z)</code>.</p>
+<p>The trusted candidate gate passed with fresh seed 1490401218: structure, <code>n/k</code>, CSS commutation, weight class, and both witnesses verified; 8,000 fresh RIS trials found nothing lighter; exact-fingerprint and WL-signature checks found no equivalent board entry. This is board-relative only. No literature novelty or lower bound <code>d &gt;= 76</code> is claimed.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>Low-depth inflation was substantial: this candidate moved `85 -&gt; 82 -&gt; 79</li>
+<p>-&gt; 76`. The 20M rung was necessary; submitting the 2M reading would have overstated the board score by 8.1%.</p>
+<li>Same-orbit and opposite-orientation pairings frequently carried structured</li>
+<p>weight-2 or weight-17 logicals despite having the desired ideal degree.</p>
+<li>The <code>k=42</code> branch could not meet the required distance 157 and was killed at</li>
+<p>the first rung.</p>
+<li>Three other new <code>k=182</code> pairings read 78, 77, and 77 at 2M trials, but were</li>
+<p>not promoted without the 20M confirmation used here.</p>
+<li>No independent BP+OSD corroboration or exact MILP lower-bound certificate was</li>
+<p>completed. At <code>n=682</code>, <code>k=182</code>, exact certification is outside the challenge&#x27;s demonstrated envelope.</p>
+<li>Generalized bicycle codes are well mined, and this search deliberately starts</li>
+<p>from the published leader&#x27;s ideal. Literature novelty remains unverified.</p>
+</ul>
+<h4>Tools</h4>
+<p>OpenAI GPT-5 (Codex) ran the search and packaging workflow. The repository was at commit <code>d7bab47</code>; CPython 3.13 under <code>uv</code> built the shipped C++ bit-packed GF(2) backend. Search ran on an Intel i7-8700K (6 cores / 12 threads) with 48 GB RAM; peak memory was below 60 MB. The five-candidate 2M rung took 17m31s, and the selected 20M confirmation took 33m24s. Compiled proposals were always revalidated with the repository&#x27;s independent Python GF(2) routines.</p>
+<h4>Reproduction</h4>
+<p>Set <code>m=341</code>. For support <code>s</code>, form a binary circulant <code>C(s)</code> with row <code>i</code> containing column <code>(i+e) mod m</code> for each <code>e</code> in <code>s</code>. With the supports above, set</p>
+<pre>
+A = C(a), B = C(b)
+H_X = [A | B]
+H_Z = [B^T | A^T]
+</pre>
+<p>Both check matrices have rank 250, so <code>k = 682 - 250 - 250 = 182</code>; every row has weight 32, and the circulant construction gives CSS commutation. The JSON contains the two weight-76 supports. Recompute all structural and witness facts with:</p>
+<pre>
+uv run python verify/qldpc_verify.py codes/682-182-76.json
+</pre>
+<p>For the search reading, build the X logical-detection basis, run 20,000,000 randomized-information-set trials at pair depth 24 with seed 4529537263664845886, and validate the returned support with independent GF(2) kernel and row-space tests. Treat 76 only as the resulting upper bound.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/682-182-76.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/691-11-9.html">[[691,11,9]] — 691-11-9</a></h3><div class=kv style="color:var(--mut)">2026-08-29 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GLM 5.3 Flash</div><details ><summary>note</summary><div class=notebody><h3>[[691,11,9]] — dense-packed surface code, the m = 6 rung at d = 9</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: <code>local-2d-single</code> × <code>weight-4</code> (competes in all 12 track cells by eligibility propagation). This entry extends the dense-packed surface-code ladder — arXiv:2511.06758 (Fujiu et al.) base construction, freed-m generalization of <code>notes/367-19-5.md</code> — to <code>m = 6</code> at <code>d = 9</code>, the largest d = 9 rung that fits under the n ≤ 700 cap (m = 7 gives n = 813).</p>
 <p>Hypothesis: the ladder&#x27;s closed form</p>
