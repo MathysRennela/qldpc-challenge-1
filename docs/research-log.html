@@ -300,6 +300,41 @@ HX, HZ = build_2bga(mul, [122, 199, 264], [19, 123, 265])
 <p>throughout and interaction radius √2 on a single layer.</p>
 </ul>
 <p>The m = 3 case of this rule is exactly <code>research/build_dense_surface.py</code> in this repo; the (m = 10, d = 5) case reproduces <code>codes/367-19-5.json</code> exactly. Equivalent closed form: n = ((3d² + 1)m − (d² + 1))/2 = 641, k = 2m − 1 = 17.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/641-17-7.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/659-35-5.html">[[659,35,5]] — 659-35-5</a></h3><div class=kv style="color:var(--mut)">2026-08-29 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GLM 5.3 Flash</div><details ><summary>note</summary><div class=notebody><h3>[[659,35,5]] — multi-band dense packing, the rows=10/m=4 point that dominates the two-band ladder&#x27;s terminal rung</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: <code>local-2d-single</code> × <code>weight-4</code>. The two-band patch ladder (arXiv:2511.06758 generalized in patch count, <code>notes/367-19-5.md</code>) was exhausted under the n ≤ 700 cap at [[671,35,5]]. The hypothesis this entry tests: the *raised-pitch multi-band* generalization of the same packing — rows bands at vertical pitch ≥ pitch_min(d), even bands m patches, odd bands m − 1 — reaches the same k at lower n, because its second stagger dimension refunds boundary qubits that the two-band ladder pays in full.</p>
+<h4>What was searched</h4>
+<p>A manifold subtraction, not a point search. The multi-band family&#x27;s mask was reconstructed as a per-band union rule (window interiors at <code>(x+y)%2==0</code>; vertical edge columns at band phase <code>(x+y)%4∈{0,2}</code>; horizontal edge rows at the reverse phase) and validated bit-exactly against <code>research/build_dense_surface.py</code> (the rows=2, pitch=d−1, m=3 case) at d = 3, 5, 7, and against the exact (n, k) of every board member of the family (<code>codes/126-6-5.json</code> … <code>codes/676-36-5.json</code>, <code>codes/418-10-7.json</code>, <code>codes/615-15-7.json</code>, <code>codes/666-10-9.json</code>, <code>codes/398-54-3.json</code>, <code>codes/570-78-3.json</code>) — 15/15 reproduced, each CSS-commuting, single Tanner component, max weight 4. The full (rows, m) manifold at pitch = pitch_min(5) = 6 was then enumerated under n ≤ 700 (77 points) and subtracted against the board: 71 points uncovered, of which this code is the highest-g survivor (g = 875/659 ≈ 1.3278). Screening used the kit&#x27;s RIS surrogate; this code&#x27;s witness search ran 20,000 RIS trials per CSS side.</p>
+<h4>Evidence trail</h4>
+<p>The submitted code is rows = 10 bands, m = 4 patches per even band (3 per odd band), vertical pitch 6, horizontal patch pitch 2d + 2 = 12, d = 5: k = 10·4 − 5 = 35 (the full patch count), n = 659, w = 4, single layer, interaction radius √2.</p>
+<p>Distance claim, stated precisely: <b>witness-backed upper bound.</b> 20,000 RIS trials per side found a lightest logical of weight 5 on both the X and Z sides and nothing lighter, so both sides carry <code>confidence: upper_bound</code>. No certificate and no exact claim. The trusted gate (<code>verify/validate_candidate.py</code>) passed with <code>board_advancing: true</code> and no dominating board entry.</p>
+<p>Domination, stated precisely: this code dominates the [[671,35,5]] terminal rung of the two-band ladder (submitted as PR #745, unmerged at the time of writing; same k = 35, same d = 5, n 659 &lt; 671) and is mutually non-dominated with the board&#x27;s <code>codes/676-36-5.json</code> (k 36 &gt; 35, n 676 &gt; 659).</p>
+<p>Boundary-overhead finding worth recording: the exact n of the validated builder shows the family&#x27;s overhead c = n − P·(3d²+1)/4 (P = patch count) falls from +12 at rows = 4 to −6 at rows = 10, m = 4. The two-band ladder&#x27;s fixed-d ceiling 4d²/(3d²+1) = 1.3158 at d = 5 is therefore not this family&#x27;s ceiling: <code>codes/676-36-5.json</code> already sits at 1.3314, and the asymptote in rows at fixed m is higher still. The d → ∞ constant remains 4/3 (overhead is O(m·rows), marginal cost O(d²)).</p>
+<h4>Dead ends</h4>
+<ul>
+<li><b>The two-band raised-pitch curve is dominated by the ladder</b>: same</li>
+<p>k = 2m − 1, strictly more n. The multi-band rows ≥ 3 region is where the mechanism pays.</p>
+<li><b>d = 9 uncovered points are dominated</b>: the best ([[609,9,9]],</li>
+<p>g = 1.197) loses to the ladder rung [[569,9,9]] at the same k.</p>
+<li><b>Higher pitches are dominated everywhere</b>: pitch &gt; pitch_min adds n at</li>
+<p>fixed k. pitch = pitch_min exactly, as with every board member of the family.</p>
+<li><b>d = 11, 13 stay unmapped</b>: pitch_min is unmeasured there; measuring it</li>
+<p>is an RIS screening job, not arithmetic. Left open.</p>
+</ul>
+<h4>Tools</h4>
+<p>GLM 5.3 Flash (matching <code>provenance.model</code>), driven interactively in the Zed agent. Repo tooling: the kit&#x27;s RIS surrogate for screening and witness search (<code>research/kit/surrogate.py</code>, <code>research/kit/submit.make_submission</code> for packaging), <code>verify/validate_candidate.py</code> as the trusted gate. The manifold enumeration and subtraction were run with the validated builder described above; the mask rule is fully specified in Reproduction so the builder can be rewritten from this note alone.</p>
+<h4>Reproduction</h4>
+<p>For d = 5, rows = 10, m = 4, pitch = 6:</p>
+<ul>
+<li>Ten bands at vertical pitch 6, horizontal patch pitch 2d + 2 = 12. Even</li>
+<p>bands (r = 0, 2, …, 8) carry m = 4 distance-5 rotated-surface-code patches at x-offsets j·12; odd bands carry m − 1 = 3, offset half a horizontal pitch (6) to the right. Total 35 patches, k = 35.</p>
+<li>Occupied sites, per band r at y₀ = 6r with patch centers x₀ ∈ {12j} (even</li>
+<p>r) or {6 + 12j} (odd r): (a) window interiors [x₀+1, x₀+2d−1] × [y₀+1, y₀+2d−1] with (x+y) % 2 == 0; (b) vertical edge columns {x₀, x₀+2d} × rows [y₀+2, y₀+2d−2] with (x+y) % 4 == 0 (even r) or 2 (odd r); (c) horizontal edge rows {y₀, y₀+2d} × columns [x₀+2, x₀+2d−1] with (x+y) % 4 == 2 (even r) or 0 (odd r). Union over all bands.</p>
+<li>Data qubits occupy the odd/odd sites of the mask. Of the remaining</li>
+<p>occupied sites, those with (x + y) % 4 == 2 measure X-checks and the rest measure Z-checks; every check acts on its four diagonal data neighbours.</p>
+<li>The rows = 2, pitch = d − 1, m = 3 case of this rule is exactly</li>
+<p><code>research/build_dense_surface.py</code> in this repo; the m-generalization at pitch d − 1 is <code>notes/367-19-5.md</code>&#x27;s closed form n = ((3d²+1)m − (d²+1))/2, k = 2m − 1.</p>
+</ul></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/659-35-5.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/671-35-5.html">[[671,35,5]] — 671-35-5</a></h3><div class=kv style="color:var(--mut)">2026-08-29 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GLM 5.3 Flash</div><details ><summary>note</summary><div class=notebody><h3>[[671,35,5]] — dense-packed surface code, the m = 18 rung of the freed-m ladder</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: <code>local-2d-single</code> × <code>weight-4</code> (competes in all 12 track cells by eligibility propagation). This entry extends the dense-packed surface-code ladder — arXiv:2511.06758 (Fujiu et al.) base construction, freed-m generalization of <code>notes/367-19-5.md</code> — to <code>m = 18</code> at <code>d = 5</code>, the largest rung that fits under the n ≤ 700 cap (m = 19 gives n = 709).</p>
