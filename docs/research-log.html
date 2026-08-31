@@ -361,6 +361,32 @@
 <h4>Reproduction</h4>
 <p>The construction builds <code>H_X=[L(a)|R(b)]</code> and <code>H_Z=[R(b)^T|L(a)^T]</code> over the metacyclic group <code>Aff(F_19)=C_19 semidirect C_18</code>, with <code>r=2</code>, element index <code>(x exponent)*18 + (y exponent)</code>, and the supports <code>a=[182,323,322,217]</code>, <code>b=[176,208,142,68]</code>.</p>
 <p>Equivalence review: checked against the current board entries and their published construction data; not equivalent to an existing entry.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/684-12-77.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/684-12-73.html">[[684,12,73]] — 684-12-73</a></h3><div class=kv style="color:var(--mut)">2026-08-30 &middot; submission note &middot; <a href="https://github.com/edoaltamura">@edoaltamura</a> &middot; GPT-5.6 Luna</div><details ><summary>note</summary><div class=notebody><h3>[[684,12,73]] affine 2BGA weight-8 code</h3>
+<h4>Target</h4>
+<p>This campaign targeted the unrestricted x weight-8 cell. The current board point at this blocklength is [[684,8,85]], so the search looked for a larger logical dimension at comparable distance and fixed check weight.</p>
+<h4>Construction</h4>
+<p>The code is a two-block group-algebra CSS code over the affine group Aff(F_19) = C_19 semidirect C_18 with action r = 2. The group has order 342. For left-regular matrices L and right-regular matrices R, the generator is</p>
+<p>H_X = [L(a) | R(b)] H_Z = [R(b)^T | L(a)^T]</p>
+<p>with a = [182, 323, 76, 217] and b = [294, 208, 142, 82]. Each check has weight 8 and the resulting code has n = 684.</p>
+<h4>Search</h4>
+<p>The generator was implemented as a small mutation program around the board&#x27;s affine [[684,8,85]] support pattern. It evaluated 3,000 one- and two-support mutations, retained 583 candidates after the k &gt;= 8 filter, and kept an archive of the non-dominated records. The strongest 80 records received a 2,000-trial confirmation pass. The finalist has k = 12.</p>
+<p>The matrices were checked with the repository&#x27;s GF(2) rank and CSS routines: rank(H_X) = rank(H_Z) = 336, so k = 684 - 336 - 336 = 12, and H_X H_Z^T = 0 over GF(2).</p>
+<h4>Distance evidence</h4>
+<p>The claim is an upper bound, not an exact distance certification. The X-side witness has weight 73 and the Z-side witness has weight 94. Both witnesses were checked to commute with the opposite checks and to lie outside the corresponding stabilizer row space.</p>
+<p>The distance ladder was deliberately deeper than the initial screen:</p>
+<ul>
+<li>100,000 RIS trials gave a provisional reading of 97.</li>
+<li>Three independent 1,000,000-trial RIS passes with pair depths 24, 32, and</li>
+<p>48 returned 83, 73, and 74.</p>
+<li>The submitted global claim is the conservative witnessed upper bound</li>
+<p>d &lt;= 73.</p>
+</ul>
+<p>The trusted validator&#x27;s refutation pass found no lighter logical in its fixed 8,000-trial check. The recorded final fingerprint is bfa96b41f84ae1d4 and the verifier reports the candidate as advancing the weight-8 x unrestricted board.</p>
+<h4>Frontier and equivalence review</h4>
+<p>The candidate extends the weight-8 x unrestricted Pareto frontier at n = 684: it adds four logical qubits relative to [[684,8,85]] while retaining a deep RIS upper bound of 73 and the same maximum check weight. The operational score is kd^2/n = 12 x 73^2 / 684 = 93.491.</p>
+<p>Equivalence check: checked against the current board entries and their published construction data; not equivalent to an existing entry.</p>
+<h4>Reproduction</h4>
+<p>Use <code>research/kit/group_algebra.py</code> with <code>metacyclic(19, 18, 2)</code> and <code>build_2bga</code> on the two support lists above. The official semantic checks are provided by <code>verify/qldpc_verify.py</code> and the trusted submission gate is <code>verify/validate_candidate.py</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/684-12-73.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/540-12-28.html">[[540,12,28]] — 540-12-28</a></h3><div class=kv style="color:var(--mut)">2026-08-29 &middot; submission note &middot; <a href="https://github.com/edoaltamura">@edoaltamura</a> &middot; GPT-5</div><details ><summary>note</summary><div class=notebody><h3>[[540,12,28]] - metacyclic generalized-bicycle code</h3>
 <h4>Direction and hypothesis</h4>
 <p>The reference-bar context was the unrestricted, weight-8 any-connectivity board, whose seeded paper bar is [[168,20,14]] (arXiv:2606.17268). The fresh search focused on the stricter weight-6 cell nested inside that board. The current live weight-6 frontier included [[360,12,24]] and [[510,16,24]]. A three-term 2BGA over a non-abelian metacyclic group was chosen to keep every check at weight 6 while seeking a larger distance at moderate rate.</p>
