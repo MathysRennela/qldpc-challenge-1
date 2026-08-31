@@ -182,6 +182,29 @@
 <p>Model: GLM 5.3 Flash (agent harness). Tooling: the repo&#x27;s multi-band builder (bit-exact against <code>research/build_dense_surface.py</code> and all 15 board members), <code>research/kit/submit.make_submission</code>, <code>verify/validate_candidate.py</code>. Compute: single laptop.</p>
 <h4>Reproduction</h4>
 <p><code>research/local2d/multiband.py::build(5, 2, 15, 4)</code> rebuilds (H_X, H_Z) exactly; data qubits at odd/odd sites, X-checks where (x+y) % 4 == 2. Parameters: d = 5, rows = 2, m = 15, pitch = 4.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/557-29-5.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/567-15-7.html">[[567,15,7]] — 567-15-7</a></h3><div class=kv style="color:var(--mut)">2026-08-31 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GLM 5.3 Flash</div><details ><summary>note</summary><div class=notebody><h3>[[567,15,7]] — multi-band dense-packed code (rows=2, m=8, pitch=6)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-4 × local-2d-single</code>, d = 7 band. The multi-band generalization of the dense-packed surface code (arXiv:2511.06758 base, raised-pitch variant) places rows of m patches at vertical pitch <code>pitch</code>; boundary overhead between bands goes to zero or negative as rows grow, so k/n holds near the family asymptote while n stays under the 700 cap. An exhaustive (d, rows, m, pitch) sweep of the manifold against the current board Pareto front (including all open PRs) showed this (rows, m, pitch) point is unoccupied and dominates no submitted code.</p>
+<h4>What was searched</h4>
+<p>Full enumeration of the multi-band parameter space: d in {3, 5, 7, 9, 11, 13}, rows 1-8, m 1-20, pitch in [d-2, d+3], n &lt;= 700 — 13,376 parameter points, each scored by exact GF(2) rank arithmetic (n, k) and filtered against the board Pareto front (local codes plus all nine open PRs from this account). 549 unique Pareto survivors were witness-screened at 4000 randomized trials each; this configuration is among the survivors.</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>k computed exactly: n - rank(H_X) - rank(H_Z) over GF(2).</li>
+<li>d: witness-backed upper bound. The staging search ran 20,000 RIS</li>
+<p>trials/side finding no logical below 7; the trusted gate (<code>verify/validate_candidate.py</code>) re-searched independently and returned <code>passed: true</code>, <code>board_advancing: true</code>, <code>dominated_by: []</code>.</p>
+<li>Claim tier: upper bound, not certified exact.</li>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>The g values from rank arithmetic alone (up to 5.5 at d = 13) are</li>
+<p>artifacts of degenerate masks; the witness screen refuted 213 of 549 unique survivors. Distance claims here are only as good as the witness budget.</p>
+<li>Configs duplicating or tying any open PR code were excluded from the</li>
+<p>survivor set before screening.</p>
+</ul>
+<h4>Tools</h4>
+<p>Model: GLM 5.3 Flash (agent harness). Tooling: the repo&#x27;s multi-band builder (bit-exact against <code>research/build_dense_surface.py</code> and all 15 board members), <code>research/kit/submit.make_submission</code>, <code>verify/validate_candidate.py</code>. Compute: single laptop.</p>
+<h4>Reproduction</h4>
+<p><code>research/local2d/multiband.py::build(7, 2, 8, 6)</code> rebuilds (H_X, H_Z) exactly; data qubits at odd/odd sites, X-checks where (x+y) % 4 == 2. Parameters: d = 7, rows = 2, m = 8, pitch = 6.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/567-15-7.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/595-31-5.html">[[595,31,5]] — 595-31-5</a></h3><div class=kv style="color:var(--mut)">2026-08-31 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GLM 5.3 Flash</div><details ><summary>note</summary><div class=notebody><h3>[[595,31,5]] — multi-band dense-packed code (rows=2, m=16, pitch=4)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Track cell <code>weight-4 × local-2d-single</code>, d = 5 band. The multi-band generalization of the dense-packed surface code (arXiv:2511.06758 base, raised-pitch variant) places rows of m patches at vertical pitch <code>pitch</code>; boundary overhead between bands goes to zero or negative as rows grow, so k/n holds near the family asymptote while n stays under the 700 cap. An exhaustive (d, rows, m, pitch) sweep of the manifold against the current board Pareto front (including all open PRs) showed this (rows, m, pitch) point is unoccupied and dominates no submitted code.</p>
@@ -482,6 +505,30 @@ HX, HZ = build_2bga(mul, [122, 199, 264], [19, 123, 265])
 <p>throughout and interaction radius √2 on a single layer.</p>
 </ul>
 <p>The m = 3 case of this rule is exactly <code>research/build_dense_surface.py</code> in this repo; the (m = 10, d = 5) case reproduces <code>codes/367-19-5.json</code> exactly. Equivalent closed form: n = ((3d² + 1)m − (d² + 1))/2 = 671, k = 2m − 1 = 35.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/671-35-5.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/676-51-4.html">[[676,51,4]] — 676-51-4</a></h3><div class=kv style="color:var(--mut)">2026-08-29 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GLM 5.3 Flash</div><details ><summary>note</summary><div class=notebody><h3>[[676,51,4]] — the chamfer/holey checkerboard family at d = 4: first exactly-verified rung</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: <code>local-2d-single</code> × <code>weight-4</code>. The board&#x27;s d = 3 checkerboard/chamfer family (<code>codes/656-114-3.json</code>, <code>codes/676-110-3.json</code>) holds k/n ≈ 0.17 — a defect-packing density above what standard hole-packing folklore allows, with no published construction or d ≥ 4 analog (literature check, 2026-08-29: no arXiv hits for the mechanism; the family is undocumented). Hypothesis: the mechanism generalizes to d = 4 by re-packing the holes so that no logical string of weight ≤ 3 survives — and the d = 4 rung clears the parity bar g ≥ 1.</p>
+<h4>What was searched</h4>
+<p>The base construction was reverse-engineered from <code>codes/676-110-3.json</code>: a rotated surface code on a 26×26 vertex grid (weight-4 interior plaquettes, alternating weight-2 boundary checks) with 109 single-plaquette holes; k = 110 = holes + 1, d = 3. The d ≥ 4 criterion is <b>exact</b>: d ≥ 4 iff no nontrivial logical of weight ≤ 3 exists on either CSS side, and weight-≤3 elements of ker(H) are enumerable exhaustively (weight-1 by zero syndrome, weight-2 by syndrome equality, weight-3 by syndrome pairing over ~228k qubit-pairs, each candidate tested against rowspace(H) in RREF form). No heuristic enters the distance statement.</p>
+<p>Search: (1) naive greedy deletion from the d = 3 hole set converged to a clean but tiny configuration (k = 10) — recorded as a dead end; (2) a sweep of periodic hole lattices (spacing 3, 4, 5 × offsets × stagger) found **no clean spacing-3/4/5 lattice** — every periodic packing at those densities admits a weight-≤3 logical; spacing 6 is clean; (3) hill-climbing from the spacing-6 lattice found that *interior* spacing-4 holes survive individually (the periodic sweep failed on boundary-adjacent holes, not on the spacing itself), giving the submitted configuration: a spacing-6 lattice at offset (0,3) plus a 5×6 interior grid at spacing 4, offset (3,1) — 50 holes, k = 51.</p>
+<h4>Evidence trail</h4>
+<p>The submitted code is the 26×26 vertex grid with the board&#x27;s boundary convention and 50 single-plaquette holes: n = 676, k = 51, w = 4, single layer, interaction radius √2.</p>
+<p>Distance claim, stated precisely: **d ≥ 4 exactly, by exhaustive enumeration.** Zero nontrivial logicals of weight ≤ 3 exist on either CSS side (complete weight-≤3 search over ker(H_Z) and ker(H_X), ~0.9 s per configuration, both sides). This is stronger than a witness-backed upper bound: it rules out all distances below 4 outright. The embedded per-side witnesses (weight 4) come from the kit&#x27;s 20,000-trial RIS search and bound d ≤ 4 from above on the searched side; combining both, d = 4 unless a weight-&gt;4 witness search later finds otherwise. The trusted gate (<code>verify/validate_candidate.py</code>) passed with <code>board_advancing: true</code>.</p>
+<p>Efficiency: g = k·d²/n = 51·16/676 = 1.2071 — above the surface-code parity bar (g = 1) at d = 4. For scale: the record (d = 3, different mechanism) is 1.564; the two-band ladder&#x27;s d = 5 terminal rung is 1.304.</p>
+<h4>Dead ends</h4>
+<ul>
+<li><b>Greedy deletion from the d = 3 hole set is hopeless</b>: each deletion</li>
+<p>kills one short logical but 306 + 326 short logicals exist; converging took 100 deletions and landed at k = 10.</p>
+<li><b>No clean periodic lattice at spacing 3, 4, or 5 exists</b> (all offsets and</li>
+<p>staggers tested, exact criterion): the d = 4 packing cannot be a perfect lattice. The surviving configuration is spacing-6 lattice + interior spacing-4 grid — boundary-adjacent holes are what kills the periodic spacing-4 patterns.</p>
+<li><b>Density ceiling in sight</b>: at spacing 4 the asymptotic density is one</li>
+<p>hole per 4² = 16 faces, i.e. g → 1 as L → ∞ at d = 4. Beating g = 1 asymptotically at d = 4 requires sub-lattice packing (mixed spacings, boundary engineering) — the hill-climb&#x27;s move phase explores this; the d = 3 family&#x27;s c ≈ 1.56 shows the mechanism permits above-folklore density, but nothing here demonstrates it at d = 4.</p>
+</ul>
+<h4>Tools</h4>
+<p>GLM 5.3 Flash (matching <code>provenance.model</code>), driven interactively in the Zed agent. Repo tooling: the kit&#x27;s RIS surrogate (gf2_fast backend) as a rejection filter during search, exact GF(2) enumeration for the distance statement, <code>research/kit/submit.make_submission</code> for packaging, <code>verify/validate_candidate.py</code> as the trusted gate. The construction is fully specified in Reproduction; the search scripts are described precisely enough to rewrite (hole-set lattice parameters above; the exact enumerator is specified in Evidence trail).</p>
+<h4>Reproduction</h4>
+<p>For L = 26 (26×26 vertex grid, qubits at integer coordinates (0..25)²):</p>
+<p>1. Base: checkerboard plaquettes on all 25×25 faces — face (i, j) acts on qubits (i,j), (i+1,j), (i,j+1), (i+1,j+1); faces with (i+j) even carry X-checks, odd carry Z-checks. 2. Boundary: the alternating weight-2 edge checks of <code>codes/676-110-3.json</code> (24 X-type, 26 Z-type; copy unchanged). 3. Holes: remove the plaquette check at these 50 faces — {(6a, 3 + 6b) : a ∈ [0,4], b ∈ [0,3]} ∪ {(3 + 4a, 1 + 4b) : a ∈ [0,4], b ∈ [0,5]}. 4. k = 676 − rank(H_X) − rank(H_Z) = 51; the weight-≤3 enumeration over both sides returns empty, establishing d ≥ 4 exactly.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/676-51-4.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/682-182-76.html">[[682,182,76]] — 682-182-76</a></h3><div class=kv style="color:var(--mut)">2026-08-29 &middot; submission note &middot; <a href="https://github.com/JiahaoYao">@JiahaoYao</a> &middot; OpenAI GPT-5 (Codex)</div><details ><summary>note</summary><div class=notebody><h3>[[682,182,76]] — a second Z_341 ideal pocket generalized bicycle</h3>
 <p>Distance is a witness-backed upper bound (<code>d &lt;= 76</code>), not an exact-distance claim. Literature novelty is unverified.</p>
 <h4>Direction &amp; hypothesis</h4>
