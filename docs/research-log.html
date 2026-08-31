@@ -249,6 +249,57 @@ mul, _ = metacyclic(9, 30, 5)
 HX, HZ = build_2bga(mul, [122, 199, 264], [19, 123, 265])
 </pre>
 <p>The campaign generator and screen archive are in the accompanying local research log. No files under verify/ were changed.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/540-12-28.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/641-17-7.html">[[641,17,7]] — 641-17-7</a></h3><div class=kv style="color:var(--mut)">2026-08-29 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GLM 5.3 Flash</div><details ><summary>note</summary><div class=notebody><h3>[[641,17,7]] — dense-packed surface code, the m = 9 rung at d = 7</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: <code>local-2d-single</code> × <code>weight-4</code> (competes in all 12 track cells by eligibility propagation). This entry extends the dense-packed surface-code ladder — arXiv:2511.06758 (Fujiu et al.) base construction, freed-m generalization of <code>notes/367-19-5.md</code> — to <code>m = 9</code> at <code>d = 7</code>, the largest d = 7 rung that fits under the n ≤ 700 cap (m = 10 gives n = 715).</p>
+<p>Hypothesis: the ladder&#x27;s closed form</p>
+<p>n = ((3d² + 1)·m − (d² + 1)) / 2,    k = 2m − 1,    w = 4,    r = √2</p>
+<p>holds at (m = 9, d = 7) with distance preserved, giving g = k·d²/n = 17·49/641 ≈ 1.2995 — above the m = 3 column&#x27;s d = 7 rung [[197,5,7]] (1.244) and the highest-g d = 7 point on the ladder. The rung is a parity-club member (g &gt; 1) and a family data point: the ladder asymptotes to g = 4/3 in both the m → ∞ and d → ∞ limits.</p>
+<h4>What was searched</h4>
+<p>No stochastic search: the rung is an exact point of a closed-form family. The generalized builder implements the mask rule of <code>notes/367-19-5.md</code> — two bands at vertical pitch d − 1 = 6, horizontal patch pitch 2d + 2 = 16; lower band m patches of distance d, upper band m − 1, offset by half the horizontal pitch (brick-staggered); data qubits at odd/odd sites; remaining occupied sites with (x+y) % 4 == 2 measure X-checks, the rest Z-checks; every check acts on its four diagonal data neighbours. The mask is periodic in x with period 2d + 2, which makes the freed-m extension exact rather than fitted.</p>
+<p>The builder was validated against two anchors at this d before building:</p>
+<ul>
+<li>(m = 3, d = 7) reproduces <code>research/build_dense_surface.py</code> exactly —</li>
+<p>identical H_X, H_Z, and coordinates (n = 197, the published [[197,5,7]]);</p>
+<li>(m = 10, d = 5) reproduces the submitted <code>codes/367-19-5.json</code> checks</li>
+<p>exactly, order-insensitively.</p>
+</ul>
+<p>Witness search: 20,000 RIS trials per CSS side (seed 20260829), plus the trusted gate&#x27;s own independent refutation at a fresh seed.</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>GF(2): CSS commutation exact; rank(H_X) = rank(H_Z) = 312, so</li>
+<p>k = 641 − 312 − 312 = 17 = 2m − 1 as the closed form predicts.</p>
+<li>Max check weight 4 on both sides; interaction radius √2 recomputed from the</li>
+<p>stored coordinates (single layer).</p>
+<li>Connectivity: union-find over qubits joined by sharing any check on either</li>
+<p>side gives a single component covering all 641 qubits — the patches are fused, not a direct sum, so the [[n,k,d]] is earned rather than inherited.</p>
+<li>Witness ladder: 20,000 RIS trials/side → lightest logical weight 7 on both</li>
+<p>X and Z sides, nothing lighter. The trusted gate (<code>verify/validate_candidate.py</code>) returned <code>passed: true</code> with <code>board_advancing: true</code> and its own fresh-seed refutation finding nothing lighter.</p>
+<li>Distance claim, stated precisely: <b>witness-backed upper bound</b> on both</li>
+<p>sides (<code>confidence: upper_bound</code>). No exact certificate is claimed.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>m = 10 at d = 7 gives n = 715 &gt; 700 (cap), so m = 9 is the terminal d = 7</li>
+<p>rung under the current cap.</p>
+<li>The dead-end map of <code>notes/367-19-5.md</code> applies unchanged: extra bands at</li>
+<p>the published pitch add qubits and no logicals; pitch variants below the measured threshold collapse distance; odd pitch breaks CSS.</p>
+</ul>
+<h4>Tools</h4>
+<p>GLM 5.3 Flash (Zed coding agent), driven interactively. Repo tooling: <code>research/build_dense_surface.py</code> (m = 3 anchor), the kit&#x27;s <code>research/kit/submit.make_submission</code> / <code>save_submission</code> for packaging and witness embedding, <code>verify/validate_candidate.py</code> as the trusted gate. The generalized (m, d) builder implements the periodic mask rule stated above; the two anchors make it checkable against committed artifacts.</p>
+<h4>Reproduction</h4>
+<p>For d = 7, m = 9, two bands:</p>
+<ul>
+<li>Two bands at vertical pitch d − 1 = 6, horizontal patch pitch 2d + 2 = 16.</li>
+<li>Lower band carries m = 9 rotated surface-code patches of distance d = 7</li>
+<p>(cores at x = 1 + 16j, j = 0..8, spanning 2d − 1 = 13 columns, y in [1, 2d − 1]); upper band carries m − 1 = 8 patches (cores at x = d + 2 + 16j, j = 0..7, y in [d, 3d − 2]), brick-staggered by half the horizontal pitch.</p>
+<li>Data qubits occupy the odd/odd sites of the mask.</li>
+<li>Of the remaining occupied sites, those with (x + y) mod 4 == 2 measure</li>
+<p>X-checks and the rest measure Z-checks.</p>
+<li>Every check acts on its four diagonal data neighbours, giving w = 4</li>
+<p>throughout and interaction radius √2 on a single layer.</p>
+</ul>
+<p>The m = 3 case of this rule is exactly <code>research/build_dense_surface.py</code> in this repo; the (m = 10, d = 5) case reproduces <code>codes/367-19-5.json</code> exactly. Equivalent closed form: n = ((3d² + 1)m − (d² + 1))/2 = 641, k = 2m − 1 = 17.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/641-17-7.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/671-35-5.html">[[671,35,5]] — 671-35-5</a></h3><div class=kv style="color:var(--mut)">2026-08-29 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GLM 5.3 Flash</div><details ><summary>note</summary><div class=notebody><h3>[[671,35,5]] — dense-packed surface code, the m = 18 rung of the freed-m ladder</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: <code>local-2d-single</code> × <code>weight-4</code> (competes in all 12 track cells by eligibility propagation). This entry extends the dense-packed surface-code ladder — arXiv:2511.06758 (Fujiu et al.) base construction, freed-m generalization of <code>notes/367-19-5.md</code> — to <code>m = 18</code> at <code>d = 5</code>, the largest rung that fits under the n ≤ 700 cap (m = 19 gives n = 709).</p>
