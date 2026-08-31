@@ -24,6 +24,21 @@ on:
     branches: [main]
 
 jobs:
+  # Compile-only coverage for the optional CUDA accelerator.  This deliberately
+  # does not require a GPU and is advisory until the hosted toolkit install is
+  # proven stable.
+  ris-compile:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Jimver/cuda-toolkit@v0.2.19
+        with:
+          method: network
+          sub-packages: '["nvcc"]'
+      - name: compile CUDA RIS accelerator
+        run: nvcc -O3 -arch=sm_75 -c verify/ris_gpu.cu -o /dev/null
+
   verify:
     runs-on: ubuntu-latest
     steps:

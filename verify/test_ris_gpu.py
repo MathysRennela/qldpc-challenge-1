@@ -67,6 +67,27 @@ def test_input_file_format():
         os.unlink(path)
 
 
+def test_campaign_manifest_resolution_and_batch_format(tmp_path):
+    manifest_path = tmp_path / "campaign.json"
+    manifest_path.write_text(json.dumps({
+        "defaults": {"mode": "estimate", "trials": 123, "seed": 9},
+        "codes": [{"id": "steane", "code": os.path.join(ROOT, "codes", "7-1-3.json"),
+                   "sides": ["X"], "target": 3}],
+    }))
+    manifest, requests = ris_gpu.resolve_campaign_requests(str(manifest_path))
+    assert manifest["defaults"]["seed"] == 9
+    assert len(requests) == 1
+    assert requests[0]["side"] == "X"
+    assert requests[0]["mode"] == "estimate"
+    assert requests[0]["claimed"] == 3
+    batch_path = tmp_path / "campaign.risbatch"
+    ris_gpu.write_batch_input(str(batch_path), requests)
+    blob = batch_path.read_bytes()
+    assert blob[:9] == b"RISBATCH1"
+    version, count = struct.unpack_from("<2i", blob, 9)
+    assert (version, count) == (1, 1)
+
+
 def test_parse_output():
     res = ris_gpu.parse_output(
         "mode=recover\nn=7\ntrials=100000\nbest_weight=3\nsupport=0,1,2\n")
