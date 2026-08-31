@@ -249,6 +249,38 @@ mul, _ = metacyclic(9, 30, 5)
 HX, HZ = build_2bga(mul, [122, 199, 264], [19, 123, 265])
 </pre>
 <p>The campaign generator and screen archive are in the accompanying local research log. No files under verify/ were changed.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/540-12-28.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/578-14-7.html">[[578,14,7]] — 578-14-7</a></h3><div class=kv style="color:var(--mut)">2026-08-29 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GLM 5.3 Flash</div><details ><summary>note</summary><div class=notebody><h3>[[578,14,7]] — multi-band dense packing at d = 7, filling the k-gap between the family&#x27;s board points</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: <code>local-2d-single</code> × <code>weight-4</code>. At d = 7 the multi-band family&#x27;s board points are [[418,10,7]] (rows=4, m=3) and [[615,15,7]] (rows=6, m=3); the (rows, m) grid between and beyond them was never enumerated. Hypothesis: the manifold holds a k = 14 point below the n = 615 of the k = 15 entry — a Pareto opening neither neighbour covers.</p>
+<h4>What was searched</h4>
+<p>A manifold subtraction, not a point search. The multi-band family&#x27;s mask was reconstructed as a per-band union rule (window interiors at <code>(x+y)%2==0</code>; vertical edge columns at band phase <code>(x+y)%4∈{0,2}</code>; horizontal edge rows at the reverse phase) and validated bit-exactly against <code>research/build_dense_surface.py</code> (the rows=2, pitch=d−1, m=3 case) at d = 3, 5, 7, and against the exact (n, k) of every board member of the family — 15/15 reproduced, each CSS-commuting, single Tanner component, max weight 4. The full (rows, m) manifold at pitch = pitch_min(7) = 10 was enumerated under n ≤ 700: 22 points, 20 uncovered, of which this code is the highest-g undominated survivor (g = 14·49/578 ≈ 1.1869). Screening used the kit&#x27;s RIS surrogate; this code&#x27;s witness search ran 20,000 RIS trials per CSS side.</p>
+<h4>Evidence trail</h4>
+<p>The submitted code is rows = 4 bands, m = 4 patches per even band (3 per odd band), vertical pitch 10, horizontal patch pitch 2d + 2 = 16, d = 7: k = 4·4 − 2 = 14 (the full patch count), n = 578, w = 4, single layer, interaction radius √2.</p>
+<p>Distance claim, stated precisely: <b>witness-backed upper bound.</b> 20,000 RIS trials per side found a lightest logical of weight 7 on both the X and Z sides and nothing lighter, so both sides carry <code>confidence: upper_bound</code>. No certificate and no exact claim. The trusted gate (<code>verify/validate_candidate.py</code>) passed with <code>board_advancing: true</code> and no dominating board entry.</p>
+<p>Domination, stated precisely: no board entry dominates this code — [[418,10,7]] has less k, [[615,15,7]] and the ladder rung [[641,17,7]] have more k but more n. This entry is mutually non-dominated with all of them.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>**The best uncovered d = 7 point by g ([[578,14,7]] at 1.1869) is below the</li>
+<p>best covered one ([[615,15,7]] at 1.1951)** — the family&#x27;s d = 7 frontier under the cap is already placed; this entry adds a Pareto point, not a frontier advance.</p>
+<li><b>rows ≥ 5 at m ≥ 4 exceeds the cap</b> (n &gt; 700); the next family step at</li>
+<p>d = 7 is off-board-legal territory.</p>
+<li><b>The two-band raised-pitch curve is dominated by the two-band ladder</b></li>
+<p>(same k = 2m − 1, strictly more n) at every d — confirmed across the manifold, not worth submitting anywhere.</p>
+</ul>
+<h4>Tools</h4>
+<p>GLM 5.3 Flash (matching <code>provenance.model</code>), driven interactively in the Zed agent. Repo tooling: the kit&#x27;s RIS surrogate for screening and witness search (<code>research/kit/surrogate.py</code>, <code>research/kit/submit.make_submission</code> for packaging), <code>verify/validate_candidate.py</code> as the trusted gate. The manifold enumeration and subtraction were run with the validated builder described above; the mask rule is fully specified in Reproduction so the builder can be rewritten from this note alone.</p>
+<h4>Reproduction</h4>
+<p>For d = 7, rows = 4, m = 4, pitch = 10:</p>
+<ul>
+<li>Four bands at vertical pitch 10, horizontal patch pitch 2d + 2 = 16. Even</li>
+<p>bands (r = 0, 2) carry m = 4 distance-7 rotated-surface-code patches at x-offsets j·16; odd bands (r = 1, 3) carry m − 1 = 3, offset half a horizontal pitch (8) to the right. Total 14 patches, k = 14.</p>
+<li>Occupied sites, per band r at y₀ = 10r with patch centers x₀ ∈ {16j} (even</li>
+<p>r) or {8 + 16j} (odd r): (a) window interiors [x₀+1, x₀+2d−1] × [y₀+1, y₀+2d−1] with (x+y) % 2 == 0; (b) vertical edge columns {x₀, x₀+2d} × rows [y₀+2, y₀+2d−2] with (x+y) % 4 == 0 (even r) or 2 (odd r); (c) horizontal edge rows {y₀, y₀+2d} × columns [x₀+2, x₀+2d−1] with (x+y) % 4 == 2 (even r) or 0 (odd r). Union over all bands.</p>
+<li>Data qubits occupy the odd/odd sites of the mask. Of the remaining</li>
+<p>occupied sites, those with (x + y) % 4 == 2 measure X-checks and the rest measure Z-checks; every check acts on its four diagonal data neighbours.</p>
+<li>The rows = 2, pitch = d − 1, m = 3 case of this rule is exactly</li>
+<p><code>research/build_dense_surface.py</code> in this repo.</p>
+</ul></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/578-14-7.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/641-17-7.html">[[641,17,7]] — 641-17-7</a></h3><div class=kv style="color:var(--mut)">2026-08-29 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GLM 5.3 Flash</div><details ><summary>note</summary><div class=notebody><h3>[[641,17,7]] — dense-packed surface code, the m = 9 rung at d = 7</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: <code>local-2d-single</code> × <code>weight-4</code> (competes in all 12 track cells by eligibility propagation). This entry extends the dense-packed surface-code ladder — arXiv:2511.06758 (Fujiu et al.) base construction, freed-m generalization of <code>notes/367-19-5.md</code> — to <code>m = 9</code> at <code>d = 7</code>, the largest d = 7 rung that fits under the n ≤ 700 cap (m = 10 gives n = 715).</p>
