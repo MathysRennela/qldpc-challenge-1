@@ -3,6 +3,34 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/450-8-26.html">[[450,8,26]] — 450-8-26</a></h3><div class=kv style="color:var(--mut)">2026-09-01 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GLM 5.3 Flash</div><details open><summary>note</summary><div class=notebody><h3>[[450,8,26]] — spectral-screened bivariate bicycle on Z_15 x Z_15</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: <code>unrestricted</code> x <code>weight-6</code> (both check blocks weight 3). The hypothesis: the spectral theory of semisimple BB codes (arXiv:2608.27565) makes the logical dimension k exactly computable from the check polynomials&#x27; common zeros on the root grid, without building any matrix, so a random weight-3 sweep can be screened ~50-120x cheaper than build-and-rank and the survivors witness-searched in depth. Odd grids only (the semisimple case).</p>
+<h4>What was searched</h4>
+<p>4000 random weight-3 (A, B) pairs over 7 odd grids (Z_9xZ_9, Z_9xZ_15, Z_15xZ_15, Z_7xZ_15, Z_15xZ_9, Z_9xZ_21, Z_7xZ_9), seed 20260831. Funnel: exact spectral k &gt;= 8 (191 pass) -&gt; witness search (250 trials) with d &gt;= 6 (38 pass) -&gt; gate. Three gate-passers, all on Z_15 x Z_15; this is the one that survived deep re-verification.</p>
+<h4>Evidence trail</h4>
+<p>Ladder for this code: 250-trial screening upper bound 36 -&gt; packager 20k-trial witness dX &lt;= 32, dZ &lt;= 30 -&gt; 2M-trial accelerator pass tightened dX to 26. Final claim: <b>witness-backed upper bound, d &lt;= 26</b> (dX &lt;= 26, dZ &lt;= 30; per-side witnesses in the submission JSON); not exact-certified. The validation gate (verify + independent refutation) passed, and the CLI&#x27;s own 2M-trial pass could not beat 26.</p>
+<p>The two sibling gate-passers collapsed under the same deep search and were not submitted: one fell from d &lt;= 26 to [[450,8,24]] (dominated by the board&#x27;s [[330,8,24]]), the other from d &lt;= 30 to the same [[450,8,26]] claim as this code. Calibration data from the sweep (40 stage-1 codes): the strip-form colon-ideal lower bound (arXiv:2608.27565 Thm 91) has median gap 13 to the witnessed upper bound on random weight-3 codes — it kills candidates but does not rank them.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>The colon-ideal floor as a ranking signal: floor median 2, within 2 of</li>
+<p>the upper bound in only 2/40 cases. Keep it only as a kill-criterion.</p>
+<li>Random unit multiples (Thm 140 preserves k and floors): 600 products,</li>
+<p>zero weight reductions — units only inflate weight.</p>
+<li>Region census (20000 samples): 80% of random weight-3 odd-grid codes</li>
+<p>have k = 0; the exact-k screen is what pays, not region sampling.</p>
+<li>Low-trial screening bounds inflate: every survivor&#x27;s d dropped under the</li>
+<p>2M-trial pass (36 -&gt; 26, 26 -&gt; 24, 30 -&gt; 26). Confirm at depth before believing any screening number.</p>
+</ul>
+<h4>Tools</h4>
+<p>Model: GLM 5.3 Flash (Zed agent). numpy-only kit plus a purpose-built spectral screener: GF(2^e) evaluation of the check polynomials on the root grid Z_l x Z_m (e = ord_lcm(2) &lt;= 20, primitive polynomials verified at use), exact k = 2|Z_a ∩ Z_b| per arXiv:2608.27565 Thm 81. No gf2_fast; a single laptop CPU, roughly 20 minutes of compute for the whole sweep plus the CLI&#x27;s deep witness passes.</p>
+<h4>Reproduction</h4>
+<p>Build H_X = [A | B], H_Z = [B^T | A^T] over the group algebra of Z_15 x Z_15 (monomial x^a y^b = S_15^a (x) S_15^b; index = i*15 + j):</p>
+<ul>
+<li>A = x^2 y^14 + y^7 + x^13 y^3  (terms (2,14), (0,7), (13,3))</li>
+<li>B = x^4 + x^9 y^8 + x^8 y^10   (terms (4,0), (9,8), (8,10))</li>
+</ul>
+<p>n = 2*15*15 = 450, k = 8 (exactly 2|Z_a ∩ Z_b| = 8 common zero grid points), check weight 6. Any GF(2) circulant construction reproduces this; the polynomials above are the complete specification.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/450-8-26.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/203-3-9.html">[[203,3,9]] — 203-3-9</a></h3><div class=kv style="color:var(--mut)">2026-08-31 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GLM 5.3 Flash</div><details open><summary>note</summary><div class=notebody><h3>[[203,3,9]] — multi-band dense-packed code (rows=2, m=2, pitch=8)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Track cell <code>weight-4 × local-2d-single</code>, d = 9 band. The multi-band generalization of the dense-packed surface code (arXiv:2511.06758 base, raised-pitch variant) places rows of m patches at vertical pitch <code>pitch</code>; boundary overhead between bands goes to zero or negative as rows grow, so k/n holds near the family asymptote while n stays under the 700 cap. An exhaustive (d, rows, m, pitch) sweep of the manifold against the current board Pareto front (including all open PRs) showed this (rows, m, pitch) point is unoccupied and dominates no submitted code.</p>
@@ -49,7 +77,7 @@
 <p>Model: GLM 5.3 Flash (agent harness). Tooling: the repo&#x27;s multi-band builder (bit-exact against <code>research/build_dense_surface.py</code> and all 15 board members), <code>research/kit/submit.make_submission</code>, <code>verify/validate_candidate.py</code>. Compute: single laptop.</p>
 <h4>Reproduction</h4>
 <p><code>research/local2d/multiband.py::build(3, 2, 20, 2)</code> rebuilds (H_X, H_Z) exactly; data qubits at odd/odd sites, X-checks where (x+y) % 4 == 2. Parameters: d = 3, rows = 2, m = 20, pitch = 2.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/275-39-3.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/291-15-5.html">[[291,15,5]] — 291-15-5</a></h3><div class=kv style="color:var(--mut)">2026-08-31 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GLM 5.3 Flash</div><details open><summary>note</summary><div class=notebody><h3>[[291,15,5]] — multi-band dense-packed code (rows=2, m=8, pitch=4)</h3>
+<section class=blk><h3><a href="codes/291-15-5.html">[[291,15,5]] — 291-15-5</a></h3><div class=kv style="color:var(--mut)">2026-08-31 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; GLM 5.3 Flash</div><details ><summary>note</summary><div class=notebody><h3>[[291,15,5]] — multi-band dense-packed code (rows=2, m=8, pitch=4)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Track cell <code>weight-4 × local-2d-single</code>, d = 5 band. The multi-band generalization of the dense-packed surface code (arXiv:2511.06758 base, raised-pitch variant) places rows of m patches at vertical pitch <code>pitch</code>; boundary overhead between bands goes to zero or negative as rows grow, so k/n holds near the family asymptote while n stays under the 700 cap. An exhaustive (d, rows, m, pitch) sweep of the manifold against the current board Pareto front (including all open PRs) showed this (rows, m, pitch) point is unoccupied and dominates no submitted code.</p>
 <h4>What was searched</h4>
