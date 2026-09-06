@@ -1,0 +1,212 @@
+{
+ "schema_version": "0.1",
+ "name": "[[16,4,4]] SAT t3 w6 (c)",
+ "code_type": "CSS",
+ "n": 16,
+ "k": 4,
+ "checks": {
+  "X": [
+   [
+    0,
+    4,
+    6,
+    8,
+    10,
+    13
+   ],
+   [
+    6,
+    7,
+    8,
+    11,
+    13,
+    15
+   ],
+   [
+    4,
+    9,
+    10,
+    12,
+    13,
+    14
+   ],
+   [
+    2,
+    3,
+    6,
+    9,
+    11,
+    14
+   ],
+   [
+    2,
+    5,
+    10,
+    13,
+    14,
+    15
+   ],
+   [
+    1,
+    5,
+    8,
+    11,
+    12,
+    13
+   ]
+  ],
+  "Z": [
+   [
+    5,
+    7,
+    8,
+    9,
+    11,
+    13
+   ],
+   [
+    0,
+    1,
+    2,
+    4,
+    5,
+    9
+   ],
+   [
+    2,
+    6,
+    11,
+    13,
+    14,
+    15
+   ],
+   [
+    1,
+    2,
+    6,
+    9,
+    10,
+    11
+   ],
+   [
+    2,
+    3,
+    4,
+    6,
+    7,
+    14
+   ],
+   [
+    4,
+    6,
+    8,
+    10,
+    12,
+    14
+   ]
+  ]
+ },
+ "distance": {
+  "d": 4,
+  "X": {
+   "value": 4,
+   "confidence": "upper_bound",
+   "witness": [
+    1,
+    9,
+    13,
+    15
+   ]
+  },
+  "Z": {
+   "value": 4,
+   "confidence": "upper_bound",
+   "witness": [
+    6,
+    8,
+    9,
+    12
+   ]
+  }
+ },
+ "provenance": {
+  "authors": [
+   "@MathysRennela"
+  ],
+  "construction": "Locality-constrained SAT discovery: qubits on a grid, each check anchored within radius 2.0, weight <= 6, t=3 detection CNF (d >= 4 by construction); CaDiCaL enumeration, RIS screening, MILP-exact distance confirmation. Per-code parameters in the construction field below and in the research note.",
+  "origin": "submission",
+  "date": "2026-09-06",
+  "model": "GLM 5.3 Flash",
+  "notes": "Distinct construction among the [[16,4,4]] co-entries from the same campaign: different check matrix (fingerprint 6fce4d9a211b), gate dedup passed. Checked against existing board entries at gate time; not equivalent to any of them. MILP-exact d=4 both sides (documented in the research note)."
+ },
+ "family": "other",
+ "locality": {
+  "coordinates": [
+   [
+    0.0,
+    0.0
+   ],
+   [
+    1.0,
+    0.0
+   ],
+   [
+    2.0,
+    0.0
+   ],
+   [
+    3.0,
+    0.0
+   ],
+   [
+    0.0,
+    1.0
+   ],
+   [
+    1.0,
+    1.0
+   ],
+   [
+    2.0,
+    1.0
+   ],
+   [
+    3.0,
+    1.0
+   ],
+   [
+    0.0,
+    2.0
+   ],
+   [
+    1.0,
+    2.0
+   ],
+   [
+    2.0,
+    2.0
+   ],
+   [
+    3.0,
+    2.0
+   ],
+   [
+    0.0,
+    3.0
+   ],
+   [
+    1.0,
+    3.0
+   ],
+   [
+    2.0,
+    3.0
+   ],
+   [
+    3.0,
+    3.0
+   ]
+  ],
+  "layers": 1
+ }
+}
