@@ -28,9 +28,18 @@ Subcommands
 Examples
 --------
   python research/audits/leader_audit.py ladder codes/360-12-24.json \
-      --ladder 1000000:101,102,103,104 5000000:201,202,203 20000000:301,302,303
+      --ladder 1000000:101,102,103,104 5000000:201,202,203 20000000:301,302,303 \
+      --witness-out /tmp/360-12-24.witness.json
   python research/audits/leader_audit.py screen --trials 2000000 --seeds 51 \
+      --witness-dir /tmp/screen-witnesses \
       codes/672-20-32.json codes/922-18-31.json
+
+Witness persistence. Always pass `--witness-out` (ladder) or `--witness-dir`
+(screen): the support of the lightest logical seen so far is printed and
+written *on every new best*, not at the end of the run. A rung that is killed
+by a time limit still leaves the artifact a distance revision needs, and a
+proposal that fails the independent re-check never reaches the file -- or the
+verdict -- at all.
 
 Both are upper-bound searches. `refuted` is decisive (a witness is exhibited);
 `holds` means "this search, at this budget, found nothing lighter" and is not a
@@ -141,19 +150,52 @@ def _parse_ladder(text):
     return out
 
 
+def _write_witness(path, payload):
+    """Persist a witness with an atomic replace.
+
+    Called on *every* new best rather than once at the end of a ladder: a rung
+    can be killed by a time limit or a scheduler, and the witness behind the
+    lightest reading is the artifact a distance revision needs. Losing it costs
+    a re-run of the whole rung.
+    """
+    parent = os.path.dirname(os.path.abspath(path))
+    os.makedirs(parent, exist_ok=True)
+    tmp = f"{path}.tmp"
+    with open(tmp, "w") as fh:
+        json.dump(payload, fh, indent=2, sort_keys=True)
+        fh.write("\n")
+    os.replace(tmp, path)
+
+
+def _best_payload(entry, n, k, claim, best, verdict=None):
+    payload = {"entry": entry, "n": n, "k": k, "claim": claim, **best}
+    if verdict is not None:
+        payload["verdict"] = verdict
+    return payload
+
+
 def cmd_ladder(args):
     n, k_claim, HX, HZ, doc = load_entry(args.entry)
     k, w = describe(n, k_claim, HX, HZ, doc, os.path.basename(args.entry))
+    claim = doc["distance"]["d"]
     best = {"weight": n + 1, "side": None, "support": [], "seed": None, "trials": None}
     for trials, seeds in args.ladder:
         for seed in seeds:
             weight, side, support, dt = ris(HX, HZ, trials, seed, args.threads)
             ok, why = validate_witness(n, HX, HZ, side, weight, support)
             print(f"  trials={trials:>10,} seed={seed}: d<={weight} side={side} [{dt:.0f}s] witness={why}", flush=True)
+            if not ok:
+                # A proposal that fails the independent re-check must not move
+                # the bar: otherwise the verdict, and the saved witness, could
+                # be driven by exactly the accelerator bug this re-check exists
+                # to catch.
+                print(f"    DISCARDED d<={weight}: {why}", flush=True)
+                continue
             if weight < best["weight"]:
                 best = {"weight": weight, "side": side, "support": support, "seed": seed, "trials": trials}
-                print(f"    NEW BEST d<={weight} side={side}", flush=True)
-    claim = doc["distance"]["d"]
+                print(f"    NEW BEST d<={weight} side={side} support={support}", flush=True)
+                if args.witness_out:
+                    _write_witness(args.witness_out, _best_payload(args.entry, n, k, claim, best))
     verdict = "REFUTED" if best["weight"] < claim else "holds" if best["weight"] == claim else "inconclusive"
     print(
         f"VERDICT: n={n} k={k} claim={claim} d_ub={best['weight']} "
@@ -161,8 +203,7 @@ def cmd_ladder(args):
         flush=True,
     )
     if args.witness_out and best["support"]:
-        with open(args.witness_out, "w") as fh:
-            json.dump({"entry": args.entry, "n": n, "k": k, **best}, fh)
+        _write_witness(args.witness_out, _best_payload(args.entry, n, k, claim, best, verdict))
     return 2 if verdict == "REFUTED" else 0
 
 
@@ -172,14 +213,25 @@ def cmd_screen(args):
         n, k_claim, HX, HZ, doc = load_entry(entry)
         k, w = describe(n, k_claim, HX, HZ, doc, os.path.basename(entry))
         claim = doc["distance"]["d"]
-        best = None
+        best = {"weight": n + 1, "side": None, "support": [], "seed": None, "trials": args.trials}
         for seed in args.seeds:
             weight, side, support, dt = ris(HX, HZ, args.trials, seed, args.threads)
             ok, why = validate_witness(n, HX, HZ, side, weight, support)
             print(f"  seed={seed}: d<={weight} side={side} [{dt:.0f}s] witness={why}", flush=True)
-            best = weight if best is None else min(best, weight)
-        verdict = "REFUTED" if best < claim else "holds" if best == claim else "inconclusive"
-        rows.append((os.path.basename(entry)[:-5], n, k, w, claim, best, verdict))
+            if not ok:
+                print(f"    DISCARDED d<={weight}: {why}", flush=True)
+                continue
+            if weight < best["weight"]:
+                best = {"weight": weight, "side": side, "support": support, "seed": seed, "trials": args.trials}
+                print(f"    NEW BEST d<={weight} side={side} support={support}", flush=True)
+                if args.witness_dir:
+                    stem = os.path.basename(entry)[:-5]
+                    _write_witness(
+                        os.path.join(args.witness_dir, f"{stem}.json"),
+                        _best_payload(entry, n, k, claim, best),
+                    )
+        verdict = "REFUTED" if best["weight"] < claim else "holds" if best["weight"] == claim else "inconclusive"
+        rows.append((os.path.basename(entry)[:-5], n, k, w, claim, best["weight"], verdict))
     print("=" * 72)
     print(f"{'entry':>14s} | {'n':>4s} {'k':>4s} {'w':>2s} {'claim':>5s} {'d_ub':>5s}  verdict")
     for name, n, k, w, claim, best, verdict in rows:
@@ -202,7 +254,11 @@ def main(argv=None):
         help="e.g. 1000000:101,102 20000000:301,302",
     )
     lad.add_argument("--threads", type=int, default=8)
-    lad.add_argument("--witness-out", default=None)
+    lad.add_argument(
+        "--witness-out",
+        default=None,
+        help="file to write the lightest validated witness to; rewritten on every new best",
+    )
     lad.set_defaults(func=cmd_ladder)
 
     scr = sub.add_parser("screen", help="one budget, several entries")
@@ -210,6 +266,11 @@ def main(argv=None):
     scr.add_argument("--trials", type=int, default=2_000_000)
     scr.add_argument("--seeds", type=int, nargs="+", default=[51])
     scr.add_argument("--threads", type=int, default=8)
+    scr.add_argument(
+        "--witness-dir",
+        default=None,
+        help="directory to drop <entry>.json for the lightest validated witness per entry",
+    )
     scr.set_defaults(func=cmd_screen)
 
     args = ap.parse_args(argv)

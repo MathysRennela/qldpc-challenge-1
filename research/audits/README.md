@@ -13,11 +13,13 @@ of a campaign is to re-measure the bar on fresh seeds.
 # is this leader's number real? escalating ladder, fresh seeds each rung
 uv run --frozen python research/audits/leader_audit.py ladder \
     codes/360-12-24.json \
-    --ladder 1000000:101,102,103,104 5000000:201,202,203 20000000:301,302,303
+    --ladder 1000000:101,102,103,104 5000000:201,202,203 20000000:301,302,303 \
+    --witness-out /tmp/360-12-24.witness.json
 
 # triage a whole cell's leaders at one budget
 uv run --frozen python research/audits/leader_audit.py screen \
-    --trials 2000000 --seeds 51 codes/672-20-32.json codes/922-18-31.json
+    --trials 2000000 --seeds 51 --witness-dir /tmp/screen-witnesses \
+    codes/672-20-32.json codes/922-18-31.json
 ```
 
 It exits 2 if any claim is refuted, so it can gate a script.
@@ -34,7 +36,16 @@ It exits 2 if any claim is refuted, so it can gate a script.
 * Re-validates every witness in pure Python against the raw sparse matrices:
   support size equals the weight, `H_opp v = 0` over GF(2), and `v` outside the
   row space of `H_own`. A bug in the accelerator cannot put an unbacked number
-  in the log.
+  in the log -- a proposal that fails this re-check is printed as `DISCARDED`
+  and can neither move the reading nor reach the witness file.
+
+## Persist the witness while the ladder is still running
+
+Pass `--witness-out` (ladder) or `--witness-dir` (screen). The support of the
+lightest logical seen so far is printed and written **on every new best**, not
+once at the end: a rung can be killed by a time limit, and the witness behind
+the lightest reading is the artifact a distance revision needs. Re-running a
+killed 8M-trial rung at `n = 684` costs about fifteen minutes of wall clock.
 
 ## Reading the output
 
