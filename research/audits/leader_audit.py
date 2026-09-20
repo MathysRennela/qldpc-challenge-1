@@ -1,58 +1,34 @@
 #!/usr/bin/env python3
-"""Deep fresh-seed RIS audit of a board entry's distance claim.
+"""Re-measure a board entry's distance claim on fresh seeds before targeting it.
 
-A leaderboard distance is a witness-backed *upper* bound. The frontier is
-therefore a set of claims, and some of them are inflated: this board has
-already revised `[[882,18,30]]` down to 29 (PR #1165) and
-`[[684,12,81]]` down to 66 (issue #896). Before spending budget trying to beat
-a bar, re-measure it at depth on fresh seeds. Two outcomes are both useful:
+A leaderboard distance is a witness-backed *upper* bound, and a claim that is one
+or two units soft makes any candidate tuned to beat it wasted budget -- while a
+refutation is itself a valid submission.
 
-* the claim **holds** (a large flat ladder) -- you now know exactly what must
-  be beaten, and that its number is not an artifact;
-* the claim is **refuted** (a lighter logical appears) -- the true distance is
-  at most the reading, and a distance revision is itself a valid submission.
+Verdicts: `refuted` (a lighter logical was exhibited; decisive), `holds` (the
+search reached the claim and found nothing lighter; evidence, not proof) and
+`inconclusive` (it did not even reach the claim; says nothing about the code, and
+must not be read as corroboration).
 
-Method. Random information set (QDistRnd-style) search on both Pauli sides
-jointly, via the bit-packed accelerator `verify/gf2_fast.distance_rand_witness`
-(`make fast`), falling back to the pure-NumPy `research/kit/surrogate.py` path.
-Every witness is re-validated against the raw sparse matrices before it is
-recorded -- support size equals the reported weight, `H_opp v = 0` over GF(2),
-and `v` outside the row space of `H_own` -- so a bug in the accelerator cannot
-put an unbacked number in the log.
+Search: random information sets on both Pauli sides, via `verify/gf2_fast` when
+built (`make fast`), else NumPy. Every witness is re-validated against the raw
+matrices before it is recorded; one that fails is discarded.
 
-Subcommands
------------
   ladder  one entry, an escalating budget ladder on fresh seeds each rung
   screen  several entries at one budget, to triage a whole cell's leaders
 
-Examples
---------
+Pass `--witness-out` (ladder) or `--witness-dir` (screen): the best support is
+written on every new best, so a rung killed by a time limit still leaves the
+artifact a revision needs. Set `--pair-depth` to the depth the claim's own ladder
+used; the default of 10 under-reads against the 24-80 these affine ladders used
+and reports a soft claim as a hold.
+
   python research/audits/leader_audit.py ladder codes/360-12-24.json \
-      --ladder 1000000:101,102,103,104 5000000:201,202,203 20000000:301,302,303 \
-      --witness-out /tmp/360-12-24.witness.json
-  python research/audits/leader_audit.py screen --trials 2000000 --seeds 51 \
-      --witness-dir /tmp/screen-witnesses \
-      codes/672-20-32.json codes/922-18-31.json
+      --ladder 1000000:101 5000000:201 --pair-depth 64 --witness-out /tmp/w.json
+  python research/audits/leader_audit.py screen --trials 2000000 --seeds 51 52 \
+      --pair-depth 64 codes/672-20-32.json codes/922-18-31.json
 
-Witness persistence. Always pass `--witness-out` (ladder) or `--witness-dir`
-(screen): the support of the lightest logical seen so far is printed and
-written *on every new best*, not at the end of the run. A rung that is killed
-by a time limit still leaves the artifact a distance revision needs, and a
-proposal that fails the independent re-check never reaches the file -- or the
-verdict -- at all.
-
-Match the ladder you are auditing with `--pair-depth`. Each trial combines the
-`pair_depth` lightest reduced rows pairwise; the accelerator's default of 10 is
-tuned for small codes, and on this board's affine two-block entries the
-submitted ladders used 24 to 80. Reading such a claim at depth 10 measures the
-candidate set, not the code: on `[[684,12,77]]` at 200,000 trials and the same
-seed, depth 10 reads 97 while depth 64 reads 87 (and 64 costs about 1.4x, not
-45x). An `inconclusive` verdict taken at a shallower depth than the claim's own
-ladder is an artifact and must not be reported as evidence.
-
-Both are upper-bound searches. `refuted` is decisive (a witness is exhibited);
-`holds` means "this search, at this budget, found nothing lighter" and is not a
-proof. It says nothing about the exact (`d=`) tier, which needs
+`holds` never upgrades a claim to the exact (`d=`) tier; that needs
 `verify/certify.py`.
 """
 
