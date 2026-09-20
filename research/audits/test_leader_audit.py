@@ -37,8 +37,27 @@ def _genuine_witness():
     return n, HX, HZ, weight, side, support
 
 
-def _ladder_args(witness_out, ladder=((2000, [1]), (4000, [2]))):
-    return types.SimpleNamespace(entry=ENTRY, ladder=list(ladder), threads=2, witness_out=str(witness_out))
+def _ladder_args(witness_out, ladder=((2000, [1]), (4000, [2])), pair_depth=10):
+    return types.SimpleNamespace(
+        entry=ENTRY, ladder=list(ladder), threads=2, pair_depth=pair_depth, witness_out=str(witness_out)
+    )
+
+
+def test_pair_depth_reaches_the_search(monkeypatch, tmp_path):
+    """Check that `--pair-depth` reaches the search.
+
+    A shallower depth than the claim's own ladder under-reads, so a silent
+    default would make the verdict an artifact of the instrument.
+    """
+    seen = []
+
+    def recording(HX, HZ, trials, seed, threads=8, pair_depth=10):
+        seen.append(pair_depth)
+        return 2, "X", [0, 1], 0.0
+
+    monkeypatch.setattr(la, "ris", recording)
+    la.cmd_ladder(_ladder_args(tmp_path / "w.json", ladder=((2000, [1]),), pair_depth=64))
+    assert seen == [64]
 
 
 def test_invalid_proposal_is_discarded(monkeypatch, tmp_path):
@@ -98,7 +117,9 @@ def test_screen_keeps_one_witness_per_entry(monkeypatch, tmp_path):
     _n, _HX, _HZ, weight, side, support = _genuine_witness()
     monkeypatch.setattr(la, "ris", lambda *a, **k: (weight, side, support, 0.0))
     witness_dir = tmp_path / "witnesses"
-    args = types.SimpleNamespace(entries=[ENTRY], trials=2000, seeds=[1, 2], threads=2, witness_dir=str(witness_dir))
+    args = types.SimpleNamespace(
+        entries=[ENTRY], trials=2000, seeds=[1, 2], threads=2, pair_depth=10, witness_dir=str(witness_dir)
+    )
     assert la.cmd_screen(args) == 0
     payload = json.loads((witness_dir / "72-12-6.json").read_text())
     assert payload["weight"] == weight and payload["entry"] == ENTRY

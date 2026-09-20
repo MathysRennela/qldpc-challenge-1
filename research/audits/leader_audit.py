@@ -41,6 +41,15 @@ by a time limit still leaves the artifact a distance revision needs, and a
 proposal that fails the independent re-check never reaches the file -- or the
 verdict -- at all.
 
+Match the ladder you are auditing with `--pair-depth`. Each trial combines the
+`pair_depth` lightest reduced rows pairwise; the accelerator's default of 10 is
+tuned for small codes, and on this board's affine two-block entries the
+submitted ladders used 24 to 80. Reading such a claim at depth 10 measures the
+candidate set, not the code: on `[[684,12,77]]` at 200,000 trials and the same
+seed, depth 10 reads 97 while depth 64 reads 87 (and 64 costs about 1.4x, not
+45x). An `inconclusive` verdict taken at a shallower depth than the claim's own
+ladder is an artifact and must not be reported as evidence.
+
 Both are upper-bound searches. `refuted` is decisive (a witness is exhibited);
 `holds` means "this search, at this budget, found nothing lighter" and is not a
 proof. It says nothing about the exact (`d=`) tier, which needs
@@ -179,9 +188,10 @@ def cmd_ladder(args):
     k, w = describe(n, k_claim, HX, HZ, doc, os.path.basename(args.entry))
     claim = doc["distance"]["d"]
     best = {"weight": n + 1, "side": None, "support": [], "seed": None, "trials": None}
+    print(f"  pair_depth={args.pair_depth} threads={args.threads}", flush=True)
     for trials, seeds in args.ladder:
         for seed in seeds:
-            weight, side, support, dt = ris(HX, HZ, trials, seed, args.threads)
+            weight, side, support, dt = ris(HX, HZ, trials, seed, args.threads, args.pair_depth)
             ok, why = validate_witness(n, HX, HZ, side, weight, support)
             print(f"  trials={trials:>10,} seed={seed}: d<={weight} side={side} [{dt:.0f}s] witness={why}", flush=True)
             if not ok:
@@ -209,13 +219,14 @@ def cmd_ladder(args):
 
 def cmd_screen(args):
     rows = []
+    print(f"  pair_depth={args.pair_depth} threads={args.threads}", flush=True)
     for entry in args.entries:
         n, k_claim, HX, HZ, doc = load_entry(entry)
         k, w = describe(n, k_claim, HX, HZ, doc, os.path.basename(entry))
         claim = doc["distance"]["d"]
         best = {"weight": n + 1, "side": None, "support": [], "seed": None, "trials": args.trials}
         for seed in args.seeds:
-            weight, side, support, dt = ris(HX, HZ, args.trials, seed, args.threads)
+            weight, side, support, dt = ris(HX, HZ, args.trials, seed, args.threads, args.pair_depth)
             ok, why = validate_witness(n, HX, HZ, side, weight, support)
             print(f"  seed={seed}: d<={weight} side={side} [{dt:.0f}s] witness={why}", flush=True)
             if not ok:
@@ -255,6 +266,14 @@ def main(argv=None):
     )
     lad.add_argument("--threads", type=int, default=8)
     lad.add_argument(
+        "--pair-depth",
+        type=int,
+        default=10,
+        help="how many of the lightest reduced rows are combined pairwise each trial "
+        "(larger finds lighter logicals for little extra cost; match the depth the claim's "
+        "own ladder used, e.g. 64, or the reading is not comparable)",
+    )
+    lad.add_argument(
         "--witness-out",
         default=None,
         help="file to write the lightest validated witness to; rewritten on every new best",
@@ -266,6 +285,7 @@ def main(argv=None):
     scr.add_argument("--trials", type=int, default=2_000_000)
     scr.add_argument("--seeds", type=int, nargs="+", default=[51])
     scr.add_argument("--threads", type=int, default=8)
+    scr.add_argument("--pair-depth", type=int, default=10)
     scr.add_argument(
         "--witness-dir",
         default=None,

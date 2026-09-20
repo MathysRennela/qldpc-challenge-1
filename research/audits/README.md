@@ -63,6 +63,24 @@ A reading above the claim is never corroboration: only a reading *at* or
 *below* it carries information. Match the budget to the rate, as issue #899
 argues.
 
+## Set `--pair-depth` to the depth the claim's own ladder used
+
+Every trial combines the `pair_depth` lightest reduced rows pairwise. The
+accelerator's default of 10 suits small codes, but the ladders behind this
+board's affine two-block entries used 24 to 80, and reading such a claim at
+depth 10 measures the candidate set rather than the code:
+
+| entry | trials | seed | depth 10 | depth 64 |
+|---|---|---:|---:|---:|
+| `codes/684-12-77.json` | 200,000 | 71 | 89 | 85 (at 24/48) |
+| `codes/684-12-77.json` | 200,000 | 101 | 97 | **87** |
+
+Depth 64 costs about 1.4x depth 10, not 45x -- the per-trial cost is dominated
+by the elimination, not the pair phase. So an `inconclusive` verdict taken at a
+shallower depth than the claim's own ladder is an artifact of the instrument and
+must not be reported as evidence about the code. The default stays 10 so
+existing invocations do not change meaning.
+
 ## Limits
 
 These are upper-bound searches. `holds` never upgrades a claim to the exact
