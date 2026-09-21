@@ -22,7 +22,14 @@ uv run --frozen python research/audits/leader_audit.py screen \
     codes/672-20-32.json codes/922-18-31.json
 ```
 
-It exits 2 if any claim is refuted, so it can gate a script.
+It exits 2 if any claim is refuted, so it can gate a script. The other codes are
+kept distinct from 2 for exactly that reason:
+
+| code | meaning |
+|---:|---|
+| 0 | every claim `holds` or came back `inconclusive` |
+| 2 | at least one claim was `refuted` -- the gate signal |
+| 3 | the invocation or an entry was unusable: a malformed or seedless ladder rung, an entry whose checks do not commute, or an entry whose recorded `k` is not the `k` of its own matrices. A mistyped command must not be mistakable for a refutation, and a refutation of something that is not the claimed CSS code is not a refutation. |
 
 ## What it does
 
@@ -38,6 +45,14 @@ It exits 2 if any claim is refuted, so it can gate a script.
   row space of `H_own`. A bug in the accelerator cannot put an unbacked number
   in the log -- a proposal that fails this re-check is printed as `DISCARDED`
   and can neither move the reading nor reach the witness file.
+* Refuses to score an entry whose recomputed `k` is not its recorded `k`, or
+  whose checks do not commute, and exits 3 instead. The GF(2) bases behind the
+  search are built once per entry and reused across seeds.
+
+A recorded `seed` does not reproduce a reading across backends: the accelerator
+consumes it directly, while the NumPy path derives the two sides' independent
+streams from `np.random.SeedSequence(seed).spawn(2)`. Compare readings taken on
+the same backend, and record which one produced the number.
 
 ## Persist the witness while the ladder is still running
 
@@ -47,6 +62,13 @@ once at the end: a rung can be killed by a time limit, and the witness behind
 the lightest reading is the artifact a distance revision needs. Re-running a
 killed 8M-trial rung at `n = 684` costs about fifteen minutes of wall clock.
 
+`--witness-out` is cleared at the start of a ladder run, so a file left behind by
+an earlier run cannot survive a run that finds nothing and then read as that
+run's artifact (stale `verdict: refuted` included). `--witness-dir` writes one
+file per entry, named after the entry's path within the repo rather than its
+basename, so `codes/672-20-32.json` and a same-named copy elsewhere cannot
+overwrite each other.
+
 ## Reading the output
 
 | verdict | meaning |
@@ -54,6 +76,10 @@ killed 8M-trial rung at `n = 684` costs about fifteen minutes of wall clock.
 | `refuted` | a logical lighter than the claim was exhibited. The claim is over-stated and `d <= ` the reading. A distance revision is a valid submission on its own. |
 | `holds` | the search reached exactly the claimed weight and found nothing lighter. Evidence, not proof. |
 | `inconclusive` | the search did not even reach the claim (or found nothing above it in one direction). Says nothing about the code. |
+
+These three tokens are exactly what the tool prints and writes, lowercase, so a
+script can match them directly. A rung that never ran -- no seeds, or no trials
+-- is a usage error (exit 3), not an `inconclusive` verdict.
 
 **`inconclusive` is the trap.** For dense low-rate entries RIS can sit several
 units *above* the claim at a budget that fully refutes a structured one -- e.g.
