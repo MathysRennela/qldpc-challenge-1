@@ -104,6 +104,38 @@ Two principles drive the format:
     Every TICK layer must be genuinely parallel (no qubit operated on twice
     in a layer): layer count controls idle-data noise, so this is what makes
     a schedule's claimed parallelism -- and the resulting d_circ -- honest.
+  - `logicals` and `gates` (optional; issue #1850, stage 1): claimed
+    transversal logical gates, checked over GF(2) by
+    `verify/transversal_gates.py` and listed on the code page. Witness-backed
+    and penalty-only: a verified gate is a listed property and never ranks; a
+    wrong claim fails verification. `gates` requires `logicals`.
+    - `logicals`: `{X: [...], Z: [...]}`, k X-type and k Z-type logical
+      representatives as sparse supports, the basis every gate claim is
+      written in. `X_i` must lie in `ker(H_Z)`, `Z_i` in `ker(H_X)`, and
+      `X_i` and `Z_j` must anticommute exactly when `i = j` (identity
+      pairing, which also makes the basis independent modulo stabilizers).
+      The claims name them `X0..X{k-1}` and `Z0..Z{k-1}`.
+    - `gates`: a list of claims, each `{gate, permutation?, logical_action,
+      name?, notes?}`. `gate` is `"permutation"` (a bare qubit permutation,
+      then required), `"H"` or `"S"` (that Clifford on every qubit, composed
+      with the optional permutation), or `"CX"` (a CX from qubit `i` of one
+      block, the control, to qubit `permutation[i]` of a second block, the
+      target; identity pairing when omitted). `permutation` lists the image
+      of each qubit. `logical_action` maps each logical generator label to
+      the list of generator labels whose product it is sent to; a generator
+      not listed is claimed fixed, and a CX names the target block's
+      generators with a prime (`X0'`, `Z0'`).
+    - Verification: the gate must map every stabilizer generator into the
+      stabilizer group (per block), and the image of every logical generator,
+      reduced modulo stabilizers, must equal the claimed product. For `S`
+      every X-check must have weight `0 mod 4`: `S` on every qubit sends `X`
+      on a weight-`w` support to `i^w XZ` on it, a phase the GF(2) image
+      cannot see, and for `w = 2 mod 4` the image is minus a stabilizer. The
+      action is checked up to stabilizers, logical Pauli corrections, and
+      phase, so `S` and `S^dagger` share a claim. A claim whose induced
+      action fixes every logical operator is rejected as a code automorphism
+      rather than a logical gate. Surgery gadgets (stage 2 of the issue) are
+      not part of this field.
   - `ler` (optional): the measured logical-error-rate tier, on
     the same committed circuits. `d_circ` is a floor; this is the rate a
     simulation actually sees, prefactors included. Per basis (`ler.X`,
