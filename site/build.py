@@ -4201,6 +4201,10 @@ def board_table(entries, records):
         # cell links can filter with nesting (a weight-4 code shows in weight-6/8
         # cells too), which the raw w slider cannot express.
         cell_keys = " ".join(f"{L}~{W}" for (L, W) in cells(e))
+        # the witness diameter cell text, built outside the row f-string: a
+        # nested f-string reusing the outer quote is 3.12-only syntax
+        ldiam_text = (f"{e['ldiam']:.3g}" if e["ldiam"] is not None
+                      else "&middot;")
         novelty = (
             '<span class=novelty title="known parameter set in the literature; '
             'this entry may still improve weight or construction details">'
@@ -4264,7 +4268,7 @@ def board_table(entries, records):
             f'{e["girth"] if e["girth"] is not None else "acyclic"}</td>'
             f'<td class="num col-diag" data-label="diam" '
             f'title="{html.escape(ldiam_cell_title(e))}">'
-            f'{f"{e["ldiam"]:.3g}" if e["ldiam"] is not None else "&middot;"}</td>'
+            f'{ldiam_text}</td>'
             f'<td class="auth col-auth" data-label="authors" '
             f'title="{html.escape(e["authors"])}">'
             f'{authors_compact(e["authors_list"])}</td>'

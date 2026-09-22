@@ -536,7 +536,12 @@ def trapping_sets(checks, n, max_size=TS_MAX_SIZE,
     dst = dst[order]
     first = np.zeros(n + 1, dtype=np.int64)
     np.cumsum(deg, out=first[1:])
-    # dense pair-overlap matrix: n is capped at MAX_N, so at most 1e6 cells
+    # dense pair-overlap matrix, n * n int32 cells (4 MB at MAX_N = 1000). The
+    # blocklength cap is what keeps it small, so refuse anything above it here
+    # rather than rely on the caller having enforced the cap.
+    if n > MAX_N:
+        raise ValueError(f"trapping_sets: n={n} exceeds MAX_N={MAX_N}; the "
+                         f"dense pair-overlap matrix is sized for the cap")
     pair_over = np.zeros((n, n), dtype=np.int32)
     pair_over[u, v] = ov
     pair_over[v, u] = ov
