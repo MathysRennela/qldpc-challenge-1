@@ -27,7 +27,10 @@ What "verified" means per field:
               are planar or 3D (one dimension per layout); a 3D layout gets
               the same honesty checks but no 2D-local class. Reports layout
               diagnostics (dimension, radius, qubits/site, spacing, density,
-              bbox).
+              bbox) and, for every accepted layout, a heuristic routing cost:
+              the nearest-neighbor SWAPs an MST lower bound says each check
+              needs to become connected on that layout (total and max over
+              checks).
   modules     optional per-qubit module ids in the layout: every qubit must
               carry one; reports the checks spanning more than one module,
               the ports (distinct neighboring modules) per module, and the
@@ -297,6 +300,47 @@ def _stabilizer_block_count(HX, HZ, n):
         r = find(q)
         sizes[r] = sizes.get(r, 0) + 1
     return len(sizes), sorted(sizes.values(), reverse=True)
+
+
+def lattice_steps(a, b, step):
+    """Nearest-neighbor hops between two layout points: their Euclidean
+    distance in units of ``step`` (the layout's minimum site spacing), rounded
+    up. Two qubits stacked on one site (a flip-chip pair) count as adjacent,
+    so the result is never below 1."""
+    return max(1, math.ceil(math.dist(a, b) / step - 1e-9))
+
+
+def check_routing_cost(support, coords, step):
+    """Heuristic SWAP cost of one check on a layout (issue #1847): the length
+    of a minimum spanning tree over the check's support, in lattice steps of
+    size ``step``, minus (|support| - 1). Each MST edge of s steps needs at
+    least s - 1 nearest-neighbor SWAPs before its two qubits touch, and the
+    MST is the cheapest tree to make the support connected, so this is a
+    lower bound on any SWAP schedule, not an optimal one. A check whose
+    support already forms a connected nearest-neighbor cluster costs 0."""
+    m = len(support)
+    if m <= 1:
+        return 0
+    pts = [coords[q] for q in support]
+    # Prim's algorithm; supports are bounded-weight, so quadratic is fine.
+    in_tree = [False] * m
+    best = [lattice_steps(pts[0], p, step) for p in pts]
+    in_tree[0] = True
+    total = 0
+    for _ in range(m - 1):
+        j = min((i for i in range(m) if not in_tree[i]), key=lambda i: best[i])
+        in_tree[j] = True
+        total += best[j]
+        for i in range(m):
+            if not in_tree[i]:
+                best[i] = min(best[i], lattice_steps(pts[j], pts[i], step))
+    return total - (m - 1)
+
+
+def routing_cost(checks, coords, step):
+    """Total and max ``check_routing_cost`` over all X and Z checks."""
+    costs = [check_routing_cost(sup, coords, step) for sup in checks]
+    return sum(costs), max(costs, default=0)
 
 
 def verify(doc, refute=False, seed=None):
@@ -614,6 +658,23 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
                    else f"min spacing between distinct sites "
                         f"{min_spacing:.4f} (>= 1.0 required)")
             honest = max_mult <= layers and min_spacing >= 1.0 - 1e-9
+            if honest:
+                # Heuristic routing cost (issue #1847), computed from every
+                # accepted layout, cap-exceeding ones included: how many
+                # nearest-neighbor SWAPs an MST lower bound says each check
+                # needs before its support is connected on this layout.
+                # "Nearest neighbor" is one lattice step, the layout's minimum
+                # site spacing (1.0 when only one site is occupied). A
+                # diagnostic, never a rank; a code without a layout gets none.
+                step = min_spacing if min_spacing != float("inf") else 1.0
+                total, worst = routing_cost(
+                    doc["checks"]["X"] + doc["checks"]["Z"], coords, step)
+                report["computed"]["routing_cost"] = {
+                    "heuristic": "mst-lower-bound",
+                    "total_swaps": total,
+                    "max_swaps_per_check": worst,
+                    "lattice_step": round(step, 4),
+                }
             if honest and dim == 2:
                 for cls, max_layers, cap in LOCALITY_CLASSES:
                     if layers <= max_layers and radius <= cap + 1e-9:
