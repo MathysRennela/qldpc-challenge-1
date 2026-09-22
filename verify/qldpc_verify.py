@@ -23,8 +23,19 @@ What "verified" means per field:
               plus the number of physical `layers`) is required; at most
               `layers` qubits per site and distinct sites
               >= 1 apart (no cramming a small radius); measured interaction
-              radius (max check diameter) within the track cap. Reports layout
-              diagnostics (radius, qubits/site, spacing, density, bbox).
+              radius (max check diameter) within the track cap. Coordinates
+              are planar or 3D (one dimension per layout); a 3D layout gets
+              the same honesty checks but no 2D-local class. Reports layout
+              diagnostics (dimension, radius, qubits/site, spacing, density,
+              bbox) and, for every accepted layout, a heuristic routing cost:
+              the nearest-neighbor SWAPs an MST lower bound says each check
+              needs to become connected on that layout (total and max over
+              checks).
+  modules     optional per-qubit module ids in the layout: every qubit must
+              carry one; reports the checks spanning more than one module,
+              the ports (distinct neighboring modules) per module, and the
+              qubits per module, and earns the Layer-3 flag `modular`. No
+              track or score reads it.
 """
 
 import glob
@@ -143,6 +154,10 @@ def resource_errors(doc):
     coords = loc.get("coordinates") or []
     if len(coords) > MAX_COORDINATES:
         errs.append(f"locality.coordinates has {len(coords)} points, limit is "
+                    f"{MAX_COORDINATES}")
+    modules = loc.get("modules") or []
+    if len(modules) > MAX_COORDINATES:
+        errs.append(f"locality.modules has {len(modules)} entries, limit is "
                     f"{MAX_COORDINATES}")
     return errs
 
@@ -285,6 +300,47 @@ def _stabilizer_block_count(HX, HZ, n):
         r = find(q)
         sizes[r] = sizes.get(r, 0) + 1
     return len(sizes), sorted(sizes.values(), reverse=True)
+
+
+def lattice_steps(a, b, step):
+    """Nearest-neighbor hops between two layout points: their Euclidean
+    distance in units of ``step`` (the layout's minimum site spacing), rounded
+    up. Two qubits stacked on one site (a flip-chip pair) count as adjacent,
+    so the result is never below 1."""
+    return max(1, math.ceil(math.dist(a, b) / step - 1e-9))
+
+
+def check_routing_cost(support, coords, step):
+    """Heuristic SWAP cost of one check on a layout (issue #1847): the length
+    of a minimum spanning tree over the check's support, in lattice steps of
+    size ``step``, minus (|support| - 1). Each MST edge of s steps needs at
+    least s - 1 nearest-neighbor SWAPs before its two qubits touch, and the
+    MST is the cheapest tree to make the support connected, so this is a
+    lower bound on any SWAP schedule, not an optimal one. A check whose
+    support already forms a connected nearest-neighbor cluster costs 0."""
+    m = len(support)
+    if m <= 1:
+        return 0
+    pts = [coords[q] for q in support]
+    # Prim's algorithm; supports are bounded-weight, so quadratic is fine.
+    in_tree = [False] * m
+    best = [lattice_steps(pts[0], p, step) for p in pts]
+    in_tree[0] = True
+    total = 0
+    for _ in range(m - 1):
+        j = min((i for i in range(m) if not in_tree[i]), key=lambda i: best[i])
+        in_tree[j] = True
+        total += best[j]
+        for i in range(m):
+            if not in_tree[i]:
+                best[i] = min(best[i], lattice_steps(pts[j], pts[i], step))
+    return total - (m - 1)
+
+
+def routing_cost(checks, coords, step):
+    """Total and max ``check_routing_cost`` over all X and Z checks."""
+    costs = [check_routing_cost(sup, coords, step) for sup in checks]
+    return sum(costs), max(costs, default=0)
 
 
 def verify(doc, refute=False, seed=None):
@@ -533,6 +589,12 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
     #    range grows with the code. Nesting: local-2d-single < local-2d-bilayer <
     #    unrestricted (the tighter class also qualifies for the looser ones; the
     #    site derives that). See TRACKS.md.
+    #    Coordinates are planar or 3D (issue #1849), one dimension per layout;
+    #    a mixed layout is rejected. The honesty checks (a) and (b) and the
+    #    radius are dimension-free. The class caps are planar: a 3D layout is
+    #    checked the same way, reported with dimension 3, and lands in
+    #    `unrestricted`, where the site prices it by the D = 3 geometric
+    #    efficiency (TRACKS.md).
     LOCALITY_CLASSES = [   # tightest first
         ("local-2d-single",  1, 4.0),
         ("local-2d-bilayer", 2, 7.0),
@@ -545,7 +607,14 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
         cover = len(coords) == n
         record("coordinates_cover_all_qubits", cover,
                f"{len(coords)} coords, n={n}")
+        dims = {len(c) for c in coords}
+        dim = next(iter(dims)) if len(dims) == 1 else None
         if cover:
+            record("coordinates_uniform_dimension", dim in (2, 3),
+                   f"D = {dim}" if dim in (2, 3)
+                   else f"points of dimension {sorted(dims)}; every point in "
+                        "a layout must be [x, y] or [x, y, z]")
+        if cover and dim in (2, 3):
             pts = [tuple(c) for c in coords]
 
             def diam(sup):
@@ -562,17 +631,18 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
             min_spacing = min((math.dist(a, b)
                                for i, a in enumerate(sites)
                                for b in sites[i + 1:]), default=float("inf"))
-            xs = [p[0] for p in pts]
-            ys = [p[1] for p in pts]
-            bbox = [round(max(xs) - min(xs), 4), round(max(ys) - min(ys), 4)]
-            area = bbox[0] * bbox[1]
+            bbox = [round(max(axis) - min(axis), 4) for axis in zip(*pts)]
+            extent = math.prod(bbox)
+            density_key = ("qubits_per_unit_area" if dim == 2
+                           else "qubits_per_unit_volume")
             report["computed"]["locality"] = {
+                "dimension": dim,
                 "interaction_radius": round(radius, 4),
                 "layers": layers,
                 "max_qubits_per_site": max_mult,
                 "min_site_spacing": (round(min_spacing, 4)
                                      if min_spacing != float("inf") else None),
-                "qubits_per_unit_area": round(len(pts) / area, 4) if area else None,
+                density_key: round(len(pts) / extent, 4) if extent else None,
                 "bbox": bbox,
             }
             if "interaction_radius" in loc:
@@ -589,6 +659,23 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
                         f"{min_spacing:.4f} (>= 1.0 required)")
             honest = max_mult <= layers and min_spacing >= 1.0 - 1e-9
             if honest:
+                # Heuristic routing cost (issue #1847), computed from every
+                # accepted layout, cap-exceeding ones included: how many
+                # nearest-neighbor SWAPs an MST lower bound says each check
+                # needs before its support is connected on this layout.
+                # "Nearest neighbor" is one lattice step, the layout's minimum
+                # site spacing (1.0 when only one site is occupied). A
+                # diagnostic, never a rank; a code without a layout gets none.
+                step = min_spacing if min_spacing != float("inf") else 1.0
+                total, worst = routing_cost(
+                    doc["checks"]["X"] + doc["checks"]["Z"], coords, step)
+                report["computed"]["routing_cost"] = {
+                    "heuristic": "mst-lower-bound",
+                    "total_swaps": total,
+                    "max_swaps_per_check": worst,
+                    "lattice_step": round(step, 4),
+                }
+            if honest and dim == 2:
                 for cls, max_layers, cap in LOCALITY_CLASSES:
                     if layers <= max_layers and radius <= cap + 1e-9:
                         locality_class = cls
@@ -599,6 +686,58 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
                        locality_class if locality_class != "unrestricted"
                        else f"unrestricted: radius {radius:.4f} at {layers} "
                             f"layer(s) meets no class cap ({caps})")
+            elif honest:
+                record("locality_class_computed", True,
+                       f"unrestricted: 3D layout (radius {radius:.4f} at "
+                       f"{layers} layer(s)); the 2D-local classes need planar "
+                       "coordinates, and the layout is priced by the D = 3 "
+                       "geometric efficiency")
+
+    # 10. module structure (issue #1846). `locality.modules` assigns every
+    #     qubit to a hardware module (one integer per qubit). It is the same
+    #     kind of cheap, checkable layout evidence as the coordinates and is
+    #     read independently of them: module membership says nothing about
+    #     distance, and coordinates say nothing about which chip a qubit sits
+    #     on. A partial assignment is rejected (a layout claim covers every
+    #     qubit or it is not a layout claim). From a full assignment the
+    #     verifier reports what a modular machine pays for: the checks whose
+    #     support crosses a module boundary, the ports each module needs (the
+    #     number of distinct modules it shares a check with), and the qubits
+    #     per module. Earns the Layer-3 flag `modular`; the locality class and
+    #     the efficiency scores never read it.
+    modular = False
+    modules = loc.get("modules") if loc is not None else None
+    if modules is not None:
+        cover_m = len(modules) == n
+        record("modules_cover_all_qubits", cover_m,
+               f"{len(modules)} module ids, n={n}")
+        if cover_m:
+            from collections import Counter
+            ids = sorted(set(modules))
+            per_module = Counter(modules)
+            crossing = {"X": [], "Z": []}
+            neighbors = {m: set() for m in ids}
+            for side in ("X", "Z"):
+                for i, sup in enumerate(doc["checks"][side]):
+                    touched = {modules[q] for q in sup}
+                    if len(touched) > 1:
+                        crossing[side].append(i)
+                        for m in touched:
+                            neighbors[m] |= touched - {m}
+            ports = {m: len(neighbors[m]) for m in ids}
+            n_cross = len(crossing["X"]) + len(crossing["Z"])
+            report["computed"]["modules"] = {
+                "count": len(ids),
+                "qubits_per_module": {str(m): per_module[m] for m in ids},
+                "cross_module_checks": n_cross,
+                "cross_module_check_indices": crossing,
+                "ports_per_module": {str(m): ports[m] for m in ids},
+                "max_ports": max(ports.values()),
+            }
+            modular = True
+            record("modules_computed", True,
+                   f"{len(ids)} module(s), {n_cross} cross-module check(s), "
+                   f"max {max(ports.values())} port(s) per module")
     # Layer-1 locality class (computed) + Layer-3 flags (verifier-proven only;
     # the exact-d flag is added at site-build time from certs/, since exactness
     # is certified separately, not by this trustless check).
@@ -608,6 +747,7 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
                     all(c["ok"] for c in report["checks"]
                         if c["check"] == "css_commutation")),
         "locality_class": locality_class,
+        "modular": modular,
     }
 
     return report

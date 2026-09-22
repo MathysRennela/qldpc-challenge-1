@@ -333,6 +333,11 @@ box-shadow:inset 3px 0 0 var(--ac)}
 margin:2px 4px 2px 0;border-radius:999px;background:var(--soft);color:var(--mut);
 border:1px solid var(--ln);white-space:normal}
 .tchip.loc{background:#eef2ff;color:#3730a3;border-color:#c7d2fe}
+.tchip.mod{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}
+.modtable{border-collapse:collapse;font-size:13px;margin:8px 0}
+.modtable th,.modtable td{padding:3px 12px 3px 0;text-align:right;
+border-bottom:1px solid var(--ln)}
+.modtable th{color:var(--mut);font-weight:600}
 /* Primary-tracks grid (locality x weight). */
 .ptgrid{margin:8px 0 4px}
 .ptsub{font-size:13px;color:var(--mut);margin:2px 0 12px;max-width:760px}
@@ -496,18 +501,18 @@ margin-left:8px}
 font-size:11.5px;color:var(--mut)}
 .board td.date::before{content:none}
 .board td.codecell{padding-right:92px}
-/* kd2/n, g, w: a horizontal stat trio — big value, small label beneath
+/* kd2/n, g, w, X/Z: a horizontal stat band, big value, small label beneath
    (column-reverse puts the ::before label under the number) */
 .board td.m3{display:inline-flex;flex-direction:column-reverse;
-align-items:center;justify-content:flex-start;gap:2px;width:32.8%;
+align-items:center;justify-content:flex-start;gap:2px;width:24.5%;
 padding:5px 0 3px;font-size:17px;font-weight:700;
 font-variant-numeric:tabular-nums;text-align:center}
 .board td.m3::before{font-size:10.5px}
 /* an entry with no verified layout has no g: the cell is a bare middot, so it
-   is a third of the stat band carrying nothing. Drop it and let the two real
-   stats split the width. */
+   is a quarter of the stat band carrying nothing. Drop it and let the three
+   real stats split the width. */
 .board td.m3.m3empty{display:none}
-.board tr:has(td.m3empty) td.m3{width:49.4%}
+.board tr:has(td.m3empty) td.m3{width:32.8%}
 /* the family chip rides on the title line instead of claiming its own row */
 .board td.typecell{position:absolute;top:34px;left:14px;width:auto;
 padding:0;margin:0}
