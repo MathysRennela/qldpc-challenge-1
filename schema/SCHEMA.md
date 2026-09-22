@@ -159,8 +159,23 @@ Two principles drive the format:
 - `locality` (optional): provide a layout and the verifier derives the locality
   class (`local-2d-single`, `local-2d-bilayer`, or `unrestricted`); omit it and
   the code is `unrestricted`.
-  - `coordinates`: one `[x, y]` per qubit, indexed `0..n-1`.
+  - `coordinates`: one `[x, y]` per qubit, indexed `0..n-1`, or one
+    `[x, y, z]` per qubit for a 3D layout; every point in a layout has the
+    same dimension (`coordinates_uniform_dimension`). The 2D-local classes
+    need planar coordinates; a 3D layout gets the same cramming and spacing
+    checks, lands in `unrestricted`, and is priced by the D = 3 geometric
+    efficiency `g = 2 sqrt(2) kd/(n rho r^3)` (see TRACKS.md).
   - `layers`: physical layers (2 for a flip-chip bilayer, for example).
+  - `modules` (optional, schema 0.3): one module id per qubit, indexed
+    `0..n-1`, a non-negative integer naming the hardware module (chip,
+    interconnected flip-chip module, photonically linked or shuttling zone)
+    the qubit sits in. Ids need not be contiguous. When present, every qubit
+    must carry one (`modules_cover_all_qubits`); the verifier then reports
+    the checks whose support spans more than one module, the ports per
+    module (the distinct other modules it shares a check with), and the
+    qubits per module, and the code earns the Layer-3 flag `modular`. The
+    field is independent of the coordinates, so it applies to a layout of
+    any dimension, and neither the locality class nor any score reads it.
   - `interaction_radius`: claimed max check diameter in the layout; the
     verifier recomputes the true max check diameter and requires
     `measured <= claim`.
