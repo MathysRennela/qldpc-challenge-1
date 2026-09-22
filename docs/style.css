@@ -333,6 +333,11 @@ box-shadow:inset 3px 0 0 var(--ac)}
 margin:2px 4px 2px 0;border-radius:999px;background:var(--soft);color:var(--mut);
 border:1px solid var(--ln);white-space:normal}
 .tchip.loc{background:#eef2ff;color:#3730a3;border-color:#c7d2fe}
+.tchip.mod{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}
+.modtable{border-collapse:collapse;font-size:13px;margin:8px 0}
+.modtable th,.modtable td{padding:3px 12px 3px 0;text-align:right;
+border-bottom:1px solid var(--ln)}
+.modtable th{color:var(--mut);font-weight:600}
 /* Primary-tracks grid (locality x weight). */
 .ptgrid{margin:8px 0 4px}
 .ptsub{font-size:13px;color:var(--mut);margin:2px 0 12px;max-width:760px}
