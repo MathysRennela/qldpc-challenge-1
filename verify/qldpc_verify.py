@@ -36,6 +36,11 @@ What "verified" means per field:
               the ports (distinct neighboring modules) per module, and the
               qubits per module, and earns the Layer-3 flag `modular`. No
               track or score reads it.
+  diagnostics computed, never ranked (issue #1844): per side, the Tanner-graph
+              girth, row and column weight profiles, and bounded trapping-set
+              counts, all read off H; for a laid-out code, the Euclidean
+              support diameter of each stored distance witness. Reported under
+              computed.diagnostics as evidence; no verdict depends on them.
 """
 
 import glob
@@ -343,6 +348,247 @@ def routing_cost(checks, coords, step):
     return sum(costs), max(costs, default=0)
 
 
+# Diagnostics (issue #1844). Decoder-friendliness is read off each side's
+# Tanner graph and logical-operator locality off the layout plus the stored
+# witnesses, so every submission already carries the data. Side "X" means the
+# Tanner graph of H_X (X-type checks against qubits), the graph a decoder of Z
+# errors runs on; "Z" mirrors. Everything here is reported, never ranked, and
+# no verdict depends on it. The trapping-set enumeration is bounded twice: by
+# set size and by a cap on the candidate sets it may build, so a large or dense
+# submission stops early (reported as incomplete) instead of stalling the gate.
+TS_MAX_SIZE = 3
+TS_MAX_CANDIDATES = 2_000_000
+
+
+def _side_graph(checks, n):
+    """Build the adjacency lists of one side's Tanner graph.
+
+    Qubit q is vertex q, check i is vertex n + i, one edge per support entry.
+    """
+    nbr = [[] for _ in range(n + len(checks))]
+    for i, s in enumerate(checks):
+        c = n + i
+        for q in s:
+            nbr[q].append(c)
+            nbr[c].append(q)
+    return nbr
+
+
+def tanner_girth(checks, n):
+    """Return the girth of one side's Tanner graph, or None when it is acyclic.
+
+    The girth is the length of the shortest cycle. Exact. A forest is
+    recognized first by counting edges against vertices and connected
+    components. Otherwise a BFS from every check vertex (every cycle
+    passes through one) records the shortest cycle its non-tree edges close,
+    and the minimum over start vertices is the girth. Because the graph is
+    bipartite a vertex at depth t can only close a cycle of length >= 2t, so
+    each BFS stops once 2t reaches the best cycle so far; for the small girths
+    typical of LDPC codes (4 to 8) that keeps every BFS to a few dozen
+    vertices, and the whole computation to milliseconds.
+    """
+    from collections import deque
+    nbr = _side_graph(checks, n)
+    nv = len(nbr)
+    nedges = sum(len(s) for s in checks)
+    seen = bytearray(nv)
+    components = 0
+    for start in range(nv):
+        if seen[start]:
+            continue
+        components += 1
+        seen[start] = 1
+        stack = [start]
+        while stack:
+            u = stack.pop()
+            for v in nbr[u]:
+                if not seen[v]:
+                    seen[v] = 1
+                    stack.append(v)
+    if nedges == nv - components:
+        return None
+    best = nv + 1
+    dist = [-1] * nv
+    parent = [-1] * nv
+    for start in range(n, nv):
+        touched = [start]
+        dist[start] = 0
+        queue = deque([start])
+        while queue:
+            u = queue.popleft()
+            du = dist[u]
+            if 2 * du >= best:
+                break
+            for v in nbr[u]:
+                if dist[v] < 0:
+                    dist[v] = du + 1
+                    parent[v] = u
+                    touched.append(v)
+                    queue.append(v)
+                elif v != parent[u]:
+                    best = min(best, du + dist[v] + 1)
+        for v in touched:
+            dist[v] = -1
+            parent[v] = -1
+        if best == 4:
+            break
+    return best
+
+
+def weight_profile(checks, n):
+    """Return the row (check) and column (qubit) weight profiles of one side.
+
+    Each profile is min, max, and mean. A qubit that no check of this side
+    touches has column weight 0.
+    """
+    rows = [len(s) for s in checks]
+    cols = [0] * n
+    for s in checks:
+        for q in s:
+            cols[q] += 1
+
+    def prof(ws):
+        if not ws:
+            return {"min": 0, "max": 0, "mean": 0.0}
+        return {"min": min(ws), "max": max(ws),
+                "mean": round(sum(ws) / len(ws), 3)}
+    return {"row": prof(rows), "column": prof(cols)}
+
+
+def _in_check_subsets(checks, r):
+    """Return every sorted r-subset of qubits lying inside one check.
+
+    One row per (check, subset), as an int64 array of shape (count, r), with
+    repeats when several checks contain the same subset. Vectorized per check
+    weight so the Python loop runs over distinct weights, not over checks.
+    """
+    from itertools import combinations
+    by_weight = {}
+    for s in checks:
+        qs = sorted(set(s))
+        if len(qs) >= r:
+            by_weight.setdefault(len(qs), []).append(qs)
+    out = []
+    for w, rows in by_weight.items():
+        idx = np.asarray(list(combinations(range(w), r)), dtype=np.int64)
+        out.append(np.asarray(rows, dtype=np.int64)[:, idx].reshape(-1, r))
+    if not out:
+        return np.zeros((0, r), dtype=np.int64)
+    return np.concatenate(out)
+
+
+def trapping_sets(checks, n, max_size=TS_MAX_SIZE,
+                  max_candidates=TS_MAX_CANDIDATES):
+    """Count the small connected (a, b) trapping sets of one side.
+
+    An (a, b) trapping set is a set S of a qubits such that exactly b checks
+    meet S an odd number of times, i.e. the error pattern S has syndrome
+    weight b. Only connected sets are counted (any two qubits of S joined by a
+    path through checks inside S): a disconnected set is a union of smaller
+    ones with b adding up, so the connected ones are the primitives. The
+    census covers sizes 1..max_size; size 2 is read off the pair-overlap
+    counts (two qubits sharing c checks form a (2, deg + deg' - 2c) set) and
+    size 3 by generating each connected triple from its center qubit and
+    reading the pair and triple overlaps, all vectorized. Before the size-3
+    stage the number of candidate triples is estimated, and if it exceeds
+    max_candidates the stage is skipped, so the cost is bounded and the report
+    says how far it got.
+
+    Returns {"complete_through_size": s, "counts": [[a, b, count], ...]}
+    sorted by (a, b); sizes above s were not enumerated. Note that on the
+    quantum side a (w, 0) set of this census can be a stabilizer of the
+    opposite type (a harmless, degenerate error), so b = 0 is not by itself a
+    defect; the census is the classical Tanner-graph notion, reported as such.
+    """
+    from itertools import combinations
+    col = np.zeros(n, dtype=np.int64)
+    for s in checks:
+        for q in s:
+            col[q] += 1
+    counts = []
+    for b, c in zip(*np.unique(col, return_counts=True)):
+        counts.append([1, int(b), int(c)])
+    if max_size < 2:
+        return {"complete_through_size": 1, "counts": counts}
+    pairs = _in_check_subsets(checks, 2)
+    if not len(pairs):     # no two qubits share a check: nothing connected above size 1
+        return {"complete_through_size": max_size, "counts": counts}
+    key = pairs[:, 0] * n + pairs[:, 1]
+    ukey, ov = np.unique(key, return_counts=True)   # ov = checks shared by the pair
+    u, v = ukey // n, ukey % n
+    b2 = col[u] + col[v] - 2 * ov
+    for b, c in zip(*np.unique(b2, return_counts=True)):
+        counts.append([2, int(b), int(c)])
+    if max_size < 3:
+        return {"complete_through_size": 2, "counts": counts}
+    # connected triples, each generated once from its center: a qubit b and
+    # two of its neighbors a < c in the qubit graph (qubits sharing a check).
+    # A path a-b-c has one center; a triangle is generated from all three of
+    # its vertices and is weighted 1/3, so no deduplication pass is needed.
+    deg = np.bincount(np.concatenate([u, v]), minlength=n)
+    in_check_triples = sum(len(s) * (len(s) - 1) * (len(s) - 2) // 6
+                           for s in checks)
+    if int((deg * (deg - 1) // 2).sum()) + in_check_triples > max_candidates:
+        return {"complete_through_size": 2, "counts": counts}
+    src = np.concatenate([u, v])
+    dst = np.concatenate([v, u])
+    order = np.argsort(src, kind="stable")
+    dst = dst[order]
+    first = np.zeros(n + 1, dtype=np.int64)
+    np.cumsum(deg, out=first[1:])
+    # dense pair-overlap matrix: n is capped at MAX_N, so at most 1e6 cells
+    pair_over = np.zeros((n, n), dtype=np.int32)
+    pair_over[u, v] = ov
+    pair_over[v, u] = ov
+    centers, ends_a, ends_c = [], [], []
+    for g in np.unique(deg[deg >= 2]):
+        bs = np.nonzero(deg == g)[0]
+        nb = dst[first[bs][:, None] + np.arange(g)[None, :]]     # (len(bs), g)
+        idx = np.asarray(list(combinations(range(int(g)), 2)), dtype=np.int64)
+        pairs = np.sort(nb[:, idx], axis=2).reshape(-1, 2)      # a < c
+        centers.append(np.repeat(bs, len(idx)))
+        ends_a.append(pairs[:, 0])
+        ends_c.append(pairs[:, 1])
+    if not centers:
+        return {"complete_through_size": 3, "counts": counts}
+    b = np.concatenate(centers)
+    a = np.concatenate(ends_a)
+    c = np.concatenate(ends_c)
+    o_ac = pair_over[a, c]
+    tri = o_ac > 0
+    # checks containing all three qubits: only possible for a triangle
+    triple_over = np.zeros(len(b), dtype=np.int64)
+    if tri.any():
+        in3 = _in_check_subsets(checks, 3)
+        if len(in3):
+            tk, tc = np.unique((in3[:, 0] * n + in3[:, 1]) * n + in3[:, 2],
+                               return_counts=True)
+            t = np.sort(np.stack([a[tri], b[tri], c[tri]], axis=1), axis=1)
+            key = (t[:, 0] * n + t[:, 1]) * n + t[:, 2]
+            pos = np.minimum(np.searchsorted(tk, key), len(tk) - 1)
+            triple_over[tri] = np.where(tk[pos] == key, tc[pos], 0)
+    # a check meeting the triple once or three times is odd: by inclusion and
+    # exclusion the count of such checks is sum(col) - 2 sum(pair) + 4 triple.
+    b3 = (col[a] + col[b] + col[c]
+          - 2 * (pair_over[a, b] + pair_over[b, c] + o_ac) + 4 * triple_over)
+    weight = np.where(tri, 1.0 / 3.0, 1.0)
+    for bb, cnt in enumerate(np.bincount(b3, weights=weight)):
+        if cnt > 0.5:
+            counts.append([3, int(bb), int(round(cnt))])
+    return {"complete_through_size": 3, "counts": counts}
+
+
+def support_diameter(coords, support):
+    """Return the largest Euclidean distance between two qubits of `support`.
+
+    `coords` is the layout, one [x, y] per qubit; a single qubit has
+    diameter 0.0.
+    """
+    ps = [coords[q] for q in support]
+    return max((math.dist(a, b) for i, a in enumerate(ps) for b in ps[i + 1:]),
+               default=0.0)
+
+
 def verify(doc, refute=False, seed=None):
     """Verify a submission. If ``refute`` is set, run the distance refutation with
     ``seed`` -- when ``seed is None`` a fresh RANDOM seed is drawn, so the gate is
@@ -453,6 +699,21 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
            f"max check weight {wmax} far exceeds LDPC sparsity "
            f"(cap {MAX_CHECK_WEIGHT})"
            if wmax > MAX_CHECK_WEIGHT else f"max check weight {wmax}")
+
+    # 5a. decoder-friendliness diagnostics (issue #1844), read off each side's
+    #     Tanner graph: girth, weight profiles, and a bounded trapping-set
+    #     census. Reported under computed.diagnostics; nothing here is ranked
+    #     and no verdict depends on it. See tanner_girth and trapping_sets.
+    diag = {"tanner_girth": {}, "weight_profile": {},
+            "trapping_sets": {"max_size": TS_MAX_SIZE,
+                              "candidate_cap": TS_MAX_CANDIDATES}}
+    for side in ("X", "Z"):
+        rows = doc["checks"][side]
+        g = tanner_girth(rows, n)
+        diag["tanner_girth"][side] = "acyclic" if g is None else g
+        diag["weight_profile"][side] = weight_profile(rows, n)
+        diag["trapping_sets"][side] = trapping_sets(rows, n)
+    report["computed"]["diagnostics"] = diag
 
     # The model field is self-reported and unverifiable, but if one is claimed it
     # must name a specific version, not a bare vendor name: "Claude" tells a reader
@@ -645,6 +906,17 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
                 density_key: round(len(pts) / extent, 4) if extent else None,
                 "bbox": bbox,
             }
+            # logical-operator locality (issue #1844): the Euclidean support
+            # diameter of each stored distance witness in this layout. The
+            # witnesses are upper bounds on the logical weight, so this is an
+            # upper bound on how far the exhibited logicals spread, not a
+            # minimum over all logicals (that would be a co-design search).
+            ldiam = {}
+            for side in ("X", "Z"):
+                wit = (doc["distance"].get(side) or {}).get("witness") or []
+                if wit and all(0 <= q < n for q in wit):
+                    ldiam[side] = round(support_diameter(coords, wit), 4)
+            report["computed"]["diagnostics"]["logical_diameter"] = ldiam
             if "interaction_radius" in loc:
                 record("interaction_radius_within_claim",
                        radius <= loc["interaction_radius"] + 1e-9,

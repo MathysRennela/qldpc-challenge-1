@@ -65,6 +65,22 @@ Distance confidence is orthogonal to the tracks:
   bounds while small and moderate codes are certified exact. The board shows an
   `exact` claim as an upper bound until a maintainer runs `verify/certify.py`.
 
+## Diagnostics (displayed, never ranked)
+
+The verifier also reports, per code, a few properties that are computed from
+data every submission already carries and that no track reads: the girth of
+each side's Tanner graph (the shortest cycle in the check/qubit graph a decoder
+runs on; "acyclic" when there is none), the row and column weight profiles of
+`H_X` and `H_Z`, a census of small connected trapping sets (sets of `a` qubits
+whose error pattern has syndrome weight `b`, counted by `(a, b)` up to a fixed
+size under a cost cap, so a dense code reports how far the count got), and,
+for a laid-out code, the Euclidean support diameter of each stored distance
+witness. The diameter is an upper bound on how far the exhibited logicals
+spread, not a minimum over all logicals: the witnesses bound the logical weight
+from above and are not claimed minimal. The site shows these on code pages and
+as sortable columns in the tables; they enter neither the Pareto frontier nor
+any score.
+
 ## A note on kd^2/n
 
 `kd^2/n` is the Bravyi-Poulin-Terhal saturation ratio. It is bounded and

@@ -868,6 +868,9 @@ margin-left:8px}}
 /* n, k, d are already printed inside the [[n,k,d]] name: drop their rows */
 .board td.col-n,.board td.col-k,.board td.col-d{{display:none}}
 .board.showroute td.col-route{{display:flex}}
+/* girth and witness diameter are hover-explained diagnostics; the card keeps
+   to the headline figures and the code page carries the full block */
+.board td.col-diag{{display:none}}
 /* date: small, in the card's top-right corner */
 .board tr{{position:relative}}
 .board td.date{{position:absolute;top:12px;right:14px;width:auto;padding:0;
@@ -1554,6 +1557,13 @@ def load_entries():
         # combined max_check_weight.
         d_x, d_z = doc["distance"]["X"]["value"], doc["distance"]["Z"]["value"]
         tiers = side_tiers(cert, doc)
+        # verifier diagnostics (issue #1844): girth per side, weight profiles,
+        # bounded trapping-set counts, and, with a layout, the support diameter
+        # of each stored witness. Displayed and sortable, never ranked.
+        diag = rep["computed"].get("diagnostics") or {}
+        girths = [g for g in (diag.get("tanner_girth") or {}).values()
+                  if isinstance(g, int)]
+        ldiams = list((diag.get("logical_diameter") or {}).values())
         entries.append({
             "slug": slug, "name": doc["name"], "n": n, "k": k, "d": d,
             "eff": round(k * d * d / n, 3), "tier": tier,
@@ -1599,6 +1609,12 @@ def load_entries():
             # plus numbers, never a track axis or a score input.
             "modular": bool(rep["computed"].get("flags", {}).get("modular")),
             "modules": rep["computed"].get("modules"),
+            "diag": diag,
+            # the shorter girth of the two sides (None when both are acyclic)
+            # and the larger witness diameter (None without a layout): the
+            # sortable one-number summaries of the table columns
+            "girth": min(girths) if girths else None,
+            "ldiam": max(ldiams) if ldiams else None,
             "doc": doc, "cert": cert,
         })
     return entries
@@ -2167,6 +2183,65 @@ def module_section(doc, m):
     return "".join(P)
 
 
+def side_girth(diag, side):
+    """Render one side's girth as display text: the number, or 'acyclic'."""
+    g = (diag.get("tanner_girth") or {}).get(side)
+    return "&middot;" if g is None else html.escape(str(g))
+
+
+def ts_summary(ts):
+    """Summarize the most harmful trapping-set class at each size for a hover.
+
+    For each set size a, the smallest syndrome weight b any connected set of
+    that size reaches and how many reach it, e.g. "(1,3)×72 (2,2)×36 (3,1)×4".
+    The multiplication sign is the character, not an entity, so the string is
+    safe both as text and inside an escaped title attribute.
+    """
+    best = {}
+    for a, b, c in (ts or {}).get("counts", []):
+        if a not in best or b < best[a][0]:
+            best[a] = (b, c)
+    return " ".join(f"({a},{b})×{c}" for a, (b, c) in sorted(best.items()))
+
+
+GIRTH_TIP = ("Tanner-graph girth: the shortest cycle in the check/qubit graph a "
+             "decoder runs on, per side (H_X detects Z errors, H_Z detects X "
+             "errors). Longer is friendlier to belief propagation. A diagnostic "
+             "computed by the verifier from H, never a ranking axis.")
+TS_TIP = ("(a,b) trapping sets: connected sets of a qubits whose error pattern "
+          "has syndrome weight b; small b at small a is what stalls iterative "
+          "decoders. Shown: the smallest b at each size and how many sets reach "
+          "it, sizes up to {smax} within the verifier's cost cap.")
+LDIAM_TIP = ("Euclidean support diameter of the stored distance witnesses in the "
+             "verified layout, in units of the qubit spacing: how far the "
+             "exhibited logicals spread, which governs the cost of using them "
+             "(lattice surgery, logical measurement). An upper bound on the "
+             "spread of the exhibited logicals only: the witnesses bound the "
+             "logical weight from above and are not claimed minimal, so a "
+             "tighter logical may exist.")
+
+
+def girth_cell_title(e):
+    d = e["diag"]
+    ts = d.get("trapping_sets") or {}
+    parts = [f"H_X girth {side_girth(d, 'X')}, H_Z girth {side_girth(d, 'Z')}"]
+    for side in ("X", "Z"):
+        summ = ts_summary(ts.get(side))
+        if summ:
+            parts.append(f"H_{side} trapping sets {summ}")
+    return "; ".join(parts) + ". " + GIRTH_TIP + " " + TS_TIP.format(
+        smax=ts.get("max_size", "?"))
+
+
+def ldiam_cell_title(e):
+    ld = e["diag"].get("logical_diameter") or {}
+    if not ld:
+        return "no verified layout; the witness diameter is undefined"
+    parts = ", ".join(f"{side} witness {ld[side]}" for side in ("X", "Z")
+                      if side in ld)
+    return parts + ". " + LDIAM_TIP
+
+
 def detail_page(e):
     doc, cert = e["doc"], e["cert"]
     n, k, d = e["n"], e["k"], e["d"]
@@ -2289,6 +2364,62 @@ def detail_page(e):
                  '<span class=cert-no>none yet &middot; distance stands as a '
                  'self-certified upper bound (d &le;)</span></div>')
     P.append('</section>')
+
+    # diagnostics (issue #1844): decoder-friendliness read off H and the
+    # spread of the stored witnesses read off the layout, as the verifier
+    # computed them. Evidence shown beside the code, never a ranking input.
+    diag = e.get("diag") or {}
+    if diag.get("tanner_girth"):
+        P.append('<section class=blk><h3>Diagnostics</h3>')
+        P.append('<div class=kv style="color:var(--mut)">computed by the '
+                 'verifier from the parity checks, the layout, and the stored '
+                 'witnesses; shown as evidence, not used for ranking</div>')
+        P.append(f'<div class=kv title="{html.escape(GIRTH_TIP)}"><b>girth</b> '
+                 f'H_X {side_girth(diag, "X")} &middot; H_Z {side_girth(diag, "Z")} '
+                 '<span class=claimed>(shortest cycle of each side&rsquo;s Tanner '
+                 'graph; longer is friendlier to belief propagation)</span></div>')
+        wp = diag.get("weight_profile") or {}
+
+        def prof(side, which):
+            pr = (wp.get(side) or {}).get(which) or {}
+            if not pr:
+                return "&middot;"
+            return (f'{pr["min"]}&ndash;{pr["max"]} (mean {pr["mean"]})'
+                    if pr["min"] != pr["max"] else f'{pr["min"]}')
+        P.append('<div class=kv title="row weights of each side, min to max with '
+                 'the mean"><b>check weights</b> '
+                 f'H_X {prof("X", "row")} &middot; H_Z {prof("Z", "row")}</div>')
+        P.append('<div class=kv title="column weights of each side: how many '
+                 'checks of that type touch a qubit, min to max with the mean">'
+                 '<b>qubit degrees</b> '
+                 f'H_X {prof("X", "column")} &middot; H_Z {prof("Z", "column")}</div>')
+        ts = diag.get("trapping_sets") or {}
+        smax = ts.get("max_size", "?")
+        for side in ("X", "Z"):
+            st = ts.get(side) or {}
+            if not st:
+                continue
+            done = st.get("complete_through_size", 0)
+            note = ("" if done == smax else
+                    f'; sizes above {done} skipped under the cost cap')
+            lines = "\n".join(f'({a},{b}): {c}' for a, b, c in st.get("counts", []))
+            P.append(f'<div class=kv title="{html.escape(TS_TIP.format(smax=smax))}">'
+                     f'<b>trapping sets H_{side}</b> {ts_summary(st)} '
+                     f'<span class=claimed>(smallest syndrome weight at each size, '
+                     f'connected sets of up to {smax} qubits{note})</span></div>')
+            P.append(f'<details><summary>full (size, syndrome weight): count census '
+                     f'for H_{side}</summary><div class=wit>{lines}</div></details>')
+        ld = diag.get("logical_diameter")
+        if ld:
+            vals = " &middot; ".join(f'{side} {ld[side]}' for side in ("X", "Z")
+                                     if side in ld)
+            P.append(f'<div class=kv title="{html.escape(LDIAM_TIP)}">'
+                     f'<b>witness diameter</b> {vals} '
+                     '<span class=claimed>(Euclidean support diameter of the stored '
+                     'distance witnesses in the layout; an upper bound on the '
+                     'exhibited logicals&rsquo; spread, not a minimum over all '
+                     'logicals)</span></div>')
+        P.append('</section>')
 
     # circuit tier (RFC 0001, issue #505): the entry ships syndrome-extraction
     # memory circuits and a witness-backed circuit-level distance; render what
@@ -3200,6 +3331,20 @@ FAQ = [
      "hundreds). So kd&sup2;/n is compared within a track, among codes of "
      "comparable size and check weight, not across the whole field. The "
      "headline number is the best among the codes on this board."),
+    ("What are girth, trapping sets, and witness diameter?",
+     "Diagnostics the verifier computes from data every submission already "
+     "carries, shown on code pages and as sortable table columns but never "
+     "used for ranking. The girth of a side's Tanner graph (checks of one type "
+     "against qubits) is the length of its shortest cycle; longer is friendlier "
+     "to belief-propagation decoding. An (a,b) trapping set is a connected set "
+     "of a qubits whose error pattern has syndrome weight b; many sets with "
+     "small b at small a are what stall iterative decoders, and the board "
+     "counts them up to a fixed size under a cost cap. The witness diameter is "
+     "the Euclidean spread of each stored distance witness in the verified "
+     "layout: how far the exhibited logical operators reach, which governs the "
+     "cost of lattice surgery and logical measurement. The witnesses are upper "
+     "bounds on the logical weight and are not claimed minimal, so the "
+     "diameter bounds the spread of the exhibited logicals only."),
     ("What do I get if I find a new code?",
      "Bragging rights, chiefly. Your code lands on the board under your GitHub "
      "handle with a permanent link you can wave around, and if it advances a "
@@ -3978,11 +4123,12 @@ def board_table(entries, records):
         return "".join(out)
 
     cols = ('<colgroup><col style="width:3%"><col style="width:11%">'
-            '<col style="width:11%"><col style="width:5%"><col style="width:5%">'
+            '<col style="width:9%"><col style="width:5%"><col style="width:5%">'
             '<col style="width:6%"><col style="width:7%"><col style="width:7%">'
             '<col style="width:5%"><col class=colroute>'
-            '<col style="width:6%"><col style="width:13%"><col style="width:12%">'
-            '<col style="width:9%"></colgroup>')
+            '<col style="width:5%"><col style="width:5%"><col style="width:5%">'
+            '<col style="width:11%"><col style="width:10%">'
+            '<col style="width:6%"></colgroup>')
     head = ('<thead><tr><th></th>'
             '<th data-c=codekey data-num title="the code, written [[n,k,d]]; '
             'sorts by n, then k, then d">code</th>'
@@ -4013,6 +4159,13 @@ def board_table(entries, records):
             'protected, larger = one side protected further (relevant for '
             'biased noise and erasure decoding); hover a value for the '
             'per-side distances and check weights">X/Z</th>'
+            '<th data-c=girth class="num col-diag" title="' + html.escape(
+                "Tanner-graph girth, the shorter of the two sides; hover a cell "
+                "for both sides and the small trapping sets. " + GIRTH_TIP)
+            + '">girth</th>'
+            '<th data-c=ldiam class="num col-diag" title="' + html.escape(
+                "witness diameter, the larger of the X and Z witnesses; "
+                "· = no verified layout. " + LDIAM_TIP) + '">diam</th>'
             '<th data-c=auth class=col-auth title="who submitted it">authors</th>'
             '<th class=model data-c=model title="claimed model that produced '
             'the code (self-reported, not verified); person icon = classical '
@@ -4061,6 +4214,9 @@ def board_table(entries, records):
             f'data-eff="{e["eff"]}" data-w="{e["w"]}" data-asym="{e["asym"]}" '
             f'data-geo="{e["geo"] if e["geo"] is not None else -1}" '
             f'data-route="{e["route_total"] if e["route_total"] is not None else -1}" '
+            # acyclic sides have no cycle to bound: sort them past every girth
+            f'data-girth="{e["girth"] if e["girth"] is not None else 10**9}" '
+            f'data-ldiam="{e["ldiam"] if e["ldiam"] is not None else -1}" '
             f'data-tracks="{html.escape(search_terms)}" '
             f'data-cells="{html.escape(cell_keys)}" '
             f'data-record="{1 if fr else 0}" '
@@ -4103,6 +4259,12 @@ def board_table(entries, records):
                'layout; routing cost undefined">&middot;</td>')
             + f'<td class="num m3" data-label="X/Z" title="{asym_detail(e)}">'
             f'{e["asym"]:.3g}</td>'
+            f'<td class="num col-diag" data-label="girth" '
+            f'title="{html.escape(girth_cell_title(e))}">'
+            f'{e["girth"] if e["girth"] is not None else "acyclic"}</td>'
+            f'<td class="num col-diag" data-label="diam" '
+            f'title="{html.escape(ldiam_cell_title(e))}">'
+            f'{f"{e["ldiam"]:.3g}" if e["ldiam"] is not None else "&middot;"}</td>'
             f'<td class="auth col-auth" data-label="authors" '
             f'title="{html.escape(e["authors"])}">'
             f'{authors_compact(e["authors_list"])}</td>'
