@@ -118,6 +118,26 @@ dimensions. Nothing else reads it: the locality class is computed from the
 coordinates as before, g is unchanged, and the primary-tracks grid gains no
 axis. Gate scheduling and routing cost across modules are out of scope.
 
+## Modular layouts
+
+A layout may also assign every qubit to a hardware module
+(`locality.modules`, one integer per qubit): a chip in a multi-chip
+assembly, a flip-chip module joined to others by interconnects, a
+photonically linked or shuttling zone. The locality tracks cover monolithic
+2D and flip-chip bilayers; a modular machine falls to `unrestricted`, where
+the board cannot tell a code whose checks rarely cross a module boundary
+from an expander. Module membership is the same kind of cheap, checkable
+structure as the coordinates, so the verifier reads it the same way: an
+assignment must cover every qubit, and from it the verifier reports the
+checks spanning more than one module (count and which), the ports each
+module needs (the distinct other modules it shares a check with), and the
+qubits per module. A code with such an assignment earns the Layer-3 flag
+`modular`, and the site shows the diagnostics on its page. The module field
+is independent of the coordinates, so it does not tie the layout to two
+dimensions. Nothing else reads it: the locality class is computed from the
+coordinates as before, g is unchanged, and the primary-tracks grid gains no
+axis. Gate scheduling and routing cost across modules are out of scope.
+
 ## Two efficiency scores
 
 The site shows two figures of merit (issue #276); both normalize the rotated

@@ -496,18 +496,18 @@ margin-left:8px}
 font-size:11.5px;color:var(--mut)}
 .board td.date::before{content:none}
 .board td.codecell{padding-right:92px}
-/* kd2/n, g, w: a horizontal stat trio — big value, small label beneath
+/* kd2/n, g, w, X/Z: a horizontal stat band, big value, small label beneath
    (column-reverse puts the ::before label under the number) */
 .board td.m3{display:inline-flex;flex-direction:column-reverse;
-align-items:center;justify-content:flex-start;gap:2px;width:32.8%;
+align-items:center;justify-content:flex-start;gap:2px;width:24.5%;
 padding:5px 0 3px;font-size:17px;font-weight:700;
 font-variant-numeric:tabular-nums;text-align:center}
 .board td.m3::before{font-size:10.5px}
 /* an entry with no verified layout has no g: the cell is a bare middot, so it
-   is a third of the stat band carrying nothing. Drop it and let the two real
-   stats split the width. */
+   is a quarter of the stat band carrying nothing. Drop it and let the three
+   real stats split the width. */
 .board td.m3.m3empty{display:none}
-.board tr:has(td.m3empty) td.m3{width:49.4%}
+.board tr:has(td.m3empty) td.m3{width:32.8%}
 /* the family chip rides on the title line instead of claiming its own row */
 .board td.typecell{position:absolute;top:34px;left:14px;width:auto;
 padding:0;margin:0}

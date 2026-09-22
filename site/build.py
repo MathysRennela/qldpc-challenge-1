@@ -868,18 +868,18 @@ margin-left:8px}}
 font-size:11.5px;color:var(--mut)}}
 .board td.date::before{{content:none}}
 .board td.codecell{{padding-right:92px}}
-/* kd2/n, g, w: a horizontal stat trio — big value, small label beneath
+/* kd2/n, g, w, X/Z: a horizontal stat band, big value, small label beneath
    (column-reverse puts the ::before label under the number) */
 .board td.m3{{display:inline-flex;flex-direction:column-reverse;
-align-items:center;justify-content:flex-start;gap:2px;width:32.8%;
+align-items:center;justify-content:flex-start;gap:2px;width:24.5%;
 padding:5px 0 3px;font-size:17px;font-weight:700;
 font-variant-numeric:tabular-nums;text-align:center}}
 .board td.m3::before{{font-size:10.5px}}
 /* an entry with no verified layout has no g: the cell is a bare middot, so it
-   is a third of the stat band carrying nothing. Drop it and let the two real
-   stats split the width. */
+   is a quarter of the stat band carrying nothing. Drop it and let the three
+   real stats split the width. */
 .board td.m3.m3empty{{display:none}}
-.board tr:has(td.m3empty) td.m3{{width:49.4%}}
+.board tr:has(td.m3empty) td.m3{{width:32.8%}}
 /* the family chip rides on the title line instead of claiming its own row */
 .board td.typecell{{position:absolute;top:34px;left:14px;width:auto;
 padding:0;margin:0}}
@@ -1363,6 +1363,46 @@ def cert_consistent(cert, doc):
     return True
 
 
+def side_tiers(cert, doc):
+    """Return the per-side distance tiers, earned the same way the overall one is.
+
+    A side shows d_S= only when an honored certificate proves that side
+    exact, otherwise d_S<= (the witness the verifier confirmed). A claimed
+    'exact' confidence never upgrades a side on its own.
+    """
+    tiers = {"X": "ub", "Z": "ub"}
+    if cert and cert.get("d_exact") and cert_consistent(cert, doc):
+        for side in ("X", "Z"):
+            if (cert.get("sides") or {}).get(side, {}).get("exact"):
+                tiers[side] = "exact"
+    return tiers
+
+
+def asym_ratio(d_x, d_z):
+    """Return the X/Z distance asymmetry max(d_X, d_Z) / min(d_X, d_Z).
+
+    1 means the two sides are equally protected; larger means one Pauli type
+    is protected further than the other, which biased-noise hardware and
+    erasure decoding can exploit but the min-distance d hides (issue #1845).
+    """
+    r = round(max(d_x, d_z) / min(d_x, d_z), 4)
+    return int(r) if r == int(r) else r
+
+
+def asym_detail(e):
+    """Render the per-side facts behind the asymmetry ratio as HTML.
+
+    Each side's distance with its earned tier mark (= exact, &le; upper
+    bound) and each side's max check weight. Shared by the board-table
+    tooltip and the code page so the two never drift.
+    """
+    def dside(side):
+        mark = "=" if e["tier_" + side] == "exact" else "&le;"
+        return f'd_{side} {mark} {e["d_" + side]}'
+    return (f'{dside("X")}, {dside("Z")} &middot; '
+            f'w_X = {e["w_X"]}, w_Z = {e["w_Z"]}')
+
+
 # Geometric efficiency (issue #276): f = 4 k d^2 / (n rho^2 r^4), the BPT
 # ratio priced by the layout it comes with -- r is the measured interaction
 # radius (max check diameter, Euclidean, in units of the unit qubit spacing)
@@ -1472,9 +1512,21 @@ def load_entries():
         n, k, d = doc["n"], doc["k"], earned["value"]
         loc_cls = rep["computed"].get("locality_class", "unrestricted")
         geo, geo_r, geo_rho = geo_score(doc, n, k, d, loc_cls)
+        # X/Z asymmetry (issue #1845): presentation of what every submission
+        # already carries. Per-side distances and confidence come from the
+        # verified distance block; the per-side max check weights are read
+        # off the check supports, since the verifier reports only the
+        # combined max_check_weight.
+        d_x, d_z = doc["distance"]["X"]["value"], doc["distance"]["Z"]["value"]
+        tiers = side_tiers(cert, doc)
         entries.append({
             "slug": slug, "name": doc["name"], "n": n, "k": k, "d": d,
             "eff": round(k * d * d / n, 3), "tier": tier,
+            "d_X": d_x, "d_Z": d_z,
+            "tier_X": tiers["X"], "tier_Z": tiers["Z"],
+            "asym": asym_ratio(d_x, d_z),
+            "w_X": max((len(s) for s in doc["checks"]["X"]), default=0),
+            "w_Z": max((len(s) for s in doc["checks"]["Z"]), default=0),
             "geo": round(geo, 4) if geo is not None else None,
             "geo_r": round(geo_r, 4) if geo_r is not None else None,
             "geo_rho": geo_rho,
@@ -2102,6 +2154,10 @@ def detail_page(e):
         ("d", d, "distance (smallest undetectable error)"),
         ("kd&sup2;/n", e["eff"], "operational efficiency (BPT ratio), compared within a track at comparable n"),
         ("w", e["w"], "max check weight"),
+        ("X/Z", f'{e["asym"]:.3g}',
+         "distance asymmetry max(d_X,d_Z)/min(d_X,d_Z): 1 = both Pauli "
+         "types equally protected; larger = one side protected further, "
+         "which biased-noise hardware and erasure decoding can exploit"),
     ]
     if e.get("geo") is not None:
         params.append(("g", f'{e["geo"]:.3g}',
@@ -2153,6 +2209,11 @@ def detail_page(e):
 
     # distance + certificate
     P.append('<section class=blk><h3>Distance</h3>')
+    P.append(f'<div class=kv><b>X/Z asymmetry</b> {e["asym"]:.3g} &middot; '
+             f'{asym_detail(e)} '
+             '<span class=claimed>(max(d_X,d_Z)/min(d_X,d_Z); each side '
+             'carries its own earned tier: = certified exact, &le; witness '
+             'upper bound)</span></div>')
     for side in ("X", "Z"):
         if side in doc["distance"]:
             sd = doc["distance"][side]
@@ -2335,8 +2396,9 @@ def detail_page(e):
     # parity checks
     X, Z = doc["checks"]["X"], doc["checks"]["Z"]
     P.append('<section class=blk><h3>Parity checks</h3>')
-    P.append(f'<div class=kv><b>X-checks</b> {len(X)} &middot; '
-             f'<b style="min-width:auto">Z-checks</b> {len(Z)}</div>')
+    P.append(f'<div class=kv><b>X-checks</b> {len(X)} (max weight {e["w_X"]}) '
+             f'&middot; <b style="min-width:auto">Z-checks</b> {len(Z)} '
+             f'(max weight {e["w_Z"]})</div>')
     for nm, H in (("H_X", X), ("H_Z", Z)):
         body = "\n".join(str(s) for s in H)
         P.append(f'<details><summary>{nm} ({len(H)} checks, sparse supports)'
@@ -3860,11 +3922,11 @@ def board_table(entries, records):
                        'per module">modular</span>')
         return "".join(out)
 
-    cols = ('<colgroup><col style="width:3%"><col style="width:12%">'
-            '<col style="width:12%"><col style="width:5%"><col style="width:5%">'
+    cols = ('<colgroup><col style="width:3%"><col style="width:11%">'
+            '<col style="width:11%"><col style="width:5%"><col style="width:5%">'
             '<col style="width:6%"><col style="width:7%"><col style="width:7%">'
-            '<col style="width:5%">'
-            '<col style="width:15%"><col style="width:14%">'
+            '<col style="width:5%"><col style="width:6%">'
+            '<col style="width:13%"><col style="width:12%">'
             '<col style="width:9%"></colgroup>')
     head = ('<thead><tr><th></th>'
             '<th data-c=codekey data-num title="the code, written [[n,k,d]]; '
@@ -3882,6 +3944,11 @@ def board_table(entries, records):
             'code = 1; 2&radic;2kd/(n&rho;r&sup3;) for a 3D layout; '
             '&middot; = no verified layout">g</th>'
             '<th data-c=w class=num title="max check weight">w</th>'
+            '<th data-c=asym class=num title="X/Z asymmetry '
+            'max(d_X,d_Z)/min(d_X,d_Z): 1 = both Pauli types equally '
+            'protected, larger = one side protected further (relevant for '
+            'biased noise and erasure decoding); hover a value for the '
+            'per-side distances and check weights">X/Z</th>'
             '<th data-c=auth class=col-auth title="who submitted it">authors</th>'
             '<th class=model data-c=model title="claimed model that produced '
             'the code (self-reported, not verified); person icon = classical '
@@ -3927,7 +3994,7 @@ def board_table(entries, records):
             f'data-code="{e["slug"]}" data-name="[[{e["n"]},{e["k"]},{e["d"]}]]" '
             f'data-n="{e["n"]}" data-k="{e["k"]}" data-d="{e["d"]}" '
             f'data-codekey="{e["n"]*1000000 + e["k"]*1000 + e["d"]}" '
-            f'data-eff="{e["eff"]}" data-w="{e["w"]}" '
+            f'data-eff="{e["eff"]}" data-w="{e["w"]}" data-asym="{e["asym"]}" '
             f'data-geo="{e["geo"] if e["geo"] is not None else -1}" '
             f'data-tracks="{html.escape(search_terms)}" '
             f'data-cells="{html.escape(cell_keys)}" '
@@ -3964,6 +4031,8 @@ def board_table(entries, records):
                '<td class="num m3 m3empty" data-label="g" title="no verified layout; geometric '
                'efficiency undefined (not necessarily an expander code)">&middot;</td>')
             + f'<td class="num m3" data-label="w">{e["w"]}</td>'
+            f'<td class="num m3" data-label="X/Z" title="{asym_detail(e)}">'
+            f'{e["asym"]:.3g}</td>'
             f'<td class="auth col-auth" data-label="authors" '
             f'title="{html.escape(e["authors"])}">'
             f'{authors_compact(e["authors_list"])}</td>'
@@ -4064,6 +4133,8 @@ def build():
         '<div class=sgloss><b>n</b> physical qubits &middot; '
         '<b>k</b> logical qubits &middot; <b>d</b> code distance (smallest '
         'undetectable error) &middot; <b>w</b> max check weight &middot; '
+        '<b>X/Z</b> distance asymmetry max(d_X,d_Z)/min(d_X,d_Z), 1 = '
+        'symmetric &middot; '
         '<b>r</b> interaction radius: the largest check diameter in the '
         'layout, in units of the minimum qubit spacing &middot; '
         '<b>&rho;</b> qubit layers per site (2 = flip-chip bilayer; charged '
@@ -4100,7 +4171,10 @@ def build():
              'r&#8308;), priced by the layout&rsquo;s radius r and layers '
              '&rho; (surface code = 1; 2&radic;2kd/(n&rho;r&sup3;) for a 3D '
              'layout; &middot; = no verified layout) '
-             '&middot; <b>w</b> max check weight</span>'
+             '&middot; <b>w</b> max check weight '
+             '&middot; <b>X/Z</b> distance asymmetry max(d_X,d_Z)/min(d_X,d_Z) '
+             '(1 = symmetric; hover for the per-side distances and check '
+             'weights)</span>'
              '</div>')
     P.append(board_table(entries, records))
     P.append('</div>')  # close explorer (the viewport-fitted plots+table column)
