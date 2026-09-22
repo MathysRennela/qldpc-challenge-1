@@ -700,6 +700,11 @@ box-shadow:inset 3px 0 0 var(--ac)}}
 margin:2px 4px 2px 0;border-radius:999px;background:var(--soft);color:var(--mut);
 border:1px solid var(--ln);white-space:normal}}
 .tchip.loc{{background:#eef2ff;color:#3730a3;border-color:#c7d2fe}}
+.tchip.mod{{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}}
+.modtable{{border-collapse:collapse;font-size:13px;margin:8px 0}}
+.modtable th,.modtable td{{padding:3px 12px 3px 0;text-align:right;
+border-bottom:1px solid var(--ln)}}
+.modtable th{{color:var(--mut);font-weight:600}}
 /* Primary-tracks grid (locality x weight). */
 .ptgrid{{margin:8px 0 4px}}
 .ptsub{{font-size:13px;color:var(--mut);margin:2px 0 12px;max-width:760px}}
@@ -1525,6 +1530,11 @@ def load_entries():
                            (doc.get("circuit", {}).get("d_circ") or {}).values())
                        if doc.get("circuit") else None),
             "has_ler": bool((doc.get("circuit") or {}).get("ler")),
+            # modular layout (issue #1846): the verifier's module diagnostics
+            # when the layout assigns every qubit to a module; a Layer-3 flag
+            # plus numbers, never a track axis or a score input.
+            "modular": bool(rep["computed"].get("flags", {}).get("modular")),
+            "modules": rep["computed"].get("modules"),
             "doc": doc, "cert": cert,
         })
     return entries
@@ -2028,6 +2038,40 @@ def layout_svg(doc):
     return '<div class=layoutfig>' + "".join(parts) + "".join(legend) + '</div>'
 
 
+def module_section(doc, m):
+    """The modular-layout block of a code page (issue #1846): what the
+    verifier read from `locality.modules`. Cross-module checks and ports per
+    module are what an interconnect pays for; qubits per module is the chip
+    size. Sorted by module id; the cross-module check list is collapsed."""
+    ids = sorted(m["qubits_per_module"], key=int)
+    P = ['<section class=blk><h3>Modular layout</h3>',
+         '<div class=kv style="color:var(--mut)">as verified: every qubit '
+         'carries a module id; a check crosses a module boundary when its '
+         'support spans more than one module, and a module&rsquo;s ports are '
+         'the distinct other modules it shares a check with. A flag and '
+         'diagnostics, not a track axis</div>',
+         f'<div class=kv><b>modules</b> {m["count"]}</div>',
+         f'<div class=kv><b>cross-module checks</b> {m["cross_module_checks"]} '
+         f'of {len(doc["checks"]["X"]) + len(doc["checks"]["Z"])}</div>',
+         f'<div class=kv><b>max ports per module</b> {m["max_ports"]}</div>',
+         '<table class=modtable><thead><tr><th>module</th><th>qubits</th>'
+         '<th>ports</th></tr></thead><tbody>']
+    for i in ids:
+        P.append(f'<tr><td class=mono>{html.escape(i)}</td>'
+                 f'<td>{m["qubits_per_module"][i]}</td>'
+                 f'<td>{m["ports_per_module"][i]}</td></tr>')
+    P.append('</tbody></table>')
+    idx = m["cross_module_check_indices"]
+    if m["cross_module_checks"]:
+        body = "\n".join(f"{side} {i}" for side in ("X", "Z")
+                         for i in idx.get(side, []))
+        P.append(f'<details><summary>cross-module checks '
+                 f'({m["cross_module_checks"]}, by side and row index)</summary>'
+                 f'<div class=wit>{body}</div></details>')
+    P.append('</section>')
+    return "".join(P)
+
+
 def detail_page(e):
     doc, cert = e["doc"], e["cert"]
     n, k, d = e["n"], e["k"], e["d"]
@@ -2071,6 +2115,10 @@ def detail_page(e):
         loc = doc["locality"]
         params.append(("layers", loc.get("layers", 1),
                        "physical layers (e.g. 2 for a flip-chip bilayer)"))
+    if e["modular"]:
+        params.append(("modules", e["modules"]["count"],
+                       "hardware modules the layout assigns qubits to "
+                       "(verified: every qubit carries a module id)"))
     for lab, val, tip in params:
         P.append(f'<div class=cell title="{html.escape(tip)}">'
                  f'<div class=l>{lab}</div><div class=v>{val}</div></div>')
@@ -2216,6 +2264,11 @@ def detail_page(e):
                      + " &middot; ".join(parts) + '</div>')
         P.append(fig)
         P.append('</section>')
+
+    # modular layout (issue #1846): the verifier's module diagnostics, shown
+    # as numbers beside the layout they were read from
+    if e["modular"]:
+        P.append(module_section(doc, e["modules"]))
 
     # construction / provenance
     pr = doc["provenance"]
@@ -3637,6 +3690,11 @@ def board_controls(entries, records):
                  'title="codes shipping verified syndrome-extraction memory '
                  'circuits with a witnessed circuit-level distance">'
                  '&#9881; circuit</button>')
+    # modular layouts (issue #1846): a flag, so a tab only once one exists.
+    if any(e["modular"] for e in entries):
+        tabs += ('<button type=button class=ttab data-q="modular" '
+                 'title="codes whose verified layout assigns every qubit to a '
+                 'hardware module">modular</button>')
     families = sorted({e["family"] for e in entries})
     tabs += "".join(
         f'<button type=button class=ttab data-q="{html.escape(FAMILY_TERM.get(f, f))}" '
@@ -3728,7 +3786,9 @@ def board_controls(entries, records):
             '<code>exact</code> / <code>upper-bound</code> filter by whether '
             'the distance is proved; <code>with-circuit</code> (alias '
             '<code>circuit</code>) / <code>no-circuit</code> filter by whether '
-            'the entry ships verified memory circuits.</p>'
+            'the entry ships verified memory circuits; <code>modular</code> '
+            'keeps the entries whose layout assigns every qubit to a module.'
+            '</p>'
             '</section>')
 
 
@@ -3792,6 +3852,12 @@ def board_table(entries, records):
         if e["locality_class"] != "unrestricted":
             out.append('<span class="tchip loc" title="computed locality class">'
                        f'{html.escape(LOCALITY_LABEL[e["locality_class"]])}</span>')
+        if e["modular"]:
+            m = e["modules"]
+            out.append('<span class="tchip mod" title="modular layout (verified): '
+                       f'{m["count"]} modules, {m["cross_module_checks"]} '
+                       f'cross-module checks, at most {m["max_ports"]} ports '
+                       'per module">modular</span>')
         return "".join(out)
 
     cols = ('<colgroup><col style="width:3%"><col style="width:11%">'
@@ -3842,6 +3908,7 @@ def board_table(entries, records):
             FAMILY_TERM.get(e["family"], ""),
             e["locality_class"], e["weight_class"], e["novelty"],
             "2d-local" if e["locality_class"] != "unrestricted" else "",
+            "modular" if e["modular"] else "",
             "with-layout" if e["geo"] is not None else "no-layout",
             "literature" if e["origin"] == "baseline" else "submitted",
         ]).lower()

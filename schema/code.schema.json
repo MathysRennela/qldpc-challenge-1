@@ -297,6 +297,15 @@
           "minimum": 1,
           "description": "physical layers (1 for a single layer, 2 for flip-chip bilayer); required whenever a layout is given"
         },
+        "modules": {
+          "type": "array",
+          "description": "optional (schema 0.3): one module id per qubit, indexed 0..n-1, for a layout split across hardware modules (multi-chip assemblies, interconnected flip-chip modules, photonically linked or shuttling zones). A non-negative integer per qubit; ids need not be contiguous. Membership is independent of the coordinates, so it applies to a layout of any dimension. The verifier requires an id for every qubit and reports the checks that span more than one module, the ports (distinct neighboring modules) per module, and the qubits per module; it earns the Layer-3 flag `modular` and changes no track or score.",
+          "maxItems": 5000,
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
         "interaction_radius": {
           "type": "number",
           "minimum": 0,
@@ -538,6 +547,28 @@
               "0.2",
               "0.3"
             ]
+          }
+        }
+      }
+    },
+    {
+      "$comment": "locality.modules (a 0.3 feature) requires schema_version 0.3",
+      "if": {
+        "properties": {
+          "locality": {
+            "required": [
+              "modules"
+            ]
+          }
+        },
+        "required": [
+          "locality"
+        ]
+      },
+      "then": {
+        "properties": {
+          "schema_version": {
+            "const": "0.3"
           }
         }
       }
