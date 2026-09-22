@@ -25,6 +25,11 @@ What "verified" means per field:
               >= 1 apart (no cramming a small radius); measured interaction
               radius (max check diameter) within the track cap. Reports layout
               diagnostics (radius, qubits/site, spacing, density, bbox).
+  modules     optional per-qubit module ids in the layout: every qubit must
+              carry one; reports the checks spanning more than one module,
+              the ports (distinct neighboring modules) per module, and the
+              qubits per module, and earns the Layer-3 flag `modular`. No
+              track or score reads it.
 """
 
 import glob
@@ -143,6 +148,10 @@ def resource_errors(doc):
     coords = loc.get("coordinates") or []
     if len(coords) > MAX_COORDINATES:
         errs.append(f"locality.coordinates has {len(coords)} points, limit is "
+                    f"{MAX_COORDINATES}")
+    modules = loc.get("modules") or []
+    if len(modules) > MAX_COORDINATES:
+        errs.append(f"locality.modules has {len(modules)} entries, limit is "
                     f"{MAX_COORDINATES}")
     return errs
 
@@ -599,6 +608,52 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
                        locality_class if locality_class != "unrestricted"
                        else f"unrestricted: radius {radius:.4f} at {layers} "
                             f"layer(s) meets no class cap ({caps})")
+
+    # 10. module structure (issue #1846). `locality.modules` assigns every
+    #     qubit to a hardware module (one integer per qubit). It is the same
+    #     kind of cheap, checkable layout evidence as the coordinates and is
+    #     read independently of them: module membership says nothing about
+    #     distance, and coordinates say nothing about which chip a qubit sits
+    #     on. A partial assignment is rejected (a layout claim covers every
+    #     qubit or it is not a layout claim). From a full assignment the
+    #     verifier reports what a modular machine pays for: the checks whose
+    #     support crosses a module boundary, the ports each module needs (the
+    #     number of distinct modules it shares a check with), and the qubits
+    #     per module. Earns the Layer-3 flag `modular`; the locality class and
+    #     the efficiency scores never read it.
+    modular = False
+    modules = loc.get("modules") if loc is not None else None
+    if modules is not None:
+        cover_m = len(modules) == n
+        record("modules_cover_all_qubits", cover_m,
+               f"{len(modules)} module ids, n={n}")
+        if cover_m:
+            from collections import Counter
+            ids = sorted(set(modules))
+            per_module = Counter(modules)
+            crossing = {"X": [], "Z": []}
+            neighbors = {m: set() for m in ids}
+            for side in ("X", "Z"):
+                for i, sup in enumerate(doc["checks"][side]):
+                    touched = {modules[q] for q in sup}
+                    if len(touched) > 1:
+                        crossing[side].append(i)
+                        for m in touched:
+                            neighbors[m] |= touched - {m}
+            ports = {m: len(neighbors[m]) for m in ids}
+            n_cross = len(crossing["X"]) + len(crossing["Z"])
+            report["computed"]["modules"] = {
+                "count": len(ids),
+                "qubits_per_module": {str(m): per_module[m] for m in ids},
+                "cross_module_checks": n_cross,
+                "cross_module_check_indices": crossing,
+                "ports_per_module": {str(m): ports[m] for m in ids},
+                "max_ports": max(ports.values()),
+            }
+            modular = True
+            record("modules_computed", True,
+                   f"{len(ids)} module(s), {n_cross} cross-module check(s), "
+                   f"max {max(ports.values())} port(s) per module")
     # Layer-1 locality class (computed) + Layer-3 flags (verifier-proven only;
     # the exact-d flag is added at site-build time from certs/, since exactness
     # is certified separately, not by this trustless check).
@@ -608,6 +663,7 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
                     all(c["ok"] for c in report["checks"]
                         if c["check"] == "css_commutation")),
         "locality_class": locality_class,
+        "modular": modular,
     }
 
     return report

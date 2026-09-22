@@ -504,3 +504,84 @@ def test_board_reports_memoized_per_board_state(tmp_path, monkeypatch):
     rel = os.path.relpath(str(d))
     n = len(calls)
     assert Q.board_reports(rel) is r4 and len(calls) == n
+
+
+def _modular_fixture(split=lambda c: 0 if c[1] < 3 else 1):
+    """The fixture with every qubit assigned to a module by its coordinate
+    (schema 0.3, since locality.modules is a 0.3 field)."""
+    d = copy.deepcopy(GOOD)
+    d["schema_version"] = "0.3"
+    d["locality"]["modules"] = [split(c) for c in d["locality"]["coordinates"]]
+    return d
+
+
+def test_module_diagnostics():
+    """locality.modules (issue #1846): every qubit carries a module id, and the
+    verifier reports cross-module checks, ports per module, and qubits per
+    module while leaving the locality class and the rest of the verdict alone.
+    """
+    base = rep(GOOD)
+    d = _modular_fixture()
+    r = rep(d)
+    assert r["ok"]
+    assert r["computed"]["flags"]["modular"] is True
+    assert r["computed"]["locality_class"] == base["computed"]["locality_class"]
+    assert r["computed"]["locality"] == base["computed"]["locality"]
+    m = r["computed"]["modules"]
+    assert m["count"] == 2
+    mods = d["locality"]["modules"]
+    assert m["qubits_per_module"] == {"0": mods.count(0), "1": mods.count(1)}
+    # recompute the crossing set by hand and compare
+    X, Z = d["checks"]["X"], d["checks"]["Z"]
+    cross = {s: [i for i, sup in enumerate(H)
+                 if len({mods[q] for q in sup}) > 1]
+             for s, H in (("X", X), ("Z", Z))}
+    assert m["cross_module_check_indices"] == cross
+    assert m["cross_module_checks"] == len(cross["X"]) + len(cross["Z"])
+    assert 0 < m["cross_module_checks"] < len(X) + len(Z)
+    # two modules that share a check each see exactly one neighbor
+    assert m["ports_per_module"] == {"0": 1, "1": 1} and m["max_ports"] == 1
+    assert any(c["check"] == "modules_computed" and c["ok"] for c in r["checks"])
+
+    # a single module: nothing crosses, no ports
+    r1 = rep(_modular_fixture(lambda c: 7))
+    m1 = r1["computed"]["modules"]
+    assert r1["ok"] and m1["count"] == 1 and m1["cross_module_checks"] == 0
+    assert m1["ports_per_module"] == {"7": 0} and m1["max_ports"] == 0
+
+    # one module per qubit: every check crosses, ports = distinct partners
+    d2 = _modular_fixture()
+    d2["locality"]["modules"] = list(range(GOOD["n"]))
+    r2 = rep(d2)
+    m2 = r2["computed"]["modules"]
+    assert r2["ok"] and m2["count"] == GOOD["n"]
+    assert m2["cross_module_checks"] == len(X) + len(Z)
+
+    # no modules field: flag off, no block, verdict as before
+    assert base["computed"]["flags"]["modular"] is False
+    assert "modules" not in base["computed"]
+
+
+def test_module_assignment_must_cover_every_qubit():
+    """A partial assignment is a rejected layout claim, not a silent demotion;
+    a stale schema_version and an oversize list are rejected too."""
+    d = _modular_fixture()
+    d["locality"]["modules"] = d["locality"]["modules"][:-1]
+    r = rep(d)
+    assert not r["ok"] and "modules_cover_all_qubits" in failed_checks(r)
+    assert r["computed"]["flags"]["modular"] is False
+    assert "modules" not in r["computed"]
+
+    d = _modular_fixture()
+    d["schema_version"] = "0.1"
+    r = rep(d)
+    assert not r["ok"] and "schema_valid" in failed_checks(r)
+
+    d = _modular_fixture()
+    d["locality"]["modules"] = [0] * (qldpc_verify.MAX_COORDINATES + 1)
+    assert not rep(d)["ok"]
+
+    d = _modular_fixture()
+    d["locality"]["modules"][0] = -1
+    r = rep(d)
+    assert not r["ok"] and "schema_valid" in failed_checks(r)
