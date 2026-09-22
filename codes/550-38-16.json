@@ -4817,7 +4817,8 @@
   ],
   "construction": "contributed via qldpc submit",
   "origin": "submission",
-  "date": "2026-09-22"
+  "date": "2026-09-22",
+  "model": "Claude Opus 5"
  },
  "family": "lifted-product"
 }
