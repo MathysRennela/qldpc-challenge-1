@@ -331,6 +331,74 @@ def main():
                       and "unrestricted" in c["detail"]
                       for c in r["checks"]))
 
+    # 7d. heuristic routing cost (issue #1847): the MST lower bound on the
+    #     nearest-neighbor SWAPs each check needs on its layout, computed for
+    #     every accepted layout and labeled heuristic; never for a code
+    #     without one. One lattice step is the layout's minimum site spacing.
+    print("\nheuristic routing cost:")
+    if GOOD.get("locality"):
+        rc = rep(GOOD)["computed"].get("routing_cost")
+        check("accepted layout reports a routing cost labeled heuristic",
+              rc is not None and rc["heuristic"] == "mst-lower-bound"
+              and isinstance(rc["total_swaps"], int)
+              and isinstance(rc["max_swaps_per_check"], int)
+              and rc["max_swaps_per_check"] <= rc["total_swaps"]
+              and rc["lattice_step"] == 1.0)
+        d = copy.deepcopy(GOOD)
+        d.pop("locality", None)
+        check("no layout, no routing cost",
+              "routing_cost" not in rep(d)["computed"])
+        # a cap-exceeding layout (every qubit on one line) is still priced
+        d = copy.deepcopy(GOOD)
+        d["locality"]["coordinates"] = [[float(i), 0.0] for i in range(d["n"])]
+        d["locality"]["layers"] = 1
+        d["locality"].pop("interaction_radius", None)
+        r = rep(d)
+        check("cap-exceeding layout still gets a routing cost",
+              r["computed"]["locality_class"] == "unrestricted"
+              and r["computed"]["routing_cost"]["total_swaps"] > 0)
+    # a small planar code: 3x3 grid of qubits, one plaquette per unit square,
+    # so every support is a nearest-neighbor cluster and costs 0 SWAPs
+    grid = [[float(x), float(y)] for y in range(3) for x in range(3)]
+    plaquettes = [[3 * y + x, 3 * y + x + 1, 3 * (y + 1) + x, 3 * (y + 1) + x + 1]
+                  for y in range(2) for x in range(2)]
+    check("planar plaquettes cost 0 SWAPs",
+          qldpc_verify.routing_cost(plaquettes, grid, 1.0) == (0, 0))
+    # the rotated surface code shipped on the board is the same statement end
+    # to end: its weight-4 checks sit on unit squares, its weight-2 boundary
+    # checks on unit edges
+    planar = json.load(open(os.path.join(ROOT, "codes", "25-1-5.json")))
+    rc = rep(planar)["computed"]["routing_cost"]
+    check("rotated surface code costs 0 SWAPs end to end",
+          (rc["total_swaps"], rc["max_swaps_per_check"]) == (0, 0))
+    # a hand-built long-range check on a unit line: qubits at 0, 1, 5, 12.
+    # MST edges 1, 4, 7 steps = 12, minus (4 - 1) = 9 SWAPs
+    line = [[float(x), 0.0] for x in range(13)]
+    check("long-range check costs MST steps minus (|support| - 1)",
+          qldpc_verify.check_routing_cost([0, 1, 5, 12], line, 1.0) == 9)
+    # the MST, not the diameter: a path 0, 1, 5, 12 plus a chord is priced by
+    # the tree, and a two-check code reports the total and the max
+    check("routing cost reports total and max over checks",
+          qldpc_verify.routing_cost([[0, 1, 5, 12], [2, 3], [7, 9]], line, 1.0)
+          == (10, 9))
+    # lattice steps follow the layout's minimum spacing: the same check on a
+    # layout with spacing 2 costs the same, since 2 units is one step there
+    check("nearest neighbor is one minimum-spacing step",
+          qldpc_verify.check_routing_cost(
+              [0, 1, 5, 12], [[2.0 * x, 0.0] for x in range(13)], 2.0) == 9)
+    # a diagonal is longer than one step (sqrt 2 rounds up to 2), and stacked
+    # flip-chip qubits count as adjacent rather than free
+    check("diagonal neighbors cost one SWAP",
+          qldpc_verify.check_routing_cost([0, 1], [[0.0, 0.0], [1.0, 1.0]], 1.0)
+          == 1)
+    check("stacked qubits are adjacent, never negative",
+          qldpc_verify.check_routing_cost([0, 1, 2],
+                                          [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0]],
+                                          1.0) == 0)
+    check("empty and singleton supports cost 0",
+          qldpc_verify.check_routing_cost([], line, 1.0) == 0
+          and qldpc_verify.check_routing_cost([4], line, 1.0) == 0)
+
     # 8. malformed: missing a required field, must not crash
     d = copy.deepcopy(GOOD)
     del d["checks"]

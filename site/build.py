@@ -676,6 +676,11 @@ background:var(--bg);box-shadow:0 2px 0 var(--ln)}}
 font-variant-numeric:tabular-nums}}
 .board td.auth{{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 max-width:220px}}
+/* optional routing-cost column (issue #1847): off unless the table is
+   filtered to an unrestricted cell with layouts or the swaps toggle is on */
+.board .col-route,.board col.colroute{{display:none;width:0}}
+.board.showroute .col-route{{display:table-cell}}
+.board.showroute col.colroute{{display:table-column;width:6%}}
 .etal{{color:var(--mut)}}
 .hexwrap{{display:inline-flex;align-items:center;margin-left:8px}}
 /* circuit-tier chip (issue #505): gear + min d_circ on rows whose
@@ -857,6 +862,7 @@ margin-left:8px}}
 .board td.typecell{{flex-wrap:wrap}}
 /* n, k, d are already printed inside the [[n,k,d]] name: drop their rows */
 .board td.col-n,.board td.col-k,.board td.col-d{{display:none}}
+.board.showroute td.col-route{{display:flex}}
 /* date: small, in the card's top-right corner */
 .board tr{{position:relative}}
 .board td.date{{position:absolute;top:12px;right:14px;width:auto;padding:0;
@@ -929,7 +935,7 @@ transition:opacity .06s;max-width:300px}}
 /* detail page */
 .back{{display:inline-block;margin:24px 0 0;font-size:14px}}
 .codehead{{margin:8px 0 0}}.codehead .big{{font-size:32px;letter-spacing:-.5px}}
-.params{{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+.params{{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));
 gap:1px;background:var(--ln);border:1px solid var(--ln);border-radius:10px;
 overflow:hidden;margin:20px 0}}
 .params .cell{{background:#fff;padding:12px 14px}}
@@ -1126,16 +1132,20 @@ document.addEventListener('click',e=>{
  const kfill=document.getElementById('kffill'),kval=document.getElementById('kfval');
  const KMIN=klo?+klo.min:0,KMAX=klo?+klo.max:0,kspan=(KMAX-KMIN)||1;
  const lit=document.getElementById('littoggle');
+ // swaps toggle (issue #1847): the heuristic routing-cost column is optional.
+ // It also comes on by itself when the table is filtered to an unrestricted
+ // cell in which some code ships a layout, the case the number was made for.
+ const rtog=document.getElementById('routetoggle');
  // layout toggle (top right of the charts): '' = all, 'with' = only codes
  // with a verified layout (f defined), 'without' = only codes with none.
  // Clicking the active button clears it back to 'all'.
  let geoMode='';
- const cmp=/^(n|k|d|w|eff|f|g|geo)(>=|<=|>|<|=)(-?\\d+(?:\\.\\d+)?)$/;
+ const cmp=/^(n|k|d|w|eff|f|g|geo|swaps|route)(>=|<=|>|<|=)(-?\\d+(?:\\.\\d+)?)$/;
  function term(r,t){
   const m=t.match(cmp);
-  if(m){const key=(m[1]==='f'||m[1]==='g')?'geo':m[1];
+  if(m){const key=(m[1]==='f'||m[1]==='g')?'geo':(m[1]==='swaps'?'route':m[1]);
    const x=parseFloat(r.dataset[key]),v=parseFloat(m[3]);
-   if(key==='geo'&&x<0)return false;
+   if((key==='geo'||key==='route')&&x<0)return false;
    switch(m[2]){case'>=':return x>=v;case'<=':return x<=v;
     case'>':return x>v;case'<':return x<v;default:return x===v;}}
   if(t==='record'||t==='frontier')return r.dataset.record==='1';
@@ -1193,6 +1203,10 @@ document.addEventListener('click',e=>{
     &&(geoMode===''||(geoMode==='with')===(+r.dataset.geo>=0))
     &&(!litOn||r.dataset.origin==='literature')&&toks.every(t=>term(r,t));
    r.style.display=ok?'':'none';if(ok){shown++;vis.add(r.dataset.code);}});
+  const cellTok=toks.find(t=>t.slice(0,18)==='cell:unrestricted~');
+  const anyRoute=rows.some(r=>r.style.display===''&&+r.dataset.route>=0);
+  board.classList.toggle('showroute',
+   (rtog&&rtog.classList.contains('active'))||(!!cellTok&&anyRoute));
   // Collapse only the unfiltered mobile card list; any narrowing shows every
   // match (some may sit past the cap). Walk current DOM order, not the static
   // rows array, so a sorted board collapses to its first cards, not its
@@ -1250,6 +1264,7 @@ document.addEventListener('click',e=>{
    const bd=document.getElementById('board');
    if(bd)bd.scrollIntoView({behavior:'smooth'});});});
  if(lit)lit.addEventListener('click',()=>{lit.classList.toggle('active');apply();});
+ if(rtog)rtog.addEventListener('click',()=>{rtog.classList.toggle('active');apply();});
  document.querySelectorAll('.geotab').forEach(g=>{
   g.addEventListener('click',()=>{
    geoMode=(geoMode===g.dataset.geo)?'':g.dataset.geo;
@@ -1403,6 +1418,22 @@ def geo_score(doc, n, k, d, locality_class):
     return 4.0 * k * d * d / (n * rho * rho * r ** 4), r, rho
 
 
+def route_tip(e):
+    """Hover text for the heuristic routing cost (issue #1847). Says what the
+    number is, that it is a lower bound rather than a schedule, and what
+    counts as a nearest neighbor (one lattice step, the layout's minimum
+    qubit spacing)."""
+    return (f"heuristic routing cost: {e['route_total']} nearest-neighbor "
+            f"SWAPs per syndrome-extraction round to make every check's "
+            f"support connected on the verified layout, at most "
+            f"{e['route_max']} for one check. MST lower bound, not an optimal "
+            f"schedule: per check, the minimum-spanning-tree length of its "
+            f"support in lattice steps minus (|support| - 1). One lattice "
+            f"step is the layout's minimum qubit spacing "
+            f"({e['route_step']:g}); qubits at most one step apart are "
+            f"nearest neighbors. A diagnostic, not a rank")
+
+
 def _model_str(m):
     """provenance.model may be a single name or a list (an ensemble of models);
     the rest of the site treats it as one display string."""
@@ -1445,12 +1476,19 @@ def load_entries():
         n, k, d = doc["n"], doc["k"], earned["value"]
         loc_cls = rep["computed"].get("locality_class", "unrestricted")
         geo, geo_r, geo_rho = geo_score(doc, n, k, d, loc_cls)
+        # heuristic routing cost (issue #1847): the verifier's MST lower bound
+        # on nearest-neighbor SWAPs per extraction round, for any accepted
+        # layout (cap-exceeding ones included). None without a layout.
+        route = rep["computed"].get("routing_cost")
         entries.append({
             "slug": slug, "name": doc["name"], "n": n, "k": k, "d": d,
             "eff": round(k * d * d / n, 3), "tier": tier,
             "geo": round(geo, 4) if geo is not None else None,
             "geo_r": round(geo_r, 4) if geo_r is not None else None,
             "geo_rho": geo_rho,
+            "route_total": route["total_swaps"] if route else None,
+            "route_max": route["max_swaps_per_check"] if route else None,
+            "route_step": route["lattice_step"] if route else None,
             "w": rep["computed"].get("max_check_weight"),
             "family": doc.get("family", "other"),
             "locality_class": loc_cls,
@@ -2015,6 +2053,8 @@ def detail_page(e):
         loc = doc["locality"]
         params.append(("layers", loc.get("layers", 1),
                        "physical layers (e.g. 2 for a flip-chip bilayer)"))
+    if e.get("route_total") is not None:
+        params.append(("swaps", e["route_total"], route_tip(e)))
     for lab, val, tip in params:
         P.append(f'<div class=cell title="{html.escape(tip)}">'
                  f'<div class=l>{lab}</div><div class=v>{val}</div></div>')
@@ -2154,6 +2194,13 @@ def detail_page(e):
             P.append('<div class=kv style="color:var(--mut)">'
                      + " &middot; ".join(parts) + '</div>')
         P.append(fig)
+        if e.get("route_total") is not None:
+            P.append('<div class=kv><b>routing cost</b> '
+                     f'{e["route_total"]} nearest-neighbor SWAPs per round in '
+                     f'total, at most {e["route_max"]} for one check '
+                     '<span class=claimed>(heuristic: MST lower bound on the '
+                     'layout, with one lattice step = the minimum qubit '
+                     f'spacing {e["route_step"]:g}; not a rank)</span></div>')
         P.append('</section>')
 
     # construction / provenance
@@ -3652,14 +3699,22 @@ def board_controls(entries, records):
             '<button type=button id=littoggle class=otog '
             'title="show only literature baselines (codes seeded from '
             'published papers, not submitted through the challenge)">'
-            'literature</button></nav>'
+            'literature</button>'
+            '<button type=button id=routetoggle class=otog '
+            'title="show the swaps column: heuristic routing cost per code, '
+            'the nearest-neighbor SWAPs an MST lower bound says each '
+            'syndrome-extraction round needs on the verified layout (one '
+            'lattice step = the layout&rsquo;s minimum qubit spacing). Also '
+            'shown by itself in unrestricted cells that have layouts. A '
+            'diagnostic, not a rank">swaps</button></nav>'
             f'<div class=filterrow>{wslider}{dslider}{nslider}{kslider}'
             '<button type=button id=clearfilters class=otog '
             'title="reset search, sliders, and every active filter">'
             'clear filters</button></div>'
             '<p class=searchhelp>Type terms (all must match): a family, author, '
             'or a comparison like <code>k&gt;=10</code> <code>d&gt;8</code> '
-            '<code>eff&gt;=5</code> <code>g&gt;=0.1</code>; <code>record</code> '
+            '<code>eff&gt;=5</code> <code>g&gt;=0.1</code> <code>swaps&lt;=50</code>; '
+            '<code>record</code> '
             'keeps only frontier rows; <code>literature</code> / '
             '<code>submitted</code> filter by origin; <code>with-layout</code> '
             '/ <code>no-layout</code> filter by layout status; '
@@ -3735,7 +3790,7 @@ def board_table(entries, records):
     cols = ('<colgroup><col style="width:3%"><col style="width:12%">'
             '<col style="width:12%"><col style="width:5%"><col style="width:5%">'
             '<col style="width:6%"><col style="width:7%"><col style="width:7%">'
-            '<col style="width:5%">'
+            '<col style="width:5%"><col class=colroute>'
             '<col style="width:15%"><col style="width:14%">'
             '<col style="width:9%"></colgroup>')
     head = ('<thead><tr><th></th>'
@@ -3753,6 +3808,15 @@ def board_table(entries, records):
             'layout&rsquo;s interaction radius r and layers &rho;; surface '
             'code = 1; &middot; = no verified layout">g</th>'
             '<th data-c=w class=num title="max check weight">w</th>'
+            # optional column (issue #1847): shown for unrestricted cells that
+            # have layouts, or on request; a diagnostic, never a rank
+            '<th data-c=route class="num col-route" title="heuristic routing '
+            'cost: nearest-neighbor SWAPs per syndrome-extraction round to '
+            'make every check&rsquo;s support connected on the verified '
+            'layout (MST lower bound, not an optimal schedule; one lattice '
+            'step = the layout&rsquo;s minimum qubit spacing). Hover a value '
+            'for the worst check; &middot; = no verified layout. A '
+            'diagnostic, not a rank">swaps</th>'
             '<th data-c=auth class=col-auth title="who submitted it">authors</th>'
             '<th class=model data-c=model title="claimed model that produced '
             'the code (self-reported, not verified); person icon = classical '
@@ -3799,6 +3863,7 @@ def board_table(entries, records):
             f'data-codekey="{e["n"]*1000000 + e["k"]*1000 + e["d"]}" '
             f'data-eff="{e["eff"]}" data-w="{e["w"]}" '
             f'data-geo="{e["geo"] if e["geo"] is not None else -1}" '
+            f'data-route="{e["route_total"] if e["route_total"] is not None else -1}" '
             f'data-tracks="{html.escape(search_terms)}" '
             f'data-cells="{html.escape(cell_keys)}" '
             f'data-record="{1 if fr else 0}" '
@@ -3833,7 +3898,12 @@ def board_table(entries, records):
                '<td class="num m3 m3empty" data-label="g" title="no verified layout; geometric '
                'efficiency undefined (not necessarily an expander code)">&middot;</td>')
             + f'<td class="num m3" data-label="w">{e["w"]}</td>'
-            f'<td class="auth col-auth" data-label="authors" '
+            + (f'<td class="num col-route" data-label="swaps" '
+               f'title="{html.escape(route_tip(e))}">{e["route_total"]}</td>'
+               if e["route_total"] is not None else
+               '<td class="num col-route" data-label="swaps" title="no verified '
+               'layout; routing cost undefined">&middot;</td>')
+            + f'<td class="auth col-auth" data-label="authors" '
             f'title="{html.escape(e["authors"])}">'
             f'{authors_compact(e["authors_list"])}</td>'
             '<td class=model data-label="model">'
@@ -3966,7 +4036,11 @@ def build():
              '&middot; <b>g</b> geometric efficiency 4kd&sup2;/(n&rho;&sup2;'
              'r&#8308;), priced by the layout&rsquo;s radius r and layers '
              '&rho; (surface code = 1; &middot; = no verified layout) '
-             '&middot; <b>w</b> max check weight</span>'
+             '&middot; <b>w</b> max check weight '
+             '&middot; <b>swaps</b> (optional) heuristic routing cost: '
+             'nearest-neighbor SWAPs per round to connect every check on the '
+             'verified layout, an MST lower bound with one lattice step = the '
+             'minimum qubit spacing; a diagnostic, never a rank</span>'
              '</div>')
     P.append(board_table(entries, records))
     P.append('</div>')  # close explorer (the viewport-fitted plots+table column)
