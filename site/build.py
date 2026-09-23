@@ -2486,8 +2486,10 @@ def detail_page(e):
             P.append(f'<div class=kv><b>transversal gates</b> {len(gates)} '
                      'verified <span class=claimed>(qubit permutation, '
                      'uniform Clifford, or block-to-block CX; action checked '
-                     'over GF(2) modulo stabilizers, up to logical Pauli '
-                     'corrections)</span></div>')
+                     'over GF(2) modulo stabilizers)</span></div>')
+            # computed.transversal_gates has one entry per claim, in claim
+            # order (verify_gates appends as it walks circuit.gates), so the
+            # two lists align by index.
             for g, spec in zip(e.get("gates") or [], circ.get("gates") or []):
                 if not g.get("verified"):
                     continue

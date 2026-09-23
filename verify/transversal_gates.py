@@ -17,10 +17,11 @@ maps Paulis to Paulis, so its action is a linear map on symplectic vectors
               have weight 0 mod 4 or the gate sends a stabilizer to minus a
               stabilizer and leaves the code space.
   action      the image of each logical generator, reduced modulo the
-              stabilizers, equals the claimed product of logical generators.
-              Checked up to stabilizers, logical Pauli corrections, and
-              phase (S and S^dagger, or H and its Pauli conjugates, share a
-              claim): the symplectic action is what the board can verify
+              stabilizers, equals the claimed product of logical generators
+              exactly. The check is up to stabilizers only: a logical factor
+              the gate introduces belongs in the claim's product list. The
+              GF(2) image does not see phases, so S and S^dagger share a
+              claim: the symplectic action is what the board can verify
               without trusting anything.
 
 The submitter supplies the logical basis the claim is written in

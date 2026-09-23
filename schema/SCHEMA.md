@@ -131,11 +131,12 @@ Two principles drive the format:
       every X-check must have weight `0 mod 4`: `S` on every qubit sends `X`
       on a weight-`w` support to `i^w XZ` on it, a phase the GF(2) image
       cannot see, and for `w = 2 mod 4` the image is minus a stabilizer. The
-      action is checked up to stabilizers, logical Pauli corrections, and
-      phase, so `S` and `S^dagger` share a claim. A claim whose induced
-      action fixes every logical operator is rejected as a code automorphism
-      rather than a logical gate. Surgery gadgets (stage 2 of the issue) are
-      not part of this field.
+      action is checked up to stabilizers only: a logical factor the gate
+      introduces belongs in the claim's product list. Phases are invisible
+      to the GF(2) image, so `S` and `S^dagger` share a claim. A claim whose
+      induced action fixes every logical operator is rejected as a code
+      automorphism rather than a logical gate. Surgery gadgets (stage 2 of
+      the issue) are not part of this field.
   - `ler` (optional): the measured logical-error-rate tier, on
     the same committed circuits. `d_circ` is a floor; this is the rate a
     simulation actually sees, prefactors included. Per basis (`ler.X`,
