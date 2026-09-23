@@ -19,6 +19,51 @@
 <details><summary>witness operator (support, 10 qubits)</summary><div class=wit>[13, 26, 42, 48, 62, 75, 95, 96, 97, 134]</div></details>
 <div class=kv><b>certificate</b> <span class=cert-no>none yet &middot; distance stands as a self-certified upper bound (d &le;)</span></div>
 </section>
+<section class=blk><h3>Diagnostics</h3>
+<div class=kv style="color:var(--mut)">computed by the verifier from the parity checks, the layout, and the stored witnesses; shown as evidence, not used for ranking</div>
+<div class=kv title="Tanner-graph girth: the shortest cycle in the check/qubit graph a decoder runs on, per side (H_X detects Z errors, H_Z detects X errors). Longer is friendlier to belief propagation. A diagnostic computed by the verifier from H, never a ranking axis."><b>girth</b> H_X 4 &middot; H_Z 4 <span class=claimed>(shortest cycle of each side&rsquo;s Tanner graph; longer is friendlier to belief propagation)</span></div>
+<div class=kv title="row weights of each side, min to max with the mean"><b>check weights</b> H_X 12 &middot; H_Z 12</div>
+<div class=kv title="column weights of each side: how many checks of that type touch a qubit, min to max with the mean"><b>qubit degrees</b> H_X 3&ndash;5 (mean 4.412) &middot; H_Z 4&ndash;5 (mean 4.5)</div>
+<div class=kv title="(a,b) trapping sets: connected sets of a qubits whose error pattern has syndrome weight b; small b at small a is what stalls iterative decoders. Shown: the smallest b at each size and how many sets reach it, sizes up to 3 within the verifier&#x27;s cost cap."><b>trapping sets H_X</b> (1,3)×4 (2,3)×8 (3,3)×14 <span class=claimed>(smallest syndrome weight at each size, connected sets of up to 3 qubits)</span></div>
+<details><summary>full (size, syndrome weight): count census for H_X</summary><div class=wit>(1,3): 4
+(1,4): 72
+(1,5): 60
+(2,3): 8
+(2,4): 114
+(2,5): 256
+(2,6): 762
+(2,7): 1232
+(2,8): 406
+(3,3): 14
+(3,4): 220
+(3,5): 768
+(3,6): 2958
+(3,7): 8482
+(3,8): 17382
+(3,9): 26642
+(3,10): 18608
+(3,11): 4846
+(3,12): 1176
+(3,13): 148</div></details>
+<div class=kv title="(a,b) trapping sets: connected sets of a qubits whose error pattern has syndrome weight b; small b at small a is what stalls iterative decoders. Shown: the smallest b at each size and how many sets reach it, sizes up to 3 within the verifier&#x27;s cost cap."><b>trapping sets H_Z</b> (1,4)×68 (2,4)×102 (3,4)×170 <span class=claimed>(smallest syndrome weight at each size, connected sets of up to 3 qubits)</span></div>
+<details><summary>full (size, syndrome weight): count census for H_Z</summary><div class=wit>(1,4): 68
+(1,5): 68
+(2,4): 102
+(2,5): 204
+(2,6): 646
+(2,7): 1360
+(2,8): 510
+(3,4): 170
+(3,5): 612
+(3,6): 2244
+(3,7): 7106
+(3,8): 15198
+(3,9): 27574
+(3,10): 22848
+(3,11): 6188
+(3,12): 1496
+(3,13): 204</div></details>
+</section>
 <section class=blk><h3>Construction &amp; provenance</h3>
 <div class=kv><b>authors</b> <a href="https://github.com/vprusso">@vprusso</a></div>
 <div class=kv><b>provenance</b> submitted through the challenge</div>

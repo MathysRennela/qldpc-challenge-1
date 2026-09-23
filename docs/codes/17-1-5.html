@@ -23,6 +23,43 @@
 <details><summary>witness operator (support, 5 qubits)</summary><div class=wit>[1, 6, 12, 14, 15]</div></details>
 <div class=kv><b>certificate</b> <span class=cert-ok>exact, d = 5</span> &middot; scipy/HiGHS MILP</div><div class=kv style="color:var(--mut)">X: no logical &lt; 5 exists; Z: no logical &lt; 5 exists</div>
 </section>
+<section class=blk><h3>Diagnostics</h3>
+<div class=kv style="color:var(--mut)">computed by the verifier from the parity checks, the layout, and the stored witnesses; shown as evidence, not used for ranking</div>
+<div class=kv title="Tanner-graph girth: the shortest cycle in the check/qubit graph a decoder runs on, per side (H_X detects Z errors, H_Z detects X errors). Longer is friendlier to belief propagation. A diagnostic computed by the verifier from H, never a ranking axis."><b>girth</b> H_X 4 &middot; H_Z 4 <span class=claimed>(shortest cycle of each side&rsquo;s Tanner graph; longer is friendlier to belief propagation)</span></div>
+<div class=kv title="row weights of each side, min to max with the mean"><b>check weights</b> H_X 4&ndash;8 (mean 4.5) &middot; H_Z 4&ndash;8 (mean 4.5)</div>
+<div class=kv title="column weights of each side: how many checks of that type touch a qubit, min to max with the mean"><b>qubit degrees</b> H_X 1&ndash;3 (mean 2.118) &middot; H_Z 1&ndash;3 (mean 2.118)</div>
+<div class=kv title="(a,b) trapping sets: connected sets of a qubits whose error pattern has syndrome weight b; small b at small a is what stalls iterative decoders. Shown: the smallest b at each size and how many sets reach it, sizes up to 3 within the verifier&#x27;s cost cap."><b>trapping sets H_X</b> (1,1)×3 (2,1)×15 (3,1)×37 <span class=claimed>(smallest syndrome weight at each size, connected sets of up to 3 qubits)</span></div>
+<details><summary>full (size, syndrome weight): count census for H_X</summary><div class=wit>(1,1): 3
+(1,2): 9
+(1,3): 5
+(2,1): 15
+(2,2): 19
+(2,3): 20
+(2,4): 4
+(3,1): 37
+(3,2): 63
+(3,3): 62
+(3,4): 36
+(3,5): 15
+(3,6): 6
+(3,7): 1</div></details>
+<div class=kv title="(a,b) trapping sets: connected sets of a qubits whose error pattern has syndrome weight b; small b at small a is what stalls iterative decoders. Shown: the smallest b at each size and how many sets reach it, sizes up to 3 within the verifier&#x27;s cost cap."><b>trapping sets H_Z</b> (1,1)×3 (2,1)×15 (3,1)×37 <span class=claimed>(smallest syndrome weight at each size, connected sets of up to 3 qubits)</span></div>
+<details><summary>full (size, syndrome weight): count census for H_Z</summary><div class=wit>(1,1): 3
+(1,2): 9
+(1,3): 5
+(2,1): 15
+(2,2): 19
+(2,3): 20
+(2,4): 4
+(3,1): 37
+(3,2): 63
+(3,3): 62
+(3,4): 36
+(3,5): 15
+(3,6): 6
+(3,7): 1</div></details>
+<div class=kv title="Euclidean support diameter of the stored distance witnesses in the verified layout, in units of the qubit spacing: how far the exhibited logicals spread, which governs the cost of using them (lattice surgery, logical measurement). An upper bound on the spread of the exhibited logicals only: the witnesses bound the logical weight from above and are not claimed minimal, so a tighter logical may exist."><b>witness diameter</b> X 4.2181 &middot; Z 4.2181 <span class=claimed>(Euclidean support diameter of the stored distance witnesses in the layout; an upper bound on the exhibited logicals&rsquo; spread, not a minimum over all logicals)</span></div>
+</section>
 <section class=blk><h3>Verified 2D layout</h3>
 <div class=kv style="color:var(--mut)">as measured by the verifier: every check drawn over the submitted coordinates; the interaction radius is the longest dashed pair</div>
 <div class=layoutfig><svg viewBox="0 0 449 371" role="img" class="lofig" aria-label="verified 2D layout: 17 qubit sites and 16 checks"><polygon class="lo-chk lo-x" data-sites="0 1 5 6" points="26.0,344.9 114.2,344.9 158.3,268.5 70.1,268.5"/><polygon class="lo-chk lo-x" data-sites="1 2 6 7" points="114.2,344.9 202.4,344.9 246.5,268.5 158.3,268.5"/><polygon class="lo-chk lo-x" data-sites="2 3 7 8" points="202.4,344.9 290.6,344.9 334.7,268.5 246.5,268.5"/><polygon class="lo-chk lo-x" data-sites="3 4 8 9" points="290.6,344.9 378.8,344.9 422.9,268.5 334.7,268.5"/><polygon class="lo-chk lo-x" data-sites="13 14 15 16" points="180.4,178.8 312.7,102.4 224.5,102.4 136.3,102.4"/><polygon class="lo-chk lo-x" data-sites="11 12 15 16" points="136.3,102.4 224.5,102.4 268.6,26.0 180.4,26.0"/><polygon class="lo-chk lo-x" data-sites="10 12 14 16" points="224.5,102.4 312.7,102.4 356.8,26.0 268.6,26.0"/><polygon class="lo-chk lo-x" data-sites="5 6 7 8 9 11 13 15" points="70.1,268.5 158.3,268.5 246.5,268.5 334.7,268.5 422.9,268.5 180.4,26.0 136.3,102.4 180.4,178.8"/><circle class=lo-q data-s="0" cx="26.0" cy="344.9" r="6.0"/><circle class=lo-q data-s="1" cx="114.2" cy="344.9" r="6.0"/><circle class=lo-q data-s="2" cx="202.4" cy="344.9" r="6.0"/><circle class=lo-q data-s="3" cx="290.6" cy="344.9" r="6.0"/><circle class=lo-q data-s="4" cx="378.8" cy="344.9" r="6.0"/><circle class=lo-q data-s="5" cx="70.1" cy="268.5" r="6.0"/><circle class=lo-q data-s="6" cx="158.3" cy="268.5" r="6.0"/><circle class=lo-q data-s="7" cx="246.5" cy="268.5" r="6.0"/><circle class=lo-q data-s="8" cx="334.7" cy="268.5" r="6.0"/><circle class=lo-q data-s="9" cx="422.9" cy="268.5" r="6.0"/><circle class=lo-q data-s="10" cx="356.8" cy="26.0" r="6.0"/><circle class=lo-q data-s="11" cx="180.4" cy="26.0" r="6.0"/><circle class=lo-q data-s="12" cx="268.6" cy="26.0" r="6.0"/><circle class=lo-q data-s="13" cx="180.4" cy="178.8" r="6.0"/><circle class=lo-q data-s="14" cx="312.7" cy="102.4" r="6.0"/><circle class=lo-q data-s="15" cx="136.3" cy="102.4" r="6.0"/><circle class=lo-q data-s="16" cx="224.5" cy="102.4" r="6.0"/><line class=lo-r x1="70.1" y1="268.5" x2="422.9" y2="268.5"/><text class=lo-rt x="236.5" y="260.5" text-anchor="end">r = 4.2</text></svg><div class=lolegend><span><span class=sw style="background:#36006c"></span>check (X = Z, self-dual)</span><span><span class=dt></span>qubit site (17)</span><span>dashed: the pair setting the interaction radius</span><span>hover a check to isolate its qubits; click to pin &mdash; repeated clicks cycle through overlapping checks; click empty space to release</span></div></div>

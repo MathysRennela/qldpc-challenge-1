@@ -19,6 +19,133 @@
 <details><summary>witness operator (support, 3 qubits)</summary><div class=wit>[73, 83, 148]</div></details>
 <div class=kv><b>certificate</b> <span class=cert-no>none yet &middot; distance stands as a self-certified upper bound (d &le;)</span></div>
 </section>
+<section class=blk><h3>Diagnostics</h3>
+<div class=kv style="color:var(--mut)">computed by the verifier from the parity checks, the layout, and the stored witnesses; shown as evidence, not used for ranking</div>
+<div class=kv title="Tanner-graph girth: the shortest cycle in the check/qubit graph a decoder runs on, per side (H_X detects Z errors, H_Z detects X errors). Longer is friendlier to belief propagation. A diagnostic computed by the verifier from H, never a ranking axis."><b>girth</b> H_X 4 &middot; H_Z 4 <span class=claimed>(shortest cycle of each side&rsquo;s Tanner graph; longer is friendlier to belief propagation)</span></div>
+<div class=kv title="row weights of each side, min to max with the mean"><b>check weights</b> H_X 16&ndash;17 (mean 16.44) &middot; H_Z 5&ndash;19 (mean 13.05)</div>
+<div class=kv title="column weights of each side: how many checks of that type touch a qubit, min to max with the mean"><b>qubit degrees</b> H_X 1&ndash;5 (mean 2.601) &middot; H_Z 1&ndash;43 (mean 6.608)</div>
+<div class=kv title="(a,b) trapping sets: connected sets of a qubits whose error pattern has syndrome weight b; small b at small a is what stalls iterative decoders. Shown: the smallest b at each size and how many sets reach it, sizes up to 3 within the verifier&#x27;s cost cap."><b>trapping sets H_X</b> (1,1)×25 (2,1)×375 (3,0)×775 <span class=claimed>(smallest syndrome weight at each size, connected sets of up to 3 qubits)</span></div>
+<details><summary>full (size, syndrome weight): count census for H_X</summary><div class=wit>(1,1): 25
+(1,2): 50
+(1,3): 51
+(1,4): 27
+(1,5): 5
+(2,1): 375
+(2,2): 703
+(2,3): 620
+(2,4): 250
+(2,5): 60
+(2,6): 35
+(2,7): 8
+(3,0): 775
+(3,1): 3503
+(3,2): 6381
+(3,3): 6068
+(3,4): 3814
+(3,5): 2533
+(3,6): 1760
+(3,7): 1060
+(3,8): 440
+(3,9): 103
+(3,10): 12</div></details>
+<div class=kv title="(a,b) trapping sets: connected sets of a qubits whose error pattern has syndrome weight b; small b at small a is what stalls iterative decoders. Shown: the smallest b at each size and how many sets reach it, sizes up to 3 within the verifier&#x27;s cost cap."><b>trapping sets H_Z</b> (1,1)×31 (2,1)×120 (3,0)×62 <span class=claimed>(smallest syndrome weight at each size, connected sets of up to 3 qubits)</span></div>
+<details><summary>full (size, syndrome weight): count census for H_Z</summary><div class=wit>(1,1): 31
+(1,2): 61
+(1,3): 17
+(1,12): 2
+(1,13): 7
+(1,14): 3
+(1,15): 7
+(1,16): 15
+(1,17): 8
+(1,18): 1
+(1,26): 1
+(1,27): 2
+(1,30): 1
+(1,31): 1
+(1,43): 1
+(2,1): 120
+(2,2): 81
+(2,3): 6
+(2,4): 2
+(2,11): 2
+(2,12): 55
+(2,13): 192
+(2,14): 222
+(2,15): 316
+(2,16): 540
+(2,17): 411
+(2,18): 121
+(2,19): 15
+(2,20): 1
+(2,24): 3
+(2,25): 22
+(2,26): 97
+(2,27): 167
+(2,28): 110
+(2,29): 84
+(2,30): 116
+(2,31): 108
+(2,32): 41
+(2,33): 7
+(2,34): 2
+(2,39): 1
+(2,40): 11
+(2,41): 39
+(2,42): 46
+(2,43): 47
+(2,44): 16
+(2,45): 5
+(2,46): 1
+(3,0): 62
+(3,1): 126
+(3,2): 169
+(3,3): 654
+(3,4): 580
+(3,5): 281
+(3,6): 99
+(3,7): 17
+(3,11): 96
+(3,12): 924
+(3,13): 3242
+(3,14): 5704
+(3,15): 8300
+(3,16): 11895
+(3,17): 10766
+(3,18): 5617
+(3,19): 2166
+(3,20): 748
+(3,21): 207
+(3,22): 52
+(3,23): 113
+(3,24): 625
+(3,25): 2130
+(3,26): 5194
+(3,27): 7877
+(3,28): 7788
+(3,29): 7341
+(3,30): 7471
+(3,31): 6013
+(3,32): 3133
+(3,33): 1192
+(3,34): 420
+(3,35): 104
+(3,36): 26
+(3,37): 78
+(3,38): 383
+(3,39): 1225
+(3,40): 2532
+(3,41): 3540
+(3,42): 3406
+(3,43): 2464
+(3,44): 1330
+(3,45): 568
+(3,46): 210
+(3,47): 82
+(3,48): 28
+(3,49): 5
+(3,50): 1</div></details>
+</section>
 <section class=blk><h3>Construction &amp; provenance</h3>
 <div class=kv><b>authors</b> <a href="https://github.com/vprusso">@vprusso</a></div>
 <div class=kv><b>provenance</b> submitted through the challenge</div>

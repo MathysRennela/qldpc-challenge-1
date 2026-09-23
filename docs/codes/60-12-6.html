@@ -23,6 +23,58 @@
 <details><summary>witness operator (support, 6 qubits)</summary><div class=wit>[0, 5, 6, 8, 24, 31]</div></details>
 <div class=kv><b>certificate</b> <span class=cert-ok>exact, d = 6</span> &middot; CryptoMiniSat 5.14 SAT</div><div class=kv style="color:var(--mut)">X: no logical &lt; 6 exists (CryptoMiniSat, XOR + sequential-counter cardinality); Z: no logical &lt; 6 exists (CryptoMiniSat, XOR + sequential-counter cardinality)</div>
 </section>
+<section class=blk><h3>Diagnostics</h3>
+<div class=kv style="color:var(--mut)">computed by the verifier from the parity checks, the layout, and the stored witnesses; shown as evidence, not used for ranking</div>
+<div class=kv title="Tanner-graph girth: the shortest cycle in the check/qubit graph a decoder runs on, per side (H_X detects Z errors, H_Z detects X errors). Longer is friendlier to belief propagation. A diagnostic computed by the verifier from H, never a ranking axis."><b>girth</b> H_X 4 &middot; H_Z 4 <span class=claimed>(shortest cycle of each side&rsquo;s Tanner graph; longer is friendlier to belief propagation)</span></div>
+<div class=kv title="row weights of each side, min to max with the mean"><b>check weights</b> H_X 9 &middot; H_Z 9</div>
+<div class=kv title="column weights of each side: how many checks of that type touch a qubit, min to max with the mean"><b>qubit degrees</b> H_X 3&ndash;6 (mean 3.6) &middot; H_Z 3&ndash;6 (mean 3.6)</div>
+<div class=kv title="(a,b) trapping sets: connected sets of a qubits whose error pattern has syndrome weight b; small b at small a is what stalls iterative decoders. Shown: the smallest b at each size and how many sets reach it, sizes up to 3 within the verifier&#x27;s cost cap."><b>trapping sets H_X</b> (1,3)×48 (2,2)×36 (3,1)×48 <span class=claimed>(smallest syndrome weight at each size, connected sets of up to 3 qubits)</span></div>
+<details><summary>full (size, syndrome weight): count census for H_X</summary><div class=wit>(1,3): 48
+(1,6): 12
+(2,2): 36
+(2,4): 288
+(2,5): 68
+(2,6): 12
+(2,7): 296
+(2,8): 6
+(2,10): 24
+(3,1): 48
+(3,3): 554
+(3,4): 168
+(3,5): 1662
+(3,6): 2004
+(3,7): 628
+(3,8): 4526
+(3,9): 658
+(3,10): 426
+(3,11): 886
+(3,12): 36
+(3,13): 72
+(3,14): 36</div></details>
+<div class=kv title="(a,b) trapping sets: connected sets of a qubits whose error pattern has syndrome weight b; small b at small a is what stalls iterative decoders. Shown: the smallest b at each size and how many sets reach it, sizes up to 3 within the verifier&#x27;s cost cap."><b>trapping sets H_Z</b> (1,3)×48 (2,2)×84 (3,1)×72 <span class=claimed>(smallest syndrome weight at each size, connected sets of up to 3 qubits)</span></div>
+<details><summary>full (size, syndrome weight): count census for H_Z</summary><div class=wit>(1,3): 48
+(1,6): 12
+(2,2): 84
+(2,4): 192
+(2,5): 68
+(2,7): 296
+(2,8): 18
+(2,10): 36
+(3,1): 72
+(3,3): 576
+(3,4): 200
+(3,5): 1052
+(3,6): 2004
+(3,7): 372
+(3,8): 4142
+(3,9): 988
+(3,10): 302
+(3,11): 1076
+(3,12): 84
+(3,13): 84
+(3,14): 60</div></details>
+<div class=kv title="Euclidean support diameter of the stored distance witnesses in the verified layout, in units of the qubit spacing: how far the exhibited logicals spread, which governs the cost of using them (lattice surgery, logical measurement). An upper bound on the spread of the exhibited logicals only: the witnesses bound the logical weight from above and are not claimed minimal, so a tighter logical may exist."><b>witness diameter</b> X 6.0828 &middot; Z 6.7082 <span class=claimed>(Euclidean support diameter of the stored distance witnesses in the layout; an upper bound on the exhibited logicals&rsquo; spread, not a minimum over all logicals)</span></div>
+</section>
 <section class=blk><h3>Verified 2D layout</h3>
 <div class=kv style="color:var(--mut)">as measured by the verifier: every check drawn over the submitted coordinates; the interaction radius is the longest dashed pair</div>
 <div class=kv style="color:var(--mut)">layout contributed by <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; simulated annealing over integer grid sites (research/local2d/fold_layout.py) &middot; 2026-09-19</div>

@@ -501,6 +501,9 @@ margin-left:8px}
 /* n, k, d are already printed inside the [[n,k,d]] name: drop their rows */
 .board td.col-n,.board td.col-k,.board td.col-d{display:none}
 .board.showroute td.col-route{display:flex}
+/* girth and witness diameter are hover-explained diagnostics; the card keeps
+   to the headline figures and the code page carries the full block */
+.board td.col-diag{display:none}
 /* date: small, in the card's top-right corner */
 .board tr{position:relative}
 .board td.date{position:absolute;top:12px;right:14px;width:auto;padding:0;
