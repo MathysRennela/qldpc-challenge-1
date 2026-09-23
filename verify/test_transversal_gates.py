@@ -233,7 +233,12 @@ def test_existing_board_files_still_validate():
         if qv.structure_errors(doc):
             bad.append(os.path.basename(p))
     assert not bad, bad
-    r = qv.verify(STEANE)
+    # The shared Steane baseline can itself acquire optional tiers such as
+    # circuit.gates. Strip those tiers here to keep this assertion focused on
+    # the backward-compatible code-only document shape.
+    legacy_steane = copy.deepcopy(STEANE)
+    legacy_steane.pop("circuit", None)
+    r = qv.verify(legacy_steane)
     assert r["ok"] and "transversal_gates" not in r["computed"]
 
 
