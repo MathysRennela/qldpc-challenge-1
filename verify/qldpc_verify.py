@@ -1015,6 +1015,23 @@ def _verify_semantic(doc, report, record, refute=False, seed=None):
             record("modules_computed", True,
                    f"{len(ids)} module(s), {n_cross} cross-module check(s), "
                    f"max {max(ports.values())} port(s) per module")
+
+    # 11. transversal logical gates (issue #1850, stage 1). Optional claims in
+    #     circuit.gates: a qubit permutation, possibly with H or S on every
+    #     qubit, or a block-to-block CX, each with its claimed action on the
+    #     logical operators of circuit.logicals. Pure GF(2): the gate must map
+    #     every stabilizer generator into the stabilizer group and induce
+    #     exactly the claimed action modulo stabilizers (transversal_gates.py
+    #     documents the phase condition S additionally needs). Witness-backed
+    #     and penalty-only: a verified gate is recorded in the computed block
+    #     and listed on the code page, never ranked; a wrong claim fails the
+    #     entry. Entries without the field are untouched.
+    import transversal_gates
+    gchecks, gcomputed = transversal_gates.verify_gates(doc, HX, HZ)
+    for label, ok, detail in gchecks:
+        record(label, ok, detail)
+    if gcomputed is not None:
+        report["computed"]["transversal_gates"] = gcomputed
     # Layer-1 locality class (computed) + Layer-3 flags (verifier-proven only;
     # the exact-d flag is added at site-build time from certs/, since exactness
     # is certified separately, not by this trustless check).

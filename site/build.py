@@ -1604,6 +1604,9 @@ def load_entries():
                            (doc.get("circuit", {}).get("d_circ") or {}).values())
                        if doc.get("circuit") else None),
             "has_ler": bool((doc.get("circuit") or {}).get("ler")),
+            # transversal gates (issue #1850): the verifier's per-gate results,
+            # listed on the code page and never ranked.
+            "gates": rep["computed"].get("transversal_gates") or [],
             # modular layout (issue #1846): the verifier's module diagnostics
             # when the layout assigns every qubit to a module; a Layer-3 flag
             # plus numbers, never a track axis or a score input.
@@ -2472,6 +2475,48 @@ def detail_page(e):
                      'logical error rate yet; d_circ is a floor, and the '
                      'measured tier records the prefactor it cannot see'
                      '</div>')
+        # transversal logical gates (issue #1850): each verified claim with
+        # its induced action on the declared logical basis. The verifier
+        # checked the permutation (and uniform Clifford) preserves the
+        # stabilizer group and induces exactly this action over GF(2); an
+        # entry with a wrong claim never reaches the board, so every gate
+        # here is verified. Listed, never ranked.
+        gates = [g for g in e.get("gates") or [] if g.get("verified")]
+        if gates:
+            P.append(f'<div class=kv><b>transversal gates</b> {len(gates)} '
+                     'verified <span class=claimed>(qubit permutation, '
+                     'uniform Clifford, or block-to-block CX; action checked '
+                     'over GF(2) modulo stabilizers)</span></div>')
+            # computed.transversal_gates has one entry per claim, in claim
+            # order (verify_gates appends as it walks circuit.gates), so the
+            # two lists align by index.
+            for g, spec in zip(e.get("gates") or [], circ.get("gates") or []):
+                if not g.get("verified"):
+                    continue
+                kind = {"permutation": "qubit permutation", "H": "H on every "
+                        "qubit", "S": "S on every qubit",
+                        "CX": "CX between two blocks (control unprimed, "
+                        "target primed)"}[g["gate"]]
+                if g["gate"] != "permutation" and \
+                        not g.get("permutation_trivial", True):
+                    kind += " with a qubit permutation"
+                label = html.escape(g.get("name") or g["gate"])
+                moves = [f'{html.escape(a)} &rarr; '
+                         f'{html.escape(" ".join(b))}'
+                         for a, b in g["action"].items() if b != [a]]
+                P.append(f'<div class=kv><b>{label}</b> {html.escape(kind)} '
+                         f'&middot; {", ".join(moves)}</div>')
+                perm = spec.get("permutation")
+                if perm and not g.get("permutation_trivial", True):
+                    P.append(f'<details><summary>qubit permutation (image of '
+                             f'each qubit)</summary><div class=wit>'
+                             f'{html.escape(str(perm))}</div></details>')
+            lg = circ.get("logicals") or {}
+            basis = "; ".join(f'{p}{i} = {sup}' for p in ("X", "Z")
+                              for i, sup in enumerate(lg.get(p) or []))
+            P.append(f'<details><summary>logical basis the gate actions '
+                     f'refer to</summary><div class=wit>{html.escape(basis)}'
+                     f'</div></details>')
         P.append('</section>')
 
     # verified 2D layout (issue #289): draw the layout the locality class was
