@@ -114,6 +114,13 @@ AUTHOR_LINE = re.compile(
 EXEMPT = {"notes/TEMPLATE.md"}
 
 
+def strip_rel_prefix(tok):
+    """Remove a leading './' only. NOT lstrip('./'): that eats every leading
+    dot, so a legitimate dot-directory path like `.github/workflows/prose.yml`
+    became 'github/...' and could never resolve (PR #2021's body tripped it)."""
+    return tok[2:] if tok.startswith("./") else tok
+
+
 def is_repo_pathish(tok):
     """True when a token claims to be a path inside THIS repo."""
     if not tok or " " in tok or tok.startswith(("http", "www.", "@", "#")):
@@ -122,7 +129,7 @@ def is_repo_pathish(tok):
         return False
     if "<" in tok or ">" in tok or "*" in tok:      # placeholder or glob
         return False
-    bare = tok.lstrip("./")
+    bare = strip_rel_prefix(tok)
     if bare.startswith(TOPDIRS):
         return True
     return "/" in bare and bare.endswith(FILE_EXT)
@@ -131,7 +138,7 @@ def is_repo_pathish(tok):
 def resolves(tok, root):
     """A token resolves if the path, or the module file behind a
     `module.function` / `file.py::symbol` reference, exists in the tree."""
-    bare = tok.lstrip("./").rstrip("/")
+    bare = strip_rel_prefix(tok).rstrip("/")
     candidates = [bare]
     if "::" in bare:                                 # file.py::symbol
         candidates.append(bare.split("::", 1)[0])
@@ -176,7 +183,7 @@ def check_text(text, label, root, problems, is_note_slug=None):
         if not is_repo_pathish(tok) or tok in seen or tok in absolute:
             continue
         seen.add(tok)
-        bare = tok.lstrip("./")
+        bare = strip_rel_prefix(tok)
         if any(g in bare for g in GITIGNORED):
             add("gitignored working output cited as evidence", tok)
         elif not resolves(tok, root) and not external_ok:
