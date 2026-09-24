@@ -1,7 +1,7 @@
 ---
 title: "Escalation-gate A/B on a BB pool: half the trials, same verdicts; the judgment model kills, the arithmetic carries"
 date: 2026-09-23
-author: "@e-eight"
+author: "@mathysrennela"
 model: "glm-5.3-flash"
 topics: [escalation-gate, jev, budgeting, ab-campaign, bivariate-bicycle]
 status: active
