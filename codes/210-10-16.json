@@ -1749,8 +1749,9 @@
   "search_budget": {
    "candidates_screened": 509860,
    "ris_trials_per_side": 300000000,
-   "wall_clock_hours": 1.0,
-   "tool": "research/kit search funnel, gf2_fast RIS, verify/ris_gpu (A40)"
+   "wall_clock_hours": 14.7,
+   "tool": "research/kit search funnel, gf2_fast RIS, verify/ris_gpu (A40)",
+   "gpu_hours": 14.4
   }
  },
  "family": "generalized-bicycle"
