@@ -3885,7 +3885,7 @@
  },
  "provenance": {
   "authors": [
-   "vprusso"
+   "@vprusso"
   ],
   "construction": "Two-block group-algebra code (Lin and Pryadko, arXiv:2306.16400) on G = C35:C6(r=4) of order 210, Cayley table research/kit/group_algebra.metacyclic(35, 6, 4) with the identity at index 0 and elements indexed as that builder lists them: H_X = [L(a) | R(b)], H_Z = [R(b)^T | L(a)^T] with L(g)[g h, h] = 1 and R(g)[h g, h] = 1 (research/kit/group_algebra.py build_2bga(mul, a, b)); a = [0, 78, 195], b = [0, 1, 80, 144] (element indices). n = 2|G| = 420, check weight 7.",
   "date": "2026-09-24",
