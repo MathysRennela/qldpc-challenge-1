@@ -323,6 +323,7 @@ should not have to re-learn.
 | `kit/escalation.py` | `rung_brief`, `apply_verdict`, `append_journal` — the rung-boundary escalation gate (step 3b): deterministic ladder facts + fenced judgment-model verdict; advisory only, never repo evidence |
 | `kit/submit.py` | `make_submission`, `save_submission`, `validate` |
 | `kit/distance.py` | `exact_distance` (MILP, `d=`), `decoder_distance` (BP+OSD) — needs the `research` extra |
+| `kit/census_css.py` | exhaustive small CSS-code census up to qubit permutations and global X/Z swap; exact distance uses the trusted SAT certifier and needs the `research` extra |
 | `local2d/planar.py` | fast greedy open-boundary builder, exact planar distance (scipy MILP), `grid_coordinates` for the bilayer layout |
 | `local2d/boundary_engine.py` | the general open-boundary construction (`build_planar`), `reduce_weights`, `graft_r1`/`graft_r1_safe` (qubit removal) |
 | `local2d/transfer.py` | `distance_slope`: predict d(L) scaling from (f, g) before building large lattices |
