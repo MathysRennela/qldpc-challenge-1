@@ -21776,7 +21776,7 @@
   "construction": "Four-factor m337 ideal: g=33893924722822194880126641; A=[14, 23, 27, 44, 45, 50, 113, 177, 185, 212, 222, 247, 251, 271, 305]; B=[34, 56, 66, 73, 92, 108, 115, 174, 176, 180, 200, 209, 214, 314, 330]",
   "references": [],
   "date": "2026-09-23",
-  "notes": "Witness-backed upper bound, not an exact-distance claim. The weight-80 X logical was found by native RIS at seed 92720301 with pair depth 64; the Z witness is its independently verified generalized-bicycle block-swap/reversal image. Five fresh 100000-trial slices per side and an independent 400000-trial circulant-GB pass per side returned no lighter logical. Literature novelty is unverified. Exact construction and confirmation details accompany this submission."
+  "notes": "Witness-backed upper bound d <= 76, not an exact-distance claim. Both submitted weight-76 logicals were found by GPU RIS recovery with pair depth 8, 300000000 trials per side, seed 1, and independently CPU-validated. Earlier native searches supported a bound of 80, which was refuted first to 78 by CI and then to 76 by the GPU audit. Literature novelty is unverified. Exact construction and correction details are in the accompanying note."
  },
  "family": "generalized-bicycle"
 }
