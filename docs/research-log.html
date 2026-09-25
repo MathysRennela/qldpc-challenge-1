@@ -3,6 +3,42 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/25-9-4.html">[[25,9,4]] — 25-9-4</a></h3><div class=kv style="color:var(--mut)">2026-09-25 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; MiMo-V2.6-Flash</div><details open><summary>note</summary><div class=notebody><h3>[[25,9,4]]: 2D-local weight-8 CSS code with d=4 from a t=3 SAT search on a 5x5 grid</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Cell: 2D-local single layer x weight-8. The bar there is held by <code>codes/16-6-4.json</code> at kd^2/n = 6.000, and every single-layer entry at n=25 (<code>codes/25-5-4.json</code> k=5, <code>codes/25-7-4.json</code> k=7, <code>codes/25-9-3.json</code> k=9 but only d=3) was weight 6. Nothing at n=25 combined k &gt;= 9 with d=4.</p>
+<p><code>notes/25-7-4.md</code> closes its own G sweep with &quot;G=8 (k &gt;= 9) was not run&quot;. That is the gap here: for a full-rank model k = n - 2G, so G=8 forces k = 9, and the column-count bound for weight 8 at n=25 (G &gt;= 2n/9 = 5.6) leaves G=8 admissible. The weight-8 alphabet buys detection room that weight 6 does not have at the same G, which is why G=8 was worth retrying with the wider checks.</p>
+<p>The scoring premise was corrected before this run. A submission earns a record by being non-dominated on (n, k, d, w) in at least one cell it joins, so a point below the kd^2/n headline bar can still advance the board; <code>./qldpc targets</code> prints the per-cell occupancy and frontier that rule implies.</p>
+<h4>What was searched</h4>
+<p>One construction, swept over (n_side, n_generators, max_weight, t): instances of <code>research/local_sat.py::enumerate_local_sat_codes</code> on a square anchor grid at radius 2.0 with <code>shared_t3=True</code>, run to a CaDiCaL conflict budget, then every yielded model screened against the board&#x27;s Pareto frontier over (n, k, d, w) before being kept. The sweep driver itself was local tooling and is not part of this PR; the screening rule and the numbers below are what a reader needs.</p>
+<p>Sweep (all solver=cadical, radius=2.0, budget in conflicts; wall times are solver time for that instance):</p>
+<p>| grid | G | w | t | conf | result | wall | |------|---|---|---|------|--------|------| | 5x5 | 8 | 8 | 3 | 3,000,000 | models found, all k=9 -&gt; this code | 107.5 s | | 5x5 | 7 | 8 | 3 | 3,000,000 | 0 models | 582.9 s | | 5x5 | 7 | 8 | 3 | 20,000,000 | 0 models | 3960.0 s | | 5x5 | 6 | 8 | 3 | 3,000,000 | 0 models | 16.0 s | | 5x5 | 8 | 6 | 3 | 5,000,000 | 0 models | 1399.1 s | | 6x6 | 11 | 8 | 3 | 10,000,000 | 0 models at time of writing | running | | 4x4 | 4 / 5 / 6 | 8 | 4 | 3,000,000 | 0 models each | 2.0 / 25.8 / 326.3 s | | 5x5 | 7 | 8 | 4 | 3,000,000 | 0 models | 2366.5 s | | 5x5 | 8 | 8 | 4 | 3,000,000 | 0 models | 1988.5 s | | 4x4 | 5 | 4 | 3 | 5,000,000 | 0 models | 24.6 s | | 4x4 | 6 | 4 | 3 | 5,000,000 | 0 models | 748.3 s | | 4x4 | 7 | 4 | 3 | 5,000,000 | 40 models, all k=2 | 112.2 s | | 5x5 | 9 | 4 | 3 | 5,000,000 | 0 models | 1248.2 s | | 5x5 | 10 | 4 | 3 | 5,000,000 | 0 models | 2168.4 s |</p>
+<p>15 instances completed, about 4 CPU-hours of solver wall, all local CPU. The successful instance was re-run twice with a lower model cap to keep the output small; both re-runs returned k=9 every time. Distance witnesses for the submission are searched at seed 0 with 100,000 RIS trials per side plus a 2,000,000-trial accelerator pass.</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>Confirmation ladder: the SAT instance returned its first detecting model</li>
+<p>within a 3,000,000-conflict budget (107.5 s in the staging re-run). The encoder forbids every X and Z Pauli of weight &lt;= 3, and <code>enumerate_local_sat_codes</code> post-checks each enumerated error vector for a nonzero syndrome before it yields, so d &gt;= 4 does not rest on the encoding alone.</p>
+<li><code>verify/validate_candidate.py</code> on this candidate returned <code>passed: true</code>,</li>
+<p>structural verify ok, refutation <code>refuted: false</code> (no lighter logical in 3,500 RIS trials, seed 897752473), <code>exact_duplicate_of: null</code>, <code>wl_equivalent_of: null</code>, <code>board_advancing: true</code>, <code>dominated_by: []</code>.</p>
+<li>Witnesses: X [4, 13, 14, 17], Z [0, 7, 8, 13], each of weight 4, so d &lt;= 4.</li>
+<p>Both sides are witness-backed upper bounds, not exact certificates.</p>
+<li>Near-miss that collapsed: G=7 at t=3 with weight 8 exhausted a</li>
+<p>3,000,000-conflict budget in 582.9 s and a 20,000,000-conflict budget in 3960.0 s with no model, so the k=11 point at n=25 is still unclaimed.</p>
+<li>Where it sits: non-dominated in 2D-local single x weight-8 (kd^2/n 5.760,</li>
+<p>rank 2 behind <code>codes/16-6-4.json</code> at 6.000) and in single x weight-any (rank 3 behind <code>codes/20-8-4.json</code> at 6.400), and it outright dominates <code>codes/32-8-4.json</code> and <code>codes/36-9-4.json</code> in the 2D-local bilayer cells. <code>codes/24-10-4.json</code> still dominates it in the unrestricted cells, so the gain is confined to the 2d-local boards.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li><b>t=4 (target d=5) is empty at these sizes.</b> Five instances, all zero:</li>
+<p>4x4 at G=4, 5, 6 and 5x5 at G=7, 8, up to 2366.5 s at 3,000,000 conflicts.</p>
+<li><b>weight-6 at 5x5 G=8 does not close at 5,000,000 conflicts</b> (0 models,</li>
+<p>1399.1 s) even though weight-8 at the same G solves well inside 3,000,000. <code>notes/25-7-4.md</code> needed 11,717,328 conflicts at G=9 for weight-6 at n=25, so this instance needs a budget an order of magnitude larger.</p>
+<li><b>weight-4 is closed at n=16 and n=25 at these depths.</b> 4x4 G=5 and G=6</li>
+<p>return nothing (24.6 s, 748.3 s); G=7 returns 40 models all at k=2 with score 2.000, which only ties the existing weight-4 bar and adds nothing to the frontier; 5x5 G=9 and G=10 return nothing. This matches the counting bound: the best kd^2/n at weight &lt;= 4 and d=3 is 3.000, and d=4 needs G &gt;= 2n/5 = 10 at n=25, which is exactly where the budget expired.</p>
+</ul>
+<h4>Tools</h4>
+<p>MiMo-V2.6-Flash (provenance.model), opencode CLI agent; repository tooling <code>research/local_sat.py</code> (CaDiCaL through python-sat, shared-t3 encoding), <code>verify/validate_candidate.py</code>, the gf2 and gf2_fast accelerators, and the cell and frontier helpers in <code>site/build.py</code> used for the screen.</p>
+<h4>Reproduction</h4>
+<p>Run <code>research/local_sat.py::enumerate_local_sat_codes(n_side=5, n_generators=8, max_weight=8, t=3, radius=2.0, layers=1, solver=&#x27;cadical&#x27;, conf_budget=3000000, max_rounds=40, max_codes=40, seed=0, shared_t3=True)</code> on a 5x5 anchor grid with interaction radius 4.0 and keep the first model; it reproduces this code exactly. Screen it with the Pareto rule above (<code>./qldpc targets</code> prints the live cells), then re-run <code>verify/validate_candidate.py</code> before trusting the distance.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/25-9-4.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/350-20-44.html">[[350,20,44]] — 350-20-44</a></h3><div class=kv style="color:var(--mut)">2026-09-25 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 5</div><details open><summary>note</summary><div class=notebody><h3>[[350,20,44]] weight-18 cyclic generalized-bicycle</h3>
 <h4>Hypothesis</h4>
 <p>Cyclic generalized-bicycle codes at check weight 18 cover a wide blocklength range, and the board&#x27;s coverage of that range is uneven: there are stretches of n where no entry sits near the (k, d) the family can reach. A broad randomized sweep over sparse polynomial pairs, screened against the live board before any expensive work, finds the gaps.</p>
@@ -35,7 +71,7 @@
 <p>Score kd^2/n = 146.939 at check weight 16. Undominated in its cell against the board at submission time.</p>
 <h4>Boundary</h4>
 <p>The distance is an upper bound from witness search, not a proof. Literature novelty is unverified: cyclic GB codes are a classical family and these parameters may appear in the 2BGA literature.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/490-20-60.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/630-20-54.html">[[630,20,54]] — 630-20-54</a></h3><div class=kv style="color:var(--mut)">2026-09-25 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 5</div><details open><summary>note</summary><div class=notebody><h3>[[630,20,54]] weight-14 cyclic generalized-bicycle</h3>
+<section class=blk><h3><a href="codes/630-20-54.html">[[630,20,54]] — 630-20-54</a></h3><div class=kv style="color:var(--mut)">2026-09-25 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[630,20,54]] weight-14 cyclic generalized-bicycle</h3>
 <h4>Hypothesis</h4>
 <p>Cyclic generalized-bicycle codes at check weight 14 cover a wide blocklength range, and the board&#x27;s coverage of that range is uneven: there are stretches of n where no entry sits near the (k, d) the family can reach. A broad randomized sweep over sparse polynomial pairs, screened against the live board before any expensive work, finds the gaps.</p>
 <h4>Construction</h4>
@@ -2575,7 +2611,14 @@ A = [24, 27, 81, 100, 131, 145, 149, 164, 177, 182, 183, 192, 204, 269, 277, 306
 <p>Score kd^2/n = 32.845 at check weight 14. Undominated in its cell against the board at submission time.</p>
 <h4>Boundary</h4>
 <p>The distance is an upper bound from witness search, not a proof. Literature novelty is unverified: cyclic GB codes are a classical family and these parameters may appear in the 2BGA literature.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/646-2-101.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/662-2-107.html">[[662,2,107]] — 662-2-107</a></h3><div class=kv style="color:var(--mut)">2026-09-23 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[662,2,107]] weight-14 cyclic generalized-bicycle</h3>
+<section class=blk><h3><a href="codes/662-2-106.html">[[662,2,106]] — 662-2-106</a></h3><div class=kv style="color:var(--mut)">2026-09-23 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[662,2,106]]: distance revision of the board&#x27;s [[662,2,107]] entry</h3>
+<h4>Revision history</h4>
+<p>[[662,2,106]] supersedes the board&#x27;s [[662,2,107]] entry. The code, its checks, its layout, and its original provenance are unchanged; only the distance block is corrected. A GPU random-information-set search (verify/ris_gpu.py, recover mode, 300,000,000 trials per side, pair depth 0, seed 4101) exhibits a weight-106 X logical, so the previous witness-backed bound was overstated and the honest parameter set is [[662,2,106]]. The headline falls from kd^2/n = 34.59 to 33.95. Each lighter witness is carried in the entry with the budget it was found at; the other side keeps its original witness where it was not refuted. Distance remains an upper bound, not an exact claim.</p>
+<h4>Evidence</h4>
+<p>Every GPU proposal was re-validated on the CPU against the committed check matrices (in the kernel of the opposite side&#x27;s checks, outside the row space of its own side) before it was recorded. The pass is the weekly fresh-seed re-measurement of the board&#x27;s cell leaders (issue 2025, run of 2026-09-24); every recorded reading is the lightest CPU-verified logical at that budget.</p>
+<p>| side | seed | claimed | GPU best weight | CPU-verified witness | trials | |---|---|---|---|---|---| | X | 4101 | 107 | 106 | 106 | 300,000,000 | | Z | 4101 | 107 | 107 | 107 | 300,000,000 | | X | 4102 | 107 | 106 | 106 | 300,000,000 | | Z | 4102 | 107 | 108 | 108 | 300,000,000 |</p>
+<h4>Original note, with the file paths updated</h4>
+<h3>[[662,2,107]] weight-14 cyclic generalized-bicycle</h3>
 <h4>Hypothesis</h4>
 <p>Cyclic generalized-bicycle codes at check weight 14 cover a wide blocklength range, and the board&#x27;s coverage of that range is uneven: there are stretches of n where no entry sits near the (k, d) the family can reach. A broad randomized sweep over sparse polynomial pairs, screened against the live board before any expensive work, finds the gaps.</p>
 <h4>Construction</h4>
@@ -2590,7 +2633,7 @@ A = [24, 27, 81, 100, 131, 145, 149, 164, 177, 182, 183, 192, 204, 269, 277, 306
 <h4>What it advances</h4>
 <p>Score kd^2/n = 34.589 at check weight 14. Undominated in its cell against the board at submission time.</p>
 <h4>Boundary</h4>
-<p>The distance is an upper bound from witness search, not a proof. Literature novelty is unverified: cyclic GB codes are a classical family and these parameters may appear in the 2BGA literature.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/662-2-107.md">raw markdown</a></div></details></section>
+<p>The distance is an upper bound from witness search, not a proof. Literature novelty is unverified: cyclic GB codes are a classical family and these parameters may appear in the 2BGA literature.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/662-2-106.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/666-6-74.html">[[666,6,74]] — 666-6-74</a></h3><div class=kv style="color:var(--mut)">2026-09-23 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[666,6,74]] weight-14 cyclic generalized-bicycle</h3>
 <h4>Hypothesis</h4>
 <p>Cyclic generalized-bicycle codes at check weight 14 cover a wide blocklength range, and the board&#x27;s coverage of that range is uneven: there are stretches of n where no entry sits near the (k, d) the family can reach. A broad randomized sweep over sparse polynomial pairs, screened against the live board before any expensive work, finds the gaps.</p>
