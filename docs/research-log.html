@@ -15515,7 +15515,14 @@ HX, HZ = build_bb(l=20, m=14, A_terms=[(0,0), (0,11), (7,2), (7,8)], B_terms=[(0
 from bb import build_bb
 HX, HZ = build_bb(l=19, m=15, A_terms=[(0,0), (0,11), (7,2), (7,8)], B_terms=[(0,0), (0,1)])
 </pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/570-38-9.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/576-12-30.html">[[576,12,30]] — 576-12-30</a></h3><div class=kv style="color:var(--mut)">2026-09-16 &middot; submission note &middot; <a href="https://github.com/cbjuan">@cbjuan</a></div><details ><summary>note</summary><div class=notebody><h3>[[576,12,30]] — periodic bivariate-bicycle on Z_12 x Z_24</h3>
+<section class=blk><h3><a href="codes/576-12-30.html">[[576,12,30]] — 576-12-30</a></h3><div class=kv style="color:var(--mut)">2026-09-16 &middot; submission note &middot; <a href="https://github.com/cbjuan">@cbjuan</a></div><details ><summary>note</summary><div class=notebody><h3>[[576,12,30]]: distance revision of the board&#x27;s [[576,12,30]] entry</h3>
+<h4>Revision history</h4>
+<p>The entry keeps its parameters [[576,12,30]]. The code, its checks, its layout, and its original provenance are unchanged; only the distance block is corrected. A GPU random-information-set search (verify/ris_gpu.py, recover mode, 300,000,000 trials per side, pair depth 0, seed 4101) exhibits a weight-32 Z logical, so the previous witness-backed bound was overstated on that side; the overall distance d = 30 is unchanged. Each lighter witness is carried in the entry with the budget it was found at; the other side keeps its original witness where it was not refuted. Distance remains an upper bound, not an exact claim.</p>
+<h4>Evidence</h4>
+<p>Every GPU proposal was re-validated on the CPU against the committed check matrices (in the kernel of the opposite side&#x27;s checks, outside the row space of its own side) before it was recorded. The pass is the weekly fresh-seed re-measurement of the board&#x27;s cell leaders (issue 2025, run of 2026-09-24); every recorded reading is the lightest CPU-verified logical at that budget.</p>
+<p>| side | seed | claimed | GPU best weight | CPU-verified witness | trials | |---|---|---|---|---|---| | X | 4101 | 30 | 30 | 30 | 300,000,000 | | Z | 4101 | 34 | 32 | 32 | 300,000,000 | | X | 4102 | 30 | 30 | 30 | 300,000,000 | | Z | 4102 | 34 | 32 | 32 | 300,000,000 |</p>
+<h4>Original note, with the file paths updated</h4>
+<h3>[[576,12,30]] — periodic bivariate-bicycle on Z_12 x Z_24</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target: the <code>unrestricted</code> x <code>weight ≤ 6</code> board cell, via a periodic bivariate-bicycle (BB) code on Z_12 x Z_24, found by an automated continuous evolutionary/mutation search over BB exponent sets <code>(l, m, A, B)</code> (lane <code>refreshed-high-distance-mutation</code>, proposal kernel <code>validated-highd-two-step</code>). This submission independently rebuilds and re-verifies the resulting <code>[[576,12,30]]</code> candidate using only this repository&#x27;s own trusted tools before submitting.</p>
 <h4>What was searched</h4>
