@@ -23232,6 +23232,41 @@ HX, HZ = build_bb(
 )
 </pre>
 <p>Package the resulting matrices with <code>research/kit/submit.py</code>; the committed JSON records the resulting witnesses and provenance.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/154-8-17.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/170-32-14.html">[[170,32,14]] — 170-32-14</a></h3><div class=kv style="color:var(--mut)">2026-08-28 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; human</div><details ><summary>note</summary><div class=notebody><h3>[[170,32,14]] — free-action lifted product over Z_85, reconstructed from arXiv:2608.08996v1</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Cell: unrestricted x any weight. The verifier derives this from the matrices rather than from a self-declared label: there is no layout, so the locality class is <code>unrestricted</code>, and the max check weight is 10, which is past <code>weight-8</code>, so the only cell this entry joins is unrestricted x any weight.</p>
+<p>The opening was structural rather than statistical. Against the 1440 entries the board held when this was staged, this is the only one with n &lt;= 170, k &gt;= 32 and d &gt;= 14 at the same time. The next entries reaching that corner are <code>codes/200-40-14.json</code> (n=200, k=40, d=14, w=15) and <code>codes/254-42-14.json</code> (n=254, k=42, d=14, w=10). At n=170 the board already held <code>codes/170-52-3.json</code> (k=52, d=3), <code>codes/170-34-8.json</code> (k=34, d=8), <code>codes/170-16-10.json</code> (k=16, d=10), <code>codes/170-8-20.json</code> (k=8, d=20) and <code>codes/170-2-13.json</code> (k=2, d=13) — every point on the k-d plane at n=170 except the k &gt;= 32, d &gt;= 14 corner.</p>
+<p>That corner could be filled by reconstruction instead of search: arXiv:2608.08996v1 publishes a free-action lifted product over Z_85 with exactly [[170,32,14]], and its Supplementary Information gives both supports.</p>
+<h4>What was searched</h4>
+<p>No parameter sweep — this is a reconstruction, not a discovery. The two supports over Z_85 were taken from the paper, the matrices rebuilt from them, structurally verified, and then put through the same board screen a searched candidate faces: an entry is only worth submitting if it is non-dominated on (n, k, d, w) in a cell it joins. This one came back non-dominated.</p>
+<p>The counting is consistent throughout: |A| = |B| = 5, so every check has weight 10, n = 2 * 85 = 170, and the ranks of H_X and H_Z leave k = 32.</p>
+<h4>Evidence trail</h4>
+<ul>
+<li>Structure: <code>verify/qldpc_verify.py</code> recomputes n=170 and k=32 from the ranks</li>
+<p>of the two matrices (85 X checks and 85 Z checks), max check weight 10, CSS commutation, and the locality and weight classes the track grid uses.</p>
+<li><code>verify/validate_candidate.py</code> returned <code>passed: true</code> on this candidate:</li>
+<p>structural checks ok, refutation <code>refuted: false</code> (no lighter logical in 8000 RIS trials, seed 1161346672), <code>exact_duplicate_of: null</code>, <code>wl_equivalent_of: null</code>, <code>board_advancing: true</code>, <code>dominated_by: []</code>.</p>
+<li>Distance: witnesses of weight 14 on both sides, so d &lt;= 14 on each side.</li>
+<p>This is a witness-backed upper bound, not a certificate. The paper reports d = 14, which agrees with the witnesses; the submission&#x27;s own provenance records 20,000 pure-Python RIS trials per side at seed 20260828 finding nothing lighter.</p>
+<li>Where it sits: non-dominated in unrestricted x any weight, the only cell it</li>
+<p>joins. It dominates no entry and is dominated by none. kd^2/n = 36.894 makes it the highest-scoring entry on the board at n &lt;= 170, ahead of <code>codes/136-34-12.json</code> at 36.000; by that same score it ranks 162 of 1440 overall, against a cell headline bar of 1456.855 held by <code>codes/674-170-76-b.json</code>.</p>
+<li>What it does not do: it takes no existing point off the frontier. The nearest</li>
+<p>entries trade an axis instead of losing one — <code>codes/200-40-14.json</code> has more k and more n, <code>codes/254-42-14.json</code> has more k at more n, <code>codes/170-34-8.json</code> has more k but only d=8 at w=9. The contribution is a new trade-off point in an empty corner, not a takeover.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Nothing was searched and failed on this path; the swept searches behind other</li>
+<p>staged candidates are reported with those entries.</p>
+<li>The honest limit is scope: no board entry at n &lt;= 170 reaches k &gt;= 32 and</li>
+<p>d &gt;= 14 together, so no entry could be dominated by this one. The frontier gains a point rather than losing one, which is what a reconstruction of a published code can offer.</p>
+</ul>
+<h4>Tools</h4>
+<p>Python 3, the repository&#x27;s lifted-product construction helpers, the <code>./qldpc</code> submission builder, and the trusted verification stack (<code>verify/qldpc_verify.py</code>, <code>verify/validate_candidate.py</code>). <code>provenance.model</code> is <code>human</code>: the matrices are a reconstruction of published data and no search produced them. Compute: seconds, no solver time.</p>
+<h4>Reproduction</h4>
+<p>Free-action 2BGA (lifted product) over Z_85 with <code>A = {0, 3, 4, 10, 67}</code> and <code>B = {0, 5, 29, 31, 37}</code>, from the Supplementary Information of <a href="https://arxiv.org/abs/2608.08996">arXiv:2608.08996v1</a>.</p>
+<p>Let <code>C_S</code> be the 85x85 circulant over GF(2) whose first row is the indicator of <code>S</code>, with indices read mod 85. The submitted matrices are</p>
+<p>H_X = [ C_{-A} | C_{-B} ] H_Z = [ C_{B}  | C_{A}  ]</p>
+<p>which is what the checked-in file contains: the first 85 columns of H_X carry support <code>(0, 18, 75, 81, 82)</code> = -A, the last 85 carry <code>(0, 48, 54, 56, 80)</code> = -B, and H_Z carries <code>B</code> then <code>A</code> in that order. Each row of <code>checks.X</code> and <code>checks.Z</code> is the 10-element support of one check. Rebuild the two matrices from those supports, then re-run <code>verify/validate_candidate.py</code> before trusting the distance.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/170-32-14.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/224-22-16.html">[[224,22,16]] — 224-22-16</a></h3><div class=kv style="color:var(--mut)">2026-08-28 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; human</div><details ><summary>note</summary><div class=notebody><h3>[[224,22,16]] — abelian lifted-product reconstruction</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Targeted the unrestricted weight-8 frontier using a directly reproducible row from arXiv:2608.08996v1.</p>
