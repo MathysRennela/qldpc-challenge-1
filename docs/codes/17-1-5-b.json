@@ -1,0 +1,227 @@
+{
+ "schema_version": "0.1",
+ "name": "[[17,1,5]]",
+ "code_type": "CSS",
+ "n": 17,
+ "k": 1,
+ "checks": {
+  "X": [
+   [
+    0,
+    1,
+    2,
+    3
+   ],
+   [
+    0,
+    2,
+    4,
+    5
+   ],
+   [
+    2,
+    3,
+    5,
+    6,
+    9,
+    10,
+    13,
+    14
+   ],
+   [
+    4,
+    5,
+    8,
+    9
+   ],
+   [
+    6,
+    7,
+    10,
+    11
+   ],
+   [
+    7,
+    11,
+    15,
+    16
+   ],
+   [
+    8,
+    9,
+    12,
+    13
+   ],
+   [
+    10,
+    11,
+    14,
+    15
+   ]
+  ],
+  "Z": [
+   [
+    0,
+    1,
+    2,
+    3
+   ],
+   [
+    0,
+    2,
+    4,
+    5
+   ],
+   [
+    2,
+    3,
+    5,
+    6,
+    9,
+    10,
+    13,
+    14
+   ],
+   [
+    4,
+    5,
+    8,
+    9
+   ],
+   [
+    6,
+    7,
+    10,
+    11
+   ],
+   [
+    7,
+    11,
+    15,
+    16
+   ],
+   [
+    8,
+    9,
+    12,
+    13
+   ],
+   [
+    10,
+    11,
+    14,
+    15
+   ]
+  ]
+ },
+ "distance": {
+  "d": 5,
+  "X": {
+   "value": 5,
+   "confidence": "upper_bound",
+   "witness": [
+    8,
+    9,
+    14,
+    15,
+    16
+   ]
+  },
+  "Z": {
+   "value": 5,
+   "confidence": "upper_bound",
+   "witness": [
+    8,
+    9,
+    14,
+    15,
+    16
+   ]
+  }
+ },
+ "provenance": {
+  "authors": [
+   "@mathysrennela"
+  ],
+  "construction": "Planar 4.8.8 color code patch at distance 5 (the d = 4m+1 class open in arXiv:2609.21376): (3,5,5,3,1) region on the paper's lattice frame, 4 bulk-rule faces + 4 boundary completions (2 extra boundary squares, 2 octagon corner truncations) found by exhaustive compatible-subset search; H_X = H_Z = face-incidence matrix.",
+  "origin": "submission",
+  "date": "2026-09-21",
+  "model": "GLM 5.3 Flash",
+  "notes": "Same parameters as the existing 17-1-5 entry (doubling construction, arXiv:2608.11160) and the gate flags the two as possibly equivalent (same WL signature) - this entry is the same abstract code reached by a different route: a 4.8.8 brickwork boundary answering the d = 4m+1 open question of arXiv:2609.21376. The contribution is the layout: measured interaction radius sqrt(13) ~ 3.606 puts it in local-2d-single, where the incumbent (radius 4.2, local-2d-bilayer) cannot follow. Distance: witness-backed upper bound d <= 5 both sides, held at 500k RIS trials/side across three seeds. Model: GLM 5.3 Flash."
+ },
+ "family": "topological",
+ "locality": {
+  "coordinates": [
+   [
+    0.0,
+    2.0
+   ],
+   [
+    0.0,
+    4.0
+   ],
+   [
+    1.0,
+    2.0
+   ],
+   [
+    1.0,
+    4.0
+   ],
+   [
+    2.0,
+    0.0
+   ],
+   [
+    2.0,
+    2.0
+   ],
+   [
+    2.0,
+    4.0
+   ],
+   [
+    2.0,
+    6.0
+   ],
+   [
+    3.0,
+    0.0
+   ],
+   [
+    3.0,
+    2.0
+   ],
+   [
+    3.0,
+    4.0
+   ],
+   [
+    3.0,
+    6.0
+   ],
+   [
+    4.0,
+    0.0
+   ],
+   [
+    4.0,
+    2.0
+   ],
+   [
+    4.0,
+    4.0
+   ],
+   [
+    4.0,
+    6.0
+   ],
+   [
+    4.0,
+    8.0
+   ]
+  ],
+  "layers": 1,
+  "interaction_radius": 3.605551275463989
+ }
+}

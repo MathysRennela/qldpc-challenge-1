@@ -36,6 +36,23 @@ def _matrix(supports, n):
     return H
 
 
+def _osd_order(H, want):
+    """OSD order clamped to the redundancy k = n - rank(H); see issue #1616."""
+    A = np.asarray(H.todense() if hasattr(H, "todense") else H,
+                   dtype=np.uint8).copy() % 2
+    rank, rows = 0, A.shape[0]
+    for col in range(A.shape[1]):
+        piv = next((r for r in range(rank, rows) if A[r, col]), None)
+        if piv is None:
+            continue
+        A[[rank, piv]] = A[[piv, rank]]
+        hit = np.nonzero(A[:, col])[0]
+        A[hit[hit != rank]] ^= A[rank]
+        rank += 1
+    return max(0, min(want, A.shape[1] - rank))
+
+
+
 def _side(Hcheck, Lopp, n, weights, trials, seed, max_seconds=None):
     """Min residual logical weight from decoder failures (one Pauli sector).
     Errors of weight in `weights` are injected; Hcheck detects them; Lopp is the
@@ -43,10 +60,14 @@ def _side(Hcheck, Lopp, n, weights, trials, seed, max_seconds=None):
     Stops after `trials` or `max_seconds` wall-clock (keeps the CI gate bounded)."""
     import time
     rng = np.random.default_rng(seed)
+    # Same clamp as verify/ler_tools: ldpc 2.4.1 writes osd_order entries into
+    # an array of size k = n - rank(H), so an order above k corrupts the heap
+    # (#1616). A no-op wherever k >= OSD_ORDER.
+    order = _osd_order(Hcheck, OSD_ORDER)
     decs = {w: BpOsdDecoder(Hcheck, error_rate=min(0.4, max(1e-3, w / n)),
                             max_iter=30, bp_method="minimum_sum",
                             ms_scaling_factor=0.625, osd_method="osd_cs",
-                            osd_order=OSD_ORDER) for w in weights}
+                            osd_order=order) for w in weights}
     best, wit = n + 1, None
     deadline = (time.monotonic() + max_seconds) if max_seconds else None
     for t in range(trials):

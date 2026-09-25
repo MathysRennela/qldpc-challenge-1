@@ -1,0 +1,25 @@
+{
+ "name": "[[60,6,9]]",
+ "d": 9,
+ "solver": "CryptoMiniSat 5.14 SAT",
+ "encoding": "selector",
+ "sides": {
+  "X": {
+   "value": 9,
+   "exact": true,
+   "status": "UNSAT",
+   "secs": 0.7,
+   "note": "no logical < 9 exists"
+  },
+  "Z": {
+   "value": 9,
+   "exact": true,
+   "status": "UNSAT",
+   "secs": 3.8,
+   "note": "no logical < 9 exists"
+  }
+ },
+ "tlim_per_solve": 120,
+ "symmetry": true,
+ "d_exact": true
+}

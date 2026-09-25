@@ -65,6 +65,22 @@ def dem_probs(dem):
             if inst.type == "error"]
 
 
+def _osd_order(H, want):
+    """OSD order clamped to the redundancy k = n - rank(H); see issue #1616."""
+    A = np.asarray(H, dtype=np.uint8).copy() % 2
+    rank, rows = 0, A.shape[0]
+    for col in range(A.shape[1]):
+        piv = next((r for r in range(rank, rows) if A[r, col]), None)
+        if piv is None:
+            continue
+        A[[rank, piv]] = A[[piv, rank]]
+        hit = np.nonzero(A[:, col])[0]
+        A[hit[hit != rank]] ^= A[rank]
+        rank += 1
+    return max(0, min(want, A.shape[1] - rank))
+
+
+
 def make_decoder(H, probs):
     """The pinned BP+OSD decoder over H_dem with the DEM's own channel prior.
 
@@ -74,11 +90,16 @@ def make_decoder(H, probs):
     """
     from ldpc import BpOsdDecoder
     from scipy.sparse import csr_matrix
-    return BpOsdDecoder(csr_matrix(np.asarray(H, dtype=np.uint8)),
+    Hm = np.asarray(H, dtype=np.uint8)
+    # ldpc 2.4.1 does not validate osd_order against the redundancy
+    # k = n - rank(H): osd_setup writes osd_candidate[i] = 1 for i < osd_order
+    # into an array of size k, so an order above k corrupts the heap. Clamping
+    # is a no-op wherever k >= 10 and leaves failure counts unchanged (#1616).
+    return BpOsdDecoder(csr_matrix(Hm),
                         error_channel=list(map(float, probs)),
                         max_iter=30, bp_method="minimum_sum",
                         ms_scaling_factor=0.625, osd_method="osd_cs",
-                        osd_order=10)
+                        osd_order=_osd_order(Hm, 10))
 
 
 _WORKER = {}

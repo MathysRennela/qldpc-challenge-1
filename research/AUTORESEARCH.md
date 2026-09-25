@@ -168,6 +168,49 @@ The `trials` value is backend-specific: NumPy iterations and fast RIS samples ar
 not comparable screening budgets. All screening values remain upper bounds, and
 finalists must still pass the validation gate.
 
+### 3b. Spend the ladder wisely: the escalation gate (optional)
+
+Deep confirmation is the bottleneck
+(`../fieldnotes/2026-07-01-confirmation-is-the-bottleneck.md`), and a screen
+artifact chased too far is how it gets wasted
+(`../fieldnotes/2026-09-20-screening-traps-at-n-900.md`: 5.3M trials on a
+ladder whose first fresh deep rungs had already settled below the bar).
+`kit/escalation.py` is the rung-boundary gate against exactly that: at each
+ladder rung it weighs *promote to the next depth / hold and re-run fresh
+seeds / abandon this ladder*.
+
+The division of labor is strict, and mirrors the gate discipline above:
+
+```python
+from escalation import rung_brief, apply_verdict, append_journal
+brief = rung_brief(n, k, rungs=[(20_000, 22), (100_000, 20)],
+                   bar=106.11, family="pair-partition", spec={"P": 113},
+                   next_rung_trials=1_000_000, budget_remaining=8_000_000)
+# make the jev_decide call from brief["jev_request"] (the agent harness does
+# this; the kit itself stays offline), then enforce it:
+decision = apply_verdict(brief, verdict)
+append_journal(decision, brief, path="research/candidates/escalation.jsonl")
+```
+
+- `rung_brief` computes the facts deterministically from the ladder (best
+  bound, flat fresh-seed rungs, efficiency vs the cell bar, budget), and
+  formats the `jev_decide` request.
+- The judgment model weighs them; **`apply_verdict` owns the policy in code**.
+  The default is hold. Abandon is honored only when the ladder proves it safe:
+  best bound already below the bar, two fresh rungs flat at that bound, and no
+  frontier flag. A still-descending ladder can never be abandoned — the
+  screen-to-settled inflation is unbounded. Missing, malformed, escaped, or
+  low-confidence verdicts hold.
+- A hold destroys nothing: every rung reading is a witnessed low-weight
+  logical, and upper bounds stay valid whatever the gate says.
+- Jev verdicts are advisory model output, **not repo evidence**: they live in
+  the staging journal (gitignored), never in notes, fieldnotes, or PR bodies.
+
+Skipping the gate is always sound — it changes where trial budget goes, never
+what can be claimed. To evaluate it, run one campaign with the gate and one
+without, and compare trials-spent-to-abandon against the flat-settled point
+(the 2026-09-20 metric) on the same families.
+
 ## 4. Package a submission
 
 `submit.py` turns `(HX, HZ)` plus a little provenance into a schema-valid submission. It
@@ -190,7 +233,7 @@ doc = make_submission(
 `family` is a filterable Layer-2 tag, never ranked. You do **not** declare which tracks you
 enter: the verifier computes primary-track membership (the weight and locality classes) from `H`
 and the layout. To enter the `2d-local-*` tracks, give the code a layout — pass
-`coordinates=[[x,y], ...]` (one per qubit) and `layers=`; `submit.py` fills the `locality` block
+`coordinates=[[x,y], ...]` or `[[x,y,z], ...]` (one per qubit) and `layers=`; `submit.py` fills the `locality` block
 and computes the interaction radius, and the verifier derives the locality class from it.
 
 ## 5. Validate with the gate (do not skip)
@@ -277,8 +320,10 @@ should not have to re-learn.
 | `kit/coset.py` | `build_coset` + `subgroup_closure`, `left_cosets`, `normalizer` |
 | `kit/surrogate.py` | `distance_rand`, `lightest_logical` (witnesses), `mixed_volume` (k upper bound) |
 | `kit/search.py` | `screen`, `pareto_frontier`, `update_leaderboard` (the funnel) + samplers: `sample_bb`, `sample_dihedral`, `sample_metacyclic`, `sample_kasai_affine` |
+| `kit/escalation.py` | `rung_brief`, `apply_verdict`, `append_journal` — the rung-boundary escalation gate (step 3b): deterministic ladder facts + fenced judgment-model verdict; advisory only, never repo evidence |
 | `kit/submit.py` | `make_submission`, `save_submission`, `validate` |
 | `kit/distance.py` | `exact_distance` (MILP, `d=`), `decoder_distance` (BP+OSD) — needs the `research` extra |
+| `kit/census_css.py` | exhaustive small CSS-code census up to qubit permutations and global X/Z swap; exact distance uses the trusted SAT certifier and needs the `research` extra |
 | `local2d/planar.py` | fast greedy open-boundary builder, exact planar distance (scipy MILP), `grid_coordinates` for the bilayer layout |
 | `local2d/boundary_engine.py` | the general open-boundary construction (`build_planar`), `reduce_weights`, `graft_r1`/`graft_r1_safe` (qubit removal) |
 | `local2d/transfer.py` | `distance_slope`: predict d(L) scaling from (f, g) before building large lattices |

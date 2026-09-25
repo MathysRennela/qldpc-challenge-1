@@ -1,0 +1,18 @@
+{
+ "name": "[[80,20,5]] 2BGA",
+ "d": 5,
+ "solver": "scipy/HiGHS MILP",
+ "sides": {
+  "X": {
+   "value": 5,
+   "exact": true,
+   "note": "no logical < 5 exists"
+  },
+  "Z": {
+   "value": 5,
+   "exact": true,
+   "note": "no logical < 5 exists"
+  }
+ },
+ "d_exact": true
+}

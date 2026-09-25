@@ -96,6 +96,14 @@ as an optional review step — the working-tree check proves nothing about what 
 A note named `<n>-<k>-<d>.md` must state its own `[[n,k,d]]` first. Follow
 `notes/TEMPLATE.md`; its sections are what a later searcher reads.
 
+**Attribution is checked, not assumed.** A fieldnote ADDED by a PR must credit
+the PR author's own GitHub handle in its frontmatter `author:` line — CI passes
+`--pr-author` to `check_prose.py` and fails on a missing or mismatched handle
+(the 2026-09-23 escalation-gate note shipped with someone else's handle; this
+closes that hole). Locally, reproduce it with
+`PR_AUTHOR=<your-login> verify/prepush_prose_check.sh <body.md>`. Modifying
+someone else's existing note is exempt.
+
 ## Working on the repo itself
 
 - `verify/` is the trust anchor and is hash-pinned in CI (`verify/check_validator_integrity.py`).

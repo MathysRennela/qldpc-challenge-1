@@ -1,0 +1,90 @@
+{
+  "schema_version": "0.1",
+  "name": "[[4,2,2]] rotated toric code (2x2 torus)",
+  "code_type": "CSS",
+  "n": 4,
+  "k": 2,
+  "checks": {
+    "X": [
+      [
+        0,
+        1,
+        2,
+        3
+      ],
+      [
+        0,
+        1,
+        2,
+        3
+      ]
+    ],
+    "Z": [
+      [
+        0,
+        1,
+        2,
+        3
+      ],
+      [
+        0,
+        1,
+        2,
+        3
+      ]
+    ]
+  },
+  "distance": {
+    "d": 2,
+    "X": {
+      "value": 2,
+      "confidence": "upper_bound",
+      "witness": [
+        0,
+        3
+      ]
+    },
+    "Z": {
+      "value": 2,
+      "confidence": "upper_bound",
+      "witness": [
+        0,
+        3
+      ]
+    }
+  },
+  "provenance": {
+    "authors": [
+      "@mathysrennela"
+    ],
+    "construction": "Rotated toric code on the periodic 2x2 lattice: all plaquette checks, (i+j) even -> X; distance 2 (cycle lengths).",
+    "references": [
+      "arXiv:quant-ph/9707021"
+    ],
+    "date": "2026-09-20",
+    "notes": "Rotated surface/toric ladder fill: standard topological configuration, distance exact by construction (a row or column of plaquettes is a weight-d logical; none lighter exists). Staged for review; novelty vs the wider literature unverified beyond the cited family origin."
+  },
+  "family": "topological",
+  "locality": {
+    "coordinates": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0
+      ],
+      [
+        1.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    "interaction_radius": 1.4142135623730951,
+    "layers": 1
+  }
+}

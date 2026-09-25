@@ -1,0 +1,25 @@
+{
+ "name": "[[96,20,8]]",
+ "d": 8,
+ "solver": "CryptoMiniSat 5.14 SAT",
+ "encoding": "selector",
+ "sides": {
+  "X": {
+   "value": 8,
+   "exact": true,
+   "status": "UNSAT",
+   "secs": 46.2,
+   "note": "no logical < 8 exists"
+  },
+  "Z": {
+   "value": 8,
+   "exact": true,
+   "status": "UNSAT",
+   "secs": 48.3,
+   "note": "no logical < 8 exists"
+  }
+ },
+ "tlim_per_solve": 120,
+ "symmetry": false,
+ "d_exact": true
+}

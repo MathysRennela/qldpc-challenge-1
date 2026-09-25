@@ -1,0 +1,18 @@
+{
+ "name": "[[96,22,6]] 2BGA",
+ "d": 6,
+ "solver": "scipy/HiGHS MILP",
+ "sides": {
+  "X": {
+   "value": 6,
+   "exact": true,
+   "note": "no logical < 6 exists"
+  },
+  "Z": {
+   "value": 6,
+   "exact": true,
+   "note": "no logical < 6 exists"
+  }
+ },
+ "d_exact": true
+}

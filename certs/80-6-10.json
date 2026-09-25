@@ -1,0 +1,25 @@
+{
+ "name": "[[80,6,10]]",
+ "d": 10,
+ "solver": "CryptoMiniSat 5.14 SAT",
+ "encoding": "selector",
+ "sides": {
+  "X": {
+   "value": 10,
+   "exact": true,
+   "status": "UNSAT",
+   "secs": 14.6,
+   "note": "no logical < 10 exists"
+  },
+  "Z": {
+   "value": 10,
+   "exact": true,
+   "status": "UNSAT",
+   "secs": 19.9,
+   "note": "no logical < 10 exists"
+  }
+ },
+ "tlim_per_solve": 120,
+ "symmetry": false,
+ "d_exact": true
+}
