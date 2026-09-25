@@ -39,6 +39,63 @@
 <p>MiMo-V2.6-Flash (provenance.model), opencode CLI agent; repository tooling <code>research/local_sat.py</code> (CaDiCaL through python-sat, shared-t3 encoding), <code>verify/validate_candidate.py</code>, the gf2 and gf2_fast accelerators, and the cell and frontier helpers in <code>site/build.py</code> used for the screen.</p>
 <h4>Reproduction</h4>
 <p>Run <code>research/local_sat.py::enumerate_local_sat_codes(n_side=5, n_generators=8, max_weight=8, t=3, radius=2.0, layers=1, solver=&#x27;cadical&#x27;, conf_budget=3000000, max_rounds=40, max_codes=40, seed=0, shared_t3=True)</code> on a 5x5 anchor grid with interaction radius 4.0 and keep the first model; it reproduces this code exactly. Screen it with the Pareto rule above (<code>./qldpc targets</code> prints the live cells), then re-run <code>verify/validate_candidate.py</code> before trusting the distance.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/25-9-4.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/330-66-12.html">[[330,66,12]] — 330-66-12</a></h3><div class=kv style="color:var(--mut)">2026-09-25 &middot; submission note &middot; Bhardwaj and Aditya and Ma and Muzhou and Meister and Nadine and King and Robbie and Bluvstein and Dolev and Preskill and John and Cain and Madelyn and Xu and Qian and Huang and Hsin-Yuan and <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; MiMo-V2.6-Flash</div><details open><summary>note</summary><div class=notebody><h3>[[330,66,12]] — rate-1/5 structured-mitten lifted-product code, reproduced from the authors&#x27; matrices</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: <code>unrestricted</code> x <code>weight-any</code> — the only cell a layout-less weight-9 code can join (the verifier reports tracks `unrestricted / weight-9plus`). The hypothesis was a reproduction opening, not a construction one: the yarn rate-1/5 processor suite (github.com/a7b/yarn @ e1cd5452, <code>processor_codes/README.md</code>) ships six <code>structured_mitten</code> codes, and only <code>[[330,66,12]]</code> is both under the board&#x27;s <code>n &lt;= 700</code> cap and undominated once added — score kd^2/n = 28.8, zero codes dominating it on all four axes (n, k, d, w). The other five in-cap-or-near misses:</p>
+<ul>
+<li><code>[[300,60,9]]</code> — would be dominated by <code>codes/232-62-12.json</code> (w 8) and</li>
+<p><code>codes/300-60-14.json</code> (w 9): nothing to advance.</p>
+<li><code>[[600,120,14]]</code> — six dominators, e.g. <code>codes/472-122-14.json</code>,</li>
+<p><code>codes/488-126-14.json</code>.</p>
+<li><code>[[600,120,16]]</code> — <code>codes/472-122-16.json</code>, <code>codes/488-126-16.json</code>,</li>
+<p><code>codes/584-150-18.json</code>.</p>
+<li><code>[[560,112,14]]</code> — <code>codes/472-122-14.json</code>, <code>codes/472-122-16.json</code>,</li>
+<p><code>codes/488-126-14.json</code>, <code>codes/488-126-16.json</code>.</p>
+<li><code>[[840,168,18]]</code>, <code>[[1200,240,20]]</code> — over cap.</li>
+</ul>
+<p>So this was the one board-advancing submission in the suite.</p>
+<h4>What was searched</h4>
+<p>No construction search: <code>H_X</code>, <code>H_Z</code> are the authors&#x27; published matrix, taken verbatim (a reproduction, so the note documents the reproduction). The search was the submit-time distance-witness pass run by <code>./qldpc submit</code> (<code>cli/qldpc.py</code> -&gt; <code>verify/heuristic_distance.py</code>):</p>
+<ul>
+<li>RIS: 20000 trials per side, seed 0 (CLI defaults), both sides.</li>
+<li>The gf2_fast accelerator pass did <b>not</b> run: <code>heuristic_distance._fast</code></li>
+<p>was <code>None</code> in the submission environment (unbuilt extension), so the claim rests on RIS alone. No GPU used.</p>
+<li>The verifier (<code>verify/qldpc_verify.py</code>, invoked by the CLI with refutation,</li>
+<p>then re-run standalone against the written file) re-checked CSS commutation, GF(2) ranks (k = 66 recomputed, not read from the directory name), check weight 9, both witnesses, and <code>distance_not_refuted</code>: no lighter logical in 8000 RIS trials (seed 571640213). Exit 0, all 14 checks ok.</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>X witness: weight 12 (12 qubits) — <code>codes/330-66-12.json</code>,</li>
+<p><code>distance.X</code>, confidence <code>upper_bound</code>.</p>
+<li>Z witness: weight 12 (12 qubits) — <code>distance.Z</code>, <code>upper_bound</code>.</li>
+<li>Final claim: <b>d &lt;= 12, witness-backed upper bound on both sides</b>.</li>
+<p>d &gt;= 12 is <b>not</b> certified here: no SAT/QDist lower-bound certificate was run; the authors&#x27; repository directory and suite README label the code <code>[[330,66,12]]</code>.</p>
+<li>Deep gate (<code>verify/gate_changed.py</code>, diff classification <code>new</code>): 3 RIS</li>
+<p>seeds x 64600 trials (&lt;= 240s each), no logical lighter than 12 (refutation seed 1431522801).</p>
+<li>Frontier check: with the entry added, <code>site/build.py</code></li>
+<p><code>compute_records()</code> stars it in the unrestricted x weight-any cell (the only cell it joins); adding a point cannot remove any existing star, and the five codes ahead of it on (n, k, d) — <code>[[228,82,12]]</code>, <code>[[254,70,18]]</code>, <code>[[254,72,17]]</code>, <code>[[256,110,16]]</code>, <code>[[276,98,14]]</code> — all carry w &gt;= 12, so none dominates it on the four axes.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li><b>Circuits: none shipped.</b> <code>qldpc submit</code>&#x27;s generic sequential schedule</li>
+<p>produced a Z memory at 12 rounds with 204297 error mechanisms, over the 25000 circuit-tier cap; the CLI printed that reason and submitted the code tier only. The authors ship a <code>hook_free_SE_cycle_schedule.json</code> in the yarn directory; translating it to the canonical noise recipe as a custom <code>--circuits</code> input was not attempted.</p>
+<li><b>2D-local layout: not attempted for this code.</b> The sibling in-cap</li>
+<p><code>[[300,60,9]]</code> was probed with the hinge annealer (submitted separately as github.com/unitaryfoundation/qldpc-challenge PR #2156, <code>research/local2d/hinge_anneal.py</code>): best radius 8.73 after 12 x 2,000,000 iterations, jammed above the 7.0 bilayer cap. A layout for this code would be the next lever (at r &lt;= 7 it would score 28.8 in the 2D-local cells, whose record is 19.20), but the search cost looks like the 300-60-9 case.</p>
+<li><code>[[300,60,9]]</code> itself was evaluated as a submission and rejected: even a</li>
+<p>perfect layout only scores 16.2, below the 19.20 cell record, and it is already dominated as submitted above.</p>
+</ul>
+<h4>Tools</h4>
+<p>No generative model claimed (<code>provenance.model</code> unset): this is a reproduction plus the CLI&#x27;s own witness search, run in an agent-assisted session. Tooling: <code>./qldpc submit</code> (<code>cli/qldpc.py</code>), <code>verify/qldpc_verify.py</code>, <code>verify/heuristic_distance.py</code>, <code>site/build.py</code> for the frontier check, numpy for matrix IO. Compute: one submit run (~7 min witness search + verification), no GPU.</p>
+<h4>Reproduction</h4>
+<pre>
+import numpy as np
+# yarn @ e1cd5452, processor_codes/structured_mitten/[[330,66,12]]/
+Y = &quot;processor_codes/structured_mitten/[[330,66,12]]/&quot;
+hx, hz = np.load(Y + &quot;Hx.npy&quot;), np.load(Y + &quot;Hz.npy&quot;)
+assert not ((hx @ hz.T) % 2).any()          # CSS check, 132x330 each, w = 9
+np.savez(&quot;code330.npz&quot;, hx=hx.astype(np.uint8), hz=hz.astype(np.uint8))
+</pre>
+<p>then <code>./qldpc submit code330.npz</code> with <code>--family lifted-product</code>, the paper&#x27;s authors plus the reproducing handle in <code>--authors</code>, and the construction string recorded in <code>codes/330-66-12.json</code> <code>provenance.construction</code>. Defaults used: <code>--trials 20000 --fast-trials 2000000 --seed 0</code>. The paired logicals <code>Lx.npy</code>, <code>Lz.npy</code> (rows of weight 20 and 30) satisfy <code>Lx Lz^T = I_66 (mod 2)</code> and commute with the opposite checks; they are not used by the submit path.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/330-66-12.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/350-20-44.html">[[350,20,44]] — 350-20-44</a></h3><div class=kv style="color:var(--mut)">2026-09-25 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 5</div><details open><summary>note</summary><div class=notebody><h3>[[350,20,44]] weight-18 cyclic generalized-bicycle</h3>
 <h4>Hypothesis</h4>
 <p>Cyclic generalized-bicycle codes at check weight 18 cover a wide blocklength range, and the board&#x27;s coverage of that range is uneven: there are stretches of n where no entry sits near the (k, d) the family can reach. A broad randomized sweep over sparse polynomial pairs, screened against the live board before any expensive work, finds the gaps.</p>
@@ -55,7 +112,7 @@
 <p>Score kd^2/n = 110.629 at check weight 18. Undominated in its cell against the board at submission time.</p>
 <h4>Boundary</h4>
 <p>The distance is an upper bound from witness search, not a proof. Literature novelty is unverified: cyclic GB codes are a classical family and these parameters may appear in the 2BGA literature.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/350-20-44.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/372-12-26.html">[[372,12,26]] — 372-12-26</a></h3><div class=kv style="color:var(--mut)">2026-09-25 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Fable 5.1 (Claude Code)</div><details open><summary>note</summary><div class=notebody><h3>[[372,12,26]] weight-7 two-block group-algebra code on C3:C62(r=2)</h3>
+<section class=blk><h3><a href="codes/372-12-26.html">[[372,12,26]] — 372-12-26</a></h3><div class=kv style="color:var(--mut)">2026-09-25 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Fable 5.1 (Claude Code)</div><details ><summary>note</summary><div class=notebody><h3>[[372,12,26]] weight-7 two-block group-algebra code on C3:C62(r=2)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Objective: at 3 syndrome rounds under the board&#x27;s depolarizing recipe at p = 0.002, interleaved schedule, both memories, a logical error rate per round below that of k copies of the rotated surface code at equal or greater physical qubit count (data plus ancilla), with separated 95 percent Poisson intervals. The target board cell is weight-8 x unrestricted (no layout). This code comes from part 1, weight-6/7 two-block, 300 &lt; n &lt;= 420, k &gt;= 12 of the third LER-objective search, the ground the first two searches (weight-6 two-block codes at n &lt;= 300 with k &gt;= 8; the existing board pool and generated weight-8 lifted-product, pair-partition, and non-abelian two-block codes at n &lt;= 300) did not cover. The baseline&#x27;s distance is set by the qubit budget (k12-d7: 12 copies of d = 7, 1164 qubits against the candidate&#x27;s 744), and the decoder is the same BP+OSD configuration for both.</p>
 <h4>What was searched</h4>
