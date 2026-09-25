@@ -4703,13 +4703,14 @@
   "authors": [
    "@mathysrennela"
   ],
-  "origin": "submission",
   "construction": "Bivariate bicycle on Z_7 x Z_41. n=574 divisible by [3] (Mersenne/outlier prime). arXiv:2502.17052v4 divisibility condition.",
+  "origin": "submission",
+  "date": "2026-09-15",
   "references": [
    "arXiv:2502.17052v4",
    "arXiv:2308.07915"
   ],
-  "date": "2026-09-15",
+  "model": "MiMo-V2.6-Flash",
   "notes": "Found by the autoresearch-bb-mersenne bivariate-bicycle campaign (2026-09-15); submitted by @mathysrennela. Board screen before submission: exact_duplicate_of null, wl_equivalent_of null, non-dominated on (n, k, d, w) in unrestricted x weight-6, dominates 4 existing entries, dominated by none."
  },
  "family": "bivariate-bicycle"
