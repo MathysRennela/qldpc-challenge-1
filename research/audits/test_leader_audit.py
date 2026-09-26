@@ -335,7 +335,7 @@ def _pair_args(candidate, peers, seeds=(1,), witness_dir=None):
 
 
 def _write(tmp_path, name, d):
-    """A fixture-shaped entry whose claimed distance is d."""
+    """Write a fixture-shaped entry whose claimed distance is d."""
     doc = json.loads(json.dumps(FIXTURE))
     doc["distance"] = {"d": d, "X": {"value": d}, "Z": {"value": d}}
     path = tmp_path / name

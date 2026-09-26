@@ -427,7 +427,7 @@ DECISION_INCONCLUSIVE = "inconclusive: neither claim was reached at this depth -
 
 
 def decide(candidate, peers):
-    """The pair audit's verdict, from the two measured claims.
+    """Return the pair audit's decision, from the two measured claims.
 
     Order is deliberate: a candidate whose own number came down is dropped even
     when the peer is also soft, because packaging it is still the wrong move.
