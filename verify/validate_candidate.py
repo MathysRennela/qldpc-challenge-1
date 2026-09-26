@@ -31,6 +31,9 @@ The gate, per candidate (a schema-shaped submission ``doc``):
               novelty is out of scope here). A win whose only strict axis is d,
               over a board entry equal in n, k and w, is also reported as
               ``d_only_gain`` together with ``d_only_peers``, the entries it beat.
+              The label names those peers whenever the candidate beats one of
+              them on d alone -- even if it gained on another axis over a
+              different entry -- and tells you to re-measure at matched depth.
 
 ``passed`` is True iff the verifier accepts it (structure + witnesses), it is not
 refuted, and it is not an exact board duplicate. Novelty is a label, not a pass
@@ -191,10 +194,14 @@ def validate_candidate(doc, *, seed=None, refute=True):
     board_advancing = None if exact_dup else not dominators
     # Which axes does the candidate beat the board on? A construction fixes n, k
     # and w, so the only axis left to gain on is d -- and d is a witness-backed
-    # upper bound, so it is the axis most likely to be too high. A win that is
-    # d-only over an entry equal in n, k and w gets its own label naming that
-    # entry, because both numbers have to be re-measured at the same depth
-    # before the gain means anything.
+    # upper bound, so it is the axis most likely to be too high. Two questions,
+    # deliberately kept apart: does the board yield on nothing but d
+    # (d_only_gain, true only when every strict axis is d), and is any single
+    # entry beaten on nothing but d (d_only_peers). The second one drives the
+    # label, because the win over THAT entry is suspect even when the candidate
+    # legitimately gained on another axis over some third entry -- the label is
+    # where the instruction to re-measure lives, so it must not go quiet just
+    # because the candidate is also good somewhere else.
     advances_by = sorted({ax for _, gains, _ in dominated for ax in gains})
     d_only_peers = [desc for _, gains, desc in dominated if gains == ["d"]]
     d_only_gain = bool(board_advancing) and advances_by == ["d"]
@@ -207,12 +214,20 @@ def validate_candidate(doc, *, seed=None, refute=True):
         verdict["labels"].append(
             "novelty not assessed: this code is already on the board "
             f"as {exact_dup}")
-    elif d_only_gain:
-        verdict["labels"].append(
-            f"advances the {wc} x {lc} board ONLY on d over "
-            f"{', '.join(d_only_peers)}: distance is the suspect axis; re-measure "
-            "the peer and this candidate at matched depth "
-            "(research/audits/leader_audit.py pair) before packaging")
+    elif board_advancing and d_only_peers:
+        peers = ", ".join(d_only_peers)
+        if d_only_gain:
+            verdict["labels"].append(
+                f"advances the {wc} x {lc} board ONLY on d over {peers}: "
+                "distance is the suspect axis; re-measure the peer and this "
+                "candidate at matched depth "
+                "(research/audits/leader_audit.py pair) before packaging")
+        else:
+            verdict["labels"].append(
+                f"advances the {wc} x {lc} board on {', '.join(advances_by)}; "
+                f"its gain over {peers} is d-only: distance is the suspect "
+                "axis; re-measure the peer and this candidate at matched depth "
+                "(research/audits/leader_audit.py pair) before packaging")
     else:
         verdict["labels"].append(
             f"advances the {wc} x {lc} board" if board_advancing

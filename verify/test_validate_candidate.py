@@ -159,6 +159,26 @@ def main():
         check("generic advance label",
               any(x == "advances the weight-6 x unrestricted board" for x in vd2["labels"]))
 
+        # Two peers at once: one beaten on d alone, one on d and k. The whole
+        # advance is no longer d-only, but the win over the first peer still
+        # rests on a suspect axis alone, so the instruction must still print.
+        V._board_entries = lambda: [peer(4, 5), peer(3, 5)]
+        vd4 = V.validate_candidate(good, seed=SEED, refute=False)
+        nov4 = vd4["gates"]["novelty"]
+        check("a structural win elsewhere does NOT clear the d-only flag",
+              nov4["d_only_gain"] is False
+              and nov4["advances_by"] == ["d", "k"])
+        check("the d-only peer is still listed",
+              nov4["d_only_peers"] == [f"[[{n},{good['k']},5]] w={w6} peer-4-5.json"])
+        label4 = next((x for x in vd4["labels"] if "advances the" in x), "")
+        check("label still names the advance",
+              label4.startswith("advances the weight-6 x unrestricted board on d, k"))
+        check("label still hands back the peer to re-measure",
+              "peer-4-5.json" in label4 and "suspect axis" in label4
+              and "matched depth" in label4)
+        check("still passes (the flag is a label, not a pass condition)",
+              vd4["passed"])
+
         V._board_entries = lambda: [peer(4, 9)]            # board entry dominates
         vd3 = V.validate_candidate(good, seed=SEED, refute=False)
         check("dominated -> no advance, no d-only flag",

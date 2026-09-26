@@ -367,7 +367,7 @@ def test_pair_redirects_when_the_board_peer_is_the_soft_one(monkeypatch, entry, 
     That is the finding worth acting on: the board number moved, so the
     submission to make is the peer's distance revision, not the candidate.
     """
-    peer = _write(tmp_path, "peer.json", 6)   # claim 6, search finds 2 -> refuted
+    peer = _write(tmp_path, "peer.json", 6)  # claim 6, search finds 2 -> refuted
     monkeypatch.setattr(la, "ris", lambda *a, **k: (WITNESS[0], WITNESS[1], WITNESS[2], 0.0))
     rc = la.cmd_pair(_pair_args(entry, [peer]))
     out = capsys.readouterr().out
@@ -377,8 +377,8 @@ def test_pair_redirects_when_the_board_peer_is_the_soft_one(monkeypatch, entry, 
 
 def test_pair_drops_a_candidate_whose_own_claim_collides(monkeypatch, tmp_path, capsys):
     """The candidate comes down first: dropping it outranks any peer finding."""
-    candidate = _write(tmp_path, "cand.json", 6)   # claim 6, search finds 2 -> refuted
-    peer = _write(tmp_path, "peer.json", 6)        # also soft, but not the point
+    candidate = _write(tmp_path, "cand.json", 6)  # claim 6, search finds 2 -> refuted
+    peer = _write(tmp_path, "peer.json", 6)  # also soft, but not the point
     monkeypatch.setattr(la, "ris", lambda *a, **k: (WITNESS[0], WITNESS[1], WITNESS[2], 0.0))
     rc = la.cmd_pair(_pair_args(candidate, [peer]))
     out = capsys.readouterr().out
@@ -409,11 +409,11 @@ def test_select_peers_takes_only_equal_n_k_w_with_a_lower_d(monkeypatch, entry, 
     board.mkdir()
     doc = json.loads(json.dumps(FIXTURE))
     variants = {
-        "peer.json": {"n": 4, "k": 2, "d": 1},        # the d-only peer
-        "heavier.json": {"n": 4, "k": 2, "d": 3},     # not lower d: no gain over it
-        "other-n.json": {"n": 5, "k": 2, "d": 1},     # different n: not a d-only tie
-        "other-k.json": {"n": 4, "k": 1, "d": 1},     # different k: a structural win too
-        "weight-1.json": {"n": 4, "k": 2, "d": 1},   # different check weight
+        "peer.json": {"n": 4, "k": 2, "d": 1},  # the d-only peer
+        "heavier.json": {"n": 4, "k": 2, "d": 3},  # not lower d: no gain over it
+        "other-n.json": {"n": 5, "k": 2, "d": 1},  # different n: not a d-only tie
+        "other-k.json": {"n": 4, "k": 1, "d": 1},  # different k: a structural win too
+        "weight-1.json": {"n": 4, "k": 2, "d": 1},  # different check weight
     }
     for name, over in variants.items():
         variant = json.loads(json.dumps(doc))
@@ -428,6 +428,29 @@ def test_select_peers_takes_only_equal_n_k_w_with_a_lower_d(monkeypatch, entry, 
     assert peers == [str(board / "peer.json")], peers
 
 
+def test_peer_weight_comes_from_the_same_definition_as_the_candidate(monkeypatch, entry, tmp_path):
+    """A repeated check index cancels over GF(2), so both sides count it that way.
+
+    Weighing the candidate from its matrices and a peer from its raw JSON rows
+    gave two answers to one quantity, inside a function whose only job is an
+    equal-w comparison. The peer below ties the candidate on the raw distinct
+    index count (4) but its dense weight is 3, so it is not a weight peer.
+    """
+    board = tmp_path / "codes"
+    board.mkdir()
+    variant = json.loads(json.dumps(FIXTURE))
+    variant["distance"] = {"d": 1, "X": {"value": 1}, "Z": {"value": 1}}
+    variant["checks"] = {"X": [[0, 0, 1, 2, 3]], "Z": [[0, 0, 1, 2, 3]]}
+    (board / "repeat.json").write_text(json.dumps(variant))
+
+    _, _, HX, HZ, _ = la.load_entry(entry)
+    assert la._dense_weight(HX, HZ) == 4
+    assert la._doc_weight(variant) == 3  # the doc route, dense
+    assert len(set(variant["checks"]["X"][0])) == 4  # what the raw route counted
+    monkeypatch.setattr(la, "_CODES", str(board))
+    assert la.select_peers(entry) == []
+
+
 def test_decide_is_order_sensitive():
     """A collapsing candidate is dropped even when the peer is also soft."""
     cand = {"verdict": la.VERDICT_REFUTED}
@@ -435,8 +458,14 @@ def test_decide_is_order_sensitive():
     assert la.decide(cand, peer) == (la.DECISION_DROP, la.EXIT_REFUTED)
     assert la.decide({"verdict": la.VERDICT_HOLDS}, peer) == (la.DECISION_REDIRECT, la.EXIT_REFUTED)
     assert la.decide({"verdict": la.VERDICT_HOLDS}, [{"verdict": la.VERDICT_HOLDS}]) == (
-        la.DECISION_CREDIBLE, la.EXIT_OK)
+        la.DECISION_CREDIBLE,
+        la.EXIT_OK,
+    )
     assert la.decide({"verdict": la.VERDICT_HOLDS}, [{"verdict": la.VERDICT_INCONCLUSIVE}]) == (
-        la.DECISION_INCONCLUSIVE, la.EXIT_OK)
+        la.DECISION_INCONCLUSIVE,
+        la.EXIT_OK,
+    )
     assert la.decide({"verdict": la.VERDICT_INCONCLUSIVE}, [{"verdict": la.VERDICT_HOLDS}]) == (
-        la.DECISION_INCONCLUSIVE, la.EXIT_OK)
+        la.DECISION_INCONCLUSIVE,
+        la.EXIT_OK,
+    )

@@ -255,7 +255,11 @@ board entry can only beat it on `d` — and `d` is the one axis that is a witnes
 
 and the label `advances the <cell> board ONLY on d over <peer>: distance is the suspect
 axis`, assume **your** number is the soft one until a matched-depth measurement says
-otherwise. The board has been wrong this way before (`[[882,18,30]]`→29, `[[684,12,81]]`→66,
+otherwise. `d_only_gain` means the *whole* board advance was on `d`; `d_only_peers` is
+the list to act on, and it is non-empty even when the candidate also beat some other
+entry on `k` (the label then still names those peers, as
+`advances the <cell> board on d, k; its gain over <peer> is d-only: ...`).
+ The board has been wrong this way before (`[[882,18,30]]`→29, `[[684,12,81]]`→66,
 `[[396,10,39]]`→37 — `audits/README.md`), and chasing an inflated d is how a campaign
 ends with nothing.
 
