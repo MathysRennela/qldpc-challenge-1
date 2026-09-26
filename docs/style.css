@@ -323,6 +323,12 @@ font-size:11px;color:var(--mut);border:1px solid var(--ln);
 border-radius:999px;padding:0 7px;line-height:16px;
 font-variant-numeric:tabular-nums}
 .hexmark{color:var(--ac);vertical-align:-2px}
+/* (n, k, LER) frontier chip, on rows Pareto-best by measured
+   logical error rate; the frontier list above the board reuses .latestlist */
+.lerchip{display:inline-block;margin-left:7px;font-size:10px;line-height:1;
+padding:3px 6px;border-radius:5px;background:#ecfdf5;color:#065f46;
+border:1px solid #a7f3d0;vertical-align:2px;white-space:nowrap}
+.lerv{font-variant-numeric:tabular-nums;font-weight:600;min-width:5.5em}
 .novelty{display:inline-block;margin-left:7px;font-size:10px;line-height:1;
 padding:3px 6px;border-radius:5px;background:#fef3c7;color:#92400e;
 border:1px solid #fde68a;vertical-align:2px;white-space:nowrap}
@@ -652,7 +658,7 @@ border-radius:5px;padding:1px 6px;white-space:nowrap;text-decoration:none}
 @media(max-width:680px){.ref{flex-direction:column;gap:4px}
 .refkey{width:auto}}
 @media(max-width:880px){.how{grid-template-columns:1fr}}
-.latest{margin:40px 0 0}
+.latest{margin:40px 0 24px}
 .latestlist{list-style:none;margin:10px 0 0;padding:0;
 border:1px solid var(--ln);border-radius:12px;overflow:hidden}
 .latestlist li{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
