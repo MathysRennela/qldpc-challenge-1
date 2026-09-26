@@ -227,9 +227,11 @@
   "authors": [
    "@mathysrennela"
   ],
-  "construction": "Check deletion and degree-one r=1 removal from board [[40,10,4]]: drop qubits 19 and 31 plus one X and one Z stabilizer.",
+  "construction": "Check deletion and degree-one r=1 removal from board [[40,10,4]]: drop qubits 19 and 31 plus one X and one Z stabilizer; found and reconstructed by MiMo-V2.6-Flash.",
   "origin": "submission",
-  "date": "2026-09-26"
+  "date": "2026-09-26",
+  "model": "MiMo-V2.6-Flash",
+  "notes": "Found and reconstructed by MiMo-V2.6-Flash."
  },
  "locality": {
   "coordinates": [
