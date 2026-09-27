@@ -1163,6 +1163,30 @@ import sys; sys.path.insert(0, &quot;research/kit&quot;)
 from bb import build_bb
 HX, HZ = build_bb(l=70, m=3, A_terms=[[0, 0], [1, 1], [23, 0], [32, 1]], B_terms=[[0, 0], [7, 1], [45, 2], [66, 0]])
 </pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/420-18-26.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/476-6-30.html">[[476,6,30]] — 476-6-30</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/diogoff">@diogoff</a> &middot; GPT-6 Luna</div><details ><summary>note</summary><div class=notebody><h3>[[476,6,30]] — periodic bivariate-bicycle code</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: unrestricted / weight-6. The bivariate-bicycle family is heavily explored, so the search was a bounded attempt to find a medium-size, low-encoding-rate Pareto point rather than a claim of literature novelty.</p>
+<h4>What was searched</h4>
+<p>A pilot sampled 800 random weight-6 BB codes with l in [4,15], m in [3,14], and 100 &lt;= n = 2lm &lt;= 500 (seed 20260927). Candidates were screened with 500 fast RIS trials. Two promising pilot points, [[108,4,12]] and [[234,4,20]], were later checked more deeply; both passed code validation but were dominated on the board.</p>
+<p>The main sweep sampled 5,000 random pairs of weight-3 supports on tori with l in [4,18], m in [3,18], and 100 &lt;= n &lt;= 700 (seed 20260930). The adaptive fast-RIS ladder used 300, 1,500, and 5,000 trials, retaining candidates with screened kd^2/n &gt;= 9 or on the sampled Pareto frontier. It promoted 48 and then 41 candidates, spending 363,700 RIS trials versus 1,445,000 for a flat 5,000-trial screen of the same pool.</p>
+<h4>Evidence trail</h4>
+<p>The submitted code first screened at d &lt;= 32. A fresh 5,000,000-trial GPU RIS search per side (seed 20260930, pair depth 8) found weight-30 X and Z logicals; both supports were independently CPU-verified. The qldpc packaging pass at 20,000 NumPy trials plus 2,000,000 fast RIS trials found X &lt;= 30 and Z &lt;= 34; the deeper GPU run supplies the stronger Z &lt;= 30 witness stored in the submission. The distance claim is an upper bound, not an exact certification. The trusted candidate gate passed with a fresh 8,000-trial refutation search and reported a weight-6 unrestricted frontier advance.</p>
+<p>Near miss: [[540,4,40]] screened at 40, then fell to X = Z = 32 in a 5,000,000-trial GPU search. Its corrected point was dominated by [[528,4,34]] and [[540,8,32]]. The pilot [[234,4,20]] held at 20 on both sides through 3,000,000 GPU trials, but the validator found it dominated by [[204,4,20]] and [[224,6,20]].</p>
+<h4>Dead ends</h4>
+<p>The small pilot produced valid but dominated points. The larger sweep&#x27;s most optimistic score was also inflated: [[540,4,40]] lost eight distance units under deeper per-side search. The final candidate survived those deeper searches and the trusted gate, but its distance remains witness-backed only.</p>
+<h4>Tools</h4>
+<p>Search harness: <code>research/kit/search.py</code> (<code>sample_bb</code>, <code>screen_adaptive</code>) with <code>gf2_fast</code>; construction: <code>research/kit/bb.py</code>; deep confirmation: <code>verify/ris_gpu.py</code> on an NVIDIA TITAN X (Pascal); packaging and validation: <code>cli/qldpc.py</code> and <code>verify/validate_candidate.py</code>. GitHub Copilot in VS Code (model: GPT-6 Luna) assisted the search. No CPU-hour estimate was recorded.</p>
+<h4>Reproduction</h4>
+<pre>
+from bb import build_bb
+
+HX, HZ = build_bb(
+    17, 14,
+    [(5, 0), (9, 13), (9, 2)],
+    [(10, 13), (6, 10), (5, 11)],
+)
+</pre>
+<p>This is the periodic BB construction on Z_17 x Z_14 with H_X = [A | B] and H_Z = [B^T | A^T].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/476-6-30.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/50-2-7.html">[[50,2,7]] — 50-2-7</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[50,2,7]] — qecdb.org toric code, reconstructed from its H field</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Track cell <code>weight-4</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 674f22dad96c81d3c7c0bb80.</p>
