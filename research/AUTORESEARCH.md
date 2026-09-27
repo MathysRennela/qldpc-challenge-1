@@ -58,6 +58,12 @@ The verdict's `gates` block is your evidence; `labels` are what you show the hum
                  search.py (screen→rank)      with distance.py before promoting a standout
 ```
 
+If you were handed a campaign definition
+(`research/campaigns/<id>/campaign.json`, see
+[`campaigns/README.md`](campaigns/README.md)), load it first: its constraints
+bound the search below, and its `stopping` conditions, not the budget alone,
+end the run. It cannot weaken the gate. Without one, nothing below changes.
+
 0. **Read the shared record first**: `./qldpc recent` (new codes, research
    notes, fieldnotes), then the `fieldnotes/` entries touching your intended
    family — blocked routes and calibration findings live there, and repeating
