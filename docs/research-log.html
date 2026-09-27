@@ -3,7 +3,566 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
-<section class=blk><h3><a href="codes/216-8-16.html">[[216,8,16]] — 216-8-16</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/fullymiddleaged">@fullymiddleaged</a> &middot; Claude Opus 5.5</div><details open><summary>note</summary><div class=notebody><h3>[[216,8,16]] weight-6 bivariate bicycle code on Z_18 x Z_6 with a bilayer layout</h3>
+<section class=blk><h3><a href="codes/10-2-3-b.html">[[10,2,3]] — 10-2-3-b</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details open><summary>note</summary><div class=notebody><h3>[[10,2,3]] — qecdb.org toric code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-4</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 674f22cfd96c81d3c7c0bb7e.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[10,2,3]] at w = 4, record 674f22cfd96c81d3c7c0bb7e; qecdb description</li>
+<p>&quot;toric&quot;, database distance claim d = 3 (lower 3, upper 3).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 3 at deep2 → 3 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [0, 3, 6] and Z witness [5, 8, 9], both of weight 3.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 3</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 2 entries on n: 12-2-3.json, 14-2-3.json. Efficiency k d² / n = 1.80.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-4 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/674f22cfd96c81d3c7c0bb7e</code> (the API path <code>/api/codes/674f22cfd96c81d3c7c0bb7e</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/10-2-3-b.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/102-18-9.html">[[102,18,9]] — 102-18-9</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details open><summary>note</summary><div class=notebody><h3>[[102,18,9]] — qecdb.org 2BGA w=8 wa=4 wb=4 G=SmallGroup(51, 1); arXiv:2306.16400 code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-8</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 6a41415955928fd7347649b1.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[102,18,9]] at w = 8, record 6a41415955928fd7347649b1; qecdb description</li>
+<p>&quot;2BGA w=8 wa=4 wb=4 G=SmallGroup(51, 1); arXiv:2306.16400&quot;, database distance claim d = ? (lower ?, upper ?).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 9 at deep2 → 9 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [29, 45, 51, 60, 73, 80, 95, 96, 98] and Z witness [36, 50, 51, 69, 72, 80, 81, 85, 92], both of weight 9.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 9</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 1 entry on n: 144-18-9.json. Efficiency k d² / n = 14.29.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-8 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/6a41415955928fd7347649b1</code> (the API path <code>/api/codes/6a41415955928fd7347649b1</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/102-18-9.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/102-22-9.html">[[102,22,9]] — 102-22-9</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details open><summary>note</summary><div class=notebody><h3>[[102,22,9]] — qecdb.org 2BGA w=8 wa=4 wb=4 G=SmallGroup(51, 1); arXiv:2306.16400 code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-8</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 6a422a11d15d481af09df8a3.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[102,22,9]] at w = 8, record 6a422a11d15d481af09df8a3; qecdb description</li>
+<p>&quot;2BGA w=8 wa=4 wb=4 G=SmallGroup(51, 1); arXiv:2306.16400&quot;, database distance claim d = ? (lower ?, upper ?).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 9 at deep → 9 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [35, 41, 47, 54, 56, 67, 73, 80, 90] and Z witness [10, 18, 37, 38, 58, 73, 84, 93, 98], both of weight 9.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 9</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 2 entries on d, k, n: 128-21-8.json, 144-18-9.json. Efficiency k d² / n = 17.47.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-8 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/6a422a11d15d481af09df8a3</code> (the API path <code>/api/codes/6a422a11d15d481af09df8a3</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/102-22-9.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/112-20-9.html">[[112,20,9]] — 112-20-9</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[112,20,9]] — qecdb.org 2BGA w=8 wa=4 wb=4 G=SmallGroup(56, 8); arXiv:2306.16400 code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-8</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 6a41415955928fd7347649ac.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[112,20,9]] at w = 8, record 6a41415955928fd7347649ac; qecdb description</li>
+<p>&quot;2BGA w=8 wa=4 wb=4 G=SmallGroup(56, 8); arXiv:2306.16400&quot;, database distance claim d = ? (lower ?, upper ?).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 9 at deep2 → 9 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [16, 47, 51, 72, 73, 87, 89, 102, 111] and Z witness [3, 12, 28, 29, 40, 43, 85, 98, 105], both of weight 9.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 9</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 1 entry on k, n: 144-18-9.json. Efficiency k d² / n = 14.46.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-8 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/6a41415955928fd7347649ac</code> (the API path <code>/api/codes/6a41415955928fd7347649ac</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/112-20-9.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/116-2-15-b.html">[[116,2,15]] — 116-2-15-b</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[116,2,15]] — qecdb.org bivariate bicycle code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-6</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 6a9e4f39a1dc9c110d5c4e63.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[116,2,15]] at w = 6, record 6a9e4f39a1dc9c110d5c4e63; qecdb description</li>
+<p>&quot;bivariate bicycle&quot;, database distance claim d = 15 (lower 15, upper 15).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 15 at deep2 → 15 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [3, 9, 11, 16, 24, 27, 37, 50, 66, 67, 94, 98, 103, 106, 112] and Z witness [0, 7, 9, 28, 49, 64, 69, 77, 82, 89, 95, 96, 98, 102, 109], both of weight 15.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 15</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 1 entry on n: 118-2-15.json. Efficiency k d² / n = 3.88.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-6 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/6a9e4f39a1dc9c110d5c4e63</code> (the API path <code>/api/codes/6a9e4f39a1dc9c110d5c4e63</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/116-2-15-b.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/126-26-9.html">[[126,26,9]] — 126-26-9</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[126,26,9]] — qecdb.org 2BGA w=8 wa=4 wb=4 G=SmallGroup(63, 2); arXiv:2306.16400 code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-8</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 6a422a12d15d481af09df8a4.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[126,26,9]] at w = 8, record 6a422a12d15d481af09df8a4; qecdb description</li>
+<p>&quot;2BGA w=8 wa=4 wb=4 G=SmallGroup(63, 2); arXiv:2306.16400&quot;, database distance claim d = ? (lower ?, upper ?).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 9 at deep → 9 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [45, 54, 63, 66, 69, 77, 78, 104, 110] and Z witness [11, 21, 51, 72, 74, 76, 96, 114, 125], both of weight 9.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 9</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 2 entries on d, k, n: 128-21-8.json, 144-18-9.json. Efficiency k d² / n = 16.71.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-8 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/6a422a12d15d481af09df8a4</code> (the API path <code>/api/codes/6a422a12d15d481af09df8a4</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/126-26-9.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/128-22-10.html">[[128,22,10]] — 128-22-10</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[128,22,10]] — qecdb.org 2BGA w=8 wa=4 wb=4 G=SmallGroup(64, 26); arXiv:2306.16400 code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-8</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 6a41415955928fd7347649b9.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[128,22,10]] at w = 8, record 6a41415955928fd7347649b9; qecdb description</li>
+<p>&quot;2BGA w=8 wa=4 wb=4 G=SmallGroup(64, 26); arXiv:2306.16400&quot;, database distance claim d = ? (lower ?, upper ?).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 10 at deep → 10 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [28, 29, 41, 47, 52, 53, 64, 114, 117, 122] and Z witness [6, 50, 53, 57, 69, 74, 77, 105, 122, 127], both of weight 10.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 10</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 10 entries on d, k, n: 128-13-10.json, 128-21-8.json, 140-10-10.json, 144-16-10.json, 144-18-9.json, 161-12-10.json. Efficiency k d² / n = 17.19.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-8 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/6a41415955928fd7347649b9</code> (the API path <code>/api/codes/6a41415955928fd7347649b9</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/128-22-10.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/128-66-4.html">[[128,66,4]] — 128-66-4</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[128,66,4]] — qecdb.org hyperbolic_2d code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-8</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 67a4fc9c2444fbce9479181d.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[128,66,4]] at w = 8, record 67a4fc9c2444fbce9479181d; qecdb description</li>
+<p>&quot;hyperbolic_2d&quot;, database distance claim d = 4 (lower 4, upper 4).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 4 at deep → 4 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [34, 38, 113, 120] and Z witness [42, 46, 89, 98], both of weight 4.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 4</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 6 entries on d, k, n: 128-64-2.json, 136-52-2.json, 152-58-2.json, 162-54-3.json, 168-48-3.json, 176-46-4.json. Efficiency k d² / n = 8.25.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-8 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/67a4fc9c2444fbce9479181d</code> (the API path <code>/api/codes/67a4fc9c2444fbce9479181d</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/128-66-4.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/15-5-3.html">[[15,5,3]] — 15-5-3</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[15,5,3]] — qecdb.org hyperbolic_2d code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-6</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 67a4b0119edf81e4b7e670ac.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[15,5,3]] at w = 5, record 67a4b0119edf81e4b7e670ac; qecdb description</li>
+<p>&quot;hyperbolic_2d&quot;, database distance claim d = 3 (lower 3, upper 3).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 3 at deep2 → 3 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [0, 12, 13] and Z witness [1, 2, 3], both of weight 3.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 3</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 1 entry on k, n: 18-4-3.json. Efficiency k d² / n = 3.00.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-6 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/67a4b0119edf81e4b7e670ac</code> (the API path <code>/api/codes/67a4b0119edf81e4b7e670ac</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/15-5-3.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/17-1-5-c.html">[[17,1,5]] — 17-1-5-c</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[17,1,5]] — qecdb.org none code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-6</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 6705229319cca60cf657a8fe.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[17,1,5]] at w = 6, record 6705229319cca60cf657a8fe; qecdb description</li>
+<p>&quot;none&quot;, database distance claim d = 5 (lower 5, upper 5).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 5 at deep2 → 5 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [1, 2, 8, 14, 15] and Z witness [0, 6, 8, 10, 16], both of weight 5.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 5</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 1 entry on n: 19-1-5.json. Efficiency k d² / n = 1.47.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-6 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/6705229319cca60cf657a8fe</code> (the API path <code>/api/codes/6705229319cca60cf657a8fe</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/17-1-5-c.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/18-2-5-b.html">[[18,2,5]] — 18-2-5-b</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[18,2,5]] — qecdb.org none code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-8</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 6849a5e111ee4037d153b740.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[18,2,5]] at w = 7, record 6849a5e111ee4037d153b740; qecdb description</li>
+<p>&quot;none&quot;, database distance claim d = 5 (lower 5, upper 5).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 5 at deep2 → 5 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [2, 6, 8, 16, 17] and Z witness [1, 2, 3, 4, 8], both of weight 5.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 5</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 1 entry on w: 18-2-5.json. Efficiency k d² / n = 2.78.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-8 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/6849a5e111ee4037d153b740</code> (the API path <code>/api/codes/6849a5e111ee4037d153b740</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/18-2-5-b.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/20-2-6.html">[[20,2,6]] — 20-2-6</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[20,2,6]] — qecdb.org qumba.csscode.selfdual_random code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-8</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 672e6e9c34d5954e0cb7d1b7.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[20,2,6]] at w = 8, record 672e6e9c34d5954e0cb7d1b7; qecdb description</li>
+<p>&quot;qumba.csscode.selfdual_random&quot;, database distance claim d = 6 (lower 6, upper 6).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 6 at deep2 → 6 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [1, 4, 7, 14, 15, 18] and Z witness [0, 1, 5, 6, 13, 14], both of weight 6.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 6</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 1 entry on n: 22-2-6.json. Efficiency k d² / n = 3.60.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-8 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/672e6e9c34d5954e0cb7d1b7</code> (the API path <code>/api/codes/672e6e9c34d5954e0cb7d1b7</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/20-2-6.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/21-2-6.html">[[21,2,6]] — 21-2-6</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[21,2,6]] — qecdb.org none code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-8</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 670522be19cca60cf657a912.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[21,2,6]] at w = 8, record 670522be19cca60cf657a912; qecdb description</li>
+<p>&quot;none&quot;, database distance claim d = 6 (lower 6, upper 6).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 6 at deep2 → 6 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [1, 5, 7, 13, 14, 18] and Z witness [1, 4, 6, 9, 13, 14], both of weight 6.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 6</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 1 entry on n: 22-2-6.json. Efficiency k d² / n = 3.43.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-8 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/670522be19cca60cf657a912</code> (the API path <code>/api/codes/670522be19cca60cf657a912</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/21-2-6.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/216-8-16.html">[[216,8,16]] — 216-8-16</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/fullymiddleaged">@fullymiddleaged</a> &middot; Claude Opus 5.5</div><details ><summary>note</summary><div class=notebody><h3>[[216,8,16]] weight-6 bivariate bicycle code on Z_18 x Z_6 with a bilayer layout</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>We aimed at the 2D-local bilayer, weight-6 cell. Our search over weight-6 bivariate bicycle (BB) codes found nothing new in the unrestricted cells, which are crowded. The bilayer cell had fewer entries, though, and BB codes on a torus have a natural folded embedding. We expected that some mid-size BB codes would reach a check diameter of at most 7.0 after local optimisation. Those codes would then be non-dominated in that cell, even though they are dominated in the unrestricted one.</p>
 <h4>What was searched</h4>
@@ -34,7 +593,136 @@
 <p>Claude Opus 5.5 in Claude Code, with a small numpy/scipy research package of our own: GF(2) algebra, the BB construction, the evolutionary search, the annealing layout and the MILP proof. We also used this repository&#x27;s <code>cli/qldpc.py</code> and <code>verify/</code>. The search ran for about 1 CPU-hour on Colab, and the MILP proof for about 23 minutes on one core.</p>
 <h4>Reproduction</h4>
 <p>Take l = 18 and m = 6, with A = y^5 + x + x^12 and B = y + x^2 + x^3 in F_2[x,y]/(x^18 - 1, y^6 - 1). Then H_X = [A | B] and H_Z = [B^T | A^T]. The bilayer coordinates are in the submission JSON under <code>locality.coordinates</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/216-8-16.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/240-10-22.html">[[240,10,22]] — 240-10-22</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Fable 5.1 (Claude Code)</div><details open><summary>note</summary><div class=notebody><h3>[[240,10,22]] weight-8 coprime bivariate-bicycle code</h3>
+<section class=blk><h3><a href="codes/23-1-7.html">[[23,1,7]] — 23-1-7</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[23,1,7]] — qecdb.org none code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-8</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 67052a628271751a9ef4e1d7.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[23,1,7]] at w = 8, record 67052a628271751a9ef4e1d7; qecdb description</li>
+<p>&quot;none&quot;, database distance claim d = 7 (lower 7, upper 7).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 7 at deep2 → 7 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [1, 5, 9, 12, 14, 15, 18] and Z witness [1, 4, 5, 6, 13, 14, 19], both of weight 7.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 7</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 1 entry on n: 31-1-7.json. Efficiency k d² / n = 2.13.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-8 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/67052a628271751a9ef4e1d7</code> (the API path <code>/api/codes/67052a628271751a9ef4e1d7</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/23-1-7.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/23-11-3.html">[[23,11,3]] — 23-11-3</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[23,11,3]] — qecdb.org qumba.csscode.selfdual_random code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-8</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 672e56035f99e6c4816917c0.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[23,11,3]] at w = 8, record 672e56035f99e6c4816917c0; qecdb description</li>
+<p>&quot;qumba.csscode.selfdual_random&quot;, database distance claim d = 3 (lower 3, upper 3).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 3 at deep2 → 3 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [1, 3, 9] and Z witness [0, 11, 14], both of weight 3.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 3</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 1 entry on k, n: 28-10-3.json. Efficiency k d² / n = 4.30.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-8 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/672e56035f99e6c4816917c0</code> (the API path <code>/api/codes/672e56035f99e6c4816917c0</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/23-11-3.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/24-8-3-b.html">[[24,8,3]] — 24-8-3-b</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[24,8,3]] — qecdb.org 2BGA code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-6</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 67a3896e9d65c7b409826887.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[24,8,3]] at w = 6, record 67a3896e9d65c7b409826887; qecdb description</li>
+<p>&quot;2BGA&quot;, database distance claim d = 3 (lower 3, upper 3).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 3 at deep2 → 3 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [9, 14, 21] and Z witness [9, 10, 21], both of weight 3.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 3</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 2 entries on k, n: 37-7-3.json, 42-8-3.json. Efficiency k d² / n = 3.00.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-6 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/67a3896e9d65c7b409826887</code> (the API path <code>/api/codes/67a3896e9d65c7b409826887</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/24-8-3-b.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/240-10-22.html">[[240,10,22]] — 240-10-22</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Fable 5.1 (Claude Code)</div><details ><summary>note</summary><div class=notebody><h3>[[240,10,22]] weight-8 coprime bivariate-bicycle code</h3>
 <h4>Construction</h4>
 <p>Periodic bivariate-bicycle code on Z_15 x Z_8 (n = 2*l*m = 240): x = S_15 tensor I_8, y = I_15 tensor S_8 (cyclic shifts), qubit index i*m + j in each block; A = x^0y^0 + x^4y^7 + x^9y^5 + x^11y^5, B = x^0y^0 + x^1y^3 + x^8y^7 + x^11y^3; H_X = [A|B], H_Z = [B^T|A^T] (research/kit/bb.py build_bb(15, 8, [[0, 0], [4, 7], [9, 5], [11, 5]], [[0, 0], [1, 3], [8, 7], [11, 3]])). gcd(15, 8) = 1, so Z_15 x Z_8 is cyclic of order 120 and the code is the cyclic generalized-bicycle code over Z_120 with a(z) = z^0 + z^69 + z^79 + z^101, b(z) = z^0 + z^11 + z^23 + z^91 (CRT relabeling x^a y^b -&gt; z^t, t = a mod 15, t = b mod 8).</p>
 <p>Every check has weight exactly 8.</p>
@@ -51,7 +739,50 @@ import sys; sys.path.insert(0, &quot;research/kit&quot;)
 from bb import build_bb
 HX, HZ = build_bb(l=15, m=8, A_terms=[[0, 0], [4, 7], [9, 5], [11, 5]], B_terms=[[0, 0], [1, 3], [8, 7], [11, 3]])
 </pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/240-10-22.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/270-10-24.html">[[270,10,24]] — 270-10-24</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Fable 5.1 (Claude Code)</div><details open><summary>note</summary><div class=notebody><h3>[[270,10,24]] weight-8 coprime bivariate-bicycle code</h3>
+<section class=blk><h3><a href="codes/27-11-3.html">[[27,11,3]] — 27-11-3</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[27,11,3]] — qecdb.org hyperbolic_2d code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-6</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 67a4adf72916ddddf1688e1d.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[27,11,3]] at w = 6, record 67a4adf72916ddddf1688e1d; qecdb description</li>
+<p>&quot;hyperbolic_2d&quot;, database distance claim d = 3 (lower 3, upper 3).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 3 at deep → 3 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [7, 15, 19] and Z witness [14, 15, 22], both of weight 3.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 3</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 4 entries on d, k, n: 30-10-3.json, 32-10-2.json, 37-7-3.json, 42-8-3.json. Efficiency k d² / n = 3.67.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-6 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/67a4adf72916ddddf1688e1d</code> (the API path <code>/api/codes/67a4adf72916ddddf1688e1d</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/27-11-3.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/270-10-24.html">[[270,10,24]] — 270-10-24</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Fable 5.1 (Claude Code)</div><details ><summary>note</summary><div class=notebody><h3>[[270,10,24]] weight-8 coprime bivariate-bicycle code</h3>
 <h4>Construction</h4>
 <p>Periodic bivariate-bicycle code on Z_27 x Z_5 (n = 2*l*m = 270): x = S_27 tensor I_5, y = I_27 tensor S_5 (cyclic shifts), qubit index i*m + j in each block; A = x^0y^0 + x^1y^3 + x^5y^2 + x^15y^3, B = x^0y^0 + x^2y^3 + x^10y^0 + x^16y^4; H_X = [A|B], H_Z = [B^T|A^T] (research/kit/bb.py build_bb(27, 5, [[0, 0], [1, 3], [5, 2], [15, 3]], [[0, 0], [2, 3], [10, 0], [16, 4]])). gcd(27, 5) = 1, so Z_27 x Z_5 is cyclic of order 135 and the code is the cyclic generalized-bicycle code over Z_135 with a(z) = z^0 + z^28 + z^32 + z^123, b(z) = z^0 + z^10 + z^83 + z^124 (CRT relabeling x^a y^b -&gt; z^t, t = a mod 27, t = b mod 5).</p>
 <p>Every check has weight exactly 8.</p>
@@ -99,6 +830,49 @@ HX, HZ = build_bb(l=27, m=5, A_terms=[[0, 0], [1, 3], [5, 2], [15, 3]], B_terms=
 <p>Claude Opus 5.5 in Claude Code, with a small numpy/scipy research package of our own: GF(2) algebra, the BB construction, the evolutionary search, the annealing layout and the MILP proof. We also used this repository&#x27;s <code>cli/qldpc.py</code> and <code>verify/</code>. The search ran for about 1 CPU-hour on Colab, and the MILP proof for about 31 minutes on one core.</p>
 <h4>Reproduction</h4>
 <p>Take l = 24 and m = 6, with A = y^3 + x + x^14 and B = y + y^2 + x^3 in F_2[x,y]/(x^24 - 1, y^6 - 1). Then H_X = [A | B] and H_Z = [B^T | A^T]. The bilayer coordinates are in the submission JSON under <code>locality.coordinates</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/288-12-16.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/30-8-3.html">[[30,8,3]] — 30-8-3</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[30,8,3]] — qecdb.org hyperbolic_2d code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-6</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 67a4b0129edf81e4b7e670ad.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[30,8,3]] at w = 5, record 67a4b0129edf81e4b7e670ad; qecdb description</li>
+<p>&quot;hyperbolic_2d&quot;, database distance claim d = 3 (lower 3, upper 3).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 3 at deep2 → 3 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [2, 24, 27] and Z witness [7, 13, 27], both of weight 3.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 3</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 2 entries on k, n, w: 37-7-3.json, 42-8-3.json. Efficiency k d² / n = 2.40.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-6 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/67a4b0129edf81e4b7e670ad</code> (the API path <code>/api/codes/67a4b0129edf81e4b7e670ad</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/30-8-3.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/300-12-25.html">[[300,12,25]] — 300-12-25</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Fable 5.1 (Claude Code)</div><details ><summary>note</summary><div class=notebody><h3>[[300,12,25]] weight-8 coprime bivariate-bicycle code</h3>
 <h4>Construction</h4>
 <p>Periodic bivariate-bicycle code on Z_25 x Z_6 (n = 2*l*m = 300): x = S_25 tensor I_6, y = I_25 tensor S_6 (cyclic shifts), qubit index i*m + j in each block; A = x^0y^0 + x^14y^5 + x^15y^1 + x^17y^0, B = x^0y^0 + x^7y^3 + x^15y^5 + x^23y^0; H_X = [A|B], H_Z = [B^T|A^T] (research/kit/bb.py build_bb(25, 6, [[0, 0], [14, 5], [15, 1], [17, 0]], [[0, 0], [7, 3], [15, 5], [23, 0]])). gcd(25, 6) = 1, so Z_25 x Z_6 is cyclic of order 150 and the code is the cyclic generalized-bicycle code over Z_150 with a(z) = z^0 + z^42 + z^89 + z^115, b(z) = z^0 + z^48 + z^57 + z^65 (CRT relabeling x^a y^b -&gt; z^t, t = a mod 25, t = b mod 6).</p>
@@ -201,6 +975,49 @@ import sys; sys.path.insert(0, &quot;research/kit&quot;)
 from bb import build_bb
 HX, HZ = build_bb(l=25, m=7, A_terms=[[0, 0], [2, 2], [11, 3], [18, 4]], B_terms=[[0, 0], [2, 5], [14, 1], [14, 2]])
 </pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/350-8-29.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/36-8-6.html">[[36,8,6]] — 36-8-6</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[36,8,6]] — qecdb.org 2BGA code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-8</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 67a542959d65c7b409826a52.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[36,8,6]] at w = 8, record 67a542959d65c7b409826a52; qecdb description</li>
+<p>&quot;2BGA&quot;, database distance claim d = 6 (lower 6, upper 6).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 6 at deep → 6 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [13, 16, 24, 31, 33, 34] and Z witness [0, 12, 18, 19, 28, 32], both of weight 6.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 6</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 4 entries on d, k, n: 40-6-6.json, 40-8-5.json, 42-8-6.json, 48-6-6.json. Efficiency k d² / n = 8.00.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-8 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/67a542959d65c7b409826a52</code> (the API path <code>/api/codes/67a542959d65c7b409826a52</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/36-8-6.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/364-8-32.html">[[364,8,32]] — 364-8-32</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Fable 5.1 (Claude Code)</div><details ><summary>note</summary><div class=notebody><h3>[[364,8,32]] weight-8 coprime bivariate-bicycle code</h3>
 <h4>Construction</h4>
 <p>Periodic bivariate-bicycle code on Z_14 x Z_13 (n = 2*l*m = 364): x = S_14 tensor I_13, y = I_14 tensor S_13 (cyclic shifts), qubit index i*m + j in each block; A = x^0y^0 + x^10y^8 + x^11y^8 + x^12y^12, B = x^0y^0 + x^8y^6 + x^10y^11 + x^13y^4; H_X = [A|B], H_Z = [B^T|A^T] (research/kit/bb.py build_bb(14, 13, [[0, 0], [10, 8], [11, 8], [12, 12]], [[0, 0], [8, 6], [10, 11], [13, 4]])). gcd(14, 13) = 1, so Z_14 x Z_13 is cyclic of order 182 and the code is the cyclic generalized-bicycle code over Z_182 with a(z) = z^0 + z^12 + z^151 + z^164, b(z) = z^0 + z^24 + z^69 + z^162 (CRT relabeling x^a y^b -&gt; z^t, t = a mod 14, t = b mod 13).</p>
@@ -286,6 +1103,49 @@ import sys; sys.path.insert(0, &quot;research/kit&quot;)
 from bb import build_bb
 HX, HZ = build_bb(l=29, m=7, A_terms=[[0, 0], [10, 6], [15, 5], [20, 2]], B_terms=[[0, 0], [17, 5], [23, 4], [26, 3]])
 </pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/406-8-36.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/42-10-6.html">[[42,10,6]] — 42-10-6</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[42,10,6]] — qecdb.org 2BGA code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-8</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 67ac182d9d65c7b409826af2.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[42,10,6]] at w = 8, record 67ac182d9d65c7b409826af2; qecdb description</li>
+<p>&quot;2BGA&quot;, database distance claim d = 6 (lower 6, upper 6).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 6 at deep2 → 6 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [7, 8, 13, 15, 19, 36] and Z witness [2, 5, 8, 13, 19, 37], both of weight 6.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 6</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 3 entries on k, n: 42-8-6.json, 48-10-6.json, 48-6-6.json. Efficiency k d² / n = 8.57.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-8 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/67ac182d9d65c7b409826af2</code> (the API path <code>/api/codes/67ac182d9d65c7b409826af2</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/42-10-6.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/420-18-26.html">[[420,18,26]] — 420-18-26</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Fable 5.1 (Claude Code)</div><details ><summary>note</summary><div class=notebody><h3>[[420,18,26]] weight-8 coprime bivariate-bicycle code on Z_70 x Z_3</h3>
 <h4>Construction</h4>
 <p>Periodic bivariate-bicycle code on Z_70 x Z_3 (n = 2*l*m = 420): x = S_70 tensor I_3, y = I_70 tensor S_3 (cyclic shifts), qubit index i*m + j in each block; A = x^0y^0 + x^1y^1 + x^23y^0 + x^32y^1, B = x^0y^0 + x^7y^1 + x^45y^2 + x^66y^0; H_X = [A|B], H_Z = [B^T|A^T]. Since gcd(70, 3) = 1 the group Z_70 x Z_3 is cyclic of order 210, so this is equally a cyclic generalized-bicycle code.</p>
@@ -303,6 +1163,264 @@ import sys; sys.path.insert(0, &quot;research/kit&quot;)
 from bb import build_bb
 HX, HZ = build_bb(l=70, m=3, A_terms=[[0, 0], [1, 1], [23, 0], [32, 1]], B_terms=[[0, 0], [7, 1], [45, 2], [66, 0]])
 </pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/420-18-26.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/50-2-7.html">[[50,2,7]] — 50-2-7</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[50,2,7]] — qecdb.org toric code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-4</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 674f22dad96c81d3c7c0bb80.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[50,2,7]] at w = 4, record 674f22dad96c81d3c7c0bb80; qecdb description</li>
+<p>&quot;toric&quot;, database distance claim d = 7 (lower 7, upper 7).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 7 at deep2 → 7 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [5, 12, 18, 25, 33, 40, 46] and Z witness [2, 10, 17, 23, 29, 36, 43], both of weight 7.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 7</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 2 entries on n: 58-2-7.json, 63-2-7.json. Efficiency k d² / n = 1.96.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-4 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/674f22dad96c81d3c7c0bb80</code> (the API path <code>/api/codes/674f22dad96c81d3c7c0bb80</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/50-2-7.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/52-2-7.html">[[52,2,7]] — 52-2-7</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[52,2,7]] — qecdb.org 2BGA code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-4</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 67bc8f4b65e5efe366a705cb.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[52,2,7]] at w = 4, record 67bc8f4b65e5efe366a705cb; qecdb description</li>
+<p>&quot;2BGA&quot;, database distance claim d = 7 (lower 7, upper 7).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 7 at deep2 → 7 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [7, 11, 13, 31, 33, 41, 51] and Z witness [8, 12, 31, 32, 40, 45, 49], both of weight 7.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 7</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 2 entries on n: 58-2-7.json, 63-2-7.json. Efficiency k d² / n = 1.88.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-4 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/67bc8f4b65e5efe366a705cb</code> (the API path <code>/api/codes/67bc8f4b65e5efe366a705cb</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/52-2-7.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/54-2-7.html">[[54,2,7]] — 54-2-7</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[54,2,7]] — qecdb.org 2BGA code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-4</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 67bc8e2de8112da5fce0be7d.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[54,2,7]] at w = 4, record 67bc8e2de8112da5fce0be7d; qecdb description</li>
+<p>&quot;2BGA&quot;, database distance claim d = 7 (lower 7, upper 7).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 7 at deep2 → 7 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [14, 15, 25, 28, 31, 32, 46] and Z witness [2, 17, 18, 26, 33, 34, 35], both of weight 7.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 7</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 2 entries on n: 58-2-7.json, 63-2-7.json. Efficiency k d² / n = 1.81.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-4 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/67bc8e2de8112da5fce0be7d</code> (the API path <code>/api/codes/67bc8e2de8112da5fce0be7d</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/54-2-7.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/56-2-7.html">[[56,2,7]] — 56-2-7</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[56,2,7]] — qecdb.org 2BGA code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-4</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 67bc91a338cb83471425e7c4.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[56,2,7]] at w = 4, record 67bc91a338cb83471425e7c4; qecdb description</li>
+<p>&quot;2BGA&quot;, database distance claim d = 7 (lower 7, upper 7).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 7 at deep2 → 7 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [0, 8, 11, 15, 32, 47, 49] and Z witness [5, 12, 24, 36, 46, 51, 53], both of weight 7.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 7</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 2 entries on n: 58-2-7.json, 63-2-7.json. Efficiency k d² / n = 1.75.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-4 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/67bc91a338cb83471425e7c4</code> (the API path <code>/api/codes/67bc91a338cb83471425e7c4</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/56-2-7.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/60-20-5.html">[[60,20,5]] — 60-20-5</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[60,20,5]] — qecdb.org none code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-8</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 6798877b5a99a6b92bb92002.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[60,20,5]] at w = 8, record 6798877b5a99a6b92bb92002; qecdb description</li>
+<p>&quot;none&quot;, database distance claim d = 5 (lower 5, upper 5).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 5 at deep → 5 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [29, 32, 40, 49, 53] and Z witness [2, 5, 34, 51, 56], both of weight 5.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 5</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 2 entries on d, k, n: 65-17-3.json, 80-20-5.json. Efficiency k d² / n = 8.33.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-8 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/6798877b5a99a6b92bb92002</code> (the API path <code>/api/codes/6798877b5a99a6b92bb92002</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/60-20-5.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/60-22-4.html">[[60,22,4]] — 60-22-4</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[60,22,4]] — qecdb.org hyperbolic_2d code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-6</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 67a4ae002916ddddf1688e20.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[60,22,4]] at w = 6, record 67a4ae002916ddddf1688e20; qecdb description</li>
+<p>&quot;hyperbolic_2d&quot;, database distance claim d = 4 (lower 4, upper 4).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 4 at deep → 4 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [15, 34, 38, 40] and Z witness [5, 42, 54, 58], both of weight 4.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 4</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 9 entries on d, k, n: 108-20-4.json, 120-22-4.json, 146-18-4.json, 64-10-4.json, 64-12-4.json, 64-22-3.json. Efficiency k d² / n = 5.87.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-6 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/67a4ae002916ddddf1688e20</code> (the API path <code>/api/codes/67a4ae002916ddddf1688e20</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/60-22-4.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/630-48-90.html">[[630,48,90]] — 630-48-90</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[630,48,90]] weight-26 cyclic generalized-bicycle</h3>
 <h4>Hypothesis</h4>
 <p>Cyclic generalized-bicycle codes at check weight 26 cover a wide blocklength range, and the board&#x27;s coverage of that range is uneven: there are stretches of n where no entry sits near the (k, d) the family can reach. A broad randomized sweep over sparse polynomial pairs, screened against the live board before any expensive work, finds the gaps.</p>
@@ -319,6 +1437,49 @@ HX, HZ = build_bb(l=70, m=3, A_terms=[[0, 0], [1, 1], [23, 0], [32, 1]], B_terms
 <p>Score kd^2/n = 617.143 at check weight 26. Undominated in its cell against the board at submission time.</p>
 <h4>Boundary</h4>
 <p>The distance is an upper bound from witness search, not a proof. Literature novelty is unverified: cyclic GB codes are a classical family and these parameters may appear in the 2BGA literature.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/630-48-90.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/84-6-6.html">[[84,6,6]] — 84-6-6</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[84,6,6]] — qecdb.org 2BGA code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-6</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 67bf07bae8112da5fce0c04d.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[84,6,6]] at w = 5, record 67bf07bae8112da5fce0c04d; qecdb description</li>
+<p>&quot;2BGA&quot;, database distance claim d = 6 (lower 6, upper 6).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 6 at deep2 → 6 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [49, 58, 59, 65, 69, 74] and Z witness [3, 6, 11, 12, 24, 25], both of weight 6.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 6</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 3 entries on n, w: 108-6-6.json, 88-6-6.json, 96-6-6.json. Efficiency k d² / n = 2.57.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-6 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/67bf07bae8112da5fce0c04d</code> (the API path <code>/api/codes/67bf07bae8112da5fce0c04d</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/84-6-6.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/882-8-22.html">[[882,8,22]] — 882-8-22</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; MiMo-V2.6-Flash</div><details ><summary>note</summary><div class=notebody><h3>[[882,8,22]] open-boundary planar bivariate-bicycle code, L = 21</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Second rung of the same extension as [[800,8,21]]: the weight-6 x local-2d-single flagship ladder (f = x + x^2 + y^2, g = 1 + x^2 y + x^2 y^2, arXiv:2504.08887) read d = L + 1 for L = 17..20 once L = 20 was confirmed at 21, so L = 21 (raw n = 882) was expected to witness d = 22. Each additional rung moves the k = 8 frontier of the cell up in d while paying the usual n-cost, and no weight &lt;= 6 single-layer entry existed above n = 679 before this campaign.</p>
@@ -342,6 +1503,49 @@ HX, HZ = build_bb(l=70, m=3, A_terms=[[0, 0], [1, 1], [23, 0], [32, 1]], B_terms
 <h4>Reproduction</h4>
 <p>import sys; sys.path[:0] = [&quot;research/kit&quot;, &quot;research/local2d&quot;] from planar import build_open_directional HX, HZ = build_open_directional(21, 21)      # n = 882, k = 8, w = 6</p>
 <p>Then research/kit/surrogate.py `distance_rand(prepared=prepare_distance_search(HX, HZ), trials=300_000, seed=1147, backend=&quot;auto&quot;, threads=4)` returns 22; seeds 1147/1148 are the ladder above. The staged witnesses live in the submission JSON itself.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/882-8-22.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/92-2-14.html">[[92,2,14]] — 92-2-14</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[92,2,14]] — qecdb.org 2BGA code, reconstructed from its H field</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Track cell <code>weight-8</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 67c1247a7ca45da389d67f33.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Mirrored the whole CSS half of qecdb.org (<code>/api/codes?cssOnly=1</code>, 200 per</li>
+<p>page): 15,181 records, n ≤ 300, d ≤ 17. A parameter pre-filter against the board left 1,527 records (dropped 136 over the verifier&#x27;s weight-32 cap and 13,654 dominated on (n, k, d, w) as listed); every one of those was then fetched in full for its stabilizer generators.</p>
+<li>Reconstruction: the record&#x27;s <code>H</code> field is binary symplectic rows; split it</li>
+<p>by rowspace (rank(A|B) = rank(A) + rank(B)) and keep the *lightest* independent basis of each side. Two traps this avoids -- a plain RREF inflates max check weight, and self-dual records store mixed (Y-bearing) generators of an otherwise CSS code. n, k and w were recomputed here; all 1,527 agreed with the database on k and on check weight.</p>
+<li>Screening: every survivor at 50,000 RIS trials/side, bit-packed backend,</li>
+<p>seed derived from the code&#x27;s own fingerprint so a reading is reproducible. 608 records still beat a board entry; 314 of the 1,510 reconstructed survivors turn out to be direct sums, so connectivity is checked *before* anything is picked (104 of 221 remain).</p>
+<li>Selection: cell-restricted advance (no dominator, at least one in-cell entry</li>
+<p>beaten), ranked tracks (w ≤ 8), one code, a gain on something other than d, and no entry beaten on d alone (the d-only win is the inflation pattern). One record per (n, k, w) tuple.</p>
+<li>This candidate: [[92,2,14]] at w = 8, record 67c1247a7ca45da389d67f33; qecdb description</li>
+<p>&quot;2BGA&quot;, database distance claim d = 14 (lower 14, upper 14).</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Ladder: 14 at deep2 → 14 at screen1</li>
+<p>→ packaging witness at 8000 trials/side (numpy <code>lightest_logical</code>, seed 0): X witness [1, 12, 15, 16, 23, 29, 30, 33, 36, 44, 51, 66, 82, 85] and Z witness [0, 3, 5, 20, 26, 30, 33, 34, 46, 50, 63, 68, 69, 84], both of weight 14.</p>
+<li>Claim, precisely: a <b>witness-backed upper bound</b> <code>d ≤ 14</code>. Nothing here</li>
+<p>certifies the exact distance; <code>verify/validate_candidate.py</code> also ran its own refutation search on the packaged document (seed recorded in the verdict beside this candidate) and found no lighter logical.</p>
+<li>Board comparison (cell-restricted): beats 1 entry on n: 96-2-14.json. Efficiency k d² / n = 4.26.</li>
+<li>Verdict: <code>passed: true</code>, not refuted, not a duplicate of a board entry;</li>
+<p>labels: advances the weight-8 x unrestricted board; literature novelty UNVERIFIED.</p>
+<li>The full validator verdict (refutation seed, fingerprint, cell, labels) is</li>
+<p>kept alongside the submission in this run&#x27;s staging area for the reviewer.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Direct sums: 314 of 1,510 reconstructed records are not one code (the</li>
+<p>verifier&#x27;s <code>tanner_connected</code> / <code>stabilizer_group_connected</code> reject them). Ten of the first 35 picks fell here; their 947 blocks were re-screened as separate candidates.</p>
+<li>d-only wins: candidates whose only strict axis over some entry was <code>d</code> were</li>
+<p>rejected as distance inflation (three already-packaged ones were unstaged for this: [[48,18,4]], [[56,6,8]], [[84,44,3]]).</p>
+<li>A second [[144,12,12]] w = 6 record passed the gate but ties the board&#x27;s own</li>
+<p>entry on all four axes, so it was unstaged: same parameters, no frontier gain.</p>
+<li>ECZ (<code>errorcorrectionzoo.org/all</code>, 1,185 entries) is an index of parameters</li>
+<p>and references only -- no matrices, so it cannot feed this pipeline; it is still the right place to check literature novelty later.</p>
+</ul>
+<h4>Tools</h4>
+<p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
+<h4>Reproduction</h4>
+<p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/67c1247a7ca45da389d67f33</code> (the API path <code>/api/codes/67c1247a7ca45da389d67f33</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/92-2-14.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/968-8-23.html">[[968,8,23]] — 968-8-23</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; MiMo-V2.6-Flash</div><details ><summary>note</summary><div class=notebody><h3>[[968,8,23]] open-boundary planar bivariate-bicycle code, L = 22</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Third rung of the planar extension (siblings [[800,8,21]] and [[882,8,22]]): the weight-6 x local-2d-single flagship ladder held d = L + 1 through L = 17..21, so L = 22 (raw n = 968, still inside the n &lt;= 1000 admissibility window for w &lt;= 8 with d &lt;= 40) was expected to witness d = 23. This rung took the k = 8 frontier of the cell to its highest d at any n.</p>
