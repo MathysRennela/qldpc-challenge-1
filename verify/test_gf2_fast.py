@@ -77,8 +77,10 @@ for fname in sorted(os.listdir(codes_dir)):
     n = doc["n"]
     checks = doc["checks"]
     if "S" in checks:
-        S = np.concatenate([_matrix([g["X"] for g in checks["S"]], n),
-                            _matrix([g["Z"] for g in checks["S"]], n)], axis=1)
+        gens = checks["S"]
+        A = _matrix([g["X"] for g in gens], n)
+        B = _matrix([g["Z"] for g in gens], n)
+        S = np.concatenate([A, B], axis=1)
         r_fast = gf2_fast.gf2_rank(S)
         if r_fast != gf2.rank(S) or n - r_fast != doc["k"]:
             mismatch.append(fname)
