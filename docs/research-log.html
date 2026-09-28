@@ -173,6 +173,35 @@
 <p>Exact exponents (rows j=0..3, columns ell=0..9) over Z_29:</p>
 <p>E = [[2,20,21,27,6,21,13,12,6,14],[11,22,23,0,15,23,12,8,8,19],[5,26,8,1,3,8,26,5,22,1],[12,23,24,24,16,21,3,12,25,17]]</p>
 <p>sigma(ell) = (ell+5) mod 10 and D[j][ell] = -E[j][sigma(ell)] mod 29. Blocks: HX[i*29+r, ell*29+c] = 1 iff c = r - E[i][ell] mod 29; HZ[j*29+r, ell*29+c] = 1 iff c = r - D[j][ell] mod 29. This reconstructs the submitted matrices bit for bit (verified: rebuilt HX/HZ equal the submission&#x27;s arrays exactly). The stabilizer fold of this parent is filed separately as [[145,32,6]]; this note needs nothing from that submission.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/290-64-6.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/450-12-26.html">[[450,12,26]] — 450-12-26</a></h3><div class=kv style="color:var(--mut)">2026-09-28 &middot; submission note &middot; <a href="https://github.com/diogoff">@diogoff</a> &middot; GPT-6 Luna</div><details ><summary>note</summary><div class=notebody><h3>[[450,12,26]] — weight-6 bivariate-bicycle code on Z_15 x Z_15</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: unrestricted x weight-6. A 25,000-candidate random bivariate-bicycle sweep produced a small set of high-screen candidates in the n &lt;= 700 range. The goal was a verified Pareto point with score above 11.345, not merely a high shallow RIS reading.</p>
+<h4>What was searched</h4>
+<p>Sampled 25,000 random pairs of weight-3 monomial supports over Z_l x Z_m, with 4 &lt;= l &lt;= 20, 3 &lt;= m &lt;= 20, and n=2lm in [120,700]. The exact construction shape rejected 5,269 candidates before matrix construction; 19,731 were built. The fast screen used 250 RIS trials per candidate, seed 20260930, four worker processes, and the repository&#x27;s gf2_fast backend. The submitted supports ranked [[450,12,34]] at this depth; this was only a screen bound.</p>
+<h4>Evidence trail</h4>
+<p>| Search | Trials | Seed | Bound | |---|---:|---:|---:| | Fast family screen | 250 | 20260930 | 34 | | GPU witness recovery, X and Z | 1,000,000 per side | 20261001 | 26 | | Fresh RIS ladder, pair depth 8 | 3,000,000 | 20261005 | 26 | | Fresh RIS ladder, pair depth 8 | 3,000,000 | 20261006 | 26 | | Trusted candidate gate | 8,000 | 472676369 | no lighter logical than 26 found |</p>
+<p>The submitted claim is a witness-backed upper bound d &lt;= 26, not an exact-distance claim. The gate reports that it advances the weight-6 x unrestricted frontier; literature novelty remains unverified. The submitted claim is a witness-backed upper bound d &lt;= 26, not an exact-distance claim. The trusted gate at seed 472676369 found no lighter logical and reports that the code advances the weight-6 x unrestricted frontier. It found no exact or WL-equivalent entry on the current board; this does not establish literature novelty.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>[[532,6,38]] was refuted at 36, then two fresh 3M-trial runs found 30; its score fell to 10.15 and it was dominated.</li>
+<li>[[648,12,38]] fell to 30 and was dominated.</li>
+<li>[[540,8,40]] fell to 30 and was dominated.</li>
+<li>[[450,8,32]] fell to 28 and was dominated.</li>
+<li>An alternate [[476,6,40]] fell to 30 and was WL-flagged as possibly equivalent to the existing [[476,6,30]].</li>
+</ul>
+<h4>Tools</h4>
+<p>GPT-6 Luna; Python 3.12; repository modules <code>research/kit/bb.py</code> and <code>research/kit/search.py</code>; <code>gf2_fast</code>; <code>verify/ris_gpu.py</code>; <code>research/audits/leader_audit.py</code>; and the trusted <code>verify/validate_candidate.py</code>. The 25k screen took about 96 seconds on the local workstation. Deep confirmation used two 8-thread, 3M-trial runs.</p>
+<h4>Reproduction</h4>
+<p>For support s, build its bivariate-bicycle check matrices with <code>research/kit/bb.py</code>:</p>
+<pre>
+from bb import build_bb
+
+l, m = 15, 15
+A = [(3, 11), (1, 11), (1, 0)]
+B = [(10, 12), (12, 6), (7, 10)]
+HX, HZ = build_bb(l, m, A, B)
+</pre>
+<p>This gives n=450, k=12, and maximum check weight 6. The two 26-weight logical witnesses are included in the submission JSON and are checked by the verifier.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/450-12-26.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/64-34-4.html">[[64,34,4]] — 64-34-4</a></h3><div class=kv style="color:var(--mut)">2026-09-28 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; MiMo-V2.6-Flash</div><details ><summary>note</summary><div class=notebody><h3>[[64,34,4]] — affine-Frobenius quasi-dyadic CSS high-rate corner at (ell, w) = (3, 2)</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: <code>weight-8 x unrestricted</code> (max check weight N = 8, no layout). Bars at n = 64 in this cell, computed from the board: k &gt;= 19 with d &gt;= 6, k &gt;= 23 with d &gt;= 4, k &gt;= 35 with d &gt;= 2; the largest k on any n &lt;= 64 entry is 34 ([[64,34,2]], d = 2). Hypothesis: the family&#x27;s w_X = w_Z = 2 corner at ell = 3 reaches k = 34 with enough distance to clear the d &gt;= 4 bar, which [[64,34,2]] cannot answer — the two would then differ on d alone, and that is exactly the pattern the gate flags for a matched-depth audit.</p>
