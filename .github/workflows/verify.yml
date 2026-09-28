@@ -12,6 +12,10 @@ on:
       - "decode/**"
       - "schema/**"
       - "research/**"
+      # run_tests.py collects site/test_*.py too (and site/build.py renders every
+      # verdict on the board), so a site/-only PR has to trigger the suite rather
+      # than merge on ruff and prose alone.
+      - "site/**"
       - "Makefile"
       - "run_tests.py"
       - "pyproject.toml"
