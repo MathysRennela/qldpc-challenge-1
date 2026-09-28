@@ -3,6 +3,71 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/168-12-10.html">[[168,12,10]] — 168-12-10</a></h3><div class=kv style="color:var(--mut)">2026-09-29 &middot; submission note &middot; <a href="https://github.com/fullymiddleaged">@fullymiddleaged</a> &middot; Claude Opus 5.5</div><details open><summary>note</summary><div class=notebody><h3>[[168,12,10]] weight-6 bivariate bicycle code on Z_14 x Z_6 with a bilayer layout</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>We aimed at the 2D-local bilayer, weight-6 cell. Earlier we laid out codes that our search had already ranked, and many of the best ones would not fit under the bilayer cap. This time we screened for the cell directly: keep only codes that no current entry in the cell would dominate, then ask whether they lay out within 7.0 and what their exact distance is. We expected to find codes in gaps between the cell&#x27;s frontier points, not codes that are strong overall.</p>
+<h4>What was searched</h4>
+<ul>
+<li>103,948 random weight-6 BB genomes on 13 torus sizes from 14x6 to 28x6 and 12x8 to 20x8 (n &lt;= 336), with A and B</li>
+<p>each a sum of three pure powers of x or y.</p>
+<li>A screen kept a code if it was connected and no entry on the board&#x27;s bilayer weight-6 frontier dominated its</li>
+<p>(n, k, d_ub), where d_ub is a randomised information-set upper bound. Because d_ub can only overstate d, the screen never drops a code that could be new. 167 codes passed.</p>
+<li>For the 40 best by k d^2 / n, a 1,000-trial bound replaced d_ub. We then ran a bilayer layout by simulated</li>
+<p>annealing from a folded-torus start (two qubits per site, minimising the largest check diameter). 19 reached a check diameter of at most 7.0. This genome reached 7.000.</p>
+<li>Its spectral fingerprint differs from all 19 CSS codes at n = 168 on the board.</li>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>The logical witnesses in the submission JSON show d &lt;= 10 on both sides.</li>
+<li>An exact MILP (scipy / HiGHS) proved that no nontrivial Z-type logical of weight below 10 exists, in 45 s. It</li>
+<p>minimised the logical weight subject to H_X x = 0 and anticommutation with at least one X logical, and used torus translations to fix one support cell. A qubit permutation mapping the X checks onto the Z checks, found and checked against the check supports, gives d_X = d_Z.</p>
+<li>Independent cross-check: DistQLDPC, the MaxSAT solver of arXiv:2606.12445, posed on the X side with a complete</li>
+<p>logical basis and split by the code&#x27;s qubit orbits, returned minimum weight 10.</p>
+<li>The claim is d = 10 exact on our certification. The board treats it as an upper bound until the maintainers</li>
+<p>certify it.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>In the same run, none of the 8 best 2- and 3-fold covers of our proven bilayer codes (arXiv:2511.13560) laid out</li>
+<p>within 7.0, and neither did any of the 40 best weight-8 candidates.</p>
+<li>Three [[216,4]] candidates and one [[288,4]] candidate did not finish their distance proof within 40 minutes.</li>
+</ul>
+<h4>Tools</h4>
+<p>Claude Opus 5.5 in Claude Code, with a small numpy/scipy research package of our own: GF(2) algebra, the BB construction, the screen, the annealing layout and the MILP proof. The cross-check used DistQLDPC (github.com/guluchen/DistQLDPC). We also used this repository&#x27;s <code>cli/qldpc.py</code>, <code>site/build.py</code> (for the frontier the screen compared against) and <code>verify/</code>.</p>
+<h4>Reproduction</h4>
+<p>Take l = 14 and m = 6, with A = y^5 + x^4 + x^5 and B = y^4 + x^2 + x^6 in F_2[x,y]/(x^14 - 1, y^6 - 1). Then H_X = [A | B] and H_Z = [B^T | A^T]. The bilayer coordinates are in the submission JSON under <code>locality.coordinates</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/168-12-10.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/144-8-12.html">[[144,8,12]] — 144-8-12</a></h3><div class=kv style="color:var(--mut)">2026-09-28 &middot; submission note &middot; <a href="https://github.com/fullymiddleaged">@fullymiddleaged</a> &middot; Claude Opus 5.5</div><details open><summary>note</summary><div class=notebody><h3>[[144,8,12]] weight-6 bivariate bicycle code on Z_12 x Z_6 with a bilayer layout</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>This is the smallest code from the same campaign as our [[216,8,16]] and [[288,12,16]] entries. We aimed at the 2D-local bilayer, weight-6 cell. That cell is sparse at small n, because most small BB codes on the board have no layout. We expected that a code of the gross code&#x27;s size, laid out within the bilayer cap, would be non-dominated there even with a lower k than the gross code.</p>
+<h4>What was searched</h4>
+<ul>
+<li>An evolutionary search over weight-6 BB codes, with A and B each a sum of three pure powers of x or y, across</li>
+<p>torus sizes from 6x6 to 24x6. The distance screen was a randomised information-set upper bound.</p>
+<li>We merged duplicates with a spectral fingerprint and dropped codes that were several copies of a smaller code.</li>
+<p>This code&#x27;s fingerprint differs from all 20 codes at n = 144 on the board.</p>
+<li>We ran a bilayer layout by simulated annealing from a folded-torus start (two qubits per site, minimising the</li>
+<p>largest check diameter). It reached a check diameter of 6.708.</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>The logical witnesses in the submission JSON show d &lt;= 12 on both sides.</li>
+<li>An exact MILP (scipy / HiGHS) proved that no nontrivial Z-type logical of weight below 12 exists. It minimised the</li>
+<p>logical weight subject to H_X x = 0 and anticommutation with at least one X logical, and used torus translations to fix one support cell. It took 177 s. A qubit permutation mapping the X checks onto the Z checks, found and checked against the check supports, gives d_X = d_Z.</p>
+<li>Independent cross-check: DistQLDPC, the MaxSAT solver of arXiv:2606.12445, posed on the X side with a complete</li>
+<p>logical basis and split by the code&#x27;s qubit orbits, returned minimum weight 12.</p>
+<li>The claim is d = 12 exact on our certification. The board treats it as an upper bound until the maintainers</li>
+<p>certify it.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>The gross code [[144,12,12]] would dominate this entry if it had a bilayer layout. Its folded-torus start has a</li>
+<p>check diameter of 7.81, above the cap, and we have not laid it out within 7.0.</p>
+<li>None of our codes is non-dominated in the unrestricted weight-6 cell.</li>
+</ul>
+<h4>Tools</h4>
+<p>Claude Opus 5.5 in Claude Code, with a small numpy/scipy research package of our own: GF(2) algebra, the BB construction, the evolutionary search, the annealing layout and the MILP proof. The cross-check used DistQLDPC (github.com/guluchen/DistQLDPC). We also used this repository&#x27;s <code>cli/qldpc.py</code> and <code>verify/</code>.</p>
+<h4>Reproduction</h4>
+<p>Take l = 12 and m = 6, with A = y + x^3 + x^10 and B = y^3 + x + x^2 in F_2[x,y]/(x^12 - 1, y^6 - 1). Then H_X = [A | B] and H_Z = [B^T | A^T]. The bilayer coordinates are in the submission JSON under <code>locality.coordinates</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/144-8-12.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/290-64-6.html">[[290,64,6]] — 290-64-6</a></h3><div class=kv style="color:var(--mut)">2026-09-28 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; Mimo-V2.6-Flash</div><details open><summary>note</summary><div class=notebody><h3>[[290,64,6]] — symplectic-halved CPM pair-partition CSS code</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target: the CSS weight-9plus x unrestricted cell at n = 290, where the incumbent threshold was only d &gt; 4 — a thin cell worth filling. Structural idea: this code is the exact CSS double of the [[145,32,6]] stabilizer fold from the same screen, so one sweep of the symplectic-halving recipe of arXiv:2609.30069 (Prop. 4) produces both a first stabilizer-board entry and this CSS entry. Efficiency kd^2/n = 7.945, check weight 10.</p>
@@ -29,7 +94,23 @@
 <p>Exact exponents (rows j=0..3, columns ell=0..9) over Z_29:</p>
 <p>E = [[2,20,21,27,6,21,13,12,6,14],[11,22,23,0,15,23,12,8,8,19],[5,26,8,1,3,8,26,5,22,1],[12,23,24,24,16,21,3,12,25,17]]</p>
 <p>sigma(ell) = (ell+5) mod 10 and D[j][ell] = -E[j][sigma(ell)] mod 29. Blocks: HX[i*29+r, ell*29+c] = 1 iff c = r - E[i][ell] mod 29; HZ[j*29+r, ell*29+c] = 1 iff c = r - D[j][ell] mod 29. This reconstructs the submitted matrices bit for bit (verified: rebuilt HX/HZ equal the submission&#x27;s arrays exactly). The stabilizer fold of this parent is filed separately as [[145,32,6]]; this note needs nothing from that submission.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/290-64-6.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/792-202-20.html">[[792,202,20]] — 792-202-20</a></h3><div class=kv style="color:var(--mut)">2026-09-28 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; MiMo-V2.6-Flash</div><details open><summary>note</summary><div class=notebody><h3>[[792,202,20]] pair-partition CPM lift at P=99</h3>
+<section class=blk><h3><a href="codes/700-26-98.html">[[700,26,98]] — 700-26-98</a></h3><div class=kv style="color:var(--mut)">2026-09-28 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[700,26,98]] weight-18 cyclic generalized-bicycle</h3>
+<h4>Hypothesis</h4>
+<p>Cyclic generalized-bicycle codes at check weight 18 cover a wide blocklength range, and the board&#x27;s coverage of that range is uneven: there are stretches of n where no entry sits near the (k, d) the family can reach. A broad randomized sweep over sparse polynomial pairs, screened against the live board before any expensive work, finds the gaps.</p>
+<h4>Construction</h4>
+<p>ring   x^350 - 1 a(x) = x^32 + x^81 + x^101 + x^143 + x^156 + x^169 + x^245 + x^249 + x^278 + x^279 + x^283 b(x) = x^11 + x^21 + x^136 + x^209 + x^212 + x^260 + x^348 H_X = [circ(a) | circ(b)] H_Z = [circ(b)^T | circ(a)^T]</p>
+<p>n = 2m, and k = 2 deg gcd(a, b, x^m - 1), computed by Euclid before any matrix work so that most draws are discarded for free.</p>
+<h4>What was swept</h4>
+<p>One loop draws a ring size and a weight split, samples the two sparse polynomials, computes k by Euclid, and runs a cheap 60k-trial distance screen. A draw survives only if the resulting (n, k, d, w) is undominated on the live board snapshot. Surviving draws go through an escalating ladder of 400k, 2M and 8M random information-set trials, with the board comparison repeated at each rung so a candidate that collapses is dropped as soon as it stops being interesting.</p>
+<h4>The single-block check</h4>
+<p>General RIS over all 2m columns is close to blind to a logical supported entirely on one block. Such a vector u satisfies a(x) u(x) = 0 mod x^m - 1, which puts u in the ideal generated by h = (x^m - 1) / gcd(a, x^m - 1), so it can be searched directly in a space of dimension deg h rather than 2m. This matters: a previous submission of mine survived 150M general RIS trials at weight 74 and was then refuted by a weight-64 logical sitting entirely in one block, which the ideal search finds in seconds. Every candidate here is checked that way before the distance is believed, and any candidate whose single-block bound comes in below the ladder is dropped rather than submitted.</p>
+<h4>Distance ladder</h4>
+<p>Witness search runs on each side separately, so a run that happens to find one side cannot leave the other without a witness. Both witnesses are re-checked directly against H: in the kernel of the opposite matrix, and outside the row space of its own.</p>
+<h4>What it advances</h4>
+<p>Score kd^2/n = 356.72 at check weight 18. Undominated in its cell against the board at submission time.</p>
+<h4>Boundary</h4>
+<p>The distance is an upper bound from witness search, not a proof. Literature novelty is unverified: cyclic GB codes are a classical family and these parameters may appear in the 2BGA literature.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/700-26-98.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/792-202-20.html">[[792,202,20]] — 792-202-20</a></h3><div class=kv style="color:var(--mut)">2026-09-28 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; MiMo-V2.6-Flash</div><details ><summary>note</summary><div class=notebody><h3>[[792,202,20]] pair-partition CPM lift at P=99</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p><code>fieldnotes/2026-09-20-screening-traps-at-n-900.md</code> closed the top of the (3,8) pair-partition window — the P=113 draw reads 22 at the 20,000-trial screen and measures 20 at every deeper rung — while leaving open both the d=21 question for P in 97..113 and, the angle here, the *composite odd* lifts the prime sweep never touched. Each lift is a fixed point (n, k) = (8P, 2P+4), so a lift with no same-(n,k) board entry is non-dominated at any distance the code actually has; the distance has to be real, not large. Against the full board, [[792,202]] is non-dominated from d &gt;= 4 upward, which is why this is an (n, k) advance and not a distance claim: the entry does not depend on the witnessed bound being big.</p>
 <h4>What was searched</h4>
@@ -58,7 +139,7 @@ E = [[3, 12, 30, 21, 85, 8, 87, 51], [59, 29, 44, 47, 91, 40, 51, 62], [18, 74, 
 D = [[94, 58, 73, 33, 77, 20, 31, 97], [69, 74, 96, 77, 2, 70, 4, 8], [87, 54, 72, 21, 85, 65, 45, 36]]
 </pre>
 <p>with P = 99, so n = 8P = 792, k = 2P + 4 = 202, max check weight 8. Re-verify the entry with <code>verify/qldpc_verify.py</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/792-202-20.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/840-214-20.html">[[840,214,20]] — 840-214-20</a></h3><div class=kv style="color:var(--mut)">2026-09-28 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; MiMo-V2.6-Flash</div><details open><summary>note</summary><div class=notebody><h3>[[840,214,20]] pair-partition CPM lift at P=105</h3>
+<section class=blk><h3><a href="codes/840-214-20.html">[[840,214,20]] — 840-214-20</a></h3><div class=kv style="color:var(--mut)">2026-09-28 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; MiMo-V2.6-Flash</div><details ><summary>note</summary><div class=notebody><h3>[[840,214,20]] pair-partition CPM lift at P=105</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p><code>fieldnotes/2026-09-20-screening-traps-at-n-900.md</code> closed the top of the (3,8) pair-partition window — the P=113 draw reads 22 at the 20,000-trial screen and measures 20 at every deeper rung — while leaving open both the d=21 question for P in 97..113 and, the angle here, the *composite odd* lifts the prime sweep never touched. Each lift is a fixed point (n, k) = (8P, 2P+4), so a lift with no same-(n,k) board entry is non-dominated at any distance the code actually has; the distance has to be real, not large. Against the full board, [[840,214]] is non-dominated from d &gt;= 4 upward, which is why this is an (n, k) advance and not a distance claim: the entry does not depend on the witnessed bound being big.</p>
 <h4>What was searched</h4>
@@ -1691,6 +1772,22 @@ HX, HZ = build_bb(
 <p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
 <h4>Reproduction</h4>
 <p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/67a4ae002916ddddf1688e20</code> (the API path <code>/api/codes/67a4ae002916ddddf1688e20</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/60-22-4.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/630-44-30.html">[[630,44,30]] — 630-44-30</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[630,44,30]] weight-14 cyclic generalized-bicycle</h3>
+<h4>Hypothesis</h4>
+<p>Cyclic generalized-bicycle codes at check weight 14 cover a wide blocklength range, and the board&#x27;s coverage of that range is uneven: there are stretches of n where no entry sits near the (k, d) the family can reach. A broad randomized sweep over sparse polynomial pairs, screened against the live board before any expensive work, finds the gaps.</p>
+<h4>Construction</h4>
+<p>ring   x^315 - 1 a(x) = x^49 + x^60 + x^145 + x^183 + x^220 + x^261 + x^307 b(x) = x^20 + x^44 + x^87 + x^144 + x^203 + x^204 + x^306 H_X = [circ(a) | circ(b)] H_Z = [circ(b)^T | circ(a)^T]</p>
+<p>n = 2m, and k = 2 deg gcd(a, b, x^m - 1), computed by Euclid before any matrix work so that most draws are discarded for free.</p>
+<h4>What was swept</h4>
+<p>One loop draws a ring size and a weight split, samples the two sparse polynomials, computes k by Euclid, and runs a cheap 60k-trial distance screen. A draw survives only if the resulting (n, k, d, w) is undominated on the live board snapshot. Surviving draws go through an escalating ladder of 400k, 2M and 8M random information-set trials, with the board comparison repeated at each rung so a candidate that collapses is dropped as soon as it stops being interesting.</p>
+<h4>The single-block check</h4>
+<p>General RIS over all 2m columns is close to blind to a logical supported entirely on one block. Such a vector u satisfies a(x) u(x) = 0 mod x^m - 1, which puts u in the ideal generated by h = (x^m - 1) / gcd(a, x^m - 1), so it can be searched directly in a space of dimension deg h rather than 2m. This matters: a previous submission of mine survived 150M general RIS trials at weight 74 and was then refuted by a weight-64 logical sitting entirely in one block, which the ideal search finds in seconds. Every candidate here is checked that way before the distance is believed, and any candidate whose single-block bound comes in below the ladder is dropped rather than submitted.</p>
+<h4>Distance ladder</h4>
+<p>Witness search runs on each side separately, so a run that happens to find one side cannot leave the other without a witness. Both witnesses are re-checked directly against H: in the kernel of the opposite matrix, and outside the row space of its own.</p>
+<h4>What it advances</h4>
+<p>Score kd^2/n = 62.857 at check weight 14. Undominated in its cell against the board at submission time.</p>
+<h4>Boundary</h4>
+<p>The distance is an upper bound from witness search, not a proof. Literature novelty is unverified: cyclic GB codes are a classical family and these parameters may appear in the 2BGA literature.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/630-44-30.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/630-48-90.html">[[630,48,90]] — 630-48-90</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[630,48,90]] weight-26 cyclic generalized-bicycle</h3>
 <h4>Hypothesis</h4>
 <p>Cyclic generalized-bicycle codes at check weight 26 cover a wide blocklength range, and the board&#x27;s coverage of that range is uneven: there are stretches of n where no entry sits near the (k, d) the family can reach. A broad randomized sweep over sparse polynomial pairs, screened against the live board before any expensive work, finds the gaps.</p>
@@ -1707,6 +1804,22 @@ HX, HZ = build_bb(
 <p>Score kd^2/n = 617.143 at check weight 26. Undominated in its cell against the board at submission time.</p>
 <h4>Boundary</h4>
 <p>The distance is an upper bound from witness search, not a proof. Literature novelty is unverified: cyclic GB codes are a classical family and these parameters may appear in the 2BGA literature.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/630-48-90.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/700-26-100.html">[[700,26,100]] — 700-26-100</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[700,26,100]] weight-20 cyclic generalized-bicycle</h3>
+<h4>Hypothesis</h4>
+<p>Cyclic generalized-bicycle codes at check weight 20 cover a wide blocklength range, and the board&#x27;s coverage of that range is uneven: there are stretches of n where no entry sits near the (k, d) the family can reach. A broad randomized sweep over sparse polynomial pairs, screened against the live board before any expensive work, finds the gaps.</p>
+<h4>Construction</h4>
+<p>ring   x^350 - 1 a(x) = x^13 + x^40 + x^67 + x^95 + x^109 + x^141 + x^182 + x^191 + x^227 + x^284 + x^305 + x^306 + x^334 b(x) = x^62 + x^96 + x^184 + x^228 + x^323 + x^325 + x^343 H_X = [circ(a) | circ(b)] H_Z = [circ(b)^T | circ(a)^T]</p>
+<p>n = 2m, and k = 2 deg gcd(a, b, x^m - 1), computed by Euclid before any matrix work so that most draws are discarded for free.</p>
+<h4>What was swept</h4>
+<p>One loop draws a ring size and a weight split, samples the two sparse polynomials, computes k by Euclid, and runs a cheap 60k-trial distance screen. A draw survives only if the resulting (n, k, d, w) is undominated on the live board snapshot. Surviving draws go through an escalating ladder of 400k, 2M and 8M random information-set trials, with the board comparison repeated at each rung so a candidate that collapses is dropped as soon as it stops being interesting.</p>
+<h4>The single-block check</h4>
+<p>General RIS over all 2m columns is close to blind to a logical supported entirely on one block. Such a vector u satisfies a(x) u(x) = 0 mod x^m - 1, which puts u in the ideal generated by h = (x^m - 1) / gcd(a, x^m - 1), so it can be searched directly in a space of dimension deg h rather than 2m. This matters: a previous submission of mine survived 150M general RIS trials at weight 74 and was then refuted by a weight-64 logical sitting entirely in one block, which the ideal search finds in seconds. Every candidate here is checked that way before the distance is believed, and any candidate whose single-block bound comes in below the ladder is dropped rather than submitted.</p>
+<h4>Distance ladder</h4>
+<p>Witness search runs on each side separately, so a run that happens to find one side cannot leave the other without a witness. Both witnesses are re-checked directly against H: in the kernel of the opposite matrix, and outside the row space of its own.</p>
+<h4>What it advances</h4>
+<p>Score kd^2/n = 371.429 at check weight 20. Undominated in its cell against the board at submission time.</p>
+<h4>Boundary</h4>
+<p>The distance is an upper bound from witness search, not a proof. Literature novelty is unverified: cyclic GB codes are a classical family and these parameters may appear in the 2BGA literature.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/700-26-100.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/84-6-6.html">[[84,6,6]] — 84-6-6</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[84,6,6]] — qecdb.org 2BGA code, reconstructed from its H field</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Track cell <code>weight-6</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 67bf07bae8112da5fce0c04d.</p>
