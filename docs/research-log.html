@@ -3,7 +3,178 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
-<section class=blk><h3><a href="codes/10-2-3-b.html">[[10,2,3]] — 10-2-3-b</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details open><summary>note</summary><div class=notebody><h3>[[10,2,3]] — qecdb.org toric code, reconstructed from its H field</h3>
+<section class=blk><h3><a href="codes/290-64-6.html">[[290,64,6]] — 290-64-6</a></h3><div class=kv style="color:var(--mut)">2026-09-28 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; Mimo-V2.6-Flash</div><details open><summary>note</summary><div class=notebody><h3>[[290,64,6]] — symplectic-halved CPM pair-partition CSS code</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: the CSS weight-9plus x unrestricted cell at n = 290, where the incumbent threshold was only d &gt; 4 — a thin cell worth filling. Structural idea: this code is the exact CSS double of the [[145,32,6]] stabilizer fold from the same screen, so one sweep of the symplectic-halving recipe of arXiv:2609.30069 (Prop. 4) produces both a first stabilizer-board entry and this CSS entry. Efficiency kd^2/n = 7.945, check weight 10.</p>
+<h4>What was searched</h4>
+<p>(J,L,P) = (4,10,29), sigma(ell) = (ell+5) mod 10, nondegenerate shift gauge of the recipe, off-diagonal pairing equations solved for the exponent arrays with sigma-pair-free matchings; every draw screened for equal columns in H_X/H_Z (weight-2 collapse otherwise) with RIS at thousands of trials per draw, wall-clock caps up to 90 s. Lifts at P in {19, 31, 47} were screened too and discarded (see dead ends). Draw index 6 at P=29 gave k = 64 with both distance sides screening at d &lt;= 6.</p>
+<h4>Evidence trail</h4>
+<p>Confirmation ladder, all witness-backed upper bounds, not exact certificates:</p>
+<ul>
+<li>Draw-6 screen: RIS upper bound d &lt;= 6 on both X and Z sides.</li>
+<li>Trusted gate verify/validate_candidate.py: passed true, board_advancing true, empty dominator list, no weight/locality-equivalent duplicate; an 8000-trial refutation search found no logical lighter than 6.</li>
+<li>CLI witness search (20000 RIS trials plus a 2,000,000-trial accelerator pass) returned d_X &lt;= 6 and d_Z &lt;= 6; verify/qldpc_verify.py re-checks both witnesses against the matrices in the submission.</li>
+</ul>
+<p>Final claim: d_X &lt;= 6 and d_Z &lt;= 6 with logical witnesses embedded in codes/290-64-6.json. Not certified exact.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>Equal-column draws, 87% of all draws: weight-2 kernel vectors, d &lt;= 2. Screened out.</li>
+<li>No-4-/6-cycle filters switched on: 0 of 164 matchings survive — a matching pairing {ell, sigma(ell)} structurally forces a 4-cycle in the block layout, and cycles4(E)-freedom failed 61 of 61 times among equal-column-clean draws. Filters left optional and off; girth is not part of the gate.</li>
+<li>P=47 lift: k = 100 instead of ~109, so the board threshold there needs d &gt; 14 while the screen reached 4. Dropped.</li>
+<li>(4,12),P=31 at n = 372: the board already holds [[372,130,16]] (pair-partition CPM family, arXiv:2607.14091), so at check weight 12 the threshold is d &gt; 17. Dropped.</li>
+</ul>
+<h4>Tools</h4>
+<p>Mimo-V2.6-Flash (provenance.model) under the opencode agent harness; NumPy plus the repository&#x27;s css/gf2 field arithmetic and RIS routines; trusted gates verify/validate_candidate.py and verify/check_prose.py. Minutes of local CPU, no paid compute.</p>
+<h4>Reproduction</h4>
+<p>Exact exponents (rows j=0..3, columns ell=0..9) over Z_29:</p>
+<p>E = [[2,20,21,27,6,21,13,12,6,14],[11,22,23,0,15,23,12,8,8,19],[5,26,8,1,3,8,26,5,22,1],[12,23,24,24,16,21,3,12,25,17]]</p>
+<p>sigma(ell) = (ell+5) mod 10 and D[j][ell] = -E[j][sigma(ell)] mod 29. Blocks: HX[i*29+r, ell*29+c] = 1 iff c = r - E[i][ell] mod 29; HZ[j*29+r, ell*29+c] = 1 iff c = r - D[j][ell] mod 29. This reconstructs the submitted matrices bit for bit (verified: rebuilt HX/HZ equal the submission&#x27;s arrays exactly). The stabilizer fold of this parent is filed separately as [[145,32,6]]; this note needs nothing from that submission.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/290-64-6.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/792-202-20.html">[[792,202,20]] — 792-202-20</a></h3><div class=kv style="color:var(--mut)">2026-09-28 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; MiMo-V2.6-Flash</div><details open><summary>note</summary><div class=notebody><h3>[[792,202,20]] pair-partition CPM lift at P=99</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p><code>fieldnotes/2026-09-20-screening-traps-at-n-900.md</code> closed the top of the (3,8) pair-partition window — the P=113 draw reads 22 at the 20,000-trial screen and measures 20 at every deeper rung — while leaving open both the d=21 question for P in 97..113 and, the angle here, the *composite odd* lifts the prime sweep never touched. Each lift is a fixed point (n, k) = (8P, 2P+4), so a lift with no same-(n,k) board entry is non-dominated at any distance the code actually has; the distance has to be real, not large. Against the full board, [[792,202]] is non-dominated from d &gt;= 4 upward, which is why this is an (n, k) advance and not a distance claim: the entry does not depend on the witnessed bound being big.</p>
+<h4>What was searched</h4>
+<p>250 raw draws per lift of the 36-equation matching system over F_99 (seed stream 122 = 23 + P), keeping only draws with no 4- or 6-cycle in either exponent array, each screened at 20,000 RIS trials; 25 survived at P=99 (all CSS, max check weight 8). Every survivor was tested against the board&#x27;s (n, k, d, w) Pareto cells and none was dominated. One draw per lift was carried forward: draw=9, highest screen reading at (792,202).</p>
+<h4>Evidence trail</h4>
+<p>Confirmation ladder for this draw — each rung a fresh seed, lightest logical found:</p>
+<p>| budget (trials/side) | lightest logical | | ---: | ---: | | 20,000 (screen) | 20 | | 500,000 | 20 | | 1,000,000 | 20 |</p>
+<p>Flat across the two deep rungs, so the ladder stopped there (two fresh rungs minimum; a descending ladder is the case that keeps going). The submitted witness reproduces d &lt;= 20: a witness-backed upper bound, so the board shows <code>d &lt;=</code>, never <code>d =</code>. Near-miss that collapsed: the P=107 draw read 22 at the screen and measured 20 at both deep rungs — the same screen inflation the P=113 draw showed in <code>fieldnotes/2026-09-20-screening-traps-at-n-900.md</code>, and the reason screen readings are never quoted as distances.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>Even lifts (P = 98, 100, ...): the null-space draws fail the cycle filter</li>
+<p>outright — zero survivors, not zero records.</p>
+<li>Prime lifts P = 23..113 are already on the board; the unsearched part of</li>
+<p>this family was exactly the composite odd lifts.</p>
+<li>A single-layer 2d-local SAT lane run alongside re-found only [[36,12,4]],</li>
+<p>a point the board already carries: a same-parameter re-find advances nothing.</p>
+</ul>
+<h4>Tools</h4>
+<p>MiMo-V2.6-Flash (opencode agent) for search orchestration and packaging; the repository&#x27;s bit-packed RIS surrogate (<code>verify/gf2_fast.cpp</code>) for screening and laddering; <code>research/kit/css.py</code>, <code>research/kit/surrogate.py</code>, <code>research/kit/submit.py</code> for construction and packaging; the trusted gate <code>verify/validate_candidate.py</code> for the local verdict. Compute: about 6k screen trials across the five lifts plus 1.5M ladder trials per side on this draw, on a shared 10-core machine.</p>
+<h4>Reproduction</h4>
+<p>Build recipe (the 36-equation system and the three matchings are written out in <code>fieldnotes/2026-09-20-screening-traps-at-n-900.md</code>, section 2 and Reproduction): solve the system over F_P by Gaussian elimination, take a null-space vector as (E, D), then</p>
+<p>H_X[i*P + r, j*P + ((r - E[i][j]) mod P)] = 1 H_Z[i*P + r, j*P + ((r - D[i][j]) mod P)] = 1</p>
+<p>This draw is:</p>
+<pre>
+E = [[3, 12, 30, 21, 85, 8, 87, 51], [59, 29, 44, 47, 91, 40, 51, 62], [18, 74, 96, 91, 16, 36, 69, 56]]
+D = [[94, 58, 73, 33, 77, 20, 31, 97], [69, 74, 96, 77, 2, 70, 4, 8], [87, 54, 72, 21, 85, 65, 45, 36]]
+</pre>
+<p>with P = 99, so n = 8P = 792, k = 2P + 4 = 202, max check weight 8. Re-verify the entry with <code>verify/qldpc_verify.py</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/792-202-20.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/840-214-20.html">[[840,214,20]] — 840-214-20</a></h3><div class=kv style="color:var(--mut)">2026-09-28 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; MiMo-V2.6-Flash</div><details open><summary>note</summary><div class=notebody><h3>[[840,214,20]] pair-partition CPM lift at P=105</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p><code>fieldnotes/2026-09-20-screening-traps-at-n-900.md</code> closed the top of the (3,8) pair-partition window — the P=113 draw reads 22 at the 20,000-trial screen and measures 20 at every deeper rung — while leaving open both the d=21 question for P in 97..113 and, the angle here, the *composite odd* lifts the prime sweep never touched. Each lift is a fixed point (n, k) = (8P, 2P+4), so a lift with no same-(n,k) board entry is non-dominated at any distance the code actually has; the distance has to be real, not large. Against the full board, [[840,214]] is non-dominated from d &gt;= 4 upward, which is why this is an (n, k) advance and not a distance claim: the entry does not depend on the witnessed bound being big.</p>
+<h4>What was searched</h4>
+<p>250 raw draws per lift of the 36-equation matching system over F_105 (seed stream 128 = 23 + P), keeping only draws with no 4- or 6-cycle in either exponent array, each screened at 20,000 RIS trials; 22 survived at P=105 (all CSS, max check weight 8). Every survivor was tested against the board&#x27;s (n, k, d, w) Pareto cells and none was dominated. One draw per lift was carried forward: draw=95, highest screen reading at (840,214).</p>
+<h4>Evidence trail</h4>
+<p>Confirmation ladder for this draw — each rung a fresh seed, lightest logical found:</p>
+<p>| budget (trials/side) | lightest logical | | ---: | ---: | | 20,000 (screen) | 20 | | 500,000 | 20 | | 1,000,000 | 20 |</p>
+<p>Flat across the two deep rungs, so the ladder stopped there (two fresh rungs minimum; a descending ladder is the case that keeps going). The submitted witness reproduces d &lt;= 20: a witness-backed upper bound, so the board shows <code>d &lt;=</code>, never <code>d =</code>. Near-miss that collapsed: the P=107 draw read 22 at the screen and measured 20 at both deep rungs — the same screen inflation the P=113 draw showed in <code>fieldnotes/2026-09-20-screening-traps-at-n-900.md</code>, and the reason screen readings are never quoted as distances.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>Even lifts (P = 98, 100, ...): the null-space draws fail the cycle filter</li>
+<p>outright — zero survivors, not zero records.</p>
+<li>Prime lifts P = 23..113 are already on the board; the unsearched part of</li>
+<p>this family was exactly the composite odd lifts.</p>
+<li>A single-layer 2d-local SAT lane run alongside re-found only [[36,12,4]],</li>
+<p>a point the board already carries: a same-parameter re-find advances nothing.</p>
+</ul>
+<h4>Tools</h4>
+<p>MiMo-V2.6-Flash (opencode agent) for search orchestration and packaging; the repository&#x27;s bit-packed RIS surrogate (<code>verify/gf2_fast.cpp</code>) for screening and laddering; <code>research/kit/css.py</code>, <code>research/kit/surrogate.py</code>, <code>research/kit/submit.py</code> for construction and packaging; the trusted gate <code>verify/validate_candidate.py</code> for the local verdict. Compute: about 5k screen trials across the five lifts plus 1.5M ladder trials per side on this draw, on a shared 10-core machine.</p>
+<h4>Reproduction</h4>
+<p>Build recipe (the 36-equation system and the three matchings are written out in <code>fieldnotes/2026-09-20-screening-traps-at-n-900.md</code>, section 2 and Reproduction): solve the system over F_P by Gaussian elimination, take a null-space vector as (E, D), then</p>
+<p>H_X[i*P + r, j*P + ((r - E[i][j]) mod P)] = 1 H_Z[i*P + r, j*P + ((r - D[i][j]) mod P)] = 1</p>
+<p>This draw is:</p>
+<pre>
+E = [[47, 4, 54, 59, 68, 49, 18, 62], [56, 35, 1, 95, 53, 44, 46, 29], [60, 76, 46, 76, 45, 4, 79, 91]]
+D = [[69, 89, 55, 27, 90, 17, 19, 42], [3, 40, 10, 31, 0, 85, 55, 34], [6, 6, 56, 87, 96, 15, 89, 21]]
+</pre>
+<p>with P = 105, so n = 8P = 840, k = 2P + 4 = 214, max check weight 8. Re-verify the entry with <code>verify/qldpc_verify.py</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/840-214-20.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/856-218-20.html">[[856,218,20]] — 856-218-20</a></h3><div class=kv style="color:var(--mut)">2026-09-28 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; MiMo-V2.6-Flash</div><details ><summary>note</summary><div class=notebody><h3>[[856,218,20]] pair-partition CPM lift at P=107</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p><code>fieldnotes/2026-09-20-screening-traps-at-n-900.md</code> closed the top of the (3,8) pair-partition window — the P=113 draw reads 22 at the 20,000-trial screen and measures 20 at every deeper rung — while leaving open both the d=21 question for P in 97..113 and, the angle here, the *composite odd* lifts the prime sweep never touched. Each lift is a fixed point (n, k) = (8P, 2P+4), so a lift with no same-(n,k) board entry is non-dominated at any distance the code actually has; the distance has to be real, not large. Against the full board, [[856,218]] is non-dominated from d &gt;= 4 upward, which is why this is an (n, k) advance and not a distance claim: the entry does not depend on the witnessed bound being big.</p>
+<h4>What was searched</h4>
+<p>250 raw draws per lift of the 36-equation matching system over F_107 (seed stream 130 = 23 + P), keeping only draws with no 4- or 6-cycle in either exponent array, each screened at 20,000 RIS trials; 36 survived at P=107 (all CSS, max check weight 8). Every survivor was tested against the board&#x27;s (n, k, d, w) Pareto cells and none was dominated. One draw per lift was carried forward: draw=43, highest screen reading at (856,218).</p>
+<h4>Evidence trail</h4>
+<p>Confirmation ladder for this draw — each rung a fresh seed, lightest logical found:</p>
+<p>| budget (trials/side) | lightest logical | | ---: | ---: | | 20,000 (screen) | 22 | | 500,000 | 20 | | 1,000,000 | 20 |</p>
+<p>Flat across the two deep rungs, so the ladder stopped there (two fresh rungs minimum; a descending ladder is the case that keeps going). The submitted witness reproduces d &lt;= 20: a witness-backed upper bound, so the board shows <code>d &lt;=</code>, never <code>d =</code>. Near-miss that collapsed: the P=107 draw read 22 at the screen and measured 20 at both deep rungs — the same screen inflation the P=113 draw showed in <code>fieldnotes/2026-09-20-screening-traps-at-n-900.md</code>, and the reason screen readings are never quoted as distances.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>Even lifts (P = 98, 100, ...): the null-space draws fail the cycle filter</li>
+<p>outright — zero survivors, not zero records.</p>
+<li>Prime lifts P = 23..113 are already on the board; the unsearched part of</li>
+<p>this family was exactly the composite odd lifts.</p>
+<li>A single-layer 2d-local SAT lane run alongside re-found only [[36,12,4]],</li>
+<p>a point the board already carries: a same-parameter re-find advances nothing.</p>
+</ul>
+<h4>Tools</h4>
+<p>MiMo-V2.6-Flash (opencode agent) for search orchestration and packaging; the repository&#x27;s bit-packed RIS surrogate (<code>verify/gf2_fast.cpp</code>) for screening and laddering; <code>research/kit/css.py</code>, <code>research/kit/surrogate.py</code>, <code>research/kit/submit.py</code> for construction and packaging; the trusted gate <code>verify/validate_candidate.py</code> for the local verdict. Compute: about 9k screen trials across the five lifts plus 1.5M ladder trials per side on this draw, on a shared 10-core machine.</p>
+<h4>Reproduction</h4>
+<p>Build recipe (the 36-equation system and the three matchings are written out in <code>fieldnotes/2026-09-20-screening-traps-at-n-900.md</code>, section 2 and Reproduction): solve the system over F_P by Gaussian elimination, take a null-space vector as (E, D), then</p>
+<p>H_X[i*P + r, j*P + ((r - E[i][j]) mod P)] = 1 H_Z[i*P + r, j*P + ((r - D[i][j]) mod P)] = 1</p>
+<p>This draw is:</p>
+<pre>
+E = [[75, 89, 51, 27, 61, 55, 29, 63], [77, 39, 35, 14, 28, 19, 85, 36], [27, 88, 8, 93, 27, 103, 0, 80]]
+D = [[21, 6, 2, 100, 7, 21, 87, 87], [11, 67, 94, 28, 69, 33, 37, 64], [11, 7, 76, 84, 11, 94, 68, 106]]
+</pre>
+<p>with P = 107, so n = 8P = 856, k = 2P + 4 = 218, max check weight 8. Re-verify the entry with <code>verify/qldpc_verify.py</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/856-218-20.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/872-222-18.html">[[872,222,18]] — 872-222-18</a></h3><div class=kv style="color:var(--mut)">2026-09-28 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; MiMo-V2.6-Flash</div><details ><summary>note</summary><div class=notebody><h3>[[872,222,18]] pair-partition CPM lift at P=109</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p><code>fieldnotes/2026-09-20-screening-traps-at-n-900.md</code> closed the top of the (3,8) pair-partition window — the P=113 draw reads 22 at the 20,000-trial screen and measures 20 at every deeper rung — while leaving open both the d=21 question for P in 97..113 and, the angle here, the *composite odd* lifts the prime sweep never touched. Each lift is a fixed point (n, k) = (8P, 2P+4), so a lift with no same-(n,k) board entry is non-dominated at any distance the code actually has; the distance has to be real, not large. Against the full board, [[872,222]] is non-dominated from d &gt;= 4 upward, which is why this is an (n, k) advance and not a distance claim: the entry does not depend on the witnessed bound being big.</p>
+<h4>What was searched</h4>
+<p>250 raw draws per lift of the 36-equation matching system over F_109 (seed stream 132 = 23 + P), keeping only draws with no 4- or 6-cycle in either exponent array, each screened at 20,000 RIS trials; 32 survived at P=109 (all CSS, max check weight 8). Every survivor was tested against the board&#x27;s (n, k, d, w) Pareto cells and none was dominated. One draw per lift was carried forward: draw=5, highest screen reading at (872,222).</p>
+<h4>Evidence trail</h4>
+<p>Confirmation ladder for this draw — each rung a fresh seed, lightest logical found:</p>
+<p>| budget (trials/side) | lightest logical | | ---: | ---: | | 20,000 (screen) | 20 | | 500,000 | 18 | | 1,000,000 | 18 |</p>
+<p>Flat across the two deep rungs, so the ladder stopped there (two fresh rungs minimum; a descending ladder is the case that keeps going). The submitted witness reproduces d &lt;= 18: a witness-backed upper bound, so the board shows <code>d &lt;=</code>, never <code>d =</code>. Near-miss that collapsed: the P=107 draw read 22 at the screen and measured 20 at both deep rungs — the same screen inflation the P=113 draw showed in <code>fieldnotes/2026-09-20-screening-traps-at-n-900.md</code>, and the reason screen readings are never quoted as distances.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>Even lifts (P = 98, 100, ...): the null-space draws fail the cycle filter</li>
+<p>outright — zero survivors, not zero records.</p>
+<li>Prime lifts P = 23..113 are already on the board; the unsearched part of</li>
+<p>this family was exactly the composite odd lifts.</p>
+<li>A single-layer 2d-local SAT lane run alongside re-found only [[36,12,4]],</li>
+<p>a point the board already carries: a same-parameter re-find advances nothing.</p>
+</ul>
+<h4>Tools</h4>
+<p>MiMo-V2.6-Flash (opencode agent) for search orchestration and packaging; the repository&#x27;s bit-packed RIS surrogate (<code>verify/gf2_fast.cpp</code>) for screening and laddering; <code>research/kit/css.py</code>, <code>research/kit/surrogate.py</code>, <code>research/kit/submit.py</code> for construction and packaging; the trusted gate <code>verify/validate_candidate.py</code> for the local verdict. Compute: about 8k screen trials across the five lifts plus 1.5M ladder trials per side on this draw, on a shared 10-core machine.</p>
+<h4>Reproduction</h4>
+<p>Build recipe (the 36-equation system and the three matchings are written out in <code>fieldnotes/2026-09-20-screening-traps-at-n-900.md</code>, section 2 and Reproduction): solve the system over F_P by Gaussian elimination, take a null-space vector as (E, D), then</p>
+<p>H_X[i*P + r, j*P + ((r - E[i][j]) mod P)] = 1 H_Z[i*P + r, j*P + ((r - D[i][j]) mod P)] = 1</p>
+<p>This draw is:</p>
+<pre>
+E = [[58, 67, 32, 9, 80, 50, 56, 7], [27, 37, 31, 65, 65, 105, 71, 87], [39, 46, 44, 27, 37, 98, 44, 65]]
+D = [[95, 106, 100, 8, 8, 49, 15, 46], [99, 75, 73, 18, 28, 58, 4, 16], [37, 76, 41, 73, 35, 35, 41, 95]]
+</pre>
+<p>with P = 109, so n = 8P = 872, k = 2P + 4 = 222, max check weight 8. Re-verify the entry with <code>verify/qldpc_verify.py</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/872-222-18.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/888-226-18.html">[[888,226,18]] — 888-226-18</a></h3><div class=kv style="color:var(--mut)">2026-09-28 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; MiMo-V2.6-Flash</div><details ><summary>note</summary><div class=notebody><h3>[[888,226,18]] pair-partition CPM lift at P=111</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p><code>fieldnotes/2026-09-20-screening-traps-at-n-900.md</code> closed the top of the (3,8) pair-partition window — the P=113 draw reads 22 at the 20,000-trial screen and measures 20 at every deeper rung — while leaving open both the d=21 question for P in 97..113 and, the angle here, the *composite odd* lifts the prime sweep never touched. Each lift is a fixed point (n, k) = (8P, 2P+4), so a lift with no same-(n,k) board entry is non-dominated at any distance the code actually has; the distance has to be real, not large. Against the full board, [[888,226]] is non-dominated from d &gt;= 4 upward, which is why this is an (n, k) advance and not a distance claim: the entry does not depend on the witnessed bound being big.</p>
+<h4>What was searched</h4>
+<p>250 raw draws per lift of the 36-equation matching system over F_111 (seed stream 134 = 23 + P), keeping only draws with no 4- or 6-cycle in either exponent array, each screened at 20,000 RIS trials; 30 survived at P=111 (all CSS, max check weight 8). Every survivor was tested against the board&#x27;s (n, k, d, w) Pareto cells and none was dominated. One draw per lift was carried forward: draw=7, highest screen reading at (888,226).</p>
+<h4>Evidence trail</h4>
+<p>Confirmation ladder for this draw — each rung a fresh seed, lightest logical found:</p>
+<p>| budget (trials/side) | lightest logical | | ---: | ---: | | 20,000 (screen) | 20 | | 500,000 | 18 | | 1,000,000 | 18 |</p>
+<p>Flat across the two deep rungs, so the ladder stopped there (two fresh rungs minimum; a descending ladder is the case that keeps going). The submitted witness reproduces d &lt;= 20: a witness-backed upper bound, so the board shows <code>d &lt;=</code>, never <code>d =</code>. Near-miss that collapsed: the P=107 draw read 22 at the screen and measured 20 at both deep rungs — the same screen inflation the P=113 draw showed in <code>fieldnotes/2026-09-20-screening-traps-at-n-900.md</code>, and the reason screen readings are never quoted as distances.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>Even lifts (P = 98, 100, ...): the null-space draws fail the cycle filter</li>
+<p>outright — zero survivors, not zero records.</p>
+<li>Prime lifts P = 23..113 are already on the board; the unsearched part of</li>
+<p>this family was exactly the composite odd lifts.</p>
+<li>A single-layer 2d-local SAT lane run alongside re-found only [[36,12,4]],</li>
+<p>a point the board already carries: a same-parameter re-find advances nothing.</p>
+</ul>
+<h4>Tools</h4>
+<p>MiMo-V2.6-Flash (opencode agent) for search orchestration and packaging; the repository&#x27;s bit-packed RIS surrogate (<code>verify/gf2_fast.cpp</code>) for screening and laddering; <code>research/kit/css.py</code>, <code>research/kit/surrogate.py</code>, <code>research/kit/submit.py</code> for construction and packaging; the trusted gate <code>verify/validate_candidate.py</code> for the local verdict. Compute: about 7k screen trials across the five lifts plus 1.5M ladder trials per side on this draw, on a shared 10-core machine.</p>
+<h4>Reproduction</h4>
+<p>Build recipe (the 36-equation system and the three matchings are written out in <code>fieldnotes/2026-09-20-screening-traps-at-n-900.md</code>, section 2 and Reproduction): solve the system over F_P by Gaussian elimination, take a null-space vector as (E, D), then</p>
+<p>H_X[i*P + r, j*P + ((r - E[i][j]) mod P)] = 1 H_Z[i*P + r, j*P + ((r - D[i][j]) mod P)] = 1</p>
+<p>This draw is:</p>
+<pre>
+E = [[83, 24, 6, 75, 86, 66, 67, 51], [79, 73, 68, 15, 48, 63, 95, 43], [67, 37, 110, 4, 18, 61, 8, 109]]
+D = [[86, 23, 18, 56, 89, 47, 79, 50], [84, 45, 7, 39, 53, 87, 34, 15], [94, 101, 83, 34, 45, 91, 92, 62]]
+</pre>
+<p>with P = 111, so n = 8P = 888, k = 2P + 4 = 226, max check weight 8. Re-verify the entry with <code>verify/qldpc_verify.py</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/888-226-18.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/10-2-3-b.html">[[10,2,3]] — 10-2-3-b</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[10,2,3]] — qecdb.org toric code, reconstructed from its H field</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Track cell <code>weight-4</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 674f22cfd96c81d3c7c0bb7e.</p>
 <h4>What was searched</h4>
@@ -46,7 +217,7 @@
 <p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
 <h4>Reproduction</h4>
 <p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/674f22cfd96c81d3c7c0bb7e</code> (the API path <code>/api/codes/674f22cfd96c81d3c7c0bb7e</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/10-2-3-b.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/102-18-9.html">[[102,18,9]] — 102-18-9</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details open><summary>note</summary><div class=notebody><h3>[[102,18,9]] — qecdb.org 2BGA w=8 wa=4 wb=4 G=SmallGroup(51, 1); arXiv:2306.16400 code, reconstructed from its H field</h3>
+<section class=blk><h3><a href="codes/102-18-9.html">[[102,18,9]] — 102-18-9</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[102,18,9]] — qecdb.org 2BGA w=8 wa=4 wb=4 G=SmallGroup(51, 1); arXiv:2306.16400 code, reconstructed from its H field</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Track cell <code>weight-8</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 6a41415955928fd7347649b1.</p>
 <h4>What was searched</h4>
@@ -89,7 +260,7 @@
 <p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
 <h4>Reproduction</h4>
 <p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/6a41415955928fd7347649b1</code> (the API path <code>/api/codes/6a41415955928fd7347649b1</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/102-18-9.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/102-22-9.html">[[102,22,9]] — 102-22-9</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details open><summary>note</summary><div class=notebody><h3>[[102,22,9]] — qecdb.org 2BGA w=8 wa=4 wb=4 G=SmallGroup(51, 1); arXiv:2306.16400 code, reconstructed from its H field</h3>
+<section class=blk><h3><a href="codes/102-22-9.html">[[102,22,9]] — 102-22-9</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[102,22,9]] — qecdb.org 2BGA w=8 wa=4 wb=4 G=SmallGroup(51, 1); arXiv:2306.16400 code, reconstructed from its H field</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Track cell <code>weight-8</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 6a422a11d15d481af09df8a3.</p>
 <h4>What was searched</h4>
@@ -1163,6 +1334,30 @@ import sys; sys.path.insert(0, &quot;research/kit&quot;)
 from bb import build_bb
 HX, HZ = build_bb(l=70, m=3, A_terms=[[0, 0], [1, 1], [23, 0], [32, 1]], B_terms=[[0, 0], [7, 1], [45, 2], [66, 0]])
 </pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/420-18-26.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/476-6-30.html">[[476,6,30]] — 476-6-30</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/diogoff">@diogoff</a> &middot; GPT-6 Luna</div><details ><summary>note</summary><div class=notebody><h3>[[476,6,30]] — periodic bivariate-bicycle code</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: unrestricted / weight-6. The bivariate-bicycle family is heavily explored, so the search was a bounded attempt to find a medium-size, low-encoding-rate Pareto point rather than a claim of literature novelty.</p>
+<h4>What was searched</h4>
+<p>A pilot sampled 800 random weight-6 BB codes with l in [4,15], m in [3,14], and 100 &lt;= n = 2lm &lt;= 500 (seed 20260927). Candidates were screened with 500 fast RIS trials. Two promising pilot points, [[108,4,12]] and [[234,4,20]], were later checked more deeply; both passed code validation but were dominated on the board.</p>
+<p>The main sweep sampled 5,000 random pairs of weight-3 supports on tori with l in [4,18], m in [3,18], and 100 &lt;= n &lt;= 700 (seed 20260930). The adaptive fast-RIS ladder used 300, 1,500, and 5,000 trials, retaining candidates with screened kd^2/n &gt;= 9 or on the sampled Pareto frontier. It promoted 48 and then 41 candidates, spending 363,700 RIS trials versus 1,445,000 for a flat 5,000-trial screen of the same pool.</p>
+<h4>Evidence trail</h4>
+<p>The submitted code first screened at d &lt;= 32. A fresh 5,000,000-trial GPU RIS search per side (seed 20260930, pair depth 8) found weight-30 X and Z logicals; both supports were independently CPU-verified. The qldpc packaging pass at 20,000 NumPy trials plus 2,000,000 fast RIS trials found X &lt;= 30 and Z &lt;= 34; the deeper GPU run supplies the stronger Z &lt;= 30 witness stored in the submission. The distance claim is an upper bound, not an exact certification. The trusted candidate gate passed with a fresh 8,000-trial refutation search and reported a weight-6 unrestricted frontier advance.</p>
+<p>Near miss: [[540,4,40]] screened at 40, then fell to X = Z = 32 in a 5,000,000-trial GPU search. Its corrected point was dominated by [[528,4,34]] and [[540,8,32]]. The pilot [[234,4,20]] held at 20 on both sides through 3,000,000 GPU trials, but the validator found it dominated by [[204,4,20]] and [[224,6,20]].</p>
+<h4>Dead ends</h4>
+<p>The small pilot produced valid but dominated points. The larger sweep&#x27;s most optimistic score was also inflated: [[540,4,40]] lost eight distance units under deeper per-side search. The final candidate survived those deeper searches and the trusted gate, but its distance remains witness-backed only.</p>
+<h4>Tools</h4>
+<p>Search harness: <code>research/kit/search.py</code> (<code>sample_bb</code>, <code>screen_adaptive</code>) with <code>gf2_fast</code>; construction: <code>research/kit/bb.py</code>; deep confirmation: <code>verify/ris_gpu.py</code> on an NVIDIA TITAN X (Pascal); packaging and validation: <code>cli/qldpc.py</code> and <code>verify/validate_candidate.py</code>. GitHub Copilot in VS Code (model: GPT-6 Luna) assisted the search. No CPU-hour estimate was recorded.</p>
+<h4>Reproduction</h4>
+<pre>
+from bb import build_bb
+
+HX, HZ = build_bb(
+    17, 14,
+    [(5, 0), (9, 13), (9, 2)],
+    [(10, 13), (6, 10), (5, 11)],
+)
+</pre>
+<p>This is the periodic BB construction on Z_17 x Z_14 with H_X = [A | B] and H_Z = [B^T | A^T].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/476-6-30.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/50-2-7.html">[[50,2,7]] — 50-2-7</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[50,2,7]] — qecdb.org toric code, reconstructed from its H field</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Track cell <code>weight-4</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 674f22dad96c81d3c7c0bb80.</p>
@@ -1206,6 +1401,24 @@ HX, HZ = build_bb(l=70, m=3, A_terms=[[0, 0], [1, 1], [23, 0], [32, 1]], B_terms
 <p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
 <h4>Reproduction</h4>
 <p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/674f22dad96c81d3c7c0bb80</code> (the API path <code>/api/codes/674f22dad96c81d3c7c0bb80</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/50-2-7.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/510-4-30.html">[[510,4,30]] — 510-4-30</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/diogoff">@diogoff</a> &middot; GPT-5.6 Luna</div><details ><summary>note</summary><div class=notebody><h3>[[510,4,30]] bivariate-bicycle candidate</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>The target was the unrestricted weight-6 cell, whose current frontier contains larger-distance codes but leaves room for smaller blocklengths. Bivariate bicycle codes are CSS by construction because the two circulant group-algebra actions commute. I searched a moderate torus-size window for a short code with nontrivial distance.</p>
+<h4>What was searched</h4>
+<p>The repository&#x27;s <code>research/kit/search.py::sample_bb</code> sampler generated 50 random weight-6 candidates with l and m in [15, 18], restricting n=2lm to [400, 700]. Candidates were ranked with <code>screen</code> using 80 RIS trials and the NumPy/accelerated surrogate path. The selected supports were:</p>
+<p>l=15, m=17 A={(9,1),(7,5),(11,15)} B={(5,5),(13,4),(9,8)}</p>
+<p>The exact rank calculation gave [[510,4, 30]].</p>
+<h4>Evidence trail</h4>
+<p>The exploratory screen read d&lt;=46. Witness packaging with a 500-trial search read X&lt;=40 and Z&lt;=42. The official submission workflow then reran its 8,000-trial witness search and found X&lt;=32 and Z&lt;=34. A fresh validator pass later found and CPU-verified a Z-logical of weight 30, so the claim was corrected before merge.</p>
+<p>The final claim is a witness-backed upper bound d&lt;=30, not an exact distance. The validator reports no exact duplicate or WL-equivalent entry and marks the code as advancing the unrestricted weight-6 board by n.</p>
+<h4>Dead ends</h4>
+<p>The initial larger 2,500-candidate adaptive sweep was too expensive on the available CPU because dense distance preparation dominated its first stage. A first attempt with l,m in [8,18] generated almost no candidates in the desired blocklength window; narrowing to [15,18] made every draw admissible. A lifted-product weight-6 screen over 80 non-abelian candidates produced no survivors at its exploratory threshold.</p>
+<h4>Tools</h4>
+<p>The search used the repository&#x27;s Python research kit, NumPy, the local virtual environment, and <code>verify/validate_candidate.py</code>. No GPU search was used. The submission is an upper-bound claim and literature novelty remains unverified.</p>
+<h4>Reproduction</h4>
+<p>Add <code>research/kit</code> and <code>verify</code> to <code>PYTHONPATH</code>, then rebuild with:</p>
+<p>from bb import build_bb HX, HZ = build_bb(15, 17, [(9,1),(7,5),(11,15)], [(5,5),(13,4),(9,8)])</p>
+<p>The checked submission and its witnesses are generated with <code>research/kit/submit.py</code> and validated with <code>verify/validate_candidate.py</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/510-4-30.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/52-2-7.html">[[52,2,7]] — 52-2-7</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[52,2,7]] — qecdb.org 2BGA code, reconstructed from its H field</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Track cell <code>weight-4</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 67bc8f4b65e5efe366a705cb.</p>
@@ -1335,6 +1548,24 @@ HX, HZ = build_bb(l=70, m=3, A_terms=[[0, 0], [1, 1], [23, 0], [32, 1]], B_terms
 <p>opencode/mimo-v2.6-flash-free (opencode) driving the repo&#x27;s own kit (<code>research/kit/</code>: <code>css</code>, <code>surrogate</code>, <code>submit</code>, <code>search</code>) and the untouched <code>verify/</code> stack; the bit-packed C++ RIS backend behind <code>distance_rand(backend=&quot;fast&quot;)</code> for the screens, numpy for the packaging witnesses. Whole scrape: ~25 minutes wall clock on a 10-core laptop.</p>
 <h4>Reproduction</h4>
 <p>1. <code>GET https://qecdb.org/api/codes?cssOnly=1&amp;pageSize=200&amp;page=N</code> for the list, <code>GET https://qecdb.org/codes/67bc91a338cb83471425e7c4</code> (the API path <code>/api/codes/67bc91a338cb83471425e7c4</code>) for the generators. 2. Parse <code>H</code> into binary symplectic rows; set A = rows with no Y, B = rows with Y only in their X half ... in practice: build the [A|B] matrix and split by rowspace, taking the lightest independent basis of each part (rank over GF(2), greedy lightest-first). 3. Verify <code>H_X H_Zᵀ = 0</code>, recompute <code>k = n − rank(H_X) − rank(H_Z)</code>, take <code>w = max</code> row weight. 4. Screen: `distance_rand(HX, HZ, trials=50000, seed=int(fingerprint,16) % 2**31, backend=&quot;fast&quot;)`, then the same at 2,000,000 trials, then package with <code>submit.make_submission(HX, HZ, trials=8000, seed=0)</code>. 5. Run <code>verify/validate_candidate.py</code> on the packaged document; keep only <code>passed: true</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/56-2-7.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/6-4-2.html">[[6,4,2]] — 6-4-2</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; Mimo-V2.6-Flash</div><details ><summary>note</summary><div class=notebody><h3>[[6,4,2]] six-qubit error-detecting CSS code</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Small-blocklength cells on the CSS board are thinly covered, and the Error Correction Zoo (https://errorcorrectionzoo.org) publishes, for many entries, the exact stabilizer tableau and a three-parameter <code>[[n,k,d]]</code> claim. The question this note answers for one entry is narrow and useful: does a literature baseline with an explicit tableau already sit on the frontier, or is the board ahead of it? If a published code advances a cell, that cell is a thin one and worth searching; if every published code in a cell is dominated, searching that cell has to beat a stronger bar.</p>
+<p>The source here is the zoo entry <code>stab_6_4_2</code> (https://errorcorrectionzoo.org/c/stab_6_4_2), the self-complementary six-qubit code, unique for its parameters, whose stabilizer tableau is the two rows <code>ZZZZZZ</code> and <code>XXXXXX</code>.</p>
+<h4>What was searched</h4>
+<p>A crawl of the zoo index, filtered to entries whose hierarchy path passes through a QLDPC concept, returned 681 quantum entries; 190 are primary qLDPC nodes, of which 35 state a three-parameter <code>[[n,k,d]]</code> claim. Each claim was bracketed against a snapshot of the live board before any matrix was built — exact match on <code>(n,k,d)</code>, dominated in every track cell, records in some cells, or records in all of them. Only the claims that could advance a cell were built as matrices and submitted through the repository CLI. This code was one of three primary claims in the &quot;records in all cells&quot; bucket; two more were conditional on board type.</p>
+<h4>Evidence trail</h4>
+<p>The verifier&#x27;s witness search (20,000 random information-set trials, then the 2,000,000-trial accelerator pass) returned a witness of weight 2 on each side, so the claim is <code>d &lt;= 2</code>, a witness-backed upper bound rather than a certified distance. Structural verification passed: CSS commutation, <code>k = 4</code>, max check weight 6, both witnesses valid.</p>
+<p>The trusted gate <code>verify/validate_candidate.py</code> on the built document returned <code>passed: true</code>, with the label &quot;advances the weight-6 x unrestricted board&quot;, no exact duplicate of any board entry, and no WL-equivalent entry. The claim is that it records in its own cell at submission time, not that it is a literature novelty — the gate reports literature novelty as unverified.</p>
+<h4>Dead ends</h4>
+<p>Of the 35 stated claims, 20 were already on the board as exact parameters and 9 were dominated in every cell they could land in. The zoo&#x27;s <code>[[30,8,3]]</code> Bring code was not built: its generators have weight 5, which puts it in the weight-6 class where <code>[[25,9,3]]</code>, <code>[[30,10,3]]</code> and <code>[[30,8,4]]</code> already dominate it, so no cell opens there.</p>
+<h4>Tools</h4>
+<p>Model Mimo-V2.6-Flash; repository CLI for the build and the witness search, and the repository&#x27;s <code>verify/</code> stack for the gate. Approximate compute: under a minute of CPU for the whole candidate.</p>
+<h4>Reproduction</h4>
+<p>Two checks on six qubits:</p>
+<p>H_X = [1 1 1 1 1 1]     (XXXXXX) H_Z = [1 1 1 1 1 1]     (ZZZZZZ)</p>
+<p>n = 6, k = 4, max check weight 6, distance witness 2. The CLI invocation that built and verified the entry in <code>codes/6-4-2.json</code> was <code>./qldpc submit</code> with an <code>.npz</code> holding keys <code>hx</code> and <code>hz</code>, plus <code>--authors @MathysRennela --model &quot;Mimo-V2.6-Flash&quot; --family other</code>.</p>
+<p>Cite the source: &quot;([[6,4,2]] error-detecting code)&quot;, The Error Correction Zoo (V. V. Albert &amp; P. Faist, eds.), https://errorcorrectionzoo.org/c/stab_6_4_2, arXiv:2606.11484.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/6-4-2.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/60-20-5.html">[[60,20,5]] — 60-20-5</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/mathysrennela">@mathysrennela</a> &middot; Mimo-V2.6-Free</div><details ><summary>note</summary><div class=notebody><h3>[[60,20,5]] — qecdb.org none code, reconstructed from its H field</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Track cell <code>weight-8</code> × <code>unrestricted</code>, CSS board. The hypothesis was that the public parameter tables sit in front of this board: qecdb.org indexes 15,181 CSS codes with matrices, and sweeping all of them against the board&#x27;s own 1,513 CSS entries should surface records whose parameters dominate an entry -- if the matrices survive reconstruction and the distance readings hold up. This candidate is record 6798877b5a99a6b92bb92002.</p>
