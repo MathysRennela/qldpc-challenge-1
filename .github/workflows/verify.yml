@@ -7,6 +7,10 @@ on:
   pull_request:
     paths:
       - ".github/workflows/**"
+      # run_tests.py collects cli/test_*.py too, so a cli-only PR must trigger
+      # the suite: without this entry the tests below never run for it and the
+      # PR merges with only ruff and prose on its rollup (PR #2321).
+      - "cli/**"
       - "codes/**"
       - "verify/**"
       - "decode/**"
