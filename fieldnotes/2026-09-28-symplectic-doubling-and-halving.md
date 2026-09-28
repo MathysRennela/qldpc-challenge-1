@@ -13,7 +13,11 @@ related:
 One screening pass over the CPM pair-partition family of arXiv:2609.30069 produced
 two board entries from a single construction: a non-CSS (stabilizer) code
 [[145,32,6]] (k = 32, d <= 6, kd^2/n = 7.945) and its CSS double [[290,64,6]]
-(k = 64, d <= 6, kd^2/n = 7.945). Both passed the trusted gate
+(k = 64, d <= 6, kd^2/n = 7.945). The pair sits in the equality case: the
+parent's weight-6 distance witness (X on {0, 16, 88, 91}, Z on {58, 68}) is
+Y-free — X and Z supports disjoint — so its doubled image is a weight-6 CSS
+logical of the double, and the gate's d_X = d_Z = 6 witnesses on [[290,64,6]]
+confirm d' = d. Both passed the trusted gate
 (`verify/validate_candidate.py`: passed, board_advancing, empty dominator list; an
 8000-trial refutation found nothing lighter). This note records the operation, its
 inverse, and — explicitly — what is known versus what we only characterised.
@@ -28,7 +32,8 @@ searches the doubled CSS code H'_X = (A | B), H'_Z = (B | A). We did not invent 
 **What we found out (calibration-grade).** The operational cost of *using* it in
 this family: which draws survive, that girth optimisation is incompatible with the
 recipe's pairing, that the fold is genuinely non-CSS yet still halves out of a CSS
-parent, and that the doubling is efficiency-neutral (kd^2/n invariant). Read the
+parent, and that the doubling is efficiency non-decreasing (kd^2/n >= the
+parent's, with equality iff a minimum-weight logical is Y-free). Read the
 numbers below as the boundary of this route, not as a new theorem.
 
 ## The operation: symplectic doubling (always available)
@@ -38,11 +43,15 @@ Take any stabilizer code S = (A | B), isotropic (A B^T + B A^T = 0). Define
     H'_X = (A | B)      H'_Z = (B | A)
 
 Then H'_X H'_Z^T = A B^T + B A^T = 0, so the result is CSS. Both sides have rank
-rank(S), so k' = 2n - 2 rank(S) = 2k, and the distance is carried across unchanged.
-Hence n -> 2n, k -> 2k, d -> d, and kd^2/n is invariant. This direction has no
-preconditions — every stabilizer code doubles to a CSS code at twice the
-blocklength — which is why the non-CSS side of a family always has a CSS twin twice
-the size, at the same efficiency.
+rank(S), so k' = 2n - 2 rank(S) = 2k. The distance is *not* carried across
+unchanged in general: a Y occupies one qubit but two bits in the doubled vector,
+so Hamming(doubled logical) = PauliWeight + (#Y qubits), giving d' >= d, with
+equality iff some minimum-Pauli-weight logical is Y-free. Hence n -> 2n,
+k -> 2k, d' >= d, and kd^2/n is non-decreasing — invariant exactly in the
+Y-free case. This direction has no preconditions — every stabilizer code doubles
+to a CSS code at twice the blocklength — which is why the non-CSS side of a
+family always has a CSS twin twice the size, at *at least* the same efficiency
+(and strictly better when no minimum-weight logical is Y-free).
 
 ## The inverse: halving (the constrained direction)
 
@@ -109,7 +118,8 @@ original. Checked directly, the [[7,1,3]] Steane code doubles to a CSS code whos
 combined X/Z Tanner graph has **2 components**, whereas the genuinely non-CSS
 [[5,1,3]] code doubles to a **connected** CSS code. The disconnected result is
 inadmissible (the verifier requires a single connected component) and
-efficiency-neutral (`n -> 2n`, `k -> 2k`, `d -> d`, so `kd^2/n` is unchanged), and
+efficiency non-decreasing (`n -> 2n`, `k -> 2k`, `d' >= d` with equality iff a
+minimum-weight logical is Y-free, so `kd^2/n` never drops), and
 the CSS -> halve -> double round trip returns the same code. So the map is one-way:
 it only does anything on a *non-CSS* input, and connectivity of the double is the
 signature of genuine non-CSSness.

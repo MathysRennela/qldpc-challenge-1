@@ -5,8 +5,8 @@ Companion test for fieldnotes/2026-09-28-symplectic-doubling-and-halving.md.
 The fieldnote claims:
 
   * doubling any isotropic stabilizer code S = (A | B) as H'_X = (A | B),
-    H'_Z = (B | A) is CSS, with n -> 2n and k -> 2k (so kd^2/n is invariant
-    when d is carried across);
+    H'_Z = (B | A) is CSS, with n -> 2n and k -> 2k (so kd^2/n is non-decreasing:
+    d' >= d, with equality iff a minimum-weight logical is Y-free);
   * the inverse (halving) is conditional: it needs the CPM pair-partition
     structure, whose off-diagonal difference arrays must take every value an
     even number of times;
