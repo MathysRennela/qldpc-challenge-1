@@ -8,11 +8,20 @@ which search ran deeper. Drop `d` (and check weight and locality) and what
 remains is the honest (n, k) frontier: n lower is better, k higher is better,
 so the frontier is the staircase whose k strictly increases as n does.
 
-This script replays ``codes/*.json`` commit by commit and reports, after every
-commit that moves it, the number of CSS codes on the board and the size of that
-staircase. It is cheap -- the whole history is a few thousand commits, so it
-runs in seconds -- and it is non-monotone on purpose: an n/k correction can push
-a code off the frontier, and seeing the frontier step *down* is the point.
+This script replays ``codes/*.json`` along main's first-parent chain -- one
+step per landing on the board -- and reports, after every step that moves it,
+the number of CSS codes on the board and the size of that staircase. It is
+cheap (about two thousand commits), and it is non-monotone on purpose: an n/k
+correction can push a code off the frontier, and seeing the frontier step
+*down* is the point.
+
+The replay is only worth quoting if it ends where the repository is, so
+``research/audits/test_frontier_history.py`` asserts the invariant directly:
+the final state must equal ``git ls-tree -r HEAD -- codes/`` read as (n, k)
+pairs, CSS only. Plain ``git log`` breaks that (it orders by date, so a
+deletion can land before the add it deletes), and a rename that is reported
+for a rewrite of an unrelated file breaks it in a different way unless the
+destination is re-read rather than carried over.
 
 ``--plot`` draws the frontier as what it *is* rather than as a count of it: the
 (n, k) plane carrying one staircase per time block, oldest lightest and newest
@@ -70,30 +79,32 @@ def parse_log(text):
     return commits
 
 
-def fetch_blobs(requests, cwd):
-    """Map each ``(sha, path)`` to its blob bytes (or None if absent).
+def fetch_params(requests, cwd):
+    """Map each ``(sha, path)`` to its parsed ``(n, k, code_type)`` or None.
 
-    One ``git cat-file --batch`` call; its output is consumed in request order,
-    since the header echoes the blob's own oid rather than the requested rev.
+    One ``git cat-file --batch`` process, written to and read from one blob at
+    a time: the board's history is a growing multiple of the board, so a call
+    that buffers every historical version at once would scale with history
+    instead of with the board. The header echoes the blob's own oid rather
+    than the requested rev, so responses are consumed in request order.
     """
+    out = {}
     if not requests:
-        return {}
-    stdin = "\n".join(f"{sha}:{path}" for sha, path in requests) + "\n"
-    out = subprocess.run(["git", "cat-file", "--batch"], cwd=cwd,
-                         input=stdin.encode(), capture_output=True,
-                         check=False).stdout
-    blobs, i = {}, 0
+        return out
+    proc = subprocess.Popen(["git", "cat-file", "--batch"], cwd=cwd,
+                            stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     for sha, path in requests:
-        j = out.index(b"\n", i)
-        header = out[i:j].split()
+        proc.stdin.write(f"{sha}:{path}\n".encode())
+        proc.stdin.flush()
+        header = proc.stdout.readline().split()
         if len(header) == 3 and header[1] != b"missing":
             size = int(header[2])
-            blobs[(sha, path)] = out[j + 1:j + 1 + size]
-            i = j + 1 + size + 1
+            out[(sha, path)] = params(proc.stdout.read(size + 1)[:-1])
         else:
-            blobs[(sha, path)] = None
-            i = j + 1
-    return blobs
+            out[(sha, path)] = None
+    proc.stdin.close()
+    proc.wait()
+    return out
 
 
 def params(raw):
@@ -123,38 +134,59 @@ def frontier(points):
 
 
 def replay(repo):
-    """Yield one row per commit that moves the board's (n, k) picture.
+    """Replay ``codes/`` on main's first-parent chain; return ``(rows, state)``.
 
-    Each row is ``(date, sha, n_codes, frontier_points, frontier_codes, front)``
-    with ``front`` the staircase itself, oldest first.
+    ``state`` is ``{path: (n, k)}`` for every CSS code as of ``HEAD``; ``rows``
+    is one ``(date, sha, n_codes, frontier_points, frontier_codes, front)``
+    entry per step that moved the board, oldest first, with ``front`` the
+    staircase itself.
+
+    ``--first-parent`` is the ordering, not a shortcut: on a PR-merge repo it
+    walks what each landing actually did to main, in landing order. Plain
+    ``git log`` orders by date, and date order is not ancestry order, so a
+    deletion could be applied before the add it deletes (which is how one file
+    that HEAD no longer has once survived the replay). A side branch's
+    intermediate states are likewise not board states -- main never had them.
     """
-    log = git(["log", "--reverse", "--name-status", "--format=C %H %aI",
-               "--", "codes/"], repo)
+    log = git(["log", "--first-parent", "--reverse", "--name-status",
+               "--format=C %H %aI", "--", "codes/"], repo)
     if log.returncode != 0:
         sys.exit(f"git log failed: {log.stderr.decode().strip()}")
     commits = parse_log(log.stdout.decode())
 
-    requests = [(sha, path) for sha, _, changes in commits
-                for status, path, _ in changes
-                if status in ("A", "M") and path.endswith(".json")]
-    blobs = fetch_blobs(requests, repo)
+    requests = []
+    for sha, _, changes in commits:
+        for status, path, dest in changes:
+            # A rename is read at its destination: git reports a rewrite of an
+            # unrelated file as a rename when the similarity check matches, so
+            # carrying the source's (n, k) over invents a value no blob has.
+            if status == "R" and dest and dest.endswith(".json"):
+                requests.append((sha, dest))
+            elif status in ("A", "M") and path.endswith(".json"):
+                requests.append((sha, path))
+    blobs = fetch_params(requests, repo)
 
     state = {}
+    rows = []
     for sha, date, changes in commits:
         moved = False
         for status, path, dest in changes:
-            if not path.endswith(".json"):
+            if not path.endswith(".json") and not (dest or "").endswith(".json"):
                 continue
             if status == "R":
-                value = state.pop(path, None)
-                if value is not None:
-                    state[dest] = value
+                old = state.pop(path, None)
+                new = blobs.get((sha, dest)) if dest else None
+                if new and new[2] == "CSS":
+                    state[dest] = new[:2]
+                    if old != new[:2]:
+                        moved = True
+                elif old is not None:
                     moved = True
             elif status == "D":
                 if state.pop(path, None) is not None:
                     moved = True
             else:
-                value = params(blobs.get((sha, path)))
+                value = blobs.get((sha, path))
                 if value and value[2] == "CSS":
                     if state.get(path) != value[:2]:
                         state[path] = value[:2]
@@ -167,7 +199,9 @@ def replay(repo):
         flat = frontier(points)
         front = set(flat)
         on_front = sum(1 for nk in state.values() if nk in front)
-        yield date[:10], sha[:9], len(state), len(front), on_front, tuple(flat)
+        rows.append((date[:10], sha[:9], len(state), len(front), on_front,
+                     tuple(flat)))
+    return rows, state
 
 
 def svg_counts(rows, path):
@@ -191,7 +225,8 @@ def svg_counts(rows, path):
 
     def step_path(idx):
         # A step line: hold each value until the next commit moves it, emitting a
-        # point only where the value changes (1738 commits, ~50 real moves).
+        # point only where the value changes: the frontier moves far less
+        # often than the board does, so this is a staircase, not a hedgehog.
         pts, prev = [], None
         for day, row in zip(days, rows):
             v = row[idx]
@@ -465,7 +500,7 @@ def main():
                     help="write the counts-over-time step chart as an SVG here")
     args = ap.parse_args()
 
-    rows = list(replay(args.repo))
+    rows, state = replay(args.repo)
     if not rows:
         sys.exit("no board-moving commits found; is --repo the board's repo?")
 
