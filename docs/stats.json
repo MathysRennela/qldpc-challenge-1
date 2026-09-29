@@ -1,5 +1,7 @@
 {
-  "verified_codes": 1564,
+  "verified_codes": 1574,
+  "css_codes": 1564,
+  "stabilizer_codes": 10,
   "certified_exact": 625,
   "tracks": 12,
   "best_kd2_over_n": 1534.381,

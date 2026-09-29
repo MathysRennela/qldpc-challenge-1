@@ -371,6 +371,19 @@ margin:2px 4px 2px 0;border-radius:999px;background:var(--soft);color:var(--mut)
 border:1px solid var(--ln);white-space:normal}
 .tchip.loc{background:#eef2ff;color:#3730a3;border-color:#c7d2fe}
 .tchip.mod{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}
+.tchip.stab{background:#fdf4ff;color:#86198f;border-color:#f0abfc;
+vertical-align:middle;font-family:'Manrope',sans-serif}
+.xboard{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;
+font-size:13px;color:var(--mut);margin:18px 0 0;padding:10px 14px;
+border:1px solid var(--ln);border-radius:12px;background:var(--soft)}
+.xboard b{color:var(--ink)}
+.xboard a.lbcta{margin-left:auto}
+.stabintro{margin:20px 0 4px}
+.stabintro p{font-size:14px;color:var(--mut);max-width:760px;margin:6px 0}
+.stabintro table{border-collapse:collapse;font-size:13px;margin:10px 0 4px}
+.stabintro th,.stabintro td{text-align:left;padding:4px 14px 4px 0;
+vertical-align:top;border-bottom:1px solid var(--ln)}
+.stabintro th{color:var(--mut);font-weight:600}
 .modtable{border-collapse:collapse;font-size:13px;margin:8px 0}
 .modtable th,.modtable td{padding:3px 12px 3px 0;text-align:right;
 border-bottom:1px solid var(--ln)}
