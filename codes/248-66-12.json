@@ -1916,7 +1916,7 @@
    "Kasai, Kenta",
    "Maskara, Nishad"
   ],
-  "construction": "Pair-partition CPM CSS code (Okada-Kasai arXiv:2607.14091v4 catalogue), (J,L,P)=(3,8,31), check weight 8; H_X and H_Z taken from https://kasai.ict.eng.isct.ac.jp/pair_partition_cpm_css_codes_data @ sha256 5a08a30914596b6b, contributed_codes/nishad_maskara/pp_248_66_12_cw8_P31.npz, structure and distance re-verified here",
+  "construction": "Pair-partition CPM/GPM CSS code (Okada-Kasai arXiv:2607.14091 catalogue), (J,L,P)=(3,8,31), check weight 8; H_X and H_Z taken verbatim from the published instance at https://kasai.ict.eng.isct.ac.jp/pair_partition_cpm_css_codes_data/contributed_codes/nishad_maskara/pp_248_66_12_cw8_P31.npz (sha256 5a08a30914596b6b1584a7a3d3e936b60bf8a08c962a1c19f39f966caec3701b), structure and distance re-verified here",
   "origin": "baseline",
   "date": "2026-09-29",
   "model": "Mimo-V2.6-Flash",
