@@ -143,6 +143,47 @@ Exit 2 when either side is refuted, so it gates like `ladder` and `screen`.
 Exit 3 when there is no peer at all: that candidate is not making a d-only gain,
 so this is not the question to ask of it -- use `screen`.
 
+## The frontier over time: `frontier_history.py`
+
+`leader_audit.py` re-measures one claim; `frontier_history.py` shows what the
+claims have done to the board. It replays `codes/` along main's first-parent
+chain (one step per landing, in landing order, dated by committer date) and
+reports the **(n, k, d) Pareto frontier** after every step that moved it.
+`d` stays in: without it the (n, k) frontier is won by rate alone
+(`[[n, n-2, 2]]` exists for every even n), and the revisions this README opens
+with are exactly the steps *down* the replay is there to show.
+
+```
+uv run --frozen python research/audits/frontier_history.py                 # summary + every step down
+uv run --frozen python research/audits/frontier_history.py --out f.csv     # date,commit,codes,frontier_points,frontier_codes,hypervolume,note
+uv run --frozen python research/audits/frontier_history.py --plot frontier_history.svg
+uv run --frozen python research/audits/frontier_history.py --plot-history frontier_hypervolume.svg
+```
+
+Two charts, stdlib-only SVG:
+
+* `--plot`: one panel per distance floor (d >= 4, 6, 8, 12, 16, 24; `--floors`),
+  each the (n, k) staircase of the frontier codes clearing that floor, on log
+  axes, at one snapshot per month (`--bucket`). The region gained between
+  snapshots is tinted with the snapshot that gained it, a region lost is a red
+  hatch, and today's codes carry an `n,k,d` label. Read across the panels: the
+  right end of the d >= 4 staircase is rate, the d >= 24 panel is the board
+  that is hard to move.
+* `--plot-history`: the frontier's dominated hypervolume on a date axis, as a
+  share of today's, every step down marked and the largest named
+  (`[[882,18,30]]->29`, `-[[216,15,11]]`). Hypervolume is taken in log2
+  coordinates against `(n_ref = 1000, k = 1/2, d = 1/2)`, so a code
+  contributes `log2(n_ref/n) x (1 + log2 k) x (1 + log2 d)`; the number is the
+  union of those boxes. The half-unit reference keeps `k = 1` codes from
+  contributing nothing; a code at or above `n_ref` (`--n-ref`) contributes
+  nothing.
+
+The replay is only quotable if it ends where the repository is, and
+`test_frontier_history.py` asserts exactly that: the replayed state equals
+`git ls-tree -r HEAD -- codes/` read as (n, k, d), CSS only, with every blob
+parsed. The committed SVGs are the charts as of the date in their titles;
+regenerate them with the commands above.
+
 ## Limits
 
 These are upper-bound searches. `holds` never upgrades a claim to the exact

@@ -1,53 +1,70 @@
 #!/usr/bin/env python3
-"""Reconstruct the (n, k) Pareto frontier of the board from git history.
+"""Reconstruct the board's (n, k, d) Pareto frontier from git history.
 
-The board ranks codes on several axes, but `d` is a witness-backed *upper*
-bound and its history is full of downward revisions (``[[882,18,30]]`` -> 29,
-``[[684,12,81]]`` -> 66), so a frontier that leans on `d` is largely measuring
-which search ran deeper. Drop `d` (and check weight and locality) and what
-remains is the honest (n, k) frontier: n lower is better, k higher is better,
-so the frontier is the staircase whose k strictly increases as n does.
+The board ranks codes on (n, k, d, w). `d` is a witness-backed *upper* bound
+whose history is full of downward revisions (``[[882,18,30]]`` -> 29,
+``[[684,12,81]]`` -> 66), which is a reason to watch it, not to drop it: with
+`d` removed the (n, k) frontier is won by rate alone (``[[n, n-2, 2]]`` exists
+for every even n), and what that frontier then measures is who submitted the
+highest-rate low-distance code. So this script keeps `d`, reports the
+three-axis frontier (n lower, k and d higher are better) after every landing
+that moved it, and makes the revisions visible as the steps *down*.
 
-This script replays ``codes/*.json`` along main's first-parent chain -- one
-step per landing on the board -- and reports, after every step that moves it,
-the number of CSS codes on the board and the size of that staircase. It is
-cheap (about two thousand commits), and it is non-monotone on purpose: an n/k
-correction can push a code off the frontier, and seeing the frontier step
-*down* is the point.
+It replays ``codes/*.json`` along main's first-parent chain -- one step per
+landing on the board -- and reports, after every step that moved the board,
+the CSS code count, the frontier's size, and the frontier's dominated
+hypervolume. The replay is only worth quoting if it ends where the repository
+is, so ``research/audits/test_frontier_history.py`` asserts exactly that: the
+final state must equal ``git ls-tree -r HEAD -- codes/`` read as (n, k, d),
+CSS only. Plain ``git log`` breaks that (it orders by date, so a deletion can
+land before the add it deletes), and a rename reported for a rewrite of an
+unrelated file breaks it differently unless the destination is re-read.
 
-The replay is only worth quoting if it ends where the repository is, so
-``research/audits/test_frontier_history.py`` asserts the invariant directly:
-the final state must equal ``git ls-tree -r HEAD -- codes/`` read as (n, k)
-pairs, CSS only. Plain ``git log`` breaks that (it orders by date, so a
-deletion can land before the add it deletes), and a rename that is reported
-for a rewrite of an unrelated file breaks it in a different way unless the
-destination is re-read rather than carried over.
+Two charts, both dependency-free SVG:
 
-``--plot`` draws the frontier as what it *is* rather than as a count of it: the
-(n, k) plane carrying one staircase per time block, oldest lightest and newest
-darkest, so the board's history is the envelope itself creeping up and to the
-right (and occasionally slipping back), not a number ticking upward.
+``--plot`` draws the frontier as a shape: one panel per distance floor
+(d >= 4, 6, 8, 12, 16, 24), each carrying the (n, k) staircase of the codes
+that clear the floor, on log axes, as of a few snapshots (one per month by
+default). The region gained between consecutive snapshots is shaded in the
+newer snapshot's colour and a region lost (a correction or removal) in red,
+and today's staircase carries a dot and an ``n,k,d`` label per code.
+
+``--plot-history`` draws one line on a time axis: the frontier's hypervolume
+as a share of today's, with every downward step marked and named. That is the
+signal a "codes over time" count hides.
 
   uv run --frozen python research/audits/frontier_history.py
   uv run --frozen python research/audits/frontier_history.py --out /tmp/frontier.csv
   uv run --frozen python research/audits/frontier_history.py --plot frontier.svg
-  uv run --frozen python research/audits/frontier_history.py --plot frontier.svg --bucket day
+  uv run --frozen python research/audits/frontier_history.py --plot-history history.svg
+
+Hypervolume is taken in log2 coordinates against the reference point
+(n = ``--n-ref``, k = 1/2, d = 1/2): a frontier code contributes the box
+``log2(n_ref/n) x (1 + log2 k) x (1 + log2 d)``, and the union of those boxes
+is the number. Log space is what the board's own ``kd^2/n`` lives in, and the
+half-unit reference keeps ``k = 1`` codes (which sit on the small-n frontier
+legitimately) from contributing nothing. A code at or above ``n_ref``
+contributes nothing.
 
 Only the main (CSS) board is replayed; general stabilizer codes rank on their
-own board and are skipped. n and k are read per file *version*, so an in-place
-correction is seen; a rename (which is how a distance tightening lands on
-``codes/``) is followed without inventing a new (n, k) point.
+own board and are skipped. n, k and d are read per file *version*, so an
+in-place correction is seen; a rename is read at its destination.
 """
 
 import argparse
+import bisect
 import datetime
 import json
+import math
 import os
 import subprocess
 import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _REPO = os.path.abspath(os.path.join(_HERE, "..", ".."))
+
+# Distance floors for the small-multiples chart, one panel each.
+_FLOORS = (4, 6, 8, 12, 16, 24)
 
 
 def git(args, cwd):
@@ -79,8 +96,16 @@ def parse_log(text):
     return commits
 
 
+def utc_day(iso):
+    """Return the UTC calendar day of an ISO-8601 timestamp with offset."""
+    stamp = datetime.datetime.fromisoformat(iso)
+    if stamp.tzinfo is not None:
+        stamp = stamp.astimezone(datetime.timezone.utc)
+    return stamp.date().isoformat()
+
+
 def fetch_params(requests, cwd):
-    """Map each ``(sha, path)`` to its parsed ``(n, k, code_type)`` or None.
+    """Map each ``(sha, path)`` to its parsed ``(n, k, d, code_type)`` or None.
 
     One ``git cat-file --batch`` process, written to and read from one blob at
     a time: the board's history is a growing multiple of the board, so a call
@@ -108,38 +133,113 @@ def fetch_params(requests, cwd):
 
 
 def params(raw):
-    """``(n, k, code_type)`` from a code blob, or None if it will not parse."""
+    """``(n, k, d, code_type)`` from a code blob, or None if it will not parse.
+
+    ``d`` is ``distance.d``; an entry that predates that field falls back to
+    the minimum of the per-side values, and a bare number is taken as is.
+    """
     if raw is None:
         return None
     try:
         doc = json.loads(raw)
-        return int(doc["n"]), int(doc["k"]), doc.get("code_type", "CSS")
+        dist = doc.get("distance")
+        if isinstance(dist, dict):
+            d = dist.get("d")
+            if d is None:
+                sides = [dist[s]["value"] for s in ("X", "Z")
+                         if isinstance(dist.get(s), dict) and "value" in dist[s]]
+                d = min(sides) if sides else None
+        else:
+            d = dist
+        if d is None:
+            return None
+        return int(doc["n"]), int(doc["k"]), int(d), doc.get("code_type", "CSS")
     except (ValueError, KeyError, TypeError):
         return None
 
 
 def frontier(points):
-    """Compute the (n, k) antichain: pairs no other beats on both axes.
+    """Return the (n, k, d) antichain: triples no other beats on all axes.
 
-    Sort by n ascending, and by k descending within an equal n, so that when
-    several codes share an n only the highest-k one can survive; a point is on
-    the frontier exactly when its k exceeds every k seen so far.
+    Sorted by n ascending (k, then d, descending within a tie), a triple is
+    dominated exactly when some earlier triple has k' >= k and d' >= d: an
+    earlier triple with a smaller n is strictly better on n, and one with the
+    same n sorts earlier only if it is strictly better on k or d. The maximal
+    (k, d) pairs seen so far form a staircase (k rising, d falling), so the
+    largest d over k' >= k is the one at the first k' >= k. Returned in n
+    order.
     """
-    front, best_k = [], -1
-    for n, k in sorted(points, key=lambda t: (t[0], -t[1])):
-        if k > best_k:
-            best_k = k
-            front.append((n, k))
+    front, ks, ds = [], [], []
+    for n, k, d in sorted(points, key=lambda t: (t[0], -t[1], -t[2])):
+        i = bisect.bisect_left(ks, k)
+        if i < len(ks) and ds[i] >= d:
+            continue
+        front.append((n, k, d))
+        j = i
+        while j > 0 and ds[j - 1] <= d:
+            j -= 1
+        end = i + 1 if i < len(ks) and ks[i] == k else i
+        ks[j:end] = [k]
+        ds[j:end] = [d]
     return front
 
 
-def replay(repo):
+def hypervolume(front, n_ref):
+    """Dominated volume of the frontier in log2 coordinates.
+
+    Each ``(n, k, d)`` with ``n < n_ref`` is the box ``[0, log2(n_ref/n)] x
+    [0, 1 + log2 k] x [0, 1 + log2 d]``; the result is the volume of their
+    union: a sweep over the first axis, with the cross-section of each slab
+    the union area of the origin-anchored rectangles of every box that spans
+    it.
+    """
+    boxes = sorted(((math.log2(n_ref / n), 1 + math.log2(k), 1 + math.log2(d))
+                    for n, k, d in front if n < n_ref), reverse=True)
+    total, i = 0.0, 0
+    while i < len(boxes):
+        a = boxes[i][0]
+        j = i
+        while j < len(boxes) and boxes[j][0] == a:
+            j += 1
+        below = boxes[j][0] if j < len(boxes) else 0.0
+        rects = sorted(((b, c) for _, b, c in boxes[:j]), reverse=True)
+        area, best_c = 0.0, 0.0
+        for idx, (b, c) in enumerate(rects):
+            best_c = max(best_c, c)
+            b_next = rects[idx + 1][0] if idx + 1 < len(rects) else 0.0
+            area += (b - b_next) * best_c
+        total += (a - below) * area
+        i = j
+    return total
+
+
+def describe_loss(lost, front):
+    """Name what left the frontier.
+
+    ``[[n,k,d]]->d'`` for a revision that kept the code on the frontier at a
+    lower d, ``-[[n,k,d]]`` otherwise.
+    """
+    by_nk = {}
+    for n, k, d in front:
+        by_nk[(n, k)] = max(by_nk.get((n, k), 0), d)
+    notes = []
+    for n, k, d in sorted(lost):
+        now = by_nk.get((n, k))
+        if now is not None and now < d:
+            notes.append(f"[[{n},{k},{d}]]->{now}")
+        else:
+            notes.append(f"-[[{n},{k},{d}]]")
+    return " ".join(notes)
+
+
+def replay(repo, n_ref=1000):
     """Replay ``codes/`` on main's first-parent chain; return ``(rows, state)``.
 
-    ``state`` is ``{path: (n, k)}`` for every CSS code as of ``HEAD``; ``rows``
-    is one ``(date, sha, n_codes, frontier_points, frontier_codes, front)``
-    entry per step that moved the board, oldest first, with ``front`` the
-    staircase itself.
+    ``state`` is ``{path: (n, k, d)}`` for every CSS code as of ``HEAD``;
+    ``rows`` is one ``(date, sha, n_codes, frontier_points, frontier_codes,
+    front, hypervolume, note)`` entry per step that moved the board, oldest
+    first, with ``front`` the frontier itself and ``note`` naming what a step
+    pushed off it (empty when nothing left).
 
     ``--first-parent`` is the ordering, not a shortcut: on a PR-merge repo it
     walks what each landing actually did to main, in landing order. Plain
@@ -147,9 +247,13 @@ def replay(repo):
     deletion could be applied before the add it deletes (which is how one file
     that HEAD no longer has once survived the replay). A side branch's
     intermediate states are likewise not board states -- main never had them.
+
+    Dates are committer dates (when the landing happened), as UTC days: the
+    author date of a squash or merge landing can be days earlier, and a
+    bucket keyed on it would file the landing into a week it did not land in.
     """
     log = git(["log", "--first-parent", "--reverse", "--name-status",
-               "--format=C %H %aI", "--", "codes/"], repo)
+               "--format=C %H %cI", "--", "codes/"], repo)
     if log.returncode != 0:
         sys.exit(f"git log failed: {log.stderr.decode().strip()}")
     commits = parse_log(log.stdout.decode())
@@ -159,15 +263,17 @@ def replay(repo):
         for status, path, dest in changes:
             # A rename is read at its destination: git reports a rewrite of an
             # unrelated file as a rename when the similarity check matches, so
-            # carrying the source's (n, k) over invents a value no blob has.
+            # carrying the source's value over invents one no blob has.
             if status == "R" and dest and dest.endswith(".json"):
                 requests.append((sha, dest))
             elif status in ("A", "M") and path.endswith(".json"):
                 requests.append((sha, path))
     blobs = fetch_params(requests, repo)
+    replay.unparsed = sum(1 for v in blobs.values() if v is None)
 
     state = {}
     rows = []
+    prev_front = set()
     for sha, date, changes in commits:
         moved = False
         for status, path, dest in changes:
@@ -176,9 +282,9 @@ def replay(repo):
             if status == "R":
                 old = state.pop(path, None)
                 new = blobs.get((sha, dest)) if dest else None
-                if new and new[2] == "CSS":
-                    state[dest] = new[:2]
-                    if old != new[:2]:
+                if new and new[3] == "CSS":
+                    state[dest] = new[:3]
+                    if old != new[:3]:
                         moved = True
                 elif old is not None:
                     moved = True
@@ -187,110 +293,31 @@ def replay(repo):
                     moved = True
             else:
                 value = blobs.get((sha, path))
-                if value and value[2] == "CSS":
-                    if state.get(path) != value[:2]:
-                        state[path] = value[:2]
+                if value and value[3] == "CSS":
+                    if state.get(path) != value[:3]:
+                        state[path] = value[:3]
                         moved = True
                 elif state.pop(path, None) is not None:
                     moved = True
         if not moved:
             continue
-        points = {(n, k) for n, k in state.values()}
-        flat = frontier(points)
+        flat = frontier(set(state.values()))
         front = set(flat)
-        on_front = sum(1 for nk in state.values() if nk in front)
-        rows.append((date[:10], sha[:9], len(state), len(front), on_front,
-                     tuple(flat)))
+        on_front = sum(1 for nkd in state.values() if nkd in front)
+        note = describe_loss(prev_front - front, flat)
+        rows.append((utc_day(date), sha[:9], len(state), len(front), on_front,
+                     tuple(flat), hypervolume(flat, n_ref), note))
+        prev_front = front
     return rows, state
 
 
-def svg_counts(rows, path):
-    """Write the size series as a dependency-free SVG step chart.
-
-    Two series share one axis: `frontier_points` (the staircase size) and
-    `frontier_codes` (codes standing on it, so ties show as a gap). Both stay
-    small, so a shared linear axis is honest; the board's code count runs to
-    four figures and is deliberately left out rather than rescaled.
-    """
-    w, h, left, right, top, bot = 900, 340, 62, 18, 44, 46
-    days = [datetime.date.fromisoformat(r[0]).toordinal() for r in rows]
-    d0, d1 = days[0], days[-1]
-    ymax = max(r[4] for r in rows) * 1.12
-
-    def x(day):
-        return left + (day - d0) / (d1 - d0) * (w - left - right)
-
-    def y(v):
-        return h - bot - v / ymax * (h - top - bot)
-
-    def step_path(idx):
-        # A step line: hold each value until the next commit moves it, emitting a
-        # point only where the value changes: the frontier moves far less
-        # often than the board does, so this is a staircase, not a hedgehog.
-        pts, prev = [], None
-        for day, row in zip(days, rows):
-            v = row[idx]
-            if prev is None:
-                pts.append(f"M{x(day):.1f},{y(v):.1f}")
-            elif v != prev:
-                pts.append(f"L{x(day):.1f},{y(prev):.1f}")
-                pts.append(f"L{x(day):.1f},{y(v):.1f}")
-            prev = v
-        pts.append(f"L{x(days[-1]):.1f},{y(prev):.1f}")
-        return " ".join(pts)
-
-    parts = [
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" '
-        f'viewBox="0 0 {w} {h}" font-family="system-ui,sans-serif">',
-        f'<rect width="{w}" height="{h}" fill="#ffffff"/>',
-        f'<text x="{left}" y="24" font-size="15" font-weight="600">'
-        'Board (n, k) Pareto frontier over time</text>',
-        f'<text x="{left}" y="40" font-size="11.5" fill="#666">'
-        'CSS board, replayed from git history; d, check weight and locality ignored'
-        '</text>',
-    ]
-    for v in range(0, int(ymax) + 1, 10):
-        yy = y(v)
-        parts.append(f'<line x1="{left}" y1="{yy:.1f}" x2="{w - right}" '
-                     f'y2="{yy:.1f}" stroke="#eee"/>')
-        parts.append(f'<text x="{left - 8}" y="{yy + 4:.1f}" font-size="11" '
-                     f'fill="#888" text-anchor="end">{v}</text>')
-    # Six date ticks, spaced by DATE not by index (commits cluster toward the
-    # end, so evenly spaced indices give unevenly spaced dates). Labelled
-    # month-day, ends anchored inward, so nothing collides or clips.
-    for n in range(6):
-        day = d0 + round(n * (d1 - d0) / 5)
-        xx = x(day)
-        anchor = "start" if n == 0 else "end" if n == 5 else "middle"
-        label = datetime.date.fromordinal(day).strftime("%m-%d")
-        parts.append(f'<line x1="{xx:.1f}" y1="{top}" x2="{xx:.1f}" '
-                     f'y2="{h - bot}" stroke="#f4f4f4"/>')
-        parts.append(f'<text x="{xx:.1f}" y="{h - bot + 16}" font-size="11" '
-                     f'fill="#888" text-anchor="{anchor}">{label}</text>')
-    parts.append(f'<path d="{step_path(4)}" fill="none" stroke="#c2410c" '
-                 'stroke-width="2"/>')
-    parts.append(f'<path d="{step_path(3)}" fill="none" stroke="#1d4ed8" '
-                 'stroke-width="1.6" stroke-dasharray="5 3"/>')
-    parts.append(f'<line x1="{left}" y1="{h - bot}" x2="{w - right}" '
-                 f'y2="{h - bot}" stroke="#bbb"/>')
-    lx = w - right - 250
-    parts.append(f'<line x1="{lx}" y1="{top - 14}" x2="{lx + 22}" '
-                 f'y2="{top - 14}" stroke="#1d4ed8" stroke-width="1.6" '
-                 'stroke-dasharray="5 3"/>')
-    parts.append(f'<text x="{lx + 28}" y="{top - 10}" font-size="11.5" '
-                 'fill="#444">frontier points (n, k)</text>')
-    parts.append(f'<line x1="{lx}" y1="{top - 30}" x2="{lx + 22}" '
-                 f'y2="{top - 30}" stroke="#c2410c" stroke-width="2"/>')
-    parts.append(f'<text x="{lx + 28}" y="{top - 26}" font-size="11.5" '
-                 'fill="#444">codes on the frontier</text>')
-    parts.append("</svg>")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("\n".join(parts) + "\n")
+replay.unparsed = 0
 
 
 # Oldest -> newest: light-warm to dark-cool, so today's staircase is the
 # darkest line on the page while the earliest ones still read against white.
 _RAMP = ["#f6bd60", "#f8961e", "#e76f51", "#a34a7c", "#4a6fa5", "#1d3557"]
+_LOSS = "#d62828"
 
 
 def ramp(t):
@@ -334,154 +361,365 @@ def snapshots(rows, bucket):
     return out
 
 
-def merge_stable(snaps):
-    """Collapse buckets that share a frontier into a single curve.
+def floor_staircase(front, floor):
+    """Return the (n, k) staircase of the frontier codes with ``d >= floor``.
 
-    Returns ``(first_date, last_date, front)`` triples: a staircase is drawn
-    only when the frontier actually moved, and its label spans every bucket it
-    stayed current for, so an unchanged week is not overdrawn twice in two
-    colours that the legend then cannot be read back from.
+    Returns ``(n, k, d)`` triples with k strictly rising in n; ``d`` is the
+    largest distance standing at that (n, k). This is the two-axis frontier of
+    the slice, and every point of it is a point of the three-axis frontier.
     """
+    best_d = {}
+    for n, k, d in front:
+        if d >= floor:
+            best_d[(n, k)] = max(best_d.get((n, k), 0), d)
+    out, best_k = [], -1
+    for (n, k), d in sorted(best_d.items(), key=lambda t: (t[0][0], -t[0][1])):
+        if k > best_k:
+            best_k = k
+            out.append((n, k, d))
+    return out
+
+
+def k_at(stair, n):
+    """``k_max`` of a staircase at block length n (0 left of its first step)."""
+    best = 0
+    for sn, sk, _ in stair:
+        if sn > n:
+            break
+        best = sk
+    return best
+
+
+def region_rects(old, new, n_right):
+    """Where two staircases differ, as ``(kind, n0, n1, k_lo, k_hi)`` rects.
+
+    ``kind`` is ``gain`` where the newer staircase is higher and ``loss``
+    where the older one was; the last rect runs out to ``n_right``, since past
+    the last step k_max stays flat.
+    """
+    cuts = sorted({n for n, _, _ in old} | {n for n, _, _ in new})
     out = []
-    for date, _sha, _codes, _fp, _fc, front in snaps:
-        if out and out[-1][2] == front:
-            out[-1][1] = date
-        else:
-            out.append([date, date, front])
-    return [(first, last, front) for first, last, front in out]
+    for a, b in zip(cuts, cuts[1:] + [n_right]):
+        ko, kn = k_at(old, a), k_at(new, a)
+        if kn > ko:
+            out.append(("gain", a, b, ko, kn))
+        elif kn < ko:
+            out.append(("loss", a, b, kn, ko))
+    return out
 
 
-def axis_max(value):
-    """Return a round upper bound of at most eight ticks, plus the tick step."""
-    for step in (5, 10, 20, 25, 50, 100, 200, 250, 500, 1000):
-        if value <= step * 7:
-            return -(-value // step) * step, step
-    return value, 1000
+def log_ticks(lo, hi):
+    """Return the 1-2-5 ticks inside [lo, hi]."""
+    ticks, mag = [], 10 ** math.floor(math.log10(max(lo, 1e-9)))
+    while mag <= hi:
+        for m in (1, 2, 5):
+            v = m * mag
+            if lo <= v <= hi:
+                ticks.append(v)
+        mag *= 10
+    return ticks
 
 
-def stair_path(front, sx, sy, x_end):
-    """Build the step line of one frontier: flat at k, up at each new n.
+def place_labels(points, panel):
+    """Place labels greedily: three candidate offsets per dot, else no label.
 
-    It runs out to ``x_end`` because past the largest n on the frontier no
-    larger k exists either, so k_max stays flat out there.
+    The first offset that neither overlaps a placed label nor leaves the
+    panel wins.
     """
-    pts = [f"M{sx(front[0][0]):.1f},{sy(front[0][1]):.1f}"]
-    for i in range(1, len(front)):
-        n, k = front[i]
-        pts.append(f"L{sx(n):.1f},{sy(front[i - 1][1]):.1f}")
-        pts.append(f"L{sx(n):.1f},{sy(k):.1f}")
-    pts.append(f"L{x_end:.1f},{sy(front[-1][1]):.1f}")
-    return " ".join(pts)
+    x0, y0, x1, y1 = panel
+    placed, out = [], []
+    for x, y, text in points:
+        w, h = 4.9 * len(text), 9.0
+        for dx, dy, anchor in ((4, -4, "start"), (4, 11, "start"),
+                               (-4, -4, "end")):
+            lx, ly = x + dx, y + dy
+            bx0 = lx if anchor == "start" else lx - w
+            box = (bx0, ly - h, bx0 + w, ly)
+            if box[0] < x0 or box[2] > x1 or box[1] < y0 or box[3] > y1:
+                continue
+            if any(not (box[2] < p[0] or box[0] > p[2] or box[3] < p[1]
+                        or box[1] > p[3]) for p in placed):
+                continue
+            placed.append(box)
+            out.append((lx, ly, anchor, text))
+            break
+    return out
 
 
-def svg_frontier(rows, path, bucket="week"):
-    """Draw the frontier as a shape: one staircase per time bucket on (n, k).
+def svg_frontier(rows, path, bucket="month", floors=_FLOORS):
+    """Draw one panel per distance floor, one (n, k) staircase per snapshot.
 
-    Each bucket's staircase is coloured along ``_RAMP`` from oldest to newest,
-    so progress reads as the envelope creeping up and to the right instead of
-    as a count ticking over, and an n/k correction reads as a darker curve
-    dipping below an older one. The legend is one swatch per curve when they
-    fit and a colour strip -- one band per bucket -- when they do not, which is
-    what a day bucket needs.
+    Each panel keeps the frontier codes clearing its floor, on log axes.
+    Consecutive snapshots are compared as regions rather than as overlaid
+    lines: the area gained is filled in the newer colour, the area lost in
+    red, and only a staircase that differs from the next one is drawn, so an
+    unchanged month is not a second line in a second colour. Today's staircase
+    is heavy and carries a dot and an ``n,k,d`` label per code where the label
+    fits. Each staircase ends at its last code and continues dashed: past the
+    largest n no larger k exists, but no code stands out there.
     """
-    curves = merge_stable(snapshots(rows, bucket))
-    if not curves:
+    snaps = snapshots(rows, bucket)
+    if not snaps:
         sys.exit("no frontier snapshots found to plot")
+    stairs = [[floor_staircase(s[5], f) for s in snaps] for f in floors]
+    all_pts = [p for per_floor in stairs for st in per_floor for p in st]
+    if not all_pts:
+        sys.exit("no frontier code clears the lowest floor")
 
-    w, h, left, right, top, bot = 980, 560, 66, 206, 64, 54
-    x_end, y_base = w - right, h - bot
-    xmax, xstep = axis_max(max(front[-1][0] for _, _, front in curves))
-    ymax, ystep = axis_max(max(front[-1][1] for _, _, front in curves))
+    n_lo, n_hi = min(p[0] for p in all_pts), max(p[0] for p in all_pts)
+    k_hi = max(p[1] for p in all_pts)
+    n_min, n_max = n_lo / 1.25, n_hi * 1.6
+    k_min, k_max = 1 / 1.25, k_hi * 1.8
 
-    def sx(n):
-        return left + n / xmax * (x_end - left)
-
-    def sy(k):
-        return y_base - k / ymax * (y_base - top)
-
-    colors = ([ramp(1.0)] if len(curves) == 1 else
-              [ramp(i / (len(curves) - 1)) for i in range(len(curves))])
+    cols = 3
+    rws = -(-len(floors) // cols)
+    w, left, right, top, bot, gap_x, gap_y = 1180, 58, 18, 74, 78, 44, 52
+    pw = (w - left - right - (cols - 1) * gap_x) / cols
+    ph = 300
+    h = top + rws * ph + (rws - 1) * gap_y + bot
+    colors = ([ramp(1.0)] if len(snaps) == 1 else
+              [ramp(i / (len(snaps) - 1)) for i in range(len(snaps))])
 
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" '
         f'viewBox="0 0 {w} {h}" font-family="system-ui,sans-serif">',
         f'<rect width="{w}" height="{h}" fill="#ffffff"/>',
-        f'<text x="{left}" y="26" font-size="15" font-weight="600">'
-        f'Board (n, k) Pareto frontier, one staircase per {bucket}</text>',
-        f'<text x="{left}" y="43" font-size="11.5" fill="#666">'
-        'CSS board replayed from git history; lower n and higher k are better; '
-        'd, check weight and locality ignored; colour runs oldest to newest'
-        '</text>',
+        f'<text x="{left}" y="28" font-size="15" font-weight="600">'
+        f'Board (n, k) frontier by distance floor, as of {snaps[-1][0]}</text>',
+        f'<text x="{left}" y="46" font-size="11.5" fill="#666">'
+        'CSS board replayed from git history; each panel keeps the codes with '
+        'd at or above its floor; lower n and higher k are better; check '
+        'weight and locality ignored; log axes</text>',
+        '<defs><pattern id="loss" patternUnits="userSpaceOnUse" width="6" '
+        'height="6" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" '
+        f'y2="6" stroke="{_LOSS}" stroke-width="2.2"/></pattern></defs>',
     ]
-    for v in range(0, ymax + 1, ystep):
-        yy = sy(v)
-        parts.append(f'<line x1="{left}" y1="{yy:.1f}" x2="{x_end}" '
-                     f'y2="{yy:.1f}" stroke="#eee"/>')
-        parts.append(f'<text x="{left - 8}" y="{yy + 4:.1f}" font-size="11" '
-                     f'fill="#888" text-anchor="end">{v}</text>')
-    for v in range(0, xmax + 1, xstep):
-        xx = sx(v)
-        parts.append(f'<line x1="{xx:.1f}" y1="{top}" x2="{xx:.1f}" '
-                     f'y2="{y_base}" stroke="#f4f4f4"/>')
-        parts.append(f'<text x="{xx:.1f}" y="{y_base + 16}" font-size="11" '
-                     f'fill="#888" text-anchor="middle">{v}</text>')
-    parts.append(f'<text x="{(left + x_end) / 2:.1f}" y="{h - 14}" '
-                 'font-size="11.5" fill="#666" text-anchor="middle">'
-                 'block length n (smaller is better)</text>')
-    parts.append(f'<text transform="translate(15,{(top + y_base) / 2:.1f}) '
-                 'rotate(-90)" font-size="11.5" fill="#666" '
-                 'text-anchor="middle">logical qubits k (higher is better)'
-                 '</text>')
 
-    for i, ((_first, _last, front), color) in enumerate(zip(curves, colors)):
-        # Today's frontier carries the weight; the rest are one thickness.
-        width = 2.5 if i == len(curves) - 1 else 1.7
-        parts.append(f'<path d="{stair_path(front, sx, sy, x_end)}" '
-                     f'fill="none" stroke="{color}" stroke-width="{width}" '
-                     'stroke-linejoin="round"/>')
-    parts.append(f'<line x1="{left}" y1="{y_base}" x2="{x_end}" '
-                 f'y2="{y_base}" stroke="#bbb"/>')
-    parts.append(f'<line x1="{left}" y1="{top}" x2="{left}" '
-                 f'y2="{y_base}" stroke="#bbb"/>')
+    for idx, (floor, per_floor) in enumerate(zip(floors, stairs)):
+        r, c = divmod(idx, cols)
+        x0 = left + c * (pw + gap_x)
+        y0 = top + r * (ph + gap_y)
+        x1, y1 = x0 + pw, y0 + ph
 
-    lx = x_end + 16
-    if len(curves) * 15 <= y_base - top - 26:
-        parts.append(f'<text x="{lx}" y="{top + 2}" font-size="10.5" '
-                     'fill="#888">date range  (# n,k points)</text>')
-        for i, ((start, end, front), color) in enumerate(zip(curves, colors)):
-            yy = top + 24 + i * 15
-            label = start if start == end else f"{start}\u2013{end[5:]}"
-            last = i == len(curves) - 1
-            weight = ' font-weight="600"' if last else ""
-            parts.append(f'<line x1="{lx}" y1="{yy - 4:.1f}" '
-                         f'x2="{lx + 24}" y2="{yy - 4:.1f}" stroke="{color}" '
-                         f'stroke-width="{2.5 if last else 2.4}"/>')
-            parts.append(f'<text x="{lx + 30}" y="{yy:.1f}" font-size="11" '
-                         f'fill="#444"{weight}>{label}  ({len(front)})</text>')
-    else:
-        # Too many buckets to list: one band each, stacked oldest at the top.
-        parts.append(f'<text x="{lx}" y="{top + 2}" font-size="10.5" '
-                     'fill="#888">one band per frontier</text>')
-        bar_top, bar_bot, bw = top + 16, y_base - 2, 18
-        band = (bar_bot - bar_top) / len(curves)
-        for i, color in enumerate(colors):
-            yy = bar_top + i * band
-            parts.append(f'<rect x="{lx}" y="{yy:.2f}" width="{bw}" '
-                         f'height="{band + 0.4:.2f}" fill="{color}"/>')
-        parts.append(f'<rect x="{lx}" y="{bar_top:.1f}" width="{bw}" '
-                     f'height="{bar_bot - bar_top:.1f}" fill="none" '
-                     'stroke="#bbb"/>')
-        every = max(1, -(-len(curves) // 6))
-        for i in list(range(0, len(curves), every)) + [len(curves) - 1]:
-            yy = bar_top + (i + 0.5) * band
-            parts.append(f'<text x="{lx + bw + 6}" y="{yy + 3.5:.1f}" '
-                         f'font-size="9.5" fill="#666">'
-                         f'{curves[i][0][5:]}</text>')
+        def sx(n, x0=x0, x1=x1):
+            return x0 + (math.log(n) - math.log(n_min)) / \
+                (math.log(n_max) - math.log(n_min)) * (x1 - x0)
 
+        def sy(k, y0=y0, y1=y1):
+            return y1 - (math.log(max(k, k_min)) - math.log(k_min)) / \
+                (math.log(k_max) - math.log(k_min)) * (y1 - y0)
+
+        parts.append(f'<clipPath id="p{idx}"><rect x="{x0:.1f}" y="{y0:.1f}" '
+                     f'width="{pw:.1f}" height="{ph:.1f}"/></clipPath>')
+        for v in log_ticks(k_min, k_max):
+            yy = sy(v)
+            parts.append(f'<line x1="{x0:.1f}" y1="{yy:.1f}" x2="{x1:.1f}" '
+                         f'y2="{yy:.1f}" stroke="#eee"/>')
+            parts.append(f'<text x="{x0 - 6:.1f}" y="{yy + 3.5:.1f}" '
+                         f'font-size="9.5" fill="#888" text-anchor="end">{v:g}'
+                         '</text>')
+        for v in log_ticks(n_min, n_max):
+            xx = sx(v)
+            parts.append(f'<line x1="{xx:.1f}" y1="{y0:.1f}" x2="{xx:.1f}" '
+                         f'y2="{y1:.1f}" stroke="#f2f2f2"/>')
+            parts.append(f'<text x="{xx:.1f}" y="{y1 + 13:.1f}" font-size="9.5" '
+                         f'fill="#888" text-anchor="middle">{v:g}</text>')
+
+        parts.append(f'<g clip-path="url(#p{idx})">')
+        for i in range(1, len(per_floor)):
+            for kind, a, b, klo, khi in region_rects(per_floor[i - 1],
+                                                     per_floor[i], n_max):
+                # A gain is tinted with the snapshot that made it, so the
+                # shading itself says when; a loss is a red hatch, which no
+                # tint in the ramp can be mistaken for.
+                fill = (f'fill="{colors[i]}" fill-opacity="0.16"'
+                        if kind == "gain" else 'fill="url(#loss)"')
+                parts.append(
+                    f'<rect x="{sx(a):.1f}" y="{sy(khi):.1f}" '
+                    f'width="{sx(b) - sx(a):.1f}" '
+                    f'height="{sy(klo) - sy(khi):.1f}" {fill}/>')
+        for i, stair in enumerate(per_floor):
+            if not stair:
+                continue
+            last = i == len(per_floor) - 1
+            if not last and stair == per_floor[i + 1]:
+                continue
+            pts = [f"M{sx(stair[0][0]):.1f},{sy(stair[0][1]):.1f}"]
+            for j in range(1, len(stair)):
+                n, k, _ = stair[j]
+                pts.append(f"L{sx(n):.1f},{sy(stair[j - 1][1]):.1f}")
+                pts.append(f"L{sx(n):.1f},{sy(k):.1f}")
+            width = 2.2 if last else 1.4
+            parts.append(f'<path d="{" ".join(pts)}" fill="none" '
+                         f'stroke="{colors[i]}" stroke-width="{width}" '
+                         'stroke-linejoin="round"/>')
+            ex, ey = sx(stair[-1][0]), sy(stair[-1][1])
+            parts.append(f'<line x1="{ex:.1f}" y1="{ey:.1f}" x2="{x1:.1f}" '
+                         f'y2="{ey:.1f}" stroke="{colors[i]}" '
+                         f'stroke-width="{width * 0.6:.1f}" '
+                         'stroke-dasharray="3 3"/>')
+        parts.append("</g>")
+
+        today = per_floor[-1]
+        dots = [(sx(n), sy(k), f"{n},{k},{d}") for n, k, d in today]
+        for x, y, _ in dots:
+            parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="2.6" '
+                         f'fill="{colors[-1]}" stroke="#fff" stroke-width="1"/>')
+        for lx, ly, anchor, text in place_labels(dots, (x0, y0, x1, y1)):
+            # A white halo keeps a label legible where it crosses a line.
+            parts.append(f'<text x="{lx:.1f}" y="{ly:.1f}" font-size="8.5" '
+                         f'fill="#333" text-anchor="{anchor}" stroke="#fff" '
+                         'stroke-width="2.5" stroke-linejoin="round" '
+                         f'paint-order="stroke">{text}</text>')
+
+        parts.append(f'<rect x="{x0:.1f}" y="{y0:.1f}" width="{pw:.1f}" '
+                     f'height="{ph:.1f}" fill="none" stroke="#bbb"/>')
+        parts.append(f'<text x="{x0 + 6:.1f}" y="{y0 - 6:.1f}" font-size="12" '
+                     f'font-weight="600" fill="#333">d ≥ {floor}'
+                     f'<tspan dx="10" font-weight="400" fill="#777">'
+                     f'{len(today)} codes on today\'s staircase</tspan></text>')
+        if r == rws - 1:
+            parts.append(f'<text x="{(x0 + x1) / 2:.1f}" y="{y1 + 28:.1f}" '
+                         'font-size="10.5" fill="#666" text-anchor="middle">'
+                         'block length n</text>')
+        if c == 0:
+            parts.append(f'<text transform="translate({x0 - 34:.1f},'
+                         f'{(y0 + y1) / 2:.1f}) rotate(-90)" font-size="10.5" '
+                         'fill="#666" text-anchor="middle">logical qubits k'
+                         '</text>')
+
+    # Legend: each snapshot as its line over its tint (the tint is the region
+    # that snapshot gained), then the loss hatch and the dot.
+    ly = h - 22
+    lx = left
+    for i, (snap, color) in enumerate(zip(snaps, colors)):
+        parts.append(f'<rect x="{lx}" y="{ly - 11}" width="22" height="10" '
+                     f'fill="{color}" fill-opacity="0.16"/>')
+        parts.append(f'<line x1="{lx}" y1="{ly - 11}" x2="{lx + 22}" '
+                     f'y2="{ly - 11}" stroke="{color}" '
+                     f'stroke-width="{2.4 if i == len(snaps) - 1 else 1.6}"/>')
+        label = f"as of {snap[0]}"
+        parts.append(f'<text x="{lx + 27}" y="{ly}" font-size="10.5" '
+                     f'fill="#444">{label}</text>')
+        lx += 27 + 5.4 * len(label) + 16
+    parts.append(f'<text x="{lx}" y="{ly}" font-size="10.5" fill="#777">'
+                 '(tint: region that snapshot gained)</text>')
+    lx += 5.4 * 35 + 16
+    parts.append(f'<rect x="{lx}" y="{ly - 11}" width="22" height="10" '
+                 'fill="url(#loss)"/>')
+    parts.append(f'<text x="{lx + 27}" y="{ly}" font-size="10.5" fill="#444">'
+                 'lost (correction or removal)</text>')
+    lx += 27 + 5.4 * 28 + 16
+    parts.append(f'<circle cx="{lx + 5}" cy="{ly - 5}" r="2.6" '
+                 f'fill="{colors[-1]}"/>')
+    parts.append(f'<text x="{lx + 14}" y="{ly}" font-size="10.5" fill="#444">'
+                 'code on today\'s staircase (n,k,d)</text>')
     parts.append("</svg>")
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(parts) + "\n")
-    return curves
+    return snaps
+
+
+def svg_history(rows, path):
+    """Frontier hypervolume over time, as a share of today's, on a date axis.
+
+    A step line: the value holds until the next landing moves it. Every step
+    down is a red dot, and the largest ones are named with what left the
+    frontier, so a distance revision reads as the event it was.
+    """
+    w, h, left, right, top, bot = 980, 380, 62, 18, 52, 46
+    days = [datetime.date.fromisoformat(r[0]).toordinal() for r in rows]
+    d0, d1 = days[0], days[-1]
+    today = rows[-1][6] or 1.0
+    vals = [r[6] / today for r in rows]
+    ymax = max(vals) * 1.08
+
+    def x(day):
+        return left + (day - d0) / max(d1 - d0, 1) * (w - left - right)
+
+    def y(v):
+        return h - bot - v / ymax * (h - top - bot)
+
+    pts, prev = [], None
+    for day, v in zip(days, vals):
+        if prev is None:
+            pts.append(f"M{x(day):.1f},{y(v):.1f}")
+        elif v != prev:
+            pts.append(f"L{x(day):.1f},{y(prev):.1f}")
+            pts.append(f"L{x(day):.1f},{y(v):.1f}")
+        prev = v
+    pts.append(f"L{x(days[-1]):.1f},{y(prev):.1f}")
+
+    # Steps down, each with its size relative to the value it stepped from.
+    drops = [((vals[i - 1] - vals[i]) / vals[i - 1], i)
+             for i in range(1, len(vals)) if vals[i] < vals[i - 1]]
+    # The largest get a numeral at the dot and a line in the list above the
+    # curve's low early stretch, where there is room; labels at the dots
+    # collide.
+    named = {i: rank + 1 for rank, (_, i)
+             in enumerate(sorted(drops, reverse=True)[:8])}
+
+    parts = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" '
+        f'viewBox="0 0 {w} {h}" font-family="system-ui,sans-serif">',
+        f'<rect width="{w}" height="{h}" fill="#ffffff"/>',
+        f'<text x="{left}" y="24" font-size="15" font-weight="600">'
+        'Board (n, k, d) frontier hypervolume over time</text>',
+        f'<text x="{left}" y="40" font-size="11.5" fill="#666">'
+        f'CSS board replayed from git history; share of today\'s '
+        f'({rows[-1][0]}) value; log2 coordinates; every step down marked, '
+        'the largest named</text>',
+    ]
+    for v in (0.0, 0.25, 0.5, 0.75, 1.0):
+        if v > ymax:
+            break
+        yy = y(v)
+        parts.append(f'<line x1="{left}" y1="{yy:.1f}" x2="{w - right}" '
+                     f'y2="{yy:.1f}" stroke="#eee"/>')
+        parts.append(f'<text x="{left - 8}" y="{yy + 4:.1f}" font-size="11" '
+                     f'fill="#888" text-anchor="end">{v:.2f}</text>')
+    # Six date ticks, spaced by DATE not by index (commits cluster toward the
+    # end, so evenly spaced indices give unevenly spaced dates).
+    for i in range(6):
+        day = d0 + round(i * (d1 - d0) / 5)
+        xx = x(day)
+        anchor = "start" if i == 0 else "end" if i == 5 else "middle"
+        label = datetime.date.fromordinal(day).strftime("%m-%d")
+        parts.append(f'<line x1="{xx:.1f}" y1="{top}" x2="{xx:.1f}" '
+                     f'y2="{h - bot}" stroke="#f4f4f4"/>')
+        parts.append(f'<text x="{xx:.1f}" y="{h - bot + 16}" font-size="11" '
+                     f'fill="#888" text-anchor="{anchor}">{label}</text>')
+    parts.append(f'<path d="{" ".join(pts)}" fill="none" stroke="#1d3557" '
+                 'stroke-width="2"/>')
+    for _, i in drops:
+        xx, yy = x(days[i]), y(vals[i])
+        parts.append(f'<circle cx="{xx:.1f}" cy="{yy:.1f}" r="3.2" '
+                     f'fill="{_LOSS}"/>')
+        if i in named:
+            parts.append(f'<text x="{xx:.1f}" y="{yy + 15:.1f}" font-size="9" '
+                         f'fill="{_LOSS}" text-anchor="middle" stroke="#fff" '
+                         'stroke-width="2" paint-order="stroke">'
+                         f'{named[i]}</text>')
+    lx, ly = left + 12, top + 12
+    parts.append(f'<text x="{lx}" y="{ly}" font-size="10" fill="#666">'
+                 f'{len(drops)} steps down; the largest:</text>')
+    rel = dict((i, r) for r, i in drops)
+    for i, rank in sorted(named.items(), key=lambda t: t[1]):
+        ly += 13
+        parts.append(f'<text x="{lx}" y="{ly}" font-size="10" fill="{_LOSS}">'
+                     f'{rank}</text>')
+        parts.append(f'<text x="{lx + 14}" y="{ly}" font-size="10" '
+                     f'fill="#444">{rows[i][0]}  {rows[i][7]}  '
+                     f'−{100 * rel[i]:.2f}%</text>')
+    parts.append(f'<text transform="translate(16,{(top + h - bot) / 2:.1f}) '
+                 'rotate(-90)" font-size="11" fill="#666" text-anchor="middle">'
+                 'share of today\'s hypervolume</text>')
+    parts.append(f'<line x1="{left}" y1="{h - bot}" x2="{w - right}" '
+                 f'y2="{h - bot}" stroke="#bbb"/>')
+    parts.append("</svg>")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("\n".join(parts) + "\n")
+    return drops
 
 
 def main():
@@ -492,46 +730,59 @@ def main():
     ap.add_argument("--out", default=None,
                     help="write the series as CSV here (default: print a summary)")
     ap.add_argument("--plot", default=None,
-                    help="write one staircase per time block as an SVG here")
-    ap.add_argument("--bucket", default="week",
+                    help="write the per-distance-floor staircase panels as an SVG here")
+    ap.add_argument("--bucket", default="month",
                     choices=("day", "week", "month"),
-                    help="time block for --plot (default: week)")
-    ap.add_argument("--plot-counts", default=None,
-                    help="write the counts-over-time step chart as an SVG here")
+                    help="snapshot spacing for --plot (default: month)")
+    ap.add_argument("--floors", default=",".join(map(str, _FLOORS)),
+                    help="comma-separated distance floors, one panel each")
+    ap.add_argument("--plot-history", default=None,
+                    help="write the hypervolume-over-time chart as an SVG here")
+    ap.add_argument("--n-ref", type=int, default=1000,
+                    help="hypervolume reference block length (default: 1000)")
     args = ap.parse_args()
 
-    rows, state = replay(args.repo)
+    rows, state = replay(args.repo, args.n_ref)
     if not rows:
         sys.exit("no board-moving commits found; is --repo the board's repo?")
 
     if args.plot:
-        curves = svg_frontier(rows, args.plot, args.bucket)
-        print(f"wrote {len(curves)} frontiers, one per {args.bucket} "
-              f"({curves[0][0]} .. {curves[-1][1]}), to {args.plot}")
+        floors = tuple(int(f) for f in args.floors.split(","))
+        snaps = svg_frontier(rows, args.plot, args.bucket, floors)
+        print(f"wrote {len(floors)} panels x {len(snaps)} snapshots "
+              f"({snaps[0][0]} .. {snaps[-1][0]}) to {args.plot}")
 
-    if args.plot_counts:
-        svg_counts(rows, args.plot_counts)
-        print(f"wrote plot to {args.plot_counts}")
+    if args.plot_history:
+        drops = svg_history(rows, args.plot_history)
+        print(f"wrote hypervolume history with {len(drops)} steps down to "
+              f"{args.plot_history}")
 
     if args.out:
         with open(args.out, "w", encoding="utf-8") as f:
-            f.write("date,commit,codes,frontier_points,frontier_codes\n")
-            for date, sha, n, fp, fc, _front in rows:
-                f.write(f"{date},{sha},{n},{fp},{fc}\n")
+            f.write("date,commit,codes,frontier_points,frontier_codes,"
+                    "hypervolume,note\n")
+            for date, sha, n, fp, fc, _front, hv, note in rows:
+                f.write(f"{date},{sha},{n},{fp},{fc},{hv:.3f},{note}\n")
         print(f"wrote {len(rows)} rows to {args.out}")
 
-    date, sha, n, fp, fc, _front = rows[-1]
-    print(f"{len(rows)} board-moving commits, {rows[0][0]} .. {rows[-1][0]}")
-    print(f"current: {n} CSS codes, {fp} (n,k) points on the frontier, "
-          f"{fc} codes standing on it")
+    date, sha, n, fp, fc, _front, hv, _note = rows[-1]
+    print(f"{len(rows)} board-moving commits, {rows[0][0]} .. {rows[-1][0]}"
+          + (f"; {replay.unparsed} blobs did not parse and were skipped"
+             if replay.unparsed else ""))
+    print(f"current: {n} CSS codes, {fp} (n,k,d) points on the frontier, "
+          f"{fc} codes standing on it, hypervolume {hv:.1f}")
 
     if not args.out:
         step = max(1, len(rows) // 10)
-        for row in rows[::step]:
+        for row in rows[::step] + [rows[-1]]:
             print(f"  {row[0]}  codes={row[2]:<5} frontier_points={row[3]:<4} "
-                  f"frontier_codes={row[4]}")
-        print(f"  {rows[-1][0]}  codes={rows[-1][2]:<5} frontier_points="
-              f"{rows[-1][3]:<4} frontier_codes={rows[-1][4]}")
+                  f"hypervolume={row[6]:.1f}")
+        downs = [(rows[i - 1][6], rows[i]) for i in range(1, len(rows))
+                 if rows[i][6] < rows[i - 1][6]]
+        print(f"{len(downs)} steps down:")
+        for before, row in downs:
+            pct = 100 * (before - row[6]) / before
+            print(f"  {row[0]}  {row[1]}  {pct:5.1f}%  {row[7]}")
 
 
 if __name__ == "__main__":
