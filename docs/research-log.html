@@ -544,6 +544,74 @@ build_planar(15, 15,
              [(0, 0), (1, 1), (2, 0), (2, 1)])
 </pre>
 <p>Single-layer layout: qubit (i, j) of family c at (i + j, j - i + c), c = 0 for the A qubits and c = 1 for the B qubits; interaction radius 3.606.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/450-12-6.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/470-192-12.html">[[470,192,12]] — 470-192-12</a></h3><div class=kv style="color:var(--mut)">2026-09-29 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> and Okada and Koki and Kasai and Kenta and Maskara and Nishad &middot; Mimo-V2.6-Flash</div><details ><summary>note</summary><div class=notebody><h3>[[470,192,12]] pair-partition CPM/GPM CSS code, (J,L,P) = (3,10,47)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: CSS, any weight x unrestricted — check weight 10 and no layout, so the entry ranks on the any-weight board. The authoritative catalogue that accompanies arXiv:2607.14091 (Okada and Kasai) publishes 44 pair-partition codes with exact distances, and this repository carried only part of them. The hypothesis was deliberately narrow: screen every catalogue row against this repository&#x27;s admissibility cap and against the board&#x27;s own Pareto test, and expect survivors to land as new Pareto points rather than displacers, because those rows were published for this family&#x27;s parameters and were never searched against this board.</p>
+<h4>What was searched</h4>
+<p>No construction search. The catalogue rows were screened, not optimised:</p>
+<ul>
+<li>the catalogue page names 61 distinct <code>[[n,k,d]]</code> triples, and 36 of them sit</li>
+<p>at <code>n &lt;= 700</code>, inside the blocklength cap;</p>
+<li>23 of those 36 were already in <code>codes/</code> before this batch;</li>
+<li>13 were absent. Ten of them cleared <code>verify/validate_candidate.py</code> as</li>
+<p>non-dominated in their own cell and make up this batch. The other three are <code>[[110,8,12]]</code>, <code>[[190,8,18]]</code> and <code>[[200,54,10]]</code>, accounted for under dead ends.</p>
+</ul>
+<p>The check matrices are the authors&#x27; published instance, used byte for byte. Screening reproduced here: CSS commutation <code>H_X H_Z^T = 0</code> over GF(2); <code>rank(H_X) = rank(H_Z) = 139</code>, hence <code>k = 470 - 278 = 192</code>; every row of both matrices has weight 10. Only after those agreed was a distance search run.</p>
+<p>Published description of this instance: CPM-PP instance at (J,L,P)=(3,10,47): complete exclusion through weight 10 on both CSS sides plus a weight-12 logical on both sides, so the catalogue reports d = 12.</p>
+<h4>Evidence trail</h4>
+<p>The submit gate for this instance: 3,000 Python RIS trials per side, then a 2,000,000-trial <code>verify/gf2_fast</code> accelerator pass, both at seed 0; the verifier then re-ran a refutation search against the written entry. Lightest logical found on each side was <code>d = 12</code>, matching the catalogue&#x27;s claimed distance, with both witnesses written into <code>codes/470-192-12.json</code>.</p>
+<p><code>python verify/qldpc_verify.py codes/470-192-12.json</code> exits 0. The catalogue reports these distances as exact; this repository records only the witness-backed upper bound, because <code>verify/certify.py</code> is out of its envelope at <code>k = 192</code>. CI re-runs a deeper refutation search on the PR and the weekly sweep keeps re-testing, so a wrong <code>d</code> would surface as a refutation rather than a quiet pass.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>The eight catalogue rows between <code>n = 700</code> and <code>n = 1000</code> and the seventeen</li>
+<p>past <code>n = 1000</code> were left out of this batch. Past 1000 they fail the blocklength cap outright; between 700 and 1000 they would additionally need <code>w &lt;= 8</code> and <code>d &lt;= 40</code>, and their check weights were not screened here. That is a stated gap, not a claim of inadmissibility — it is the obvious next batch.</p>
+<li>Exact certification was not attempted. <code>verify/certify.py</code> is measured to</li>
+<p>hold only at <code>d &lt;= 13</code> and <code>k &lt;= 12</code>, and this code runs at <code>k = 192</code>, so the claim here is an upper bound by design rather than a shortfall of the search.</p>
+<li>No layout was supplied, so the code ranks as unrestricted. A toric-style</li>
+<p>layout with a smaller neighbourhood would open a different cell, but the published instance is a circulant construction and no coordinates come with it; inventing some would be a separate submission with its own evidence.</p>
+<li>Three catalogue rows are admissible, absent, and still not submitted here.</li>
+<p><code>[[110,8,12]]</code> and <code>[[190,8,18]]</code> are reported dominated by <code>verify/validate_candidate.py</code> (by <code>[[104,8,12]]</code> and <code>[[170,8,20]]</code> respectively), so they would ship as a dominated entry beside a stronger one. <code>[[200,54,10]]</code> appears only as a GPM-PP comparison point in the catalogue&#x27;s prose and ships no instance file, so there is nothing to submit even if it cleared the frontier.</p>
+<li>Every other catalogue row in the 440-495 blocklength range ([[444,154,18]], [[472,122,14]], [[472,122,16]], [[488,126,14]], [[488,126,16]], [[492,170,20]]) is already on the board, so this row only ever adds a point at its own parameters rather than moving anyone else&#x27;s.</li>
+</ul>
+<h4>Tools</h4>
+<p>Model: Mimo-V2.6-Flash, driving an opencode agent session opened by @MathysRennela, who opened this PR. Repo tooling: <code>./qldpc submit</code> for the witness search and packaging, <code>verify/qldpc_verify.py</code> for the local gate, <code>verify/check_prose.py</code> and <code>verify/prepush_prose_check.sh</code> for the prose gate. The accelerator is <code>verify/gf2_fast</code>, built from <code>verify/gf2_fast.cpp</code>.</p>
+<h4>Reproduction</h4>
+<p>Rebuild <code>(H_X, H_Z)</code> from the authors&#x27; exponent file alone:</p>
+<p>1. Download https://kasai.ict.eng.isct.ac.jp/pair_partition_cpm_css_codes_data/cpm/qc_470_192_d12to22.cpm (sha256 <code>00e39744b3e413f83b6a5f031dc563636260de3a63f05a7b9440e30992297a76</code>). It is a <code>CPM_CSS_V1</code> text file: a header line, then a line <code>name p ell jx jz</code>, then <code>(jx + jz) * ell</code> integers — here <code>p = 47</code>, <code>ell = 10</code>, <code>jx = jz = 3</code>. 2. The file holds <code>6</code> base rows of <code>ell = 10</code> integers: the first <code>3</code> expand to <code>H_X</code>, the last <code>3</code> to <code>H_Z</code>. Expand each base row <code>b</code> into <code>p</code> = 47 binary rows of length <code>n = ell * p = 470</code>, one for every offset <code>a</code> in <code>[0, p)</code>, with a 1 in column <code>ell * ((a - e) mod p) + t</code> for every position <code>t</code> holding exponent <code>e = b[t]</code>. The result is a <code>141</code>-by-<code>470</code> matrix per side. 3. Confirm <code>H_X H_Z^T = 0</code>, rank 139 on each side, <code>k = 192</code>, and max row weight 10. 4. Only after those agree should a distance search be run; the witnesses in <code>codes/470-192-12.json</code> are the ones this entry stands on.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/470-192-12.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/512-132-14.html">[[512,132,14]] — 512-132-14</a></h3><div class=kv style="color:var(--mut)">2026-09-29 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> and Okada and Koki and Kasai and Kenta and Maskara and Nishad &middot; Mimo-V2.6-Flash</div><details ><summary>note</summary><div class=notebody><h3>[[512,132,14]] pair-partition CPM/GPM CSS code, (J,L,P) = (3,8,64)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target cell: CSS, weight-8 x unrestricted — check weight 8 and no layout, so the entry ranks on the weight-8 board. The authoritative catalogue that accompanies arXiv:2607.14091 (Okada and Kasai) publishes 44 pair-partition codes with exact distances, and this repository carried only part of them. The hypothesis was deliberately narrow: screen every catalogue row against this repository&#x27;s admissibility cap and against the board&#x27;s own Pareto test, and expect survivors to land as new Pareto points rather than displacers, because those rows were published for this family&#x27;s parameters and were never searched against this board.</p>
+<h4>What was searched</h4>
+<p>No construction search. The catalogue rows were screened, not optimised:</p>
+<ul>
+<li>the catalogue page names 61 distinct <code>[[n,k,d]]</code> triples, and 36 of them sit</li>
+<p>at <code>n &lt;= 700</code>, inside the blocklength cap;</p>
+<li>23 of those 36 were already in <code>codes/</code> before this batch;</li>
+<li>13 were absent. Ten of them cleared <code>verify/validate_candidate.py</code> as</li>
+<p>non-dominated in their own cell and make up this batch. The other three are <code>[[110,8,12]]</code>, <code>[[190,8,18]]</code> and <code>[[200,54,10]]</code>, accounted for under dead ends.</p>
+</ul>
+<p>The check matrices are the authors&#x27; published instance, used byte for byte. Screening reproduced here: CSS commutation <code>H_X H_Z^T = 0</code> over GF(2); <code>rank(H_X) = rank(H_Z) = 190</code>, hence <code>k = 512 - 380 = 132</code>; every row of both matrices has weight 8. Only after those agreed was a distance search run.</p>
+<p>Published description of this instance: APM-PP addition at (J,L,P)=(3,8,64) with the absolute AOD shift schedule.</p>
+<h4>Evidence trail</h4>
+<p>The submit gate for this instance: 3,000 Python RIS trials per side, then a 2,000,000-trial <code>verify/gf2_fast</code> accelerator pass, both at seed 0; the verifier then re-ran a refutation search against the written entry. Lightest logical found on each side was <code>d = 14</code>, matching the catalogue&#x27;s claimed distance, with both witnesses written into <code>codes/512-132-14.json</code>.</p>
+<p><code>python verify/qldpc_verify.py codes/512-132-14.json</code> exits 0. The catalogue reports these distances as exact; this repository records only the witness-backed upper bound, because <code>verify/certify.py</code> is out of its envelope at <code>k = 132</code>. CI re-runs a deeper refutation search on the PR and the weekly sweep keeps re-testing, so a wrong <code>d</code> would surface as a refutation rather than a quiet pass.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>The eight catalogue rows between <code>n = 700</code> and <code>n = 1000</code> and the seventeen</li>
+<p>past <code>n = 1000</code> were left out of this batch. Past 1000 they fail the blocklength cap outright; between 700 and 1000 they would additionally need <code>w &lt;= 8</code> and <code>d &lt;= 40</code>, and their check weights were not screened here. That is a stated gap, not a claim of inadmissibility — it is the obvious next batch.</p>
+<li>Exact certification was not attempted. <code>verify/certify.py</code> is measured to</li>
+<p>hold only at <code>d &lt;= 13</code> and <code>k &lt;= 12</code>, and this code runs at <code>k = 132</code>, so the claim here is an upper bound by design rather than a shortfall of the search.</p>
+<li>No layout was supplied, so the code ranks as unrestricted. A toric-style</li>
+<p>layout with a smaller neighbourhood would open a different cell, but the published instance is a circulant construction and no coordinates come with it; inventing some would be a separate submission with its own evidence.</p>
+<li>Three catalogue rows are admissible, absent, and still not submitted here.</li>
+<p><code>[[110,8,12]]</code> and <code>[[190,8,18]]</code> are reported dominated by <code>verify/validate_candidate.py</code> (by <code>[[104,8,12]]</code> and <code>[[170,8,20]]</code> respectively), so they would ship as a dominated entry beside a stronger one. <code>[[200,54,10]]</code> appears only as a GPM-PP comparison point in the catalogue&#x27;s prose and ships no instance file, so there is nothing to submit even if it cleared the frontier.</p>
+<li>This entry fills a gap rather than displacing anything: the gate reports no board entry it dominates, only that nothing on the board dominates it. It is a co-leader of its cell, not a record.</li>
+</ul>
+<h4>Tools</h4>
+<p>Model: Mimo-V2.6-Flash, driving an opencode agent session opened by @MathysRennela, who opened this PR. Repo tooling: <code>./qldpc submit</code> for the witness search and packaging, <code>verify/qldpc_verify.py</code> for the local gate, <code>verify/check_prose.py</code> and <code>verify/prepush_prose_check.sh</code> for the prose gate. The accelerator is <code>verify/gf2_fast</code>, built from <code>verify/gf2_fast.cpp</code>.</p>
+<h4>Reproduction</h4>
+<p>Rebuild <code>(H_X, H_Z)</code> with no other input:</p>
+<p>1. Download the published instance from https://kasai.ict.eng.isct.ac.jp/pair_partition_cpm_css_codes_data/distance_records/apm_pp_additions_20260815/aod_absolute_512_132_14/APM-PP_512_132_14_AOD_optimized.npz (sha256 <code>9965a946c91bf3170d1317e10cd1cb21395b92a5ac44c9907ada49a5f4fb82f1</code>). 2. The file stores dense binary <code>H_X</code> and <code>H_Z</code> of shape 192 x 512 under the keys <code>Hx</code> and <code>Hz</code>; load them directly, no expansion step is needed. 3. Confirm <code>H_X H_Z^T = 0</code>, rank 190 on each side (the 192 rows carry two redundancies), <code>k = 132</code>, and max row weight 8. 4. Only after those agree should a distance search be run; the witnesses in <code>codes/512-132-14.json</code> are the ones this entry stands on.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/512-132-14.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/646-162-26.html">[[646,162,26]] — 646-162-26</a></h3><div class=kv style="color:var(--mut)">2026-09-29 &middot; submission note &middot; <a href="https://github.com/diogoff">@diogoff</a> &middot; GPT-6 Luna</div><details ><summary>note</summary><div class=notebody><h3>[[646,162,26]] cyclic generalized-bicycle code on Z_323</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target the unrestricted weight-9plus frontier with a high-rate cyclic generalized-bicycle construction below n=700. The factorization of x^323-1 permits a shared divisor of degree 80, giving k=162 at n=646. Sparse words from that ideal offered a route to a shorter high-rate code than the existing [[674,168,76]] point, though with a potentially lower distance.</p>
