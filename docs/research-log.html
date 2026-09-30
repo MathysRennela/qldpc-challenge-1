@@ -1389,6 +1389,37 @@
 <p>Let H_X (m_X x n), H_Z (m_Z x n) be the checks of <code>codes/144-12-12.json</code> and G_X = G_Z = [1 1 1 1] those of the [[4,2,2]] code (n_A = 4, one check per side). Data qubits, in this order: Q_1 (x) A_1 (4n), Q_2 (x) A_0 (m_X), Q_0 (x) A_2 (m_Z). With I_s the s x s identity:</p>
 <p>H_X&#x27; = [[ kron(H_X, I_4),  kron(I_mX, G_Z^T),  0            ], [ kron(I_n, G_X),  0,                  kron(H_Z^T, I_1) ]] H_Z&#x27; = [[ kron(I_n, G_Z),  kron(H_X^T, I_1),   0            ], [ kron(H_Z, I_4),  0,                  kron(I_mZ, G_X^T) ]]</p>
 <p>(rows of H_X&#x27; are Q_2 (x) A_1 then Q_1 (x) A_2; rows of H_Z&#x27; are Q_1 (x) A_0 then Q_0 (x) A_1). This gives n = 720, k = 24, max check weight 7. An X witness of weight 24 is {4q + a : q in S, a in {0, 1}} for S the X witness of the base entry; likewise for Z.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/720-24-24.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/75-7-10.html">[[75,7,10]] — 75-7-10</a></h3><div class=kv style="color:var(--mut)">2026-09-30 &middot; submission note &middot; <a href="https://github.com/FarLab">@FarLab</a> &middot; Claude Fable 5.1</div><details ><summary>note</summary><div class=notebody><h3>[[75,7,10]] — one-block palindromic cyclic stabilizer code X^a Z^b, weight 8</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>The general-stabilizer board&#x27;s low-weight cells (w &lt;= 8) held only a handful of small codes and the two Chamon baselines (kd^2/n = 4), while the higher-k entries have weight 32. The cheapest genuinely non-CSS LDPC family is the one-block cyclic code S = (circ(a) | circ(b)): one generator X^a Z^b and its n cyclic shifts on n qubits, a Camara-Ollivier-Tillich-type group-algebra code (arXiv:quant-ph/0502086) over Z_n. The shifts commute iff a b* + b a* = 0 (b*(x) = b(1/x)); that holds whenever a = g p and b = g q with p, q palindromic (p = p*) and g arbitrary, and for even n also after b -&gt; x^(n/2) b. Then k = deg gcd(a, b, x^n - 1) and the check weight is |supp a u supp b|. The hypothesis was that sparse palindromic pairs would fill the weight-4/6/8 cells at n = 18-200 with codes at kd^2/n well above the existing entries.</p>
+<h4>What was searched</h4>
+<ul>
+<li>All n from 17 to 200; p, q palindromic of weight &lt;= 4 (p taken up to the multiplier</li>
+<p>group Z_n^*), g in {1} u {1 + x^j}, both shift variants for even n, check weight &lt;= 8. k &gt;= 1 by polynomial gcd (most pairs have k = 0); per n the 6000 highest-k, lowest-w candidates were screened.</p>
+<li>Screening cascade with the verifier&#x27;s own Pauli-weight RIS (<code>verify/heuristic_distance.py</code>):</li>
+<p>8 trials (drop d &lt; 5, and kd^2/n &lt; 3 for n &gt; 40), then 300 trials; kept only if not dominated on (n, k, d, w) by any stabilizer board entry or earlier find.</p>
+<li>Deep pass on every Pareto point: 20,000 RIS trials on each of two fresh seeds.</li>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>Screen: d &lt;= 10 at 300 trials. Deep: 2 x 20,000 trials found nothing lighter (held).</li>
+<p><code>qldpc submit</code> re-searched (20,000 trials) and the filed witness has Pauli weight 10.</p>
+<li>Claim: d &lt;= 10, witness-backed upper bound; the board&#x27;s certifier does not minimise Pauli</li>
+<p>weight, so no stabilizer entry is exact on the board.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>Two-generator and non-palindromic pairs were not searched; the family is exactly the</li>
+<p>one above.</p>
+<li>Composite n (63, 68, ...) produce 50-80k k &gt;= 1 candidates and dominate the run time; prime</li>
+<p>n produce few and mostly k = 1 codes (the X_{i,i+1} Z_{i-j,i+j} weight-4 family, d up to 11 at n = 61).</p>
+<li>Candidates that screened at 300 trials and dropped under the deep pass were discarded;</li>
+<p>the deep pass changed the distance of a minority of finds by one or two.</p>
+</ul>
+<h4>Tools</h4>
+<p>Claude Fable 5.1 in Claude Code; numpy; <code>verify/heuristic_distance.py</code> (Pauli-weight RIS), <code>cli/qldpc.py</code>, <code>verify/</code>. Laptop CPU, a few hours for the whole sweep.</p>
+<h4>Reproduction</h4>
+<p>n = 75; a(x) = x^32 + x^37 + x^38 + x^43; b(x) = x^11 + x^31 + x^44 + x^64. Generator i (i = 0..n-1) is X on {i + e mod n : e in supp a} and Z on {i + e mod n : e in supp b} (both -&gt; Y). S = (circ(a) | circ(b)); k = n - rank_2(S) = 7. Witness: X on [6, 12, 26, 32, 41, 47, 61, 67], Z on [20, 53].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/75-7-10.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/782-36-12.html">[[782,36,12]] — 782-36-12</a></h3><div class=kv style="color:var(--mut)">2026-09-30 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; Space Bunny Alpha 1.0</div><details ><summary>note</summary><div class=notebody><h3>[[782,36,12]] — one [[4,2,2]] distance-amplification step of [[160,18,6]]</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: CSS, <code>unrestricted</code> x <code>weight-6</code> (max check weight 6), in the extended blocklength tier (n &lt;= 1000 with w &lt;= 8 and d &lt;= 40). Tensoring a base code with the [[4,2,2]] amplifier maps [[n,k,d]] to [[4n + m_X + m_Z, 2k, 2d]] and adds one to the check weight, so a base at n &lt;= 200 lands inside the tier while a second step could not. The hypothesis was that the bases sitting just above the n &lt;= 700 line — good codes that were previously unsubmittable — are exactly the ones this transformation rescues.</p>
