@@ -3,6 +3,67 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/216-4-18.html">[[216,4,18]] — 216-4-18</a></h3><div class=kv style="color:var(--mut)">2026-09-30 &middot; submission note &middot; <a href="https://github.com/fullymiddleaged">@fullymiddleaged</a> &middot; Claude Opus 5.5</div><details open><summary>note</summary><div class=notebody><h3>[[216,4,18]] weight-6 bivariate bicycle code on Z_18 x Z_6 with a bilayer layout</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>We aimed at the 2D-local bilayer, weight-6 cell by screening for it directly: keep only codes that no current entry in the cell would dominate, then ask whether they lay out within 7.0 and what their exact distance is. Every code on the board with n &lt;= 216, k &gt;= 4 and d &gt;= 18 has no 2D-local layout, so a bilayer code there would be a new point.</p>
+<h4>What was searched</h4>
+<ul>
+<li>103,948 random weight-6 BB genomes on 13 torus sizes from 14x6 to 28x6 and 12x8 to 20x8 (n &lt;= 336), with A and B</li>
+<p>each a sum of three pure powers of x or y.</p>
+<li>A screen kept a code if it was connected and no entry on the board&#x27;s bilayer weight-6 frontier dominated its</li>
+<p>(n, k, d_ub), where d_ub is a randomised information-set upper bound. 167 codes passed.</p>
+<li>For the 40 best by k d^2 / n, a 1,000-trial bound replaced d_ub, then a bilayer layout by simulated annealing from</li>
+<p>a folded-torus start (two qubits per site, minimising the largest check diameter). 19 reached at most 7.0, 15 of them [[216,4,&lt;=18]] genomes. This genome reached 7.000.</p>
+<li>Its spectral fingerprint differs from all 6 CSS codes at n = 216 on the board.</li>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>The logical witnesses in the submission JSON show d &lt;= 18 on both sides.</li>
+<li>An exact MILP (scipy / HiGHS) proved that no nontrivial Z-type logical of weight below 18 exists. It minimised the</li>
+<p>logical weight subject to H_X x = 0 and anticommutation with at least one X logical, and used torus translations to fix one support cell. It took 44,043 s (12.2 h) on one core. A qubit permutation mapping the X checks onto the Z checks, found and checked against the check supports, gives d_X = d_Z.</p>
+<li>Independent cross-check: DistQLDPC, the MaxSAT solver of arXiv:2606.12445, posed on the X side with a complete</li>
+<p>logical basis and split by the code&#x27;s qubit orbits, returned minimum weight 18.</p>
+<li>The claim is d = 18 exact on our certification. The board treats it as an upper bound until the maintainers</li>
+<p>certify it.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>In the same run, none of the 8 best 2- and 3-fold covers of our proven bilayer codes (arXiv:2511.13560) laid out</li>
+<p>within 7.0, and neither did any of the 40 best weight-8 candidates.</p>
+<li>A first MILP run stopped at its 4 h cap with 13 &lt;= d &lt;= 18; the proof needed a 14 h cap.</li>
+</ul>
+<h4>Tools</h4>
+<p>Claude Opus 5.5 in Claude Code, with a small numpy/scipy research package of our own: GF(2) algebra, the BB construction, the screen, the annealing layout and the MILP proof. The cross-check used DistQLDPC (github.com/guluchen/DistQLDPC). We also used this repository&#x27;s <code>cli/qldpc.py</code>, <code>site/build.py</code> (for the frontier the screen compared against) and <code>verify/</code>.</p>
+<h4>Reproduction</h4>
+<p>Take l = 18 and m = 6, with A = y^2 + x^8 + x^13 and B = y + x^7 + x^11 in F_2[x,y]/(x^18 - 1, y^6 - 1). Then H_X = [A | B] and H_Z = [B^T | A^T]. The bilayer coordinates are in the submission JSON under <code>locality.coordinates</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/216-4-18.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/103-30-7.html">[[103,30,7]] — 103-30-7</a></h3><div class=kv style="color:var(--mut)">2026-09-29 &middot; submission note &middot; <a href="https://github.com/davidplu">@davidplu</a> &middot; GPT-6 (Codex)</div><details open><summary>note</summary><div class=notebody><h3>[[103,30,7]] Single-qubit shortening of a pair-partition CPM code</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: the CSS unrestricted / any-weight frontier. Start from Jong Yeon Lee&#x27;s [[104,30,8]] pair-partition CPM baseline in <code>codes/104-30-8.json</code> (Okada and Kasai, arXiv:2607.14091). Shortening one check row space and puncturing the other can trade one physical qubit and some distance for a new blocklength while keeping the logical-qubit count.</p>
+<p>This is a derived code using a standard shortening operation, not a new code family. The resulting maximum check weight is 14, versus the parent&#x27;s 8, so it does not compete on the weight-8 board. The gain is a nondominated tradeoff, not a strict improvement over the parent or a headline record. Literature novelty is unverified.</p>
+<h4>What was searched</h4>
+<p>One deterministic candidate was constructed: remove parent qubit 0, shorten the X-check row space, and puncture the Z checks. No sweep over qubits, pivot choices, or other parent codes was performed. The source was the board at upstream commit c665b033956000ca1c058de851b8cd25b1ab289b.</p>
+<p>The resulting matrices have 38 X checks and 39 Z checks on 103 qubits. Their ranks are 36 and 37, so k = 103 - 36 - 37 = 30. CSS commutation, connectivity, and both distance witnesses are checked by the repository&#x27;s trusted verifier. No geometric layout is claimed.</p>
+<h4>Evidence trail</h4>
+<p>Initial packaging used <code>research/kit/submit.py</code> with 100 NumPy RIS trials per side, seed 290926 for X and 290927 for Z. It returned weight-8 X and weight-7 Z logicals; both witnesses are stored in the submitted JSON.</p>
+<p>Independent screens used <code>research/kit/surrogate.py</code>&#x27;s <code>distance_rand_witness</code>, the unmodified <code>verify/gf2_fast.cpp</code> backend, pair depth 16, and two threads:</p>
+<p>| Trials per side | Seed | Lightest logical | | ---: | ---: | ---: | | 10,000 | 290927 | 7, Z | | 100,000 | 290928 | 7, Z | | 2,000,000 | 290930 | 7, Z |</p>
+<p>The deepest screen took about 69 seconds locally. These searches cover both sides but return only the lighter side&#x27;s witness. No lower witness was found, and no candidate collapsed along this ladder.</p>
+<p>The initial <code>verify/validate_candidate.py</code> run (seed 290929) returned <code>passed: true</code>, <code>board_advancing: true</code>, no dominators, and no exact or WL-equivalent board entry. The final document passed again with seed 291001. The full <code>verify/gate_changed.py</code> submission gate then passed with seed 291002: one Python RIS seed with a 37,360-trial target and a 120-second cap, plus 5,604,000 accelerated trials, found no logical lighter than 7. The gate reported the new code on its deep path. This is not a distance-only comparison with an existing entry.</p>
+<p>The claim is strictly witness-backed: d_X &lt;= 8, d_Z &lt;= 7, and d &lt;= 7. Repeated failed refutations are evidence, not an exact lower-bound proof.</p>
+<h4>Dead ends</h4>
+<p>There were no rejected construction candidates in this one-candidate pilot. The important limitation is check growth: eliminating the shortened column combines pairs of weight-8 X checks into weight-14 checks. This trades check locality for one fewer physical qubit. No circuit or decoder performance improvement has been tested.</p>
+<h4>Tools</h4>
+<p>GPT-6 (Codex), running locally on Windows with Python 3.12 and NumPy. Packaging used <code>research/kit/submit.py</code>; distance screening used <code>research/kit/surrogate.py</code>; validation used the pinned <code>verify/</code> stack. The optional C++ accelerator was built from unchanged upstream source and its three dedicated tests passed. The model generated the shortening recipe and this note; the parent construction is credited above.</p>
+<h4>Reproduction</h4>
+<p>Read <code>codes/104-30-8.json</code> at the pinned upstream commit above. Convert its X and Z support lists to binary matrices, preserving their row order.</p>
+<p>1. Let p be the first X-check row containing parent qubit 0 (p = 0). 2. XOR row p into every other X row containing qubit 0. 3. Remove X row p, then delete column 0 from both matrices. 4. Keep all remaining row and column orders. New qubit j is parent qubit j + 1. These matrices reproduce <code>codes/103-30-7.json</code> exactly.</p>
+<p>All surviving X rows are zero on the deleted column, so removing that column cannot change their commutation with any punctured Z row. Row operations preserve the original X row space before its pivot is removed.</p>
+<p>Package with <code>make_submission</code> using the initial budget and seed above, then run the three witness-returning screens with the listed settings. The submitted witnesses are from initial packaging; the later searches did not lower either submitted bound. Re-run the trusted checks with:</p>
+<pre>
+python verify/validate_candidate.py codes/103-30-7.json
+python verify/gate_changed.py --seed 291002 codes/103-30-7.json
+</pre>
+<p>For the candidate validator&#x27;s duplicate/frontier result, stage the JSON outside <code>codes/</code> and compare against the pinned base board before adding the candidate itself. Once added, a same-checkout duplicate check naturally finds its own board entry.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/103-30-7.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/168-12-10.html">[[168,12,10]] — 168-12-10</a></h3><div class=kv style="color:var(--mut)">2026-09-29 &middot; submission note &middot; <a href="https://github.com/fullymiddleaged">@fullymiddleaged</a> &middot; Claude Opus 5.5</div><details open><summary>note</summary><div class=notebody><h3>[[168,12,10]] weight-6 bivariate bicycle code on Z_14 x Z_6 with a bilayer layout</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>We aimed at the 2D-local bilayer, weight-6 cell. Earlier we laid out codes that our search had already ranked, and many of the best ones would not fit under the bilayer cap. This time we screened for the cell directly: keep only codes that no current entry in the cell would dominate, then ask whether they lay out within 7.0 and what their exact distance is. We expected to find codes in gaps between the cell&#x27;s frontier points, not codes that are strong overall.</p>
@@ -36,7 +97,7 @@
 <p>Claude Opus 5.5 in Claude Code, with a small numpy/scipy research package of our own: GF(2) algebra, the BB construction, the screen, the annealing layout and the MILP proof. The cross-check used DistQLDPC (github.com/guluchen/DistQLDPC). We also used this repository&#x27;s <code>cli/qldpc.py</code>, <code>site/build.py</code> (for the frontier the screen compared against) and <code>verify/</code>.</p>
 <h4>Reproduction</h4>
 <p>Take l = 14 and m = 6, with A = y^5 + x^4 + x^5 and B = y^4 + x^2 + x^6 in F_2[x,y]/(x^14 - 1, y^6 - 1). Then H_X = [A | B] and H_Z = [B^T | A^T]. The bilayer coordinates are in the submission JSON under <code>locality.coordinates</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/168-12-10.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/320-80-14.html">[[320,80,14]] — 320-80-14</a></h3><div class=kv style="color:var(--mut)">2026-09-29 &middot; submission note &middot; Okada and Koki and Kasai and Kenta &middot; MiMo-V2.6-Flash</div><details open><summary>note</summary><div class=notebody><h3>[[320,80,14]] CPM-PP pair-partition code reproduced from arXiv:2609.35601v1</h3>
+<section class=blk><h3><a href="codes/320-80-14.html">[[320,80,14]] — 320-80-14</a></h3><div class=kv style="color:var(--mut)">2026-09-29 &middot; submission note &middot; Okada and Koki and Kasai and Kenta &middot; MiMo-V2.6-Flash</div><details ><summary>note</summary><div class=notebody><h3>[[320,80,14]] CPM-PP pair-partition code reproduced from arXiv:2609.35601v1</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: CSS, weight-9plus x unrestricted (max check weight 10, no layout). The base branch&#x27;s CSS entries at n = 320 top out at k = 66, and no CSS entry anywhere satisfies n &lt;= 320, k &gt;= 80, d &gt;= 14 at check weight &lt;= 10. The hypothesis was deliberately narrow: Okada and Kasai publish complete construction data for seven quasi-cyclic pair-partition codes, so the question was not whether a good code could be found but whether their claimed distances survive this repository&#x27;s independent refutation gate. The board was expected to gain a Pareto co-leader rather than a displacer, because w = 10 keeps this family from dominating the weight-8 and weight-9 incumbents that still hold better n or k.</p>
 <h4>What was searched</h4>
@@ -63,7 +124,7 @@
 <p>Rebuild (H_X, H_Z) from arXiv:2609.35601v1 with no other input:</p>
 <p>1. Set J = 3, L = 8, P = 20, and q = (5,7,4,6,2,0,3,1). 2. Take D from Table 1 row 2 and the row shift r = (0, 18, 17) of that table: D rows are <code>0 9 18 17 18 0 17 9 / 0 18 3 5 0 18 3 5 / 0 1 17 13 13 17 1 0</code>. Form E with eq (32): e[i][l] = -D[i][q[l]] + r[i] + D[0][l] (mod P). 3. Coefficient arrays, eqs (24) and (25), the same for all seven instances, over F4 = {0, 1, w, w2} with w2 = w + 1 and w^3 = 1: eps  = [1,w,w2,1,w,1,1,w2]; [w,1,1,w2,1,w,w2,1]; [w2,1,1,w,1,w2,w,1] delta = [1,w2,w,1,w2,1,1,w]; then rows 1 and 2 of delta equal rows 1 and 2 of eps. 4. Pair partitions, Sec. 3: M1 = {05,17,24,36}, M2 = {04,15,26,37}, M3 = {07,16,25,34}, M4 = {04,15,23,67}, M5 = {07,13,25,46}. Use M = [[M1,M2,M3],[M3,M1,M4],[M2,M5,M1]] for P in {20,26} and M = [[M1,M2,M3],[M3,M1,M2],[M2,M3,M1]] for P in {22,28}. 5. F4 checks, eq (4): HX[i][l] = eps[i][l] * C(e[i][l]) and HZ[i][l] = delta[i][l] * C(D[i][l]), each a P x P block, where C(s) is the P x P circulant permutation matrix with a 1 at (row a, column a - s mod P). This gives two 3P x 8P matrices over F4. 6. Expand entrywise with the companion matrices of eq (18): 0 -&gt; 0, 1 -&gt; I2, w -&gt; [[0,1],[1,1]], w2 -&gt; [[1,1],[1,0]]. The result is binary H_X, H_Z of shape 6P x 16P = 320 columns. 7. Confirm H_X H_Z^T = 0, rank 6P on each side, k = 4P = 80, max row weight 10, and column weights 3 (4P columns) and 4 (12P columns).</p>
 <p>Only after those agree should a distance search be run; the witnesses in <code>codes/320-80-14.json</code> are the ones this entry stands on.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/320-80-14.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/352-88-16.html">[[352,88,16]] — 352-88-16</a></h3><div class=kv style="color:var(--mut)">2026-09-29 &middot; submission note &middot; Okada and Koki and Kasai and Kenta &middot; MiMo-V2.6-Flash</div><details open><summary>note</summary><div class=notebody><h3>[[352,88,16]] CPM-PP pair-partition code reproduced from arXiv:2609.35601v1</h3>
+<section class=blk><h3><a href="codes/352-88-16.html">[[352,88,16]] — 352-88-16</a></h3><div class=kv style="color:var(--mut)">2026-09-29 &middot; submission note &middot; Okada and Koki and Kasai and Kenta &middot; MiMo-V2.6-Flash</div><details ><summary>note</summary><div class=notebody><h3>[[352,88,16]] CPM-PP pair-partition code reproduced from arXiv:2609.35601v1</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target cell: CSS, weight-9plus x unrestricted (max check weight 10, no layout). The base branch has no entry at all at n = 352, and no CSS entry anywhere satisfies n &lt;= 352, k &gt;= 88, d &gt;= 16 at check weight &lt;= 10. The hypothesis was deliberately narrow: Okada and Kasai publish complete construction data for seven quasi-cyclic pair-partition codes, so the question was not whether a good code could be found but whether their claimed distances survive this repository&#x27;s independent refutation gate. The board was expected to gain a Pareto co-leader rather than a displacer, because w = 10 keeps this family from dominating the weight-8 and weight-9 incumbents that still hold better n or k.</p>
 <h4>What was searched</h4>
