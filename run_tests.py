@@ -23,11 +23,8 @@ import sys
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
-# The suite's heavy hitters: in the verification run these seven entries were
-# 41 min of the 52 min total (board-dependent ones move as codes/ grows).
-# Entries are pytest node ids, or a path to skip a whole file -- both are
-# supported by the loop below. --skip-slow is a LOCAL-iteration flag: CI never
-# passes it, so the suite it skips and the suite CI runs are the same set.
+# The suite's heavy hitters, as pytest node ids or a whole path. --skip-slow is a
+# local-iteration flag: CI never passes it, so what it skips is the same set CI runs.
 SLOW = [
     "verify/test_refute_gate.py::test_structural_stage_ordering",
     "verify/test_validate_candidate.py::test_validate_candidate",
@@ -35,8 +32,7 @@ SLOW = [
     "verify/test_verifier.py::test_adversarial",
     "verify/test_verifier.py::test_main",
     "cli/test_reproduce.py::test_the_cheap_core_reproduces_and_writes_a_receipt",
-    # the module-scoped board load these tests share costs 409 s on its own;
-    # skipping the file skips the load with it
+    # a whole file, because its module-scoped board load costs more than its tests
     "verify/test_cli_targets.py",
 ]
 
@@ -50,9 +46,8 @@ def main(argv):
     cmd = [sys.executable, "-m", "pytest", "verify", "research", "site", "cli"]
     if args.skip_slow and SLOW:
         for s in SLOW:
-            # A node id is two argv entries: the bare flag followed by the id.
-            # Emitting only "--deselect" is a pytest usage error -- which is
-            # what the old one-liner did, silently, while SLOW was empty.
+            # --deselect takes its id as a separate argv entry; a bare
+            # "--deselect" is a pytest usage error.
             if "::" in s:
                 cmd += ["--deselect", s]
             else:

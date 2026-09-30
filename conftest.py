@@ -16,9 +16,7 @@ for _rel in ("verify", os.path.join("research", "kit"), "research", "cli", "site
     if os.path.isdir(_p) and _p not in sys.path:
         sys.path.insert(0, _p)
 
-# research/candidates/ is gitignored staging output (AGENTS.md), never present
-# in CI. The test_*.py files under it are search scripts that collect zero tests
-# yet run their module-level search at import, which costs minutes and reads as
-# a hung suite -- one takes over 15 min to import. Keep pytest out of it so the
-# local suite collects the same tests CI does.
+# Gitignored staging output, so never present in CI; the test_*.py files here are
+# search scripts that collect zero tests but run their search at import, which can
+# hang the suite or fail collection outright.
 collect_ignore_glob = ["research/candidates", "research/candidates/*"]
