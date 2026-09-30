@@ -18,6 +18,7 @@ region between two staircases is split into gains and losses correctly.
 
 import math
 import os
+import shutil
 import subprocess
 import sys
 import types
@@ -217,16 +218,46 @@ def test_bucket_key_is_monotone_within_a_bucket(bucket):
     assert keys == sorted(keys)
 
 
+_ROWS = [("2026-01-05", "a", 2, 2, 2, ((12, 2, 4), (64, 12, 12)), 30.0, ""),
+         ("2026-02-05", "b", 3, 3, 3, ((12, 2, 4), (24, 4, 8),
+                                       (64, 12, 12)), 40.0, ""),
+         ("2026-03-05", "c", 3, 2, 2, ((12, 2, 4), (24, 4, 8)), 35.0,
+          "-[[64,12,12]]")]
+
+
 def test_charts_render_from_synthetic_rows(tmp_path):
-    rows = [("2026-01-05", "a", 2, 2, 2, ((12, 2, 4), (64, 12, 12)), 30.0, ""),
-            ("2026-02-05", "b", 3, 3, 3, ((12, 2, 4), (24, 4, 8),
-                                          (64, 12, 12)), 40.0, ""),
-            ("2026-03-05", "c", 3, 2, 2, ((12, 2, 4), (24, 4, 8)), 35.0,
-             "-[[64,12,12]]")]
-    snaps = fh.svg_frontier(rows, tmp_path / "f.svg", "month", (4, 8))
+    snaps = fh.svg_frontier(_ROWS, tmp_path / "f.svg", "month", (4, 8))
     assert len(snaps) == 3
     svg = (tmp_path / "f.svg").read_text()
     assert "url(#loss)" in svg and "64,12,12" not in svg.split("<circle")[0]
-    drops = fh.svg_history(rows, tmp_path / "h.svg")
+    drops = fh.svg_history(_ROWS, tmp_path / "h.svg")
     assert len(drops) == 1
     assert "-[[64,12,12]]" in (tmp_path / "h.svg").read_text()
+
+
+def test_frames_are_one_per_change_over_the_previous(tmp_path):
+    # A fourth snapshot with the same staircases as the third folds into it.
+    rows = _ROWS + [("2026-03-20", "d", 4, 2, 2, ((12, 2, 4), (24, 4, 8)),
+                     35.0, "")]
+    paths = fh.write_frames(rows, tmp_path / "frames", "day", (4, 8))
+    assert [os.path.basename(p) for p in paths] == [
+        "frame_0000_2026-01-05.svg", "frame_0001_2026-02-05.svg",
+        "frame_0002_2026-03-05.svg"]
+    first, second, third = (open(p, encoding="utf-8").read() for p in paths)
+    assert "previous frame" not in first and "previous frame" in second
+    assert "as of 2026-03-05" in third and "url(#loss)" in third
+    assert "unchanged through 2026-03-20" in third and "4 CSS codes" in third
+    # Axes are shared: the same tick labels appear in every frame.
+    ticks = lambda s: [ln for ln in s.splitlines() if 'fill="#888"' in ln]  # noqa: E731
+    assert ticks(first) == ticks(third)
+
+
+def test_gif_has_one_frame_per_snapshot(tmp_path):
+    Image = pytest.importorskip("PIL.Image")
+    if shutil.which("rsvg-convert") is None:
+        pytest.skip("rsvg-convert not on PATH")
+    count = fh.write_gif(_ROWS, tmp_path / "f.gif", "day", (4, 8),
+                         frame_ms=100, width=400)
+    assert count == 3
+    with Image.open(tmp_path / "f.gif") as im:
+        assert im.format == "GIF" and im.n_frames == 3

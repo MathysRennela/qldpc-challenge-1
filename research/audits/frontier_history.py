@@ -33,10 +33,16 @@ and today's staircase carries a dot and an ``n,k,d`` label per code.
 as a share of today's, with every downward step marked and named. That is the
 signal a "codes over time" count hides.
 
+``--frames`` writes the panel chart once per snapshot (one per day by
+default), each frame over the previous one in grey, and ``--gif`` assembles
+those frames into an animation. The charts are stdlib only; the GIF needs
+``rsvg-convert`` on PATH and Pillow (the ``research`` extra).
+
   uv run --frozen python research/audits/frontier_history.py
   uv run --frozen python research/audits/frontier_history.py --out /tmp/frontier.csv
   uv run --frozen python research/audits/frontier_history.py --plot frontier.svg
   uv run --frozen python research/audits/frontier_history.py --plot-history history.svg
+  uv run --frozen --extra research python research/audits/frontier_history.py --gif frontier.gif
 
 Hypervolume is taken in log2 coordinates against the reference point
 (n = ``--n-ref``, k = 1/2, d = 1/2): a frontier code contributes the box
@@ -57,8 +63,10 @@ import datetime
 import json
 import math
 import os
+import shutil
 import subprocess
 import sys
+import tempfile
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _REPO = os.path.abspath(os.path.join(_HERE, "..", ".."))
@@ -446,50 +454,57 @@ def place_labels(points, panel):
     return out
 
 
-def svg_frontier(rows, path, bucket="month", floors=_FLOORS):
-    """Draw one panel per distance floor, one (n, k) staircase per snapshot.
+_SUBTITLE = ('CSS board replayed from git history; each panel keeps the codes '
+             'with d at or above its floor; lower n and higher k are better; '
+             'check weight and locality ignored; log axes')
 
-    Each panel keeps the frontier codes clearing its floor, on log axes.
-    Consecutive snapshots are compared as regions rather than as overlaid
-    lines: the area gained is filled in the newer colour, the area lost in
-    red, and only a staircase that differs from the next one is drawn, so an
-    unchanged month is not a second line in a second colour. Today's staircase
-    is heavy and carries a dot and an ``n,k,d`` label per code where the label
+
+def render_panels(snaps, floors, title, subtitle, colors, labels, extent,
+                  timeline=None):
+    """Return the SVG text of the panel chart for the given snapshots.
+
+    One panel per distance floor, one staircase per snapshot in ``snaps``
+    (oldest first), coloured and labelled per entry. Each panel keeps the
+    frontier codes clearing its floor, on log axes whose range is set by
+    ``extent`` (rows, usually every snapshot the caller will ever draw, so
+    animation frames share axes). Consecutive snapshots are
+    compared as regions rather than as overlaid lines: the area gained is
+    tinted in the newer colour, the area lost is red-hatched, and only a
+    staircase that differs from the next one is drawn, so an unchanged
+    snapshot is not a second line in a second colour. The last staircase is
+    heavy and carries a dot and an ``n,k,d`` label per code where the label
     fits. Each staircase ends at its last code and continues dashed: past the
-    largest n no larger k exists, but no code stands out there.
+    largest n no larger k exists, but no code stands out there. ``timeline``
+    is ``(first_date, last_date, current_date)`` for a strip under the panels
+    that places the frame in the board's history.
     """
-    snaps = snapshots(rows, bucket)
-    if not snaps:
-        sys.exit("no frontier snapshots found to plot")
     stairs = [[floor_staircase(s[5], f) for s in snaps] for f in floors]
-    all_pts = [p for per_floor in stairs for st in per_floor for p in st]
-    if not all_pts:
+    ext_pts = [p for s in extent for f in floors
+               for p in floor_staircase(s[5], f)]
+    if not ext_pts:
         sys.exit("no frontier code clears the lowest floor")
 
-    n_lo, n_hi = min(p[0] for p in all_pts), max(p[0] for p in all_pts)
-    k_hi = max(p[1] for p in all_pts)
+    n_lo, n_hi = min(p[0] for p in ext_pts), max(p[0] for p in ext_pts)
+    k_hi = max(p[1] for p in ext_pts)
     n_min, n_max = n_lo / 1.25, n_hi * 1.6
     k_min, k_max = 1 / 1.25, k_hi * 1.8
 
     cols = 3
     rws = -(-len(floors) // cols)
-    w, left, right, top, bot, gap_x, gap_y = 1180, 58, 18, 74, 78, 44, 52
+    w, left, right, top, gap_x, gap_y = 1180, 58, 18, 74, 44, 52
+    bot = 78 + (30 if timeline else 0)
     pw = (w - left - right - (cols - 1) * gap_x) / cols
     ph = 300
     h = top + rws * ph + (rws - 1) * gap_y + bot
-    colors = ([ramp(1.0)] if len(snaps) == 1 else
-              [ramp(i / (len(snaps) - 1)) for i in range(len(snaps))])
 
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" '
         f'viewBox="0 0 {w} {h}" font-family="system-ui,sans-serif">',
         f'<rect width="{w}" height="{h}" fill="#ffffff"/>',
-        f'<text x="{left}" y="28" font-size="15" font-weight="600">'
-        f'Board (n, k) frontier by distance floor, as of {snaps[-1][0]}</text>',
-        f'<text x="{left}" y="46" font-size="11.5" fill="#666">'
-        'CSS board replayed from git history; each panel keeps the codes with '
-        'd at or above its floor; lower n and higher k are better; check '
-        'weight and locality ignored; log axes</text>',
+        f'<text x="{left}" y="28" font-size="15" font-weight="600">{title}'
+        '</text>',
+        f'<text x="{left}" y="46" font-size="11.5" fill="#666">{subtitle}'
+        '</text>',
         '<defs><pattern id="loss" patternUnits="userSpaceOnUse" width="6" '
         'height="6" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" '
         f'y2="6" stroke="{_LOSS}" stroke-width="2.2"/></pattern></defs>',
@@ -577,7 +592,7 @@ def svg_frontier(rows, path, bucket="month", floors=_FLOORS):
         parts.append(f'<text x="{x0 + 6:.1f}" y="{y0 - 6:.1f}" font-size="12" '
                      f'font-weight="600" fill="#333">d ≥ {floor}'
                      f'<tspan dx="10" font-weight="400" fill="#777">'
-                     f'{len(today)} codes on today\'s staircase</tspan></text>')
+                     f'{len(today)} codes on the staircase</tspan></text>')
         if r == rws - 1:
             parts.append(f'<text x="{(x0 + x1) / 2:.1f}" y="{y1 + 28:.1f}" '
                          'font-size="10.5" fill="#666" text-anchor="middle">'
@@ -592,13 +607,12 @@ def svg_frontier(rows, path, bucket="month", floors=_FLOORS):
     # that snapshot gained), then the loss hatch and the dot.
     ly = h - 22
     lx = left
-    for i, (snap, color) in enumerate(zip(snaps, colors)):
+    for i, (label, color) in enumerate(zip(labels, colors)):
         parts.append(f'<rect x="{lx}" y="{ly - 11}" width="22" height="10" '
                      f'fill="{color}" fill-opacity="0.16"/>')
         parts.append(f'<line x1="{lx}" y1="{ly - 11}" x2="{lx + 22}" '
                      f'y2="{ly - 11}" stroke="{color}" '
-                     f'stroke-width="{2.4 if i == len(snaps) - 1 else 1.6}"/>')
-        label = f"as of {snap[0]}"
+                     f'stroke-width="{2.4 if i == len(labels) - 1 else 1.6}"/>')
         parts.append(f'<text x="{lx + 27}" y="{ly}" font-size="10.5" '
                      f'fill="#444">{label}</text>')
         lx += 27 + 5.4 * len(label) + 16
@@ -613,11 +627,141 @@ def svg_frontier(rows, path, bucket="month", floors=_FLOORS):
     parts.append(f'<circle cx="{lx + 5}" cy="{ly - 5}" r="2.6" '
                  f'fill="{colors[-1]}"/>')
     parts.append(f'<text x="{lx + 14}" y="{ly}" font-size="10.5" fill="#444">'
-                 'code on today\'s staircase (n,k,d)</text>')
+                 'code on the last staircase (n,k,d)</text>')
+
+    if timeline:
+        # A strip from the board's first landing to its last, month ticks,
+        # and a marker at this frame's date.
+        first, last, cur = (datetime.date.fromisoformat(t).toordinal()
+                            for t in timeline)
+        ty, tx0, tx1 = h - 52, left, w - right
+
+        def tx(day):
+            return tx0 + (day - first) / max(last - first, 1) * (tx1 - tx0)
+
+        parts.append(f'<line x1="{tx0}" y1="{ty}" x2="{tx1}" y2="{ty}" '
+                     'stroke="#ccc" stroke-width="2"/>')
+        parts.append(f'<line x1="{tx0}" y1="{ty}" x2="{tx(cur):.1f}" '
+                     f'y2="{ty}" stroke="{colors[-1]}" stroke-width="2"/>')
+        day = datetime.date.fromordinal(first).replace(day=1)
+        while day.toordinal() <= last:
+            if day.toordinal() >= first:
+                parts.append(f'<line x1="{tx(day.toordinal()):.1f}" '
+                             f'y1="{ty - 4}" x2="{tx(day.toordinal()):.1f}" '
+                             f'y2="{ty + 4}" stroke="#aaa"/>')
+                parts.append(f'<text x="{tx(day.toordinal()):.1f}" '
+                             f'y="{ty + 15}" font-size="9" fill="#888" '
+                             f'text-anchor="middle">{day.strftime("%b")}</text>')
+            day = (day.replace(day=28) + datetime.timedelta(days=4)).replace(day=1)
+        parts.append(f'<circle cx="{tx(cur):.1f}" cy="{ty}" r="4.5" '
+                     f'fill="{colors[-1]}" stroke="#fff" stroke-width="1.5"/>')
     parts.append("</svg>")
+    return "\n".join(parts) + "\n"
+
+
+def svg_frontier(rows, path, bucket="month", floors=_FLOORS):
+    """Write the static panel chart, one ramp-coloured staircase per snapshot."""
+    snaps = snapshots(rows, bucket)
+    if not snaps:
+        sys.exit("no frontier snapshots found to plot")
+    colors = ([ramp(1.0)] if len(snaps) == 1 else
+              [ramp(i / (len(snaps) - 1)) for i in range(len(snaps))])
+    text = render_panels(
+        snaps, floors,
+        f"Board (n, k) frontier by distance floor, as of {snaps[-1][0]}",
+        _SUBTITLE, colors, [f"as of {s[0]}" for s in snaps], snaps)
     with open(path, "w", encoding="utf-8") as f:
-        f.write("\n".join(parts) + "\n")
+        f.write(text)
     return snaps
+
+
+_PREV, _CUR = "#9a9a9a", "#1d3557"
+
+
+def frame_svgs(rows, bucket="day", floors=_FLOORS):
+    """Yield ``(date, svg_text)`` frames of the animation, oldest first.
+
+    Each frame draws the frontier as of a snapshot, heavy, over the previous
+    frame's in thin grey, with the region gained since tinted and the region
+    lost hatched, on axes shared across every frame. A snapshot whose six
+    staircases all equal the previous frame's is folded into it -- the
+    frontier often moves only in d, off every (n, k) staircase -- and the
+    frame's title then spans the dates it stayed current, so every frame is
+    a visible change and the last frame ends on the last snapshot. The
+    subtitle carries the board's size and the frontier's hypervolume as a
+    share of the final frame's, and the strip below places the frame in time.
+    """
+    snaps = snapshots(rows, bucket)
+    final_hv = snaps[-1][6] or 1.0
+    runs = []
+    for snap in snaps:
+        shape = tuple(tuple(floor_staircase(snap[5], f)) for f in floors)
+        if runs and runs[-1][0] == shape:
+            runs[-1][2] = snap
+        else:
+            runs.append([shape, snap, snap])
+    for i, (_shape, first, last) in enumerate(runs):
+        shown = ([runs[i - 1][1]] if i else []) + [first]
+        colors = ([_PREV] if i else []) + [_CUR]
+        labels = (["previous frame"] if i else []) + [f"as of {first[0]}"]
+        when = first[0] if first is last else \
+            f"{first[0]} (unchanged through {last[0]})"
+        subtitle = (f"{last[2]} CSS codes, {last[3]} (n, k, d) points on the "
+                    f"frontier, hypervolume {100 * last[6] / final_hv:.0f}% "
+                    "of the final frame's; lower n and higher k are better; "
+                    "log axes")
+        yield first[0], render_panels(
+            shown, floors, f"Board (n, k) frontier by distance floor, {when}",
+            subtitle, colors, labels, snaps,
+            timeline=(snaps[0][0], snaps[-1][0], last[0]))
+
+
+def write_frames(rows, directory, bucket="day", floors=_FLOORS):
+    """Write one SVG per snapshot into ``directory``; return their paths."""
+    os.makedirs(directory, exist_ok=True)
+    paths = []
+    for i, (date, text) in enumerate(frame_svgs(rows, bucket, floors)):
+        path = os.path.join(directory, f"frame_{i:04d}_{date}.svg")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(text)
+        paths.append(path)
+    return paths
+
+
+def write_gif(rows, path, bucket="day", floors=_FLOORS, frame_ms=300,
+              hold_ms=2500, width=1180):
+    """Assemble the frames into an animated GIF; return the frame count.
+
+    The frames are drawn here; rasterizing them takes ``rsvg-convert``
+    (librsvg) on PATH and assembling them takes Pillow, which the
+    ``research`` extra brings in. The last frame holds for ``hold_ms``.
+    """
+    try:
+        from PIL import Image
+    except ImportError:
+        sys.exit("--gif needs Pillow: run under `uv run --frozen --extra "
+                 "research`")
+    if shutil.which("rsvg-convert") is None:
+        sys.exit("--gif needs rsvg-convert (librsvg) on PATH to rasterize "
+                 "the frames")
+    images = []
+    with tempfile.TemporaryDirectory() as tmp:
+        for i, (date, text) in enumerate(frame_svgs(rows, bucket, floors)):
+            svg = os.path.join(tmp, f"{i:04d}.svg")
+            png = os.path.join(tmp, f"{i:04d}.png")
+            with open(svg, "w", encoding="utf-8") as f:
+                f.write(text)
+            subprocess.run(["rsvg-convert", "-w", str(width), svg, "-o", png],
+                           check=True)
+            with Image.open(png) as im:
+                images.append(im.convert("RGB").quantize(colors=128))
+    if not images:
+        sys.exit("no frontier snapshots found to animate")
+    durations = [frame_ms] * len(images)
+    durations[-1] = hold_ms
+    images[0].save(path, save_all=True, append_images=images[1:],
+                   duration=durations, loop=0)
+    return len(images)
 
 
 def svg_history(rows, path):
@@ -731,13 +875,21 @@ def main():
                     help="write the series as CSV here (default: print a summary)")
     ap.add_argument("--plot", default=None,
                     help="write the per-distance-floor staircase panels as an SVG here")
-    ap.add_argument("--bucket", default="month",
+    ap.add_argument("--bucket", default=None,
                     choices=("day", "week", "month"),
-                    help="snapshot spacing for --plot (default: month)")
+                    help="snapshot spacing (default: month for --plot, day "
+                         "for --frames and --gif)")
     ap.add_argument("--floors", default=",".join(map(str, _FLOORS)),
                     help="comma-separated distance floors, one panel each")
     ap.add_argument("--plot-history", default=None,
                     help="write the hypervolume-over-time chart as an SVG here")
+    ap.add_argument("--frames", default=None,
+                    help="write one panel-chart SVG per snapshot into this directory")
+    ap.add_argument("--gif", default=None,
+                    help="write the panel chart as an animated GIF here, one "
+                         "frame per snapshot (needs rsvg-convert and Pillow)")
+    ap.add_argument("--frame-ms", type=int, default=300,
+                    help="GIF frame duration in ms (default: 300)")
     ap.add_argument("--n-ref", type=int, default=1000,
                     help="hypervolume reference block length (default: 1000)")
     args = ap.parse_args()
@@ -745,12 +897,21 @@ def main():
     rows, state = replay(args.repo, args.n_ref)
     if not rows:
         sys.exit("no board-moving commits found; is --repo the board's repo?")
+    floors = tuple(int(f) for f in args.floors.split(","))
 
     if args.plot:
-        floors = tuple(int(f) for f in args.floors.split(","))
-        snaps = svg_frontier(rows, args.plot, args.bucket, floors)
+        snaps = svg_frontier(rows, args.plot, args.bucket or "month", floors)
         print(f"wrote {len(floors)} panels x {len(snaps)} snapshots "
               f"({snaps[0][0]} .. {snaps[-1][0]}) to {args.plot}")
+
+    if args.frames:
+        paths = write_frames(rows, args.frames, args.bucket or "day", floors)
+        print(f"wrote {len(paths)} frames to {args.frames}")
+
+    if args.gif:
+        count = write_gif(rows, args.gif, args.bucket or "day", floors,
+                          args.frame_ms)
+        print(f"wrote {count} frames to {args.gif}")
 
     if args.plot_history:
         drops = svg_history(rows, args.plot_history)

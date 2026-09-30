@@ -178,6 +178,16 @@ Two charts, stdlib-only SVG:
   contributing nothing; a code at or above `n_ref` (`--n-ref`) contributes
   nothing.
 
+* `--frames DIR` / `--gif frontier.gif`: the panel chart as an animation, one
+  frame per day the staircases changed (a day that changed nothing on any
+  panel folds into the frame before it, whose title then spans the dates it
+  stayed current), each frame over the previous one in grey with the gain
+  tinted and the loss hatched, and a strip that places the frame in time.
+  The frames are stdlib SVG; the GIF needs `rsvg-convert` (librsvg) on PATH
+  and Pillow, so run it as
+  `uv run --frozen --extra research python research/audits/frontier_history.py --gif frontier.gif`.
+  About 25 s and 2 MB for the board today; `--frame-ms` sets the pace.
+
 The replay is only quotable if it ends where the repository is, and
 `test_frontier_history.py` asserts exactly that: the replayed state equals
 `git ls-tree -r HEAD -- codes/` read as (n, k, d), CSS only, with every blob
