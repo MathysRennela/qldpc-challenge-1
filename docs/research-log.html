@@ -3,6 +3,35 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
+<section class=blk><h3><a href="codes/144-12-12-b.html">[[144,12,12]] — 144-12-12-b</a></h3><div class=kv style="color:var(--mut)">2026-09-30 &middot; submission note &middot; <a href="https://github.com/fullymiddleaged">@fullymiddleaged</a> &middot; Claude Opus 5.5</div><details open><summary>note</summary><div class=notebody><h3>A bilayer layout of the gross code [[144,12,12]] (Bravyi et al., arXiv:2308.07915)</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>The code is not ours. It is IBM&#x27;s gross code, already on the board as the baseline <code>codes/144-12-12.json</code>, which has no layout and so competes only in the unrestricted cells. The contribution here is a layout: two layers, at most two qubits per site, largest check diameter 6.708, within the 7.0 bilayer cap. With it the gross code enters the 2D-local bilayer weight-6 cell, where no [[144,12,12]] was listed.</p>
+<h4>What was searched</h4>
+<ul>
+<li>Our screen for the bilayer weight-6 cell (random weight-6 BB genomes on thin tori, 12x6 to 30x6) drew the genome</li>
+<p>A = y + y^2 + x^3, B = y^3 + x^2 + x^7 on Z_12 x Z_6. It is the gross code relabelled: its spectral fingerprint equals that of the board&#x27;s 144-12-12 and of IBM&#x27;s form A = x^3 + y + y^2, B = y^3 + x + x^2, and the submission validator labels it possibly equivalent to 144-12-12.json by WL signature. We did not find an explicit qubit map.</p>
+<li>The layout came from simulated annealing from a folded-torus start (two qubits per site, minimising the largest</li>
+<p>check diameter). In IBM&#x27;s own form the folded-torus start has diameter 7.81, above the cap; this relabelling annealed to 6.708.</p>
+</ul>
+<h4>Evidence trail</h4>
+<ul>
+<li>The logical witnesses in the submission JSON show d &lt;= 12 on both sides; the board&#x27;s 144-12-12 is certified d = 12.</li>
+<li>Our own MILP (scipy / HiGHS) proved no nontrivial Z-type logical of weight below 12 for this genome in 64 s, with</li>
+<p>d_X = d_Z from a verified X/Z duality permutation. DistQLDPC (arXiv:2606.12445) gave 12 as an independent check.</p>
+<li>Layout: coordinates in the submission JSON under <code>locality.coordinates</code>; the verifier measures the interaction</li>
+<p>radius and site spacing from them.</p>
+</ul>
+<h4>Dead ends</h4>
+<ul>
+<li>With this entry our [[144,8,12]] bilayer entry (PR #2337) is dominated. Its note said we had not laid the gross code</li>
+<p>out within 7.0; that was true when written and is now superseded by this layout.</p>
+<li>Laying out other groups&#x27; codes is not our main line: of our submissions this is the only one whose code is not</li>
+<p>ours, and we submit it only because the layout itself is new to the board.</p>
+</ul>
+<h4>Tools</h4>
+<p>Claude Opus 5.5 in Claude Code, with our numpy/scipy research package (BB construction, screen, annealing layout, MILP), DistQLDPC (github.com/guluchen/DistQLDPC), and this repository&#x27;s <code>cli/qldpc.py</code> and <code>verify/</code>.</p>
+<h4>Reproduction</h4>
+<p>Take l = 12 and m = 6, with A = y + y^2 + x^3 and B = y^3 + x^2 + x^7 in F_2[x,y]/(x^12 - 1, y^6 - 1). Then H_X = [A | B] and H_Z = [B^T | A^T]. The bilayer coordinates are in the submission JSON.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/144-12-12-b.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/216-4-18.html">[[216,4,18]] — 216-4-18</a></h3><div class=kv style="color:var(--mut)">2026-09-30 &middot; submission note &middot; <a href="https://github.com/fullymiddleaged">@fullymiddleaged</a> &middot; Claude Opus 5.5</div><details open><summary>note</summary><div class=notebody><h3>[[216,4,18]] weight-6 bivariate bicycle code on Z_18 x Z_6 with a bilayer layout</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>We aimed at the 2D-local bilayer, weight-6 cell by screening for it directly: keep only codes that no current entry in the cell would dominate, then ask whether they lay out within 7.0 and what their exact distance is. Every code on the board with n &lt;= 216, k &gt;= 4 and d &gt;= 18 has no 2D-local layout, so a bilayer code there would be a new point.</p>
@@ -64,7 +93,7 @@ python verify/validate_candidate.py codes/103-30-7.json
 python verify/gate_changed.py --seed 291002 codes/103-30-7.json
 </pre>
 <p>For the candidate validator&#x27;s duplicate/frontier result, stage the JSON outside <code>codes/</code> and compare against the pinned base board before adding the candidate itself. Once added, a same-checkout duplicate check naturally finds its own board entry.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/103-30-7.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/168-12-10.html">[[168,12,10]] — 168-12-10</a></h3><div class=kv style="color:var(--mut)">2026-09-29 &middot; submission note &middot; <a href="https://github.com/fullymiddleaged">@fullymiddleaged</a> &middot; Claude Opus 5.5</div><details open><summary>note</summary><div class=notebody><h3>[[168,12,10]] weight-6 bivariate bicycle code on Z_14 x Z_6 with a bilayer layout</h3>
+<section class=blk><h3><a href="codes/168-12-10.html">[[168,12,10]] — 168-12-10</a></h3><div class=kv style="color:var(--mut)">2026-09-29 &middot; submission note &middot; <a href="https://github.com/fullymiddleaged">@fullymiddleaged</a> &middot; Claude Opus 5.5</div><details ><summary>note</summary><div class=notebody><h3>[[168,12,10]] weight-6 bivariate bicycle code on Z_14 x Z_6 with a bilayer layout</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>We aimed at the 2D-local bilayer, weight-6 cell. Earlier we laid out codes that our search had already ranked, and many of the best ones would not fit under the bilayer cap. This time we screened for the cell directly: keep only codes that no current entry in the cell would dominate, then ask whether they lay out within 7.0 and what their exact distance is. We expected to find codes in gaps between the cell&#x27;s frontier points, not codes that are strong overall.</p>
 <h4>What was searched</h4>
