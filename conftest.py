@@ -15,3 +15,8 @@ for _rel in ("verify", os.path.join("research", "kit"), "research", "cli", "site
     _p = os.path.join(ROOT, _rel)
     if os.path.isdir(_p) and _p not in sys.path:
         sys.path.insert(0, _p)
+
+# Gitignored staging output, so never present in CI; the test_*.py files here are
+# search scripts that collect zero tests but run their search at import, which can
+# hang the suite or fail collection outright.
+collect_ignore_glob = ["research/candidates", "research/candidates/*"]
