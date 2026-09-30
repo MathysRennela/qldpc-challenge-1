@@ -34150,4 +34150,21 @@ HX, HZ = build_bb(18, 8, [(0, 0), (1, 4), (14, 1)], [(0, 0), (1, 2), (2, 7)])
 <p>Load <code>codes/48-4-8.json</code>, set `locality = {&quot;coordinates&quot;: [[float((i % 24) % 4), float((i % 24) // 4)] for i in range(48)], &quot;layers&quot;: 2}<code> (qubits </code>i<code> and </code>i+24` share a site), and validate:</p>
 <p><code>uv run python verify/qldpc_verify.py codes/48-4-8.json</code></p>
 <p>Expected: <code>ok</code>, <code>earned_distance</code> with <code>d = 8</code> both sides, and computed <code>locality_class = local-2d-bilayer</code> with <code>interaction_radius = 5.831</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/48-4-8.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/256-16-8.html">[[256,16,8]] — 256-16-8</a></h3><div class=kv style="color:var(--mut)">2005 &middot; submission note &middot; Chamon and Claudio &middot; Claude Fable 5.1</div><details ><summary>note</summary><div class=notebody><h3>[[256,16,8]] — Chamon code on an L = 8 periodic cubic lattice</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>A literature baseline for the general-stabilizer board. Chamon&#x27;s model (arXiv:cond-mat/0404182) is the standard genuinely non-CSS topological stabilizer code: every generator carries X, Y and Z, and it is not a Hadamard image of a CSS code. Bravyi, Leemhuis and Terhal (arXiv:1006.4871) analysed it as a code (fracton-type: k grows with the linear size).</p>
+<h4>What was searched</h4>
+<p>Nothing searched: the code is a reconstruction. Qubits sit on the even-parity sites of an L x L x L cubic lattice with periodic boundaries (n = L^3 / 2); for each odd-parity site c there is one generator X on c +- e_x, Y on c +- e_y, Z on c +- e_z (weight 6). We computed k = n - rank of the symplectic matrix (16 = 2L here) and searched for the distance.</p>
+<h4>Evidence trail</h4>
+<ul>
+<li><code>qldpc submit</code>&#x27;s Pauli-weight RIS search (20,000 trials) found a logical of weight 8 = L;</li>
+<p>the JSON witness has that weight. Upper bound: the board&#x27;s certifier does not minimise Pauli weight. k d^2 / n = 4 for every L in this family (k = 2L, d &lt;= L, n = L^3 / 2).</p>
+<li>Same construction at L = 6 gives [[108,12,&lt;=6]] and at L = 8 [[256,16,&lt;=8]].</li>
+</ul>
+<h4>Dead ends</h4>
+<p>Not applicable (reconstruction). No 3D layout is filed: the coordinates are periodic, so a literal embedding gives an interaction radius of order L at the wrap-around; folding the 3-torus is left open.</p>
+<h4>Tools</h4>
+<p>Claude Fable 5.1 in Claude Code; numpy; this repository&#x27;s <code>cli/qldpc.py</code> and <code>verify/</code>.</p>
+<h4>Reproduction</h4>
+<p>L = 8. even = {(x,y,z) : x+y+z even}, indexed in lexicographic order; for each odd site (x,y,z): X at (x+-1,y,z), Y at (x,y+-1,z), Z at (x,y,z+-1), all coordinates mod L. S = (A | B) with A the X/Y support and B the Z/Y support.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/256-16-8.md">raw markdown</a></div></details></section>
 </div></body></html>
