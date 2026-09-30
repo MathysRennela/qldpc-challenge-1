@@ -131,7 +131,10 @@ jobs:
       - name: self-tests (every verify/ and research/ test_*.py; skipped for codes-only PRs)
         if: github.event_name != 'pull_request' || steps.changes.outputs.only_codes != 'true'
         working-directory: submitted
-        run: uv run --frozen --extra research python run_tests.py
+        # --durations: this step is the job's biggest fixed cost (measured
+        # 14-25 min on the hosted runner) and used to report only a total, so a
+        # growth in it was invisible until someone timed it by hand.
+        run: uv run --frozen --extra research python run_tests.py --durations=20
       - name: verify all submissions (trusted verifier for code changes)
         if: github.event_name == 'pull_request' && steps.changes.outputs.codes_changed == 'true'
         working-directory: trusted
