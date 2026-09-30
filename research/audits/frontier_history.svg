@@ -147,7 +147,7 @@
 <text x="345.1" y="110.0" font-size="8.5" fill="#333" text-anchor="end" stroke="#fff" stroke-width="2.5" stroke-linejoin="round" paint-order="stroke">574,254,14</text>
 <text x="356.3" y="96.5" font-size="8.5" fill="#333" text-anchor="end" stroke="#fff" stroke-width="2.5" stroke-linejoin="round" paint-order="stroke">672,342,5</text>
 <rect x="58.0" y="74.0" width="338.7" height="300.0" fill="none" stroke="#bbb"/>
-<text x="64.0" y="68.0" font-size="12" font-weight="600" fill="#333">d ≥ 4<tspan dx="10" font-weight="400" fill="#777">19 codes on today's staircase</tspan></text>
+<text x="64.0" y="68.0" font-size="12" font-weight="600" fill="#333">d ≥ 4<tspan dx="10" font-weight="400" fill="#777">19 codes on the staircase</tspan></text>
 <text transform="translate(24.0,224.0) rotate(-90)" font-size="10.5" fill="#666" text-anchor="middle">logical qubits k</text>
 <clipPath id="p1"><rect x="440.7" y="74.0" width="338.7" height="300.0"/></clipPath>
 <line x1="440.7" y1="363.9" x2="779.3" y2="363.9" stroke="#eee"/>
@@ -275,7 +275,7 @@
 <text x="727.8" y="110.0" font-size="8.5" fill="#333" text-anchor="end" stroke="#fff" stroke-width="2.5" stroke-linejoin="round" paint-order="stroke">574,254,14</text>
 <text x="739.0" y="96.8" font-size="8.5" fill="#333" text-anchor="end" stroke="#fff" stroke-width="2.5" stroke-linejoin="round" paint-order="stroke">672,340,7</text>
 <rect x="440.7" y="74.0" width="338.7" height="300.0" fill="none" stroke="#bbb"/>
-<text x="446.7" y="68.0" font-size="12" font-weight="600" fill="#333">d ≥ 6<tspan dx="10" font-weight="400" fill="#777">20 codes on today's staircase</tspan></text>
+<text x="446.7" y="68.0" font-size="12" font-weight="600" fill="#333">d ≥ 6<tspan dx="10" font-weight="400" fill="#777">20 codes on the staircase</tspan></text>
 <clipPath id="p2"><rect x="823.3" y="74.0" width="338.7" height="300.0"/></clipPath>
 <line x1="823.3" y1="363.9" x2="1162.0" y2="363.9" stroke="#eee"/>
 <text x="817.3" y="367.4" font-size="9.5" fill="#888" text-anchor="end">1</text>
@@ -399,7 +399,7 @@
 <text x="1110.4" y="110.0" font-size="8.5" fill="#333" text-anchor="end" stroke="#fff" stroke-width="2.5" stroke-linejoin="round" paint-order="stroke">574,254,14</text>
 <text x="1121.7" y="97.3" font-size="8.5" fill="#333" text-anchor="end" stroke="#fff" stroke-width="2.5" stroke-linejoin="round" paint-order="stroke">672,336,12</text>
 <rect x="823.3" y="74.0" width="338.7" height="300.0" fill="none" stroke="#bbb"/>
-<text x="829.3" y="68.0" font-size="12" font-weight="600" fill="#333">d ≥ 8<tspan dx="10" font-weight="400" fill="#777">20 codes on today's staircase</tspan></text>
+<text x="829.3" y="68.0" font-size="12" font-weight="600" fill="#333">d ≥ 8<tspan dx="10" font-weight="400" fill="#777">20 codes on the staircase</tspan></text>
 <clipPath id="p3"><rect x="58.0" y="426.0" width="338.7" height="300.0"/></clipPath>
 <line x1="58.0" y1="715.9" x2="396.7" y2="715.9" stroke="#eee"/>
 <text x="52.0" y="719.4" font-size="9.5" fill="#888" text-anchor="end">1</text>
@@ -520,7 +520,7 @@
 <text x="345.1" y="462.0" font-size="8.5" fill="#333" text-anchor="end" stroke="#fff" stroke-width="2.5" stroke-linejoin="round" paint-order="stroke">574,254,14</text>
 <text x="356.3" y="449.3" font-size="8.5" fill="#333" text-anchor="end" stroke="#fff" stroke-width="2.5" stroke-linejoin="round" paint-order="stroke">672,336,12</text>
 <rect x="58.0" y="426.0" width="338.7" height="300.0" fill="none" stroke="#bbb"/>
-<text x="64.0" y="420.0" font-size="12" font-weight="600" fill="#333">d ≥ 12<tspan dx="10" font-weight="400" fill="#777">20 codes on today's staircase</tspan></text>
+<text x="64.0" y="420.0" font-size="12" font-weight="600" fill="#333">d ≥ 12<tspan dx="10" font-weight="400" fill="#777">20 codes on the staircase</tspan></text>
 <text x="227.3" y="754.0" font-size="10.5" fill="#666" text-anchor="middle">block length n</text>
 <text transform="translate(24.0,576.0) rotate(-90)" font-size="10.5" fill="#666" text-anchor="middle">logical qubits k</text>
 <clipPath id="p4"><rect x="440.7" y="426.0" width="338.7" height="300.0"/></clipPath>
@@ -617,7 +617,7 @@
 <text x="728.5" y="466.8" font-size="8.5" fill="#333" text-anchor="start" stroke="#fff" stroke-width="2.5" stroke-linejoin="round" paint-order="stroke">518,228,16</text>
 <text x="727.8" y="462.3" font-size="8.5" fill="#333" text-anchor="end" stroke="#fff" stroke-width="2.5" stroke-linejoin="round" paint-order="stroke">574,252,18</text>
 <rect x="440.7" y="426.0" width="338.7" height="300.0" fill="none" stroke="#bbb"/>
-<text x="446.7" y="420.0" font-size="12" font-weight="600" fill="#333">d ≥ 16<tspan dx="10" font-weight="400" fill="#777">16 codes on today's staircase</tspan></text>
+<text x="446.7" y="420.0" font-size="12" font-weight="600" fill="#333">d ≥ 16<tspan dx="10" font-weight="400" fill="#777">16 codes on the staircase</tspan></text>
 <text x="610.0" y="754.0" font-size="10.5" fill="#666" text-anchor="middle">block length n</text>
 <clipPath id="p5"><rect x="823.3" y="426.0" width="338.7" height="300.0"/></clipPath>
 <line x1="823.3" y1="715.9" x2="1162.0" y2="715.9" stroke="#eee"/>
@@ -688,7 +688,7 @@
 <text x="1120.6" y="477.5" font-size="8.5" fill="#333" text-anchor="end" stroke="#fff" stroke-width="2.5" stroke-linejoin="round" paint-order="stroke">662,180,60</text>
 <text x="1124.6" y="468.0" font-size="8.5" fill="#333" text-anchor="end" stroke="#fff" stroke-width="2.5" stroke-linejoin="round" paint-order="stroke">700,222,28</text>
 <rect x="823.3" y="426.0" width="338.7" height="300.0" fill="none" stroke="#bbb"/>
-<text x="829.3" y="420.0" font-size="12" font-weight="600" fill="#333">d ≥ 24<tspan dx="10" font-weight="400" fill="#777">8 codes on today's staircase</tspan></text>
+<text x="829.3" y="420.0" font-size="12" font-weight="600" fill="#333">d ≥ 24<tspan dx="10" font-weight="400" fill="#777">8 codes on the staircase</tspan></text>
 <text x="992.7" y="754.0" font-size="10.5" fill="#666" text-anchor="middle">block length n</text>
 <rect x="58" y="771" width="22" height="10" fill="#f6bd60" fill-opacity="0.16"/>
 <line x1="58" y1="771" x2="80" y2="771" stroke="#f6bd60" stroke-width="1.6"/>
@@ -706,5 +706,5 @@
 <rect x="780.6" y="771" width="22" height="10" fill="url(#loss)"/>
 <text x="807.6" y="782" font-size="10.5" fill="#444">lost (correction or removal)</text>
 <circle cx="979.8000000000001" cy="777" r="2.6" fill="#1d3557"/>
-<text x="988.8000000000001" y="782" font-size="10.5" fill="#444">code on today's staircase (n,k,d)</text>
+<text x="988.8000000000001" y="782" font-size="10.5" fill="#444">code on the last staircase (n,k,d)</text>
 </svg>
