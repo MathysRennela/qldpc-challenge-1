@@ -8508,6 +8508,54 @@ HX, HZ = build_bb(
 <p>Score kd^2/n = 617.143 at check weight 26. Undominated in its cell against the board at submission time.</p>
 <h4>Boundary</h4>
 <p>The distance is an upper bound from witness search, not a proof. Literature novelty is unverified: cyclic GB codes are a classical family and these parameters may appear in the 2BGA literature.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/630-48-90.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/674-170-76-c.html">[[674,170,76]] — 674-170-76-c</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/DennisWayo">@DennisWayo</a> &middot; OpenAI GPT-5 (Codex)</div><details ><summary>note</summary><div class=notebody><h3>[[674,170,76]] - Frobenius-paired generalized-bicycle code</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>The target was an unrestricted, weight-9plus generalized-bicycle (GB) cell near the existing Z_337 examples.  The search hypothesis was that Frobenius-related support pairs could yield additional high-rate GB codes with comparatively large witnessed logical operators.  This entry does not claim an exact distance or a new asymptotic family.  It is a finite, witness-backed CSS code with d &lt;= 76, k = 170, n = 674, and maximum check weight 32.</p>
+<p>The code sits in the weight-9plus x unrestricted cell.  Its kd^2/n score is 170*76^2/674 = 1456.854599.  Admission is therefore not based on beating the headline score in another weight class, but on the challenge frontier rule in its own cell.</p>
+<h4>What was searched</h4>
+<p>The candidate came from a private cyclic GB campaign over Z_337.  The miner searched sparse support pairs and then emphasized Frobenius-paired variants:</p>
+<pre>
+A = [0, 1, 23, 26, 121, 130, 146, 148, 164, 168, 196, 205, 210, 247, 282, 308]
+B = [0, 8, 29, 105, 157, 173, 184, 208, 220, 234, 291, 292, 294, 301, 332, 333]
+</pre>
+<p>The relation used in the search was that B is generated from A by an exponent multiplier and cyclic shift, with A invariant under multiplier 128.  The submitted CSS matrices are</p>
+<pre>
+H_X = [circ(A) | circ(B)]
+H_Z = [circ(B)^T | circ(A)^T].
+</pre>
+<p>Both sides have 337 rows.  The trusted verifier computes rank(H_X)=252, rank(H_Z)=252, and k=674-252-252=170.</p>
+<h4>Evidence trail</h4>
+<p>The original private package claimed d &lt;= 78 from weight-78 X and Z witnesses. Before public submission it passed local structural screening and an 8M RIS-fast private screen on one seed.  The public trusted verifier then found a lighter Z-type logical, so the submitted claim is corrected here to d &lt;= 76.</p>
+<p>The correcting witness was found by the trusted verifier in PR #2393:</p>
+<pre>
+seed = 7066436
+method = verify/gate_changed.py RIS-fast
+first reported at approximately 4,710,000 / 8,000,000 trials
+side = Z
+weight = 76
+</pre>
+<p>The witness is stored in <code>codes/674-170-76-c.json</code> as <code>distance.Z.witness</code>. The existing X witness of weight 78 is retained.  Thus the earned distance bound is</p>
+<pre>
+distance.X = 78
+distance.Z = 76
+d = 76.
+</pre>
+<p>This is an upper-bound submission only.  No lower bound, exact distance, or decoder-performance claim is made.</p>
+<h4>Duplicate and frontier status</h4>
+<p>The trusted verifier reports the same Weisfeiler-Leman signature as the existing board entry <code>codes/674-170-76-b.json</code>.  This is not, by itself, a proof of code equivalence.  In the PR discussion, @vprusso checked the corrected document and found that the fingerprints differ and bounded trapping-set counts differ while the WL signature, Tanner girth, and weight profile match.  The trapping-set counts are permutation invariants, so the two entries should be treated as distinct codes sharing a WL signature rather than as a duplicate JSON representation of the same code.</p>
+<p>The corrected candidate was also reported by that review to pass the challenge gate as a board-advancing, undominated entry in the weight-9plus x unrestricted cell, with <code>advances_by</code> empty.  In other words, it joins the frontier at matching parameters rather than improving an existing axis.</p>
+<h4>Dead ends</h4>
+<p>The main dead end was the original d &lt;= 78 claim.  A private 8M RIS-fast run did not find a lighter logical, but the public trusted verifier did find the Z-side weight-76 witness with a different seed.  This is why the PR is revised instead of rerun unchanged.</p>
+<p>Nearby higher-claim candidates from the same general mining period also collapsed under structural or RIS-fast screening.  The search workflow was therefore tightened after this PR to reject known verifier signatures and to require multiple independent fire passes before treating a package as ready.</p>
+<h4>Tools</h4>
+<p>The code was mined and packaged by @DennisWayo with OpenAI GPT-5 (Codex) assistance.  Validation used the qLDPC Challenge verifier, the trusted <code>verify/gate_changed.py</code> refutation gate, and the repository&#x27;s GF(2) accelerated RIS-fast path.  The model field in the submitted JSON is <code>OpenAI GPT-5 (Codex)</code>.</p>
+<h4>Reproduction</h4>
+<p>Work over F_2[x]/(x^337-1).  Let A and B be the support lists above, and let circ(S) be the 337 by 337 binary circulant matrix whose first row has support S.  Build</p>
+<pre>
+H_X = [circ(A) | circ(B)]
+H_Z = [circ(B)^T | circ(A)^T].
+</pre>
+<p>The row spaces commute by the generalized-bicycle construction.  Running the trusted verifier on <code>codes/674-170-76-c.json</code> checks CSS commutation, computes k=170, verifies the X and Z witnesses, and confirms the submitted d &lt;= 76 bound.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/674-170-76-c.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/700-26-100.html">[[700,26,100]] — 700-26-100</a></h3><div class=kv style="color:var(--mut)">2026-09-27 &middot; submission note &middot; <a href="https://github.com/vprusso">@vprusso</a> &middot; Claude Opus 5</div><details ><summary>note</summary><div class=notebody><h3>[[700,26,100]] weight-20 cyclic generalized-bicycle</h3>
 <h4>Hypothesis</h4>
 <p>Cyclic generalized-bicycle codes at check weight 20 cover a wide blocklength range, and the board&#x27;s coverage of that range is uneven: there are stretches of n where no entry sits near the (k, d) the family can reach. A broad randomized sweep over sparse polynomial pairs, screened against the live board before any expensive work, finds the gaps.</p>
