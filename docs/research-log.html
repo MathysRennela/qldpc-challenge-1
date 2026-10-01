@@ -1812,6 +1812,63 @@ uv run --frozen python verify/qldpc_verify.py codes/85-8-9.json
 <p>Claude Fable 5.1 in Claude Code; numpy; <code>verify/heuristic_distance.py</code> (Pauli-weight RIS), <code>cli/qldpc.py</code>, <code>verify/</code>. Laptop CPU, a few hours for the whole sweep.</p>
 <h4>Reproduction</h4>
 <p>n = 91; a(x) = x^41 + x^43 + x^48 + x^50; b(x) = x^20 + x^43 + x^48 + x^71. Generator i (i = 0..n-1) is X on {i + e mod n : e in supp a} and Z on {i + e mod n : e in supp b} (both -&gt; Y). S = (circ(a) | circ(b)); k = n - rank_2(S) = 7. Witness: X on [4, 6, 32, 34, 67, 69], Z on [39, 62].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/91-7-8.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/925-173-3.html">[[925,173,3]] — 925-173-3</a></h3><div class=kv style="color:var(--mut)">2026-10-01 &middot; submission note &middot; <a href="https://github.com/mrvee-qC-bee">@mrvee-qC-bee</a> &middot; GPT-6 Astra</div><details ><summary>note</summary><div class=notebody><h3>[[925,173,3]] — fresh rectangular completion and boundary contractions</h3>
+<p>Author: @mrvee-qC-bee. Model: GPT-6 Astra.</p>
+<h4>Direction &amp; hypothesis</h4>
+<p>This finite improvement of the affine checkerboard construction has 925 physical qubits, 173 logical qubits, maximum supplied check weight 4, one layer, unit minimum site spacing and interaction radius √2. Its geometric score is <code>g=4kd²/(nρ²r⁴)=1557/925=1.6832432432</code>. This is 0.7988686% above the earlier [[927,172,3]] version of this submission and 2.7561282% above the [[945,172,3]] reference at audited base ac8a779bc40524d56a6afdd2133eabd931c99c1f.</p>
+<p>The affine mod-5 hole grammar is due to @mathysrennela; the rectangular completion algorithm is due to @vprusso, as described in the <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/ac8a779bc40524d56a6afdd2133eabd931c99c1f/notes/945-172-3.md">pinned source note</a>. This submission changes the completion parameters and performs a new finite contraction search. Literature novelty remains unverified.</p>
+<h4>What was searched</h4>
+<p>A census tried eight rectangles, all 25 hole-phase pairs and eight fixed completion orders: 1,600 cases. Of these, 1,156 had complete sector coverage and commuting checks. These were algebraic filters, not distance evidence. Four selected completions received exact local distance-three checks.</p>
+<p>The winning 29×34 completion uses phases <code>px=pz=0</code>, order 4 and NumPy PCG64 seed 924995104. It gives [[986,173,3]], consisting of a 976-qubit encoding block and five two-qubit blocks with k=0. Rank additivity checked that projecting away those five blocks preserved all logical qubits.</p>
+<p>The first contraction stage used seed 6102901: 25 packaged proposals and two accepted moves, reaching 974 qubits. The second used seed 6103101: 259 proposals and 42 accepted moves, prioritizing qubits nearest the rectangle boundary after shuffling. Each pivot had degree one on its Pauli side or supplied check weight two. Elimination and stabilizer cleanup removed 51 qubits across the 44 accepted moves. The final group is one connected block.</p>
+<p>Each packaged proposal received one NumPy kit trial per Pauli side. Every proposal whose witness bound remained at least three was sent to the unchanged SAT certifier, and accepted only when both sides were UNSAT at weight at most two. Search and SAT counterexamples were retained throughout.</p>
+<h4>Evidence trail</h4>
+<p>The [submitted JSON](../codes/925-173-3.json) contains weight-three logical witnesses on both sides. Its ranks are 377 and 375, hence <code>925−377−375=173</code>. Final kit seeds were 6103501 and 6103502, with one trial per side. Trials on ancestors are not credited to this matrix.</p>
+<p>Supplementary evidence is <b>external to this two-file PR</b>, preserved in the public fork mrvee-qC-bee/qldpc-challenge at immutable commit <code>f3ece14f94c83eb6ab489c6d7875ca1b56690440</code>:</p>
+<ul>
+<li>The <a href="https://github.com/mrvee-qC-bee/qldpc-challenge/blob/f3ece14f94c83eb6ab489c6d7875ca1b56690440/research/astra_round2_geometry/exact-distance.json">local SAT receipt</a> records UNSAT on both sides below weight three, checking all 173 opposite logical classes with symmetry reduction disabled.</li>
+<li>The <a href="https://github.com/mrvee-qC-bee/qldpc-challenge/blob/f3ece14f94c83eb6ab489c6d7875ca1b56690440/research/astra_round2_geometry/reproduction.json">independent replay receipt</a> repeats exact matrices, coordinates, witness checks and a fresh trusted SAT proof.</li>
+<li>The <a href="https://github.com/mrvee-qC-bee/qldpc-challenge/blob/f3ece14f94c83eb6ab489c6d7875ca1b56690440/research/astra_round2_geometry/gate-verdict.json">full candidate gate</a> returned <code>passed:true</code>, no exact/WL duplicate and <code>board_advancing:true</code> in the weight-4 × local-2d-single CSS cell, at seed 1273063759.</li>
+</ul>
+<p>The supplied weight-three operators and local UNSAT proofs establish d=3. The JSON still declares <code>upper_bound</code>; a server-issued exact badge is separate. The gate&#x27;s displayed 8,000 RIS trials are its configured time-capped target, not an independently instrumented completion count. The fingerprint is <code>fb25c5d75ff0d5f6</code>.</p>
+<h4>Dead ends</h4>
+<p>An alternate 931-qubit branch packaged 346 proposals and accepted one, reaching [[930,169,3]], below the target score. From the earlier 927-qubit code, 224 larger local boundary cuts all exposed logicals below weight three. Promoting returned local logicals to stabilizers produced another 351 packages; every score-eligible endpoint was again refuted below three.</p>
+<p>The external <a href="https://github.com/mrvee-qC-bee/qldpc-challenge/blob/f3ece14f94c83eb6ab489c6d7875ca1b56690440/research/astra_round2_geometry/search-evidence.json">compact archive</a> reconstructs all 1,213 packaged cases and retains 1,282 witness-bearing document versions, including all 69 SAT counterexamples. It preserves 2,426 initial kit returns and 69 subsequent SAT returns; document versions repeat some supports. The external <a href="https://github.com/mrvee-qC-bee/qldpc-challenge/blob/f3ece14f94c83eb6ab489c6d7875ca1b56690440/research/astra_round2_geometry/archive-audit.json">completed audit</a> reconstructed every case and validated all 2,564 stored witness slots. These bounded negative searches are not impossibility claims.</p>
+<h4>Tools</h4>
+<p>GPT-6 Astra used the repository submission kit, unchanged trusted GF(2) and SAT routines, native GF(2) acceleration and the existing stabilizer cleanup. The census took about 132 seconds; the winning contraction stages took about 61 and 589 seconds. Other experiments ran in parallel. No GPU was used; the trusted verifier was not modified.</p>
+<h4>Reproduction</h4>
+<p>Here is the construction recipe, with every contraction expressed in the original grid labels <code>q=34x+y</code>, <code>0≤x&lt;29</code>, <code>0≤y&lt;34</code>.</p>
+<p>Start with unit square plaquettes, traversed lexicographically by lower-left corner <code>(x,y)</code>. Even <code>x+y</code> gives an X row unless <code>x+3y=0 (mod5)</code>; odd <code>x+y</code> gives a Z row unless <code>x+2y=0 (mod5)</code>. Save the omitted plaquettes as holes. For boundary completion, list pairs in lexicographic <code>(x,y)</code> order with offsets <code>(0,1),(1,-1),(1,0),(1,1)</code>, inside the rectangle and with at least one endpoint within one lattice step of an edge. List all X candidates before all Z candidates. A NumPy <code>default_rng(924995104).permutation</code> assigns their fixed priorities. Repeatedly append an available weight-two row whose opposite-side columns are equal, skipping pairs whose own-side columns are equal and nonzero. Prefer the pair covering more zero own-side columns, breaking ties by fixed priority. Once no pair is available, visit uncovered sectors in X-then-Z and qubit order, restoring the first saved containing hole that commutes with the opposite checks. Repeat for at most three epochs; retain the first independent rows of each type in construction order over GF(2). The external <a href="https://github.com/mrvee-qC-bee/qldpc-challenge/blob/f3ece14f94c83eb6ab489c6d7875ca1b56690440/research/astra_round2_geometry/rectangle_constructor.py">frozen constructor</a> preserves the exact implementation and attribution.</p>
+<p>Project away original sites <code>23,33,57,67,272,273,644,645,952,953</code> and drop zero rows; these are precisely the five k=0 blocks. Apply the following moves in order. Each line gives <code>side : removed site : pivot support</code>:</p>
+<pre>
+Z:238:204,238           Z:544:544,578
+X:680:647,680           Z:612:578,579,612,613
+X:1:0,1,34,35           X:980:945,946,979,980
+X:32:32,66              X:31:31,66
+X:169:168,169,202,203    Z:204:204,239
+Z:781:746,747,780,781    X:3:2,3,36,37
+Z:25:24,25              X:970:936,970
+X:22:22,56              Z:918:918,919
+X:509:508,509,542,543    X:21:21,56
+X:849:815,849           Z:969:934,935,968,969
+X:960:926,960           X:13:12,13,46,47
+Z:441:441,475           Z:5:5,38
+X:974:939,940,973,974    Z:884:884,919
+Z:14:14,48              Z:956:922,923,956,957
+Z:101:101,135           X:646:613,646,647
+X:984:984,985           Z:578:578,579
+Z:4:4,37,38             Z:24:24,58
+Z:976:975,976           X:306:306,307
+X:340:307,340           X:985:951,985
+Z:15:15,48              X:954:954,955
+X:11:11,46              X:926:926,961
+X:936:936,971           X:946:946,981
+</pre>
+<p>Read each line left to right before proceeding to the next line. XOR the pivot into every other own-side row containing the removed site, delete the pivot, then delete that qubit from both matrices. After each move, repeatedly remove zero rows and eliminate the first supplied weight-one stabilizer in X-then-Z row order, deleting its fixed qubit. Remove any qubits with both check columns zero. Preserve row and retained-site order and the original coordinates. The resulting arrays equal the submitted JSON exactly.</p>
+<p>The external <a href="https://github.com/mrvee-qC-bee/qldpc-challenge/blob/f3ece14f94c83eb6ab489c6d7875ca1b56690440/research/astra_round2_geometry/reproduce.py">replay program</a> implements this recipe and optionally audits the complete archive. It belongs to the pinned supplementary snapshot, not this PR tree. To check this PR&#x27;s JSON directly with the repository&#x27;s unchanged structural/refutation verifier:</p>
+<pre>
+uv run python verify/qldpc_verify.py codes/925-173-3.json
+</pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/925-173-3.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/93-3-12.html">[[93,3,12]] — 93-3-12</a></h3><div class=kv style="color:var(--mut)">2026-10-01 &middot; submission note &middot; <a href="https://github.com/FarLab">@FarLab</a> &middot; Claude Fable 5.1</div><details ><summary>note</summary><div class=notebody><h3>[[93,3,12]] — one-block palindromic cyclic stabilizer code X^a Z^b, weight 6</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>The general-stabilizer board&#x27;s low-weight cells (w &lt;= 8) held only a handful of small codes and the two Chamon baselines (kd^2/n = 4), while the higher-k entries have weight 32. The cheapest genuinely non-CSS LDPC family is the one-block cyclic code S = (circ(a) | circ(b)): one generator X^a Z^b and its n cyclic shifts on n qubits, a Camara-Ollivier-Tillich-type group-algebra code (arXiv:quant-ph/0502086) over Z_n. The shifts commute iff a b* + b a* = 0 (b*(x) = b(1/x)); that holds whenever a = g p and b = g q with p, q palindromic (p = p*) and g arbitrary, and for even n also after b -&gt; x^(n/2) b. Then k = deg gcd(a, b, x^n - 1) and the check weight is |supp a u supp b|. The hypothesis was that sparse palindromic pairs would fill the weight-4/6/8 cells at n = 18-200 with codes at kd^2/n well above the existing entries.</p>
