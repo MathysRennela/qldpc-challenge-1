@@ -641,6 +641,14 @@
       "code_type": "CSS"
     },
     {
+      "id": "25-1-7",
+      "n": 25,
+      "k": 1,
+      "d": 7,
+      "tier": "ub",
+      "code_type": "stabilizer"
+    },
+    {
       "id": "25-5-3-cyclic",
       "n": 25,
       "k": 5,
