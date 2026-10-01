@@ -1,6 +1,6 @@
 {
  "schema_version": "0.4",
- "name": "[[235,96,9]] symplectic-halved CPM pair-partition fold",
+ "name": "[[235,96,8]] symplectic-halved CPM pair-partition fold",
  "code_type": "stabilizer",
  "n": 235,
  "k": 96,
@@ -2265,24 +2265,24 @@
   ]
  },
  "distance": {
-  "d": 9,
+  "d": 8,
   "P": {
-   "value": 9,
+   "value": 8,
    "confidence": "upper_bound",
    "witness": {
     "X": [
-     14,
-     85,
-     117,
-     140,
-     149,
-     213
+     41,
+     48,
+     198
     ],
     "Z": [
-     19,
-     26,
-     105,
-     213
+     2,
+     16,
+     24,
+     48,
+     103,
+     135,
+     198
     ]
    }
   }
