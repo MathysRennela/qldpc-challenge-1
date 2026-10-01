@@ -637,37 +637,6 @@ assert checks == doc[&quot;checks&quot;][&quot;S&quot;]
 <p>Claude Fable 5.1 in Claude Code; numpy; <code>verify/heuristic_distance.py</code> (Pauli-weight RIS), <code>cli/qldpc.py</code>, <code>verify/</code>. Laptop CPU, a few hours for the whole sweep.</p>
 <h4>Reproduction</h4>
 <p>n = 18; a(x) = x^7 + x^8 + x^10 + x^11; b(x) = 1 + x^6 + x^9 + x^12. Generator i (i = 0..n-1) is X on {i + e mod n : e in supp a} and Z on {i + e mod n : e in supp b} (both -&gt; Y). S = (circ(a) | circ(b)); k = n - rank_2(S) = 3. Witness: X on [13, 14], Z on [6, 9, 15].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/18-3-5.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/182-38-6.html">[[182,38,6]] — 182-38-6</a></h3><div class=kv style="color:var(--mut)">2026-10-01 &middot; submission note &middot; <a href="https://github.com/FarLab">@FarLab</a> &middot; Claude Fable 5.1</div><details ><summary>note</summary><div class=notebody><h3>[[182,38,6]] — one-block palindromic cyclic stabilizer code X^a Z^b, weight 8</h3>
-<h4>Direction &amp; hypothesis</h4>
-<p>The general-stabilizer board&#x27;s low-weight cells (w &lt;= 8) held only a handful of small codes and the two Chamon baselines (kd^2/n = 4), while the higher-k entries have weight 32. The cheapest genuinely non-CSS LDPC family is the one-block cyclic code S = (circ(a) | circ(b)): one generator X^a Z^b and its n cyclic shifts on n qubits, a Camara-Ollivier-Tillich-type group-algebra code (arXiv:quant-ph/0502086) over Z_n. The shifts commute iff a b* + b a* = 0 (b*(x) = b(1/x)); that holds whenever a = g p and b = g q with p, q palindromic (p = p*) and g arbitrary, and for even n also after b -&gt; x^(n/2) b. Then k = deg gcd(a, b, x^n - 1) and the check weight is |supp a u supp b|. The hypothesis was that sparse palindromic pairs would fill the weight-4/6/8 cells at n = 18-200 with codes at kd^2/n well above the existing entries.</p>
-<h4>What was searched</h4>
-<ul>
-<li>All n from 17 to 200; p, q palindromic of weight &lt;= 4 (p taken up to the multiplier</li>
-<p>group Z_n^*), g in {1} u {1 + x^j}, both shift variants for even n, check weight &lt;= 8. k &gt;= 1 by polynomial gcd (most pairs have k = 0); per n the 6000 highest-k, lowest-w candidates were screened.</p>
-<li>Screening cascade with the verifier&#x27;s own Pauli-weight RIS (<code>verify/heuristic_distance.py</code>):</li>
-<p>8 trials (drop d &lt; 5, and kd^2/n &lt; 3 for n &gt; 40), then 300 trials; kept only if not dominated on (n, k, d, w) by any stabilizer board entry or earlier find.</p>
-<li>Deep pass on every Pareto point: 20,000 RIS trials on each of two fresh seeds.</li>
-</ul>
-<h4>Evidence trail</h4>
-<ul>
-<li>Screen: d &lt;= 6 at 300 trials. Deep: 2 x 20,000 trials found nothing lighter (held).</li>
-<p><code>qldpc submit</code> re-searched (20,000 trials) and the filed witness has Pauli weight 6.</p>
-<li>Claim: d &lt;= 6, witness-backed upper bound; the board&#x27;s certifier does not minimise Pauli</li>
-<p>weight, so no stabilizer entry is exact on the board.</p>
-</ul>
-<h4>Dead ends</h4>
-<ul>
-<li>Two-generator and non-palindromic pairs were not searched; the family is exactly the</li>
-<p>one above.</p>
-<li>Composite n (63, 68, ...) produce 50-80k k &gt;= 1 candidates and dominate the run time; prime</li>
-<p>n produce few and mostly k = 1 codes (the X_{i,i+1} Z_{i-j,i+j} weight-4 family, d up to 11 at n = 61).</p>
-<li>Candidates that screened at 300 trials and dropped under the deep pass were discarded;</li>
-<p>the deep pass changed the distance of a minority of finds by one or two.</p>
-</ul>
-<h4>Tools</h4>
-<p>Claude Fable 5.1 in Claude Code; numpy; <code>verify/heuristic_distance.py</code> (Pauli-weight RIS), <code>cli/qldpc.py</code>, <code>verify/</code>. Laptop CPU, a few hours for the whole sweep.</p>
-<h4>Reproduction</h4>
-<p>n = 182; a(x) = x^71 + x^85 + x^97 + x^111; b(x) = x^44 + x^86 + x^96 + x^138. Generator i (i = 0..n-1) is X on {i + e mod n : e in supp a} and Z on {i + e mod n : e in supp b} (both -&gt; Y). S = (circ(a) | circ(b)); k = n - rank_2(S) = 38. Witness: X on [47, 61], Z on [20, 46, 62, 88].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/182-38-6.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/188-49-6.html">[[188,49,6]] — 188-49-6</a></h3><div class=kv style="color:var(--mut)">2026-10-01 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; Space Bunny Alpha 1.0</div><details ><summary>note</summary><div class=notebody><h3>[[188,49,6]] — symplectic-halved CPM pair-partition fold</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>Target: the <b>stabilizer board</b> for the fold and the **weight-9plus / unrestricted** cell for the parent. The structural lever is symplectic doubling/halving (arXiv:2609.30069 Prop. 4), recorded for this repo in <code>fieldnotes/2026-09-28-symplectic-doubling-and-halving.md</code>: any general stabilizer code <code>S = (A | B)</code> doubles to a CSS code <code>H&#x27;_X = (A | B)</code>, <code>H&#x27;_Z = (B | A)</code> with <code>n -&gt; 2n</code>, <code>k -&gt; 2k</code> and <code>d&#x27; &gt;= d</code>, and a CSS code in the CPM pair-partition family halves back out to a genuinely non-CSS code at half the blocklength and half the logicals.</p>
