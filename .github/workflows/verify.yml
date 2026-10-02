@@ -182,10 +182,46 @@ jobs:
         if: github.event_name == 'pull_request' && steps.changes.outputs.codes_changed == 'true'
         working-directory: trusted
         run: uv run --frozen python verify/check_authorship.py --root ../submitted --author "${{ github.event.pull_request.user.login }}" --base origin/${{ github.base_ref }}
+      # A completed refutation, carried between runs of the same PR (issue
+      # #2633). gate_changed.py diffs against the base branch, so a PR that
+      # adds a code has a non-empty diff on every push, and a push that only
+      # fixed prose re-paid the whole search.
+      #
+      # This cache is NOT trusted. A run executes the PR's own copy of this
+      # workflow, and the submitted tree's accelerator build runs before any
+      # gate, so a contributor can write whatever they like here. Only a
+      # refutation is ever served back, and the gate re-validates its witness
+      # against the candidate before believing it, so a planted record either
+      # proves the claimed distance wrong or is discarded. A clean result is
+      # never stored, because there would be nothing to re-check.
+      #
+      # restore-keys is a PR-scoped prefix because the primary key is per run
+      # and attempt, so the prefix is what makes a later run see an earlier
+      # one's record at all. GitHub scopes caches to the PR's own ref, so the
+      # prefix cannot reach another PR's entries.
+      - name: restore completed searches
+        if: github.event_name == 'pull_request' && steps.changes.outputs.codes_changed == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: search-cache
+          key: gate-search-${{ github.event.pull_request.number }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            gate-search-${{ github.event.pull_request.number }}-
       - name: distance refutation gate (trusted verifier for code changes)
         if: github.event_name == 'pull_request' && steps.changes.outputs.codes_changed == 'true'
         working-directory: trusted
-        run: uv run --frozen python verify/gate_changed.py --code-root ../submitted origin/${{ github.base_ref || 'main' }} --receipt-dir ../receipts --pr-number "${{ github.event.pull_request.number }}" --pr-author "${{ github.event.pull_request.user.login }}" --base-sha "${{ github.event.pull_request.base.sha }}" --head-sha "${{ github.event.pull_request.head.sha }}"
+        run: uv run --frozen python verify/gate_changed.py --code-root ../submitted origin/${{ github.base_ref || 'main' }} --receipt-dir ../receipts --search-cache ../search-cache --pr-number "${{ github.event.pull_request.number }}" --pr-author "${{ github.event.pull_request.user.login }}" --base-sha "${{ github.event.pull_request.base.sha }}" --head-sha "${{ github.event.pull_request.head.sha }}"
+      # Saved on failure as well as success, which is the case this exists
+      # for: five of the six measured re-gatings were failure -> success, so a
+      # save that only ran on a green job would never produce a hit. Split
+      # restore/save rather than actions/cache for exactly that reason, and
+      # keyed per run and attempt because cache entries are immutable.
+      - name: save completed searches
+        if: always() && github.event_name == 'pull_request' && steps.changes.outputs.codes_changed == 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: search-cache
+          key: gate-search-${{ github.event.pull_request.number }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: distance refutation gate (changed submissions only)
         if: github.event_name != 'pull_request'
         working-directory: submitted
