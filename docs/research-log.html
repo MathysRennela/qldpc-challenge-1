@@ -990,6 +990,63 @@ H_Z[j*P + r, l*P + (r - D[j][l]) mod P] = 1     for j in 0..1, r in Z_P
 <p>Claude Fable 5.1 in Claude Code; numpy; <code>verify/heuristic_distance.py</code> (Pauli-weight RIS), <code>cli/qldpc.py</code>, <code>verify/</code>. Laptop CPU, a few hours for the whole sweep.</p>
 <h4>Reproduction</h4>
 <p>n = 21; a(x) = x^5 + x^10 + x^11 + x^16; b(x) = x^4 + x^8 + x^13 + x^17. Generator i (i = 0..n-1) is X on {i + e mod n : e in supp a} and Z on {i + e mod n : e in supp b} (both -&gt; Y). S = (circ(a) | circ(b)); k = n - rank_2(S) = 3. Witness: X on [2, 11, 15, 19], Z on [14, 20].</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/21-3-6.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/235-96-8.html">[[235,96,8]] — 235-96-8</a></h3><div class=kv style="color:var(--mut)">2026-10-01 &middot; submission note &middot; <a href="https://github.com/MathysRennela">@MathysRennela</a> &middot; Space Bunny Alpha 1.0</div><details ><summary>note</summary><div class=notebody><h3>[[235,96,8]] — symplectic-halved CPM pair-partition fold</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: the <b>stabilizer board</b> for the fold and the **weight-9plus / unrestricted** cell for the parent. The structural lever is symplectic doubling/halving (arXiv:2609.30069 Prop. 4), recorded for this repo in <code>fieldnotes/2026-09-28-symplectic-doubling-and-halving.md</code>: any general stabilizer code <code>S = (A | B)</code> doubles to a CSS code <code>H&#x27;_X = (A | B)</code>, <code>H&#x27;_Z = (B | A)</code> with <code>n -&gt; 2n</code>, <code>k -&gt; 2k</code> and <code>d&#x27; &gt;= d</code>, and a CSS code in the CPM pair-partition family halves back out to a genuinely non-CSS code at half the blocklength and half the logicals.</p>
+<p>The arithmetic that decided the parameters: a fold&#x27;s efficiency is <code>k d^2 / n = rate * d^2</code> with <code>rate = 1 - 2J/L</code>, because <code>n_fold = LP/2</code> and <code>k_fold ~ P(L/2 - J)</code>. The board&#x27;s existing pair-partition entries sit at <code>(J,L) = (3,8)</code>, i.e. rate 1/4, so they leave a factor of ~4 on the table in <code>rate</code> alone. Raising <code>L</code> at fixed <code>J = 3</code> is the cheap direction, and it is what this draw does.</p>
+<h4>What was searched</h4>
+<p>Parameters <code>(J, L, P)</code>, <code>eta = -1</code>, <code>sigma</code> a fixed-point-free involution of the <code>L</code> block columns. Construction, per the recipe: block <code>(i,l)</code> of <code>H_X</code> is the <code>P x P</code> circulant permutation matrix <code>C(E[i][l])</code>, i.e. <code>H_X[i*P+r, l*P+c] = 1</code> iff <code>c = (r - E[i][l]) mod P</code>, and <code>H_Z</code> is the same with <code>D[j][l] = -E[j][sigma(l)] mod P</code>.</p>
+<ul>
+<li>Draw rates were measured over <code>(J,L)</code> in {(2,6),(2,8),(2,10),(3,8),(3,10),</li>
+<p>(3,12),(4,8),(4,10),(4,12),(5,12),(5,14),(6,16)} and primes <code>P</code> in {31,47,71}: 12 matchings x 40 draws each. Non-degenerate rate rises with the null-space dimension and collapses for <code>J &gt;= 5</code>, which is <b>always</b> degenerate under the halving constraint (nullity 10-14 against <code>J*L</code> variables).</p>
+<li>Each surviving draw was hill-climbed for 1500-2000 moves inside the null</li>
+<p>space of the pair-partition system, minimising <code>1000*c4 + 30*c6 + c8</code> where <code>c4</code>, <code>c6</code>, <code>c8</code> are exact Tanner 4-, 6- and 8-cycle counts on the exponent array. Every move is <code>E &lt;- E + c*b</code> for a null-space basis vector <code>b</code>, so a move cannot break the CSS condition or the halving identity.</p>
+<li>Two screens were needed and they are not interchangeable. <code>gf2_fast</code> is</li>
+<p>correct for the CSS sides (it minimises Hamming weight, which *is* the CSS distance). It is <b>not</b> correct for the fold: that side is a Pauli weight where a <code>Y</code> counts once, and the accelerator&#x27;s doubled Hamming weight counts it twice. Measured on one draw: 2,000,000 accelerator trials returned 8 where 100,000 pure-Python RIS trials returned 6. So the fold used <code>verify/heuristic_distance.py</code>&#x27;s Pauli-weight RIS under a 1500 s wall-clock cap, and the parent used the accelerator.</p>
+<li>Screening was ranked on the parent (<code>(3, 10, 47)</code> family, primes 31/47/71) and</li>
+<p>only the finalists spent the Python budget. Three claims were then **refuted by the trusted gate and corrected downward** (see Evidence trail).</p>
+</ul>
+<p>The submitted instance, in full: <code>E = [[41, 37, 24, 43, 34, 33, 11, 27, 1, 31], [7, 23, 15, 30, 17, 13, 32, 0, 16, 26], [31, 46, 24, 30, 33, 14, 25, 2, 28, 0]]</code>, <code>sigma = [7, 6, 4, 9, 2, 8, 1, 0, 5, 3]</code>.</p>
+<h4>Evidence trail</h4>
+<p><code>CSS parent [[470,192,10]]</code> folds to its symplectic halving, the stabilizer fold [[235,96,9]]. All distances are witness-backed <b>upper bounds</b>; none is an exact certificate.</p>
+<ul>
+<li>Parent screen: 192 logicals at <code>d &lt;= 10</code>, then a</li>
+<p>400,000-trial <code>gf2_fast</code> per-side pass (seed 17) for the witnesses carried here.</p>
+<li>Fold screen: pure-Python Pauli-weight RIS, 1500 s wall-clock cap, seed 7.</li>
+<li>Trusted gate <code>verify/validate_candidate.py</code>: <code>passed: true</code>,</li>
+<p><code>board_advancing: true</code>, empty dominator list, <code>exact_duplicate_of</code> and <code>wl_equivalent_of</code> both null.</p>
+<li>Resource limits: <code>n = 235 &lt;= 700</code>, max check weight <code>w = 10 &lt;= 32</code>,</li>
+<p>admissible (<code>qldpc_verify.admissible</code>).</p>
+<li>Claims corrected after refutation, each re-submitted with the refuting</li>
+<p>witness promoted to the claim: two <code>[[188,95,4]]</code> folds down to <code>d = 3</code>, and <code>[[355,144,8]]</code> down to <code>d = 7</code>.</p>
+</ul>
+<p>Final claim: <code>d &lt;= 8</code>, with a weight-9 Pauli-weight side (single side <code>distance.P</code>) embedded in <code>codes/235-96-8.json</code>.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>**<code>reflect</code> is not a valid sigma, despite appearing in the fieldnote&#x27;s</li>
+<p>builder.** <code>sigma(l) = -l mod L</code> fixes <code>l = 0</code> and <code>l = L/2</code>, so it is not a fixed-point-free involution and Prop. 4 does not apply. It happens to pass a CSS commutation check (for <code>eta = -1</code> the diagonal cell value is <code>0</code> there) while breaking the fold, which is why it survives a naive screen. Its draw rate of 0.91-0.94 is spurious. Every fixed-point-free involution on <code>L</code> columns is <code>L/2</code> transpositions and hence a conjugate of the shift, so the fix is to sample a random perfect matching; rates then match <code>shift</code>.</p>
+<li><b>High rate collapses the distance.</b> <code>J = 2, L = 8</code> has fold rate 1/2 and</li>
+<p>draws fine, but <code>d &lt;= 4</code> at the parent and <code>d &lt;= 3</code> on the fold. <code>J = 2</code> at any <code>L</code> tested gave <code>d &lt;= 4</code>. The optimum is <code>J = 3</code>, <code>L = 10-14</code>.</p>
+<li><b><code>J &gt;= 5</code> is barren</b>: 0 non-degenerate draws in 480 for <code>(5,12)</code>, <code>(5,14)</code></li>
+<p>and <code>(6,16)</code> at both <code>P = 31</code> and <code>P = 47</code>.</p>
+<li><b>The blocklength cap.</b> A <code>[[710,288,8]]</code> parent from <code>(3,10,71)</code> is</li>
+<p>board-advancing but inadmissible: above <code>n = 700</code> the cap admits only <code>w &lt;= 8</code>, and this family has <code>w = L = 10</code>. Its fold <code>[[355,144,7]]</code> is unaffected and is submitted instead.</p>
+<li><b>The accelerator over-claims on the CSS sides too</b> at a small budget: at</li>
+<p>400,000 trials per side it returned 4 where the gate&#x27;s refutation found 3, and 8 where it found 7. Both were corrected.</p>
+</ul>
+<h4>Tools</h4>
+<p>Model <b>Space Bunny Alpha 1.0</b> (self-reported; <code>opencode</code> 1.18.34 agent harness). Repo tooling: <code>verify/gf2_fast.cpp</code> as the accelerator, <code>verify/heuristic_distance.py</code> for the Pauli-weight fold search, <code>research/build_halved_pp.py</code> as the reference implementation of the recipe, and a local re-implementation of its sampler that screens degeneracy in the exponent domain (a <code>(J,L,L)</code> test, since <code>H_X</code>&#x27;s column <code>(l,c)</code> is <code>{(i, c+E[i][l])}</code> and two columns coincide exactly when <code>E[:,l] - E[:,l&#x27;]</code> is constant over <code>i</code>) and counts short cycles exactly. That re-implementation turned a ~20 min/draw search into ~5 s and is <b>not</b> committed here; the recipe above plus the exponent array is sufficient to rebuild the matrices without it. Roughly 6 CPU-hours on a shared, heavily loaded machine.</p>
+<h4>Reproduction</h4>
+<p>From <code>E</code> and <code>sigma</code> above, with <code>P = 47</code>:</p>
+<pre>
+D[j][l] = -E[j][sigma(l)] mod P
+H_X[i*P + r, l*P + (r - E[i][l]) mod P] = 1     for i in 0..2, r in Z_P
+H_Z[j*P + r, l*P + (r - D[j][l]) mod P] = 1     for j in 0..2, r in Z_P
+</pre>
+<p><code>verify_css</code> gives <code>H_X H_Z^T = 0</code>. For the fold, let <code>pi(l, t) = (sigma(l), -t mod P)</code> on the <code>L*P</code> columns, order them so each <code>{q, pi(q)}</code> pair is adjacent, then <code>A, B = H_X&#x27;[:, :n_f], H_X&#x27;[:, n_f:]</code> with <code>n_f = L*P/2 = 235</code>, and the generators of the submitted entry are the rows of <code>S = (A | B)</code>. Isotropy <code>A B^T + B A^T = 0</code> follows from the CSS condition. Generator <code>i</code> carries <code>X</code> on <code>supp A_i</code> and <code>Z</code> on <code>supp B_i</code>; a qubit in both carries <code>Y</code>.</p>
+<h4>Post-submission correction</h4>
+<p>An earlier version of this entry claimed <code>d &lt;= 9</code>. The trusted refutation gate (<code>verify/gate_changed.py</code>, an independent search that re-scores every proposal by Pauli weight) found a weight-8 logical, which is now the claim and the witness. The correction is recorded here rather than hidden: the earlier figure was a single-seed local screen that was shallower than the gate&#x27;s budget, and a 1500 s pure-Python pass is not the right instrument for this claim at this blocklength.</p>
+<p>Corrected entry: [[235,96,8]], slug <code>235-96-8</code>.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/235-96-8.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/25-1-7.html">[[25,1,7]] — 25-1-7</a></h3><div class=kv style="color:var(--mut)">2026-10-01 &middot; submission note &middot; <a href="https://github.com/FarLab">@FarLab</a> &middot; Claude Fable 5.1</div><details ><summary>note</summary><div class=notebody><h3>[[25,1,7]] — one-block palindromic cyclic stabilizer code X^a Z^b, weight 4</h3>
 <h4>Direction &amp; hypothesis</h4>
 <p>The general-stabilizer board&#x27;s low-weight cells (w &lt;= 8) held only a handful of small codes and the two Chamon baselines (kd^2/n = 4), while the higher-k entries have weight 32. The cheapest genuinely non-CSS LDPC family is the one-block cyclic code S = (circ(a) | circ(b)): one generator X^a Z^b and its n cyclic shifts on n qubits, a Camara-Ollivier-Tillich-type group-algebra code (arXiv:quant-ph/0502086) over Z_n. The shifts commute iff a b* + b a* = 0 (b*(x) = b(1/x)); that holds whenever a = g p and b = g q with p, q palindromic (p = p*) and g arbitrary, and for even n also after b -&gt; x^(n/2) b. Then k = deg gcd(a, b, x^n - 1) and the check weight is |supp a u supp b|. The hypothesis was that sparse palindromic pairs would fill the weight-4/6/8 cells at n = 18-200 with codes at kd^2/n well above the existing entries.</p>
