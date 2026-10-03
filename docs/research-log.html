@@ -26,7 +26,175 @@
 <h4>Numbers</h4>
 <p>Max check weight 14 throughout. Interaction radius unchanged at 0, so the reduced code is no less local than the source; layers unchanged. Qubit positions are the source&#x27;s — every surviving qubit keeps the coordinate it has in <code>codes/103-30-7.json</code>, and the reduction only deletes. kd²/n 14.272 → 14.700.</p>
 <p>It dominates <code>103-30-7</code> on (n, k, d, w).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/100-30-7.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/222-52-6.html">[[222,52,6]] — 222-52-6</a></h3><div class=kv style="color:var(--mut)">2026-10-03 &middot; submission note &middot; <a href="https://github.com/dorakingx">@dorakingx</a> &middot; Claude Opus 5 (Claude Code)</div><details open><summary>note</summary><div class=notebody><h3>[[222,52,6]] — reduction of the board&#x27;s [[224,52,6]]</h3>
+<section class=blk><h3><a href="codes/132-32-8.html">[[132,32,8]] — 132-32-8</a></h3><div class=kv style="color:var(--mut)">2026-10-03 &middot; submission note &middot; <a href="https://github.com/nihoniumqc">@nihoniumqc</a> &middot; GPT-6</div><details open><summary>note</summary><div class=notebody><h3>[[132,32,8]] weight-11 CSS parity amplification</h3>
+<p>The submitted JSON records witness-backed upper bounds on both distances. Randomized search is not a lower-bound certificate.</p>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: CSS weight-9plus x unrestricted. Explore the rate, blocklength and check-weight tradeoffs of small-factor CSS tensor products. This applies an established construction; literature novelty remains unverified.</p>
+<h4>What was searched</h4>
+<p>Seven tensor instances were built after screening small board seeds and parity factors; all seven passed the original trusted gate and six were retained as non-dominated within the batch. Initial pilots used 500 NumPy trials per side. The confirmation ladder below starts with the subsequent 100,000-trial confirmation and includes the fresh million-trial rung. Final validation uses upstream da1f2c0a1611b215376b249c139f4951e2394418.</p>
+<h4>Evidence trail</h4>
+<p>Confirmation ladder for the submitted code, each rung a fresh seed unless marked otherwise, reading the lightest logical found:</p>
+<p>| budget (trials/side) | lightest logical | | ---: | ---: | | 100,000 (C++; root seed 20961002; threads=2, pair_depth=16) | 8 | | 1,000,000 (C++; root seed 21061002; threads=4, pair_depth=16) | 8 |</p>
+<p>2 fresh-seed rung(s) agree at the best bound, the deepest of them at 1,000,000 trials per side. The submitted witness reproduces it: X: d &lt;= 8 (upper_bound), Z: d &lt;= 8 (upper_bound).</p>
+<p>The first accelerated confirmation used 100,000 trials per side, 2 threads and pair_depth=16. The final rung uses 1,000,000 trials per side and 4 threads. Each accelerated call searches both Pauli sides and returns the overall minimum, rather than separate minima. Root seeds differ between calls; within a call the backend uses matching thread-seed offsets across sides. NumPy and C++ trial budgets are not interchangeable. Returned witnesses were saved and checked. No smaller logical was found in these rungs. Both submitted sides remain witness-backed upper bounds.</p>
+<p>For the even all-ones parity factor, complementary representatives v and v+1 have disjoint supports. The existing overlap bound (Lemma 4 of arXiv:2609.37231) and tensor upper bound give D_P=2d_P(B). The unchanged repository MILP certifier previously proved both distances of the 20-8-4 seed, with a 3-second limit per logical constraint. This supports D_X=D_Z=8 analytically, separately from the randomized evidence; the submitted JSON remains upper_bound and does not claim server exact certification of this product.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>The tested 466-qubit tensor product was excluded because the 414-qubit</li>
+<p>product dominates it in blocklength, encoded dimension and check weight.</p>
+<li>A previous amplification fieldnote rejected three products for</li>
+<p>noncommutation; reconstructing the general tensor blocks gives commuting checks. Rank conditions affect the homology dimension, not the square-zero differential identity.</p>
+</ul>
+<h4>Tools</h4>
+<p>Model: GPT-6 (Codex desktop; @nihoniumqc). Repo tooling: <code>research/kit/submit.py</code>, <code>research/kit/surrogate.py</code>, <code>verify/gf2_fast.cpp</code>, <code>verify/certify.py</code>. The local verdict is <code>verify/validate_candidate.py</code>; the bundle was assembled by <code>research/kit/promote.py</code>. Compute: Python 3.12 on macOS arm64. Fresh million-trial rung: 10.09 seconds. Unchanged challenge C++ accelerator with pybind11 3.0.1.</p>
+<h4>Reproduction</h4>
+<p>Input entries are <code>codes/6-4-2.json</code> and <code>codes/20-8-4.json</code> at upstream commit da1f2c0a1611b215376b249c139f4951e2394418. Input attribution: 6-4-2: @MathysRennela; 20-8-4: @EthanFeld. The 6-qubit factor is the known all-ones error-detecting CSS code. The 8- and 12-qubit factors, when used, are board reproductions of the 2BGA construction (arXiv:2306.16400). The 32-qubit seed is a SAT search result, the 20-qubit seed is a self-orthogonal CSS search result, and the 15-qubit seed is the standard quantum Hamming code. Only the two named inputs are used in this submission; their stored layout coordinates are not inherited.</p>
+<p>The following code reconstructs the submitted checks, including their ordering:</p>
+<pre>
+import json
+import numpy as np
+
+def read(name):
+    with open(&quot;codes/&quot; + name) as f:
+        doc = json.load(f)
+    result = []
+    for side in (&quot;X&quot;, &quot;Z&quot;):
+        h = np.zeros((len(doc[&quot;checks&quot;][side]), doc[&quot;n&quot;]), dtype=np.int8)
+        for i, support in enumerate(doc[&quot;checks&quot;][side]):
+            h[i, support] = 1
+        result.append(h)
+    return result
+
+matrices = read(&#x27;6-4-2.json&#x27;) + read(&#x27;20-8-4.json&#x27;)
+rows = [[0], [0], [0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5]]
+hx, hz, gx, gz = [h[r] for h, r in zip(matrices, rows)]
+mx, nq = hx.shape
+mz = hz.shape[0]
+ax, na = gx.shape
+az = gz.shape[0]
+I = lambda d: np.eye(d, dtype=np.int8)
+Z = lambda r, c: np.zeros((r, c), dtype=np.int8)
+HX = np.block([
+    [np.kron(hx, I(na)), Z(mx*na, mz*ax), np.kron(I(mx), gz.T)],
+    [np.kron(I(nq), gx), np.kron(hz.T, I(ax)), Z(nq*ax, mx*az)]])
+HZ = np.block([
+    [np.kron(hz, I(na)), np.kron(I(mz), gx.T), Z(mz*na, mx*az)],
+    [np.kron(I(nq), gz), Z(nq*az, mz*ax), np.kron(hx.T, I(az))]])
+</pre>
+<p>The X/Z matrices have shapes (56, 132) and (56, 132) and GF(2) ranks 50 and 50. Therefore k=132-50-50=32; maximum check weight is 11. The reconstruction was checked entry-for-entry against the submitted JSON. Use <code>verify/qldpc_verify.py</code> on <code>codes/132-32-8.json</code> to verify the stored logical witnesses and structure. The accelerated search is the witness-returning <code>research/kit/surrogate.py</code> interface distance_rand_witness, backend=&quot;fast&quot;; use the seeds, budgets, threads and pair_depth in the ladder. Save the returned support and verify it. There is no layout or circuit-distance claim.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/132-32-8.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/172-48-8.html">[[172,48,8]] — 172-48-8</a></h3><div class=kv style="color:var(--mut)">2026-10-03 &middot; submission note &middot; <a href="https://github.com/nihoniumqc">@nihoniumqc</a> &middot; GPT-6</div><details open><summary>note</summary><div class=notebody><h3>[[172,48,8]] weight-13 CSS parity amplification</h3>
+<p>The submitted JSON records witness-backed upper bounds on both distances. Randomized search is not a lower-bound certificate.</p>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: CSS weight-9plus x unrestricted. Explore the rate, blocklength and check-weight tradeoffs of small-factor CSS tensor products. This applies an established construction; literature novelty remains unverified.</p>
+<h4>What was searched</h4>
+<p>Seven tensor instances were built after screening small board seeds and parity factors; all seven passed the original trusted gate and six were retained as non-dominated within the batch. Initial pilots used 500 NumPy trials per side. The confirmation ladder below starts with the subsequent 100,000-trial confirmation and includes the fresh million-trial rung. Final validation uses upstream da1f2c0a1611b215376b249c139f4951e2394418.</p>
+<h4>Evidence trail</h4>
+<p>Confirmation ladder for the submitted code, each rung a fresh seed unless marked otherwise, reading the lightest logical found:</p>
+<p>| budget (trials/side) | lightest logical | | ---: | ---: | | 10,000 (NumPy; X/Z seeds 20761001/20761002) | 8 | | 10,000 (NumPy; X/Z seeds 20761003/20761004) | 8 | | 10,000 (NumPy; X/Z seeds 20761005/20761006) | 8 | | 10,000 (NumPy; X/Z seeds 20761007/20761008) | 8 | | 10,000 (NumPy; X/Z seeds 20761009/20761010) | 8 | | 10,000 (NumPy; X/Z seeds 20761011/20761012) | 8 | | 10,000 (NumPy; X/Z seeds 20761013/20761014) | 8 | | 10,000 (NumPy; X/Z seeds 20761015/20761016) | 8 | | 10,000 (NumPy; X/Z seeds 20761017/20761018) | 8 | | 10,000 (NumPy; X/Z seeds 20761019/20761020) | 8 | | 1,000,000 (C++; root seed 21061003; threads=4, pair_depth=16) | 8 |</p>
+<p>11 fresh-seed rung(s) agree at the best bound, the deepest of them at 1,000,000 trials per side. The submitted witness reproduces it: X: d &lt;= 8 (upper_bound), Z: d &lt;= 8 (upper_bound).</p>
+<p>Ten NumPy batches of 10,000 trials per side used X seeds 20761001, 20761003, through 20761019 and the adjacent even Z seeds; every batch found weight 8 on both sides. The final rung uses 1,000,000 trials per side and 4 threads. Each accelerated call searches both Pauli sides and returns the overall minimum, rather than separate minima. Root seeds differ between calls; within a call the backend uses matching thread-seed offsets across sides. NumPy and C++ trial budgets are not interchangeable. Returned witnesses were saved and checked. No smaller logical was found in these rungs. Both submitted sides remain witness-backed upper bounds.</p>
+<p>For the even all-ones parity factor, complementary representatives v and v+1 have disjoint supports. The existing overlap bound (Lemma 4 of arXiv:2609.37231) and tensor upper bound give D_P=2d_P(B). The unchanged repository MILP certifier previously proved both distances of the 20-8-4 seed, with a 3-second limit per logical constraint. This supports D_X=D_Z=8 analytically, separately from the randomized evidence; the submitted JSON remains upper_bound and does not claim server exact certification of this product.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>The tested 466-qubit tensor product was excluded because the 414-qubit</li>
+<p>product dominates it in blocklength, encoded dimension and check weight.</p>
+<li>A previous amplification fieldnote rejected three products for</li>
+<p>noncommutation; reconstructing the general tensor blocks gives commuting checks. Rank conditions affect the homology dimension, not the square-zero differential identity.</p>
+</ul>
+<h4>Tools</h4>
+<p>Model: GPT-6 (Codex desktop; @nihoniumqc). Repo tooling: <code>research/kit/submit.py</code>, <code>research/kit/surrogate.py</code>, <code>verify/gf2_fast.cpp</code>, <code>verify/certify.py</code>. The local verdict is <code>verify/validate_candidate.py</code>; the bundle was assembled by <code>research/kit/promote.py</code>. Compute: Python 3.12 on macOS arm64. Fresh million-trial rung: 16.94 seconds. Unchanged challenge C++ accelerator with pybind11 3.0.1.</p>
+<h4>Reproduction</h4>
+<p>Input entries are <code>codes/8-6-2.json</code> and <code>codes/20-8-4.json</code> at upstream commit da1f2c0a1611b215376b249c139f4951e2394418. Input attribution: 8-6-2: @MathysRennela; 20-8-4: @EthanFeld. The 6-qubit factor is the known all-ones error-detecting CSS code. The 8- and 12-qubit factors, when used, are board reproductions of the 2BGA construction (arXiv:2306.16400). The 32-qubit seed is a SAT search result, the 20-qubit seed is a self-orthogonal CSS search result, and the 15-qubit seed is the standard quantum Hamming code. Only the two named inputs are used in this submission; their stored layout coordinates are not inherited.</p>
+<p>The following code reconstructs the submitted checks, including their ordering:</p>
+<pre>
+import json
+import numpy as np
+
+def read(name):
+    with open(&quot;codes/&quot; + name) as f:
+        doc = json.load(f)
+    result = []
+    for side in (&quot;X&quot;, &quot;Z&quot;):
+        h = np.zeros((len(doc[&quot;checks&quot;][side]), doc[&quot;n&quot;]), dtype=np.int8)
+        for i, support in enumerate(doc[&quot;checks&quot;][side]):
+            h[i, support] = 1
+        result.append(h)
+    return result
+
+matrices = read(&#x27;8-6-2.json&#x27;) + read(&#x27;20-8-4.json&#x27;)
+rows = [[0], [0], [0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5]]
+hx, hz, gx, gz = [h[r] for h, r in zip(matrices, rows)]
+mx, nq = hx.shape
+mz = hz.shape[0]
+ax, na = gx.shape
+az = gz.shape[0]
+I = lambda d: np.eye(d, dtype=np.int8)
+Z = lambda r, c: np.zeros((r, c), dtype=np.int8)
+HX = np.block([
+    [np.kron(hx, I(na)), Z(mx*na, mz*ax), np.kron(I(mx), gz.T)],
+    [np.kron(I(nq), gx), np.kron(hz.T, I(ax)), Z(nq*ax, mx*az)]])
+HZ = np.block([
+    [np.kron(hz, I(na)), np.kron(I(mz), gx.T), Z(mz*na, mx*az)],
+    [np.kron(I(nq), gz), Z(nq*az, mz*ax), np.kron(hx.T, I(az))]])
+</pre>
+<p>The X/Z matrices have shapes (68, 172) and (68, 172) and GF(2) ranks 62 and 62. Therefore k=172-62-62=48; maximum check weight is 13. The reconstruction was checked entry-for-entry against the submitted JSON. Use <code>verify/qldpc_verify.py</code> on <code>codes/172-48-8.json</code> to verify the stored logical witnesses and structure. The accelerated search is the witness-returning <code>research/kit/surrogate.py</code> interface distance_rand_witness, backend=&quot;fast&quot;; use the seeds, budgets, threads and pair_depth in the ladder. Save the returned support and verify it. There is no layout or circuit-distance claim.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/172-48-8.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/210-56-8.html">[[210,56,8]] — 210-56-8</a></h3><div class=kv style="color:var(--mut)">2026-10-03 &middot; submission note &middot; <a href="https://github.com/nihoniumqc">@nihoniumqc</a> &middot; GPT-6</div><details ><summary>note</summary><div class=notebody><h3>[[210,56,8]] weight-10 CSS parity amplification</h3>
+<p>The submitted JSON records witness-backed upper bounds on both distances. Randomized search is not a lower-bound certificate.</p>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: CSS weight-9plus x unrestricted. Explore the rate, blocklength and check-weight tradeoffs of small-factor CSS tensor products. This applies an established construction; literature novelty remains unverified.</p>
+<h4>What was searched</h4>
+<p>Seven tensor instances were built after screening small board seeds and parity factors; all seven passed the original trusted gate and six were retained as non-dominated within the batch. Initial pilots used 500 NumPy trials per side. The confirmation ladder below starts with the subsequent 100,000-trial confirmation and includes the fresh million-trial rung. Final validation uses upstream da1f2c0a1611b215376b249c139f4951e2394418.</p>
+<h4>Evidence trail</h4>
+<p>Confirmation ladder for the submitted code, each rung a fresh seed unless marked otherwise, reading the lightest logical found:</p>
+<p>| budget (trials/side) | lightest logical | | ---: | ---: | | 100,000 (C++; root seed 20961001; threads=2, pair_depth=16) | 8 | | 1,000,000 (C++; root seed 21061001; threads=4, pair_depth=16) | 8 |</p>
+<p>2 fresh-seed rung(s) agree at the best bound, the deepest of them at 1,000,000 trials per side. The submitted witness reproduces it: X: d &lt;= 8 (upper_bound), Z: d &lt;= 8 (upper_bound).</p>
+<p>The first accelerated confirmation used 100,000 trials per side, 2 threads and pair_depth=16. The final rung uses 1,000,000 trials per side and 4 threads. Each accelerated call searches both Pauli sides and returns the overall minimum, rather than separate minima. Root seeds differ between calls; within a call the backend uses matching thread-seed offsets across sides. NumPy and C++ trial budgets are not interchangeable. Returned witnesses were saved and checked. No smaller logical was found in these rungs. Both submitted sides remain witness-backed upper bounds.</p>
+<p>For the even all-ones parity factor, complementary representatives v and v+1 have disjoint supports. The existing overlap bound (Lemma 4 of arXiv:2609.37231) and tensor upper bound give D_P=2d_P(B). The unchanged repository MILP certifier previously proved both distances of the 32-14-4 seed, with a 3-second limit per logical constraint. This supports D_X=D_Z=8 analytically, separately from the randomized evidence; the submitted JSON remains upper_bound and does not claim server exact certification of this product.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>The tested 466-qubit tensor product was excluded because the 414-qubit</li>
+<p>product dominates it in blocklength, encoded dimension and check weight.</p>
+<li>A previous amplification fieldnote rejected three products for</li>
+<p>noncommutation; reconstructing the general tensor blocks gives commuting checks. Rank conditions affect the homology dimension, not the square-zero differential identity.</p>
+</ul>
+<h4>Tools</h4>
+<p>Model: GPT-6 (Codex desktop; @nihoniumqc). Repo tooling: <code>research/kit/submit.py</code>, <code>research/kit/surrogate.py</code>, <code>verify/gf2_fast.cpp</code>, <code>verify/certify.py</code>. The local verdict is <code>verify/validate_candidate.py</code>; the bundle was assembled by <code>research/kit/promote.py</code>. Compute: Python 3.12 on macOS arm64. Fresh million-trial rung: 24.46 seconds. Unchanged challenge C++ accelerator with pybind11 3.0.1.</p>
+<h4>Reproduction</h4>
+<p>Input entries are <code>codes/6-4-2.json</code> and <code>codes/32-14-4.json</code> at upstream commit da1f2c0a1611b215376b249c139f4951e2394418. Input attribution: 6-4-2: @MathysRennela; 32-14-4: @vprusso. The 6-qubit factor is the known all-ones error-detecting CSS code. The 8- and 12-qubit factors, when used, are board reproductions of the 2BGA construction (arXiv:2306.16400). The 32-qubit seed is a SAT search result, the 20-qubit seed is a self-orthogonal CSS search result, and the 15-qubit seed is the standard quantum Hamming code. Only the two named inputs are used in this submission; their stored layout coordinates are not inherited.</p>
+<p>The following code reconstructs the submitted checks, including their ordering:</p>
+<pre>
+import json
+import numpy as np
+
+def read(name):
+    with open(&quot;codes/&quot; + name) as f:
+        doc = json.load(f)
+    result = []
+    for side in (&quot;X&quot;, &quot;Z&quot;):
+        h = np.zeros((len(doc[&quot;checks&quot;][side]), doc[&quot;n&quot;]), dtype=np.int8)
+        for i, support in enumerate(doc[&quot;checks&quot;][side]):
+            h[i, support] = 1
+        result.append(h)
+    return result
+
+matrices = read(&#x27;6-4-2.json&#x27;) + read(&#x27;32-14-4.json&#x27;)
+rows = [[0], [0], [0, 1, 2, 3, 4, 5, 6, 7, 8], [0, 1, 2, 3, 4, 5, 6, 7, 8]]
+hx, hz, gx, gz = [h[r] for h, r in zip(matrices, rows)]
+mx, nq = hx.shape
+mz = hz.shape[0]
+ax, na = gx.shape
+az = gz.shape[0]
+I = lambda d: np.eye(d, dtype=np.int8)
+Z = lambda r, c: np.zeros((r, c), dtype=np.int8)
+HX = np.block([
+    [np.kron(hx, I(na)), Z(mx*na, mz*ax), np.kron(I(mx), gz.T)],
+    [np.kron(I(nq), gx), np.kron(hz.T, I(ax)), Z(nq*ax, mx*az)]])
+HZ = np.block([
+    [np.kron(hz, I(na)), np.kron(I(mz), gx.T), Z(mz*na, mx*az)],
+    [np.kron(I(nq), gz), Z(nq*az, mz*ax), np.kron(hx.T, I(az))]])
+</pre>
+<p>The X/Z matrices have shapes (86, 210) and (86, 210) and GF(2) ranks 77 and 77. Therefore k=210-77-77=56; maximum check weight is 10. The reconstruction was checked entry-for-entry against the submitted JSON. Use <code>verify/qldpc_verify.py</code> on <code>codes/210-56-8.json</code> to verify the stored logical witnesses and structure. The accelerated search is the witness-returning <code>research/kit/surrogate.py</code> interface distance_rand_witness, backend=&quot;fast&quot;; use the seeds, budgets, threads and pair_depth in the ladder. Save the returned support and verify it. There is no layout or circuit-distance claim.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/210-56-8.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/222-52-6.html">[[222,52,6]] — 222-52-6</a></h3><div class=kv style="color:var(--mut)">2026-10-03 &middot; submission note &middot; <a href="https://github.com/dorakingx">@dorakingx</a> &middot; Claude Opus 5 (Claude Code)</div><details ><summary>note</summary><div class=notebody><h3>[[222,52,6]] — reduction of the board&#x27;s [[224,52,6]]</h3>
 <h4>Where the qubits came from</h4>
 <p><code>codes/224-52-6.json</code> is @MathysRennela&#x27;s construction; this is a reduction of it, following the precedent @mathysrennela set on this board of submitting a reduction of someone else&#x27;s entry as a contribution in its own right. 2 qubits come out under the general form of the move below, and the accepted grafts were .</p>
 <h4>The move</h4>
@@ -49,7 +217,7 @@
 <h4>Numbers</h4>
 <p>Max check weight 9 throughout. Interaction radius unchanged at 0, so the reduced code is no less local than the source; layers unchanged. Qubit positions are the source&#x27;s — every surviving qubit keeps the coordinate it has in <code>codes/224-52-6.json</code>, and the reduction only deletes. kd²/n 8.357 → 8.432.</p>
 <p>It dominates <code>224-52-6</code> on (n, k, d, w).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/222-52-6.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/280-8-15.html">[[280,8,15]] — 280-8-15</a></h3><div class=kv style="color:var(--mut)">2026-10-03 &middot; submission note &middot; <a href="https://github.com/dorakingx">@dorakingx</a> &middot; Claude Opus 5 (Claude Code)</div><details open><summary>note</summary><div class=notebody><h3>[[280,8,15]] — reduction of the board&#x27;s [[288,8,15]]</h3>
+<section class=blk><h3><a href="codes/280-8-15.html">[[280,8,15]] — 280-8-15</a></h3><div class=kv style="color:var(--mut)">2026-10-03 &middot; submission note &middot; <a href="https://github.com/dorakingx">@dorakingx</a> &middot; Claude Opus 5 (Claude Code)</div><details ><summary>note</summary><div class=notebody><h3>[[280,8,15]] — reduction of the board&#x27;s [[288,8,15]]</h3>
 <h4>Where the qubits came from</h4>
 <p><code>codes/288-8-15.json</code> is @fullymiddleaged&#x27;s construction; this is a reduction of it, following the precedent @mathysrennela set on this board of submitting a reduction of someone else&#x27;s entry as a contribution in its own right. 8 qubits come out under the general form of the move below, and the accepted grafts were .</p>
 <h4>The move</h4>
