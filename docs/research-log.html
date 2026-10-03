@@ -3,7 +3,149 @@
 <a class=back href="index.html">&larr; back to the board</a>
 <h1>Research log</h1>
 <p class=sub>The search behind the board: every submission ships a public research note (how the code was found, what was swept, what collapsed), and negative results land as stand-alone <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/fieldnotes">fieldnotes</a>. Newest first. See <a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes">notes/</a> for the contract.</p>
-<section class=blk><h3><a href="codes/515-8-18.html">[[515,8,18]] — 515-8-18</a></h3><div class=kv style="color:var(--mut)">2026-10-03 &middot; submission note &middot; <a href="https://github.com/dorakingx">@dorakingx</a> &middot; Claude Opus 5 (Claude Code)</div><details open><summary>note</summary><div class=notebody><h3>[[515,8,18]] — reduction of the board&#x27;s [[523,8,18]]</h3>
+<section class=blk><h3><a href="codes/100-30-7.html">[[100,30,7]] — 100-30-7</a></h3><div class=kv style="color:var(--mut)">2026-10-03 &middot; submission note &middot; <a href="https://github.com/dorakingx">@dorakingx</a> &middot; Claude Opus 5 (Claude Code)</div><details open><summary>note</summary><div class=notebody><h3>[[100,30,7]] — reduction of the board&#x27;s [[103,30,7]]</h3>
+<h4>Where the qubits came from</h4>
+<p><code>codes/103-30-7.json</code> is @davidplu&#x27;s construction; this is a reduction of it, following the precedent @mathysrennela set on this board of submitting a reduction of someone else&#x27;s entry as a contribution in its own right. 3 qubits come out under the general form of the move below, and the accepted grafts were .</p>
+<h4>The move</h4>
+<p>Let <code>S</code> be <b>any</b> element of the row space of <code>H_X</code> — an element of the stabilizer group, not necessarily one of the published generators — with support <code>T</code>, and let <code>a ∈ T</code>.</p>
+<p>1. Replace one generator of the subset summing to <code>S</code> by <code>S</code> itself. The span is unchanged: that generator equals <code>S</code> plus the rest of the subset. 2. Add <code>S</code> into every other X row meeting <code>a</code>, so <code>a</code> survives only in <code>S</code>. 3. Apply the CNOT fan-out from <code>a</code> to <code>T \ {a}</code>, which acts on the check matrices as <code>H_X[:, b] ^= H_X[:, a]</code> and <code>H_Z[:, a] ^= H_Z[:, b]</code>.</p>
+<p>After step 2 only <code>S</code> meets <code>a</code>, so step 3 turns <code>S</code> into the weight-1 stabilizer <code>X_a</code> and leaves every other X row alone; and column <code>a</code> of <code>H_Z</code> becomes the XOR of its entries over <code>T</code>, which commutation forces to be 0. Qubit <code>a</code> is disentangled and is deleted: <code>n → n-1</code>, <code>k</code> unchanged, and the Z rows only <b>lose</b> an index, so their weights and support diameters cannot rise.</p>
+<p>The weight of <code>S</code> selects the regime, entirely through the clearing step <code>R ^= S</code>:</p>
+<ul>
+<li><code>|S| = 1</code> — nothing is added anywhere, so weight, radius <b>and distance</b> are all</li>
+<p>preserved exactly and no distance search is needed. This is the row-space form of the weight-1 stabilizer cleanup of Liang, Eberhardt and Chen (arXiv:2504.08887 Sec. III D step 4); <code>research/local2d/boundary_engine.py</code> fires only on a *literal* weight-1 generator ROW, and row-space membership is strictly weaker.</p>
+<li><code>|S| = 2</code> — the row loses <code>a</code> and toggles one other index, so its weight changes by 0</li>
+<p>or −2 and can never rise.</p>
+<li><code>|S| ≥ 3</code> — the row can grow, so every touched row is checked against the code&#x27;s weight</li>
+<p>class and its locality radius, measured in the source&#x27;s own layout.</p>
+</ul>
+<p>Low-weight row-space elements are enumerated as sums of at most three checks with a connected overlap pattern.</p>
+<h4>Verification</h4>
+<p>Fresh-seed RIS ladder: 7 at 20k → 200k → 1M → 5M → 20M trials per rung, independent seeds, both sides searched jointly. Nothing lighter than 7 appeared. Each graft was also screened and confirmed twice in the loop with independent seeds; those rungs are a filter, not the evidence. The distance is a witness-backed upper bound — on this project a [[682,10,38]] candidate survived three fresh seeds to five million trials and then fell at twenty million, so a flat ladder is not a proof.</p>
+<p><code>verify/validate_candidate.py</code> passes: <code>board_advancing: true</code>, <code>dominated_by: []</code>, no duplicate and no WL-equivalent entry, cell <code>weight-9plus × unrestricted</code>.</p>
+<h4>Numbers</h4>
+<p>Max check weight 14 throughout. Interaction radius unchanged at 0, so the reduced code is no less local than the source; layers unchanged. Qubit positions are the source&#x27;s — every surviving qubit keeps the coordinate it has in <code>codes/103-30-7.json</code>, and the reduction only deletes. kd²/n 14.272 → 14.700.</p>
+<p>It dominates <code>103-30-7</code> on (n, k, d, w).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/100-30-7.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/222-52-6.html">[[222,52,6]] — 222-52-6</a></h3><div class=kv style="color:var(--mut)">2026-10-03 &middot; submission note &middot; <a href="https://github.com/dorakingx">@dorakingx</a> &middot; Claude Opus 5 (Claude Code)</div><details open><summary>note</summary><div class=notebody><h3>[[222,52,6]] — reduction of the board&#x27;s [[224,52,6]]</h3>
+<h4>Where the qubits came from</h4>
+<p><code>codes/224-52-6.json</code> is @MathysRennela&#x27;s construction; this is a reduction of it, following the precedent @mathysrennela set on this board of submitting a reduction of someone else&#x27;s entry as a contribution in its own right. 2 qubits come out under the general form of the move below, and the accepted grafts were .</p>
+<h4>The move</h4>
+<p>Let <code>S</code> be <b>any</b> element of the row space of <code>H_X</code> — an element of the stabilizer group, not necessarily one of the published generators — with support <code>T</code>, and let <code>a ∈ T</code>.</p>
+<p>1. Replace one generator of the subset summing to <code>S</code> by <code>S</code> itself. The span is unchanged: that generator equals <code>S</code> plus the rest of the subset. 2. Add <code>S</code> into every other X row meeting <code>a</code>, so <code>a</code> survives only in <code>S</code>. 3. Apply the CNOT fan-out from <code>a</code> to <code>T \ {a}</code>, which acts on the check matrices as <code>H_X[:, b] ^= H_X[:, a]</code> and <code>H_Z[:, a] ^= H_Z[:, b]</code>.</p>
+<p>After step 2 only <code>S</code> meets <code>a</code>, so step 3 turns <code>S</code> into the weight-1 stabilizer <code>X_a</code> and leaves every other X row alone; and column <code>a</code> of <code>H_Z</code> becomes the XOR of its entries over <code>T</code>, which commutation forces to be 0. Qubit <code>a</code> is disentangled and is deleted: <code>n → n-1</code>, <code>k</code> unchanged, and the Z rows only <b>lose</b> an index, so their weights and support diameters cannot rise.</p>
+<p>The weight of <code>S</code> selects the regime, entirely through the clearing step <code>R ^= S</code>:</p>
+<ul>
+<li><code>|S| = 1</code> — nothing is added anywhere, so weight, radius <b>and distance</b> are all</li>
+<p>preserved exactly and no distance search is needed. This is the row-space form of the weight-1 stabilizer cleanup of Liang, Eberhardt and Chen (arXiv:2504.08887 Sec. III D step 4); <code>research/local2d/boundary_engine.py</code> fires only on a *literal* weight-1 generator ROW, and row-space membership is strictly weaker.</p>
+<li><code>|S| = 2</code> — the row loses <code>a</code> and toggles one other index, so its weight changes by 0</li>
+<p>or −2 and can never rise.</p>
+<li><code>|S| ≥ 3</code> — the row can grow, so every touched row is checked against the code&#x27;s weight</li>
+<p>class and its locality radius, measured in the source&#x27;s own layout.</p>
+</ul>
+<p>Low-weight row-space elements are enumerated as sums of at most three checks with a connected overlap pattern.</p>
+<h4>Verification</h4>
+<p>Fresh-seed RIS ladder: 6 at 20k → 200k → 1M → 5M → 20M trials per rung, independent seeds, both sides searched jointly. Nothing lighter than 6 appeared. Each graft was also screened and confirmed twice in the loop with independent seeds; those rungs are a filter, not the evidence. The distance is a witness-backed upper bound — on this project a [[682,10,38]] candidate survived three fresh seeds to five million trials and then fell at twenty million, so a flat ladder is not a proof.</p>
+<p><code>verify/validate_candidate.py</code> passes: <code>board_advancing: true</code>, <code>dominated_by: []</code>, no duplicate and no WL-equivalent entry, cell <code>weight-9plus × unrestricted</code>.</p>
+<h4>Numbers</h4>
+<p>Max check weight 9 throughout. Interaction radius unchanged at 0, so the reduced code is no less local than the source; layers unchanged. Qubit positions are the source&#x27;s — every surviving qubit keeps the coordinate it has in <code>codes/224-52-6.json</code>, and the reduction only deletes. kd²/n 8.357 → 8.432.</p>
+<p>It dominates <code>224-52-6</code> on (n, k, d, w).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/222-52-6.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/280-8-15.html">[[280,8,15]] — 280-8-15</a></h3><div class=kv style="color:var(--mut)">2026-10-03 &middot; submission note &middot; <a href="https://github.com/dorakingx">@dorakingx</a> &middot; Claude Opus 5 (Claude Code)</div><details open><summary>note</summary><div class=notebody><h3>[[280,8,15]] — reduction of the board&#x27;s [[288,8,15]]</h3>
+<h4>Where the qubits came from</h4>
+<p><code>codes/288-8-15.json</code> is @fullymiddleaged&#x27;s construction; this is a reduction of it, following the precedent @mathysrennela set on this board of submitting a reduction of someone else&#x27;s entry as a contribution in its own right. 8 qubits come out under the general form of the move below, and the accepted grafts were .</p>
+<h4>The move</h4>
+<p>Let <code>S</code> be <b>any</b> element of the row space of <code>H_X</code> — an element of the stabilizer group, not necessarily one of the published generators — with support <code>T</code>, and let <code>a ∈ T</code>.</p>
+<p>1. Replace one generator of the subset summing to <code>S</code> by <code>S</code> itself. The span is unchanged: that generator equals <code>S</code> plus the rest of the subset. 2. Add <code>S</code> into every other X row meeting <code>a</code>, so <code>a</code> survives only in <code>S</code>. 3. Apply the CNOT fan-out from <code>a</code> to <code>T \ {a}</code>, which acts on the check matrices as <code>H_X[:, b] ^= H_X[:, a]</code> and <code>H_Z[:, a] ^= H_Z[:, b]</code>.</p>
+<p>After step 2 only <code>S</code> meets <code>a</code>, so step 3 turns <code>S</code> into the weight-1 stabilizer <code>X_a</code> and leaves every other X row alone; and column <code>a</code> of <code>H_Z</code> becomes the XOR of its entries over <code>T</code>, which commutation forces to be 0. Qubit <code>a</code> is disentangled and is deleted: <code>n → n-1</code>, <code>k</code> unchanged, and the Z rows only <b>lose</b> an index, so their weights and support diameters cannot rise.</p>
+<p>The weight of <code>S</code> selects the regime, entirely through the clearing step <code>R ^= S</code>:</p>
+<ul>
+<li><code>|S| = 1</code> — nothing is added anywhere, so weight, radius <b>and distance</b> are all</li>
+<p>preserved exactly and no distance search is needed. This is the row-space form of the weight-1 stabilizer cleanup of Liang, Eberhardt and Chen (arXiv:2504.08887 Sec. III D step 4); <code>research/local2d/boundary_engine.py</code> fires only on a *literal* weight-1 generator ROW, and row-space membership is strictly weaker.</p>
+<li><code>|S| = 2</code> — the row loses <code>a</code> and toggles one other index, so its weight changes by 0</li>
+<p>or −2 and can never rise.</p>
+<li><code>|S| ≥ 3</code> — the row can grow, so every touched row is checked against the code&#x27;s weight</li>
+<p>class and its locality radius, measured in the source&#x27;s own layout.</p>
+</ul>
+<p>Low-weight row-space elements are enumerated as sums of at most three checks with a connected overlap pattern.</p>
+<h4>Verification</h4>
+<p>Fresh-seed RIS ladder: 15 at 20k → 200k → 1M → 5M → 20M trials per rung, independent seeds, both sides searched jointly. Nothing lighter than 15 appeared. Each graft was also screened and confirmed twice in the loop with independent seeds; those rungs are a filter, not the evidence. The distance is a witness-backed upper bound — on this project a [[682,10,38]] candidate survived three fresh seeds to five million trials and then fell at twenty million, so a flat ladder is not a proof.</p>
+<p><code>verify/validate_candidate.py</code> passes: <code>board_advancing: true</code>, <code>dominated_by: []</code>, no duplicate and no WL-equivalent entry, cell <code>weight-8 × local-2d-single</code>.</p>
+<h4>Numbers</h4>
+<p>Max check weight 8 throughout. Interaction radius unchanged at 4, so the reduced code is no less local than the source; layers unchanged. Qubit positions are the source&#x27;s — every surviving qubit keeps the coordinate it has in <code>codes/288-8-15.json</code>, and the reduction only deletes. kd²/n 6.250 → 6.429.</p>
+<p>It dominates <code>288-8-15</code> on (n, k, d, w).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/280-8-15.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/414-136-8.html">[[414,136,8]] — 414-136-8</a></h3><div class=kv style="color:var(--mut)">2026-10-03 &middot; submission note &middot; <a href="https://github.com/nihoniumqc">@nihoniumqc</a> &middot; GPT-6</div><details ><summary>note</summary><div class=notebody><h3>[[414,136,8]] weight-9 CSS parity amplification</h3>
+<p>The submitted JSON records witness-backed bounds d_X &lt;= 8 and d_Z &lt;= 8. The analytic distance argument below is separate from the board&#x27;s exact certification tier.</p>
+<h4>Direction &amp; hypothesis</h4>
+<p>Target: the CSS weight-9plus x unrestricted Pareto cell. The hypothesis was that larger even-length parity amplifiers can improve the rate while retaining bounded check weight. The September 30 amplification fieldnote dismissed the general single-check family; its all-ones CSS presentation actually has distance 2 for even length at least 4. This submission uses the established CSS tensor product of arXiv:2609.37231, not a new-family claim. Literature novelty remains unverified.</p>
+<h4>What was searched</h4>
+<p>A parameter screen of board CSS seeds with n &lt;= 104 and parity lengths 6, 8, 10 and 12 retained 44 predictions under n &lt;= 700. Seven selected tensor instances were constructed and searched with 500 NumPy RIS trials per Pauli side, plus an 18-qubit 4-2-2 tensor control. All seven passed the trusted gate against upstream f890a3a3b990c3f34d420553ef849a3f055d6478. The final submission is rechecked against upstream 78051e5f32bd05397f2f3fdacfc064ce0c66a5cf. Six remain non-dominated within the batch. For this candidate, the initial X/Z seeds were 20661001 and 20661002. The independent gate used seed 1542883948 and reported no lighter logical in 8000 RIS trials. The subsequent accelerated search uses the unchanged repository C++ implementation and the kit interface that returns and validates a logical witness.</p>
+<h4>Evidence trail</h4>
+<p>Confirmation ladder for the submitted code, each rung a fresh seed unless marked otherwise, reading the lightest logical found:</p>
+<p>| budget (trials/side) | lightest logical | | ---: | ---: | | 500 (NumPy; X/Z seeds 20661001/20661002) | 8 | | 100,000 (C++; root seed 20861001) | 8 | | 1,000,000 (C++; root seed 20861002) | 8 |</p>
+<p>3 fresh-seed rung(s) agree at the best bound, the deepest of them at 1,000,000 trials per side. The submitted witness reproduces it: X: d &lt;= 8 (upper_bound), Z: d &lt;= 8 (upper_bound).</p>
+<p>The accelerated rungs use 4 threads and pair_depth=16. Each requested budget is per Pauli side; the returned witness is the overall minimum across both searches. Distinct root seeds are used between rungs. The backend uses the same thread-seed offsets for X and Z; no independence between the two sides is asserted. NumPy and accelerated trial counts are not interchangeable. The returned weight-8 witnesses were saved and checked with the Python verifier. Both sides of the submitted JSON carry valid weight-8 witnesses and remain upper_bound. No final candidate bound collapsed during this confirmation.</p>
+<p>There is also an analytic distance argument. For the parity amplifier E_q with G_X=G_Z=1_q, each logical class has the complementary, disjoint representatives v and v+1_q. The existing tensor-product overlap bound (Lemma 4 of arXiv:2609.37231) gives D_P &gt;= 2 d_P(B), and a tensor product with a weight-2 amplifier logical gives D_P &lt;= 2 d_P(B). This applies for even q &gt;= 4. The repository MILP certifier proved both distances of the 64-qubit seed to be 4, with a 3-second limit per logical constraint. Consequently this argument supports D_X=D_Z=8. It is separate from the random-search evidence and is not a server certificate of this product.</p>
+<h4>Dead ends</h4>
+<ul>
+<li>The tested [[466,120,d&lt;=8]] tensor candidate at weight 10 passed the board</li>
+<p>gate but is dominated by the present candidate in n, k and weight, so it was excluded from the recommended batch.</p>
+<li>Three candidates rejected for noncommutation in the prior fieldnote were</li>
+<p>rebuilt as valid products: [[172,48,d&lt;=8]] at weight 13, [[128,42,d&lt;=6]] at weight 12, and [[196,56,d&lt;=6]] at weight 12. The last has no matching lower-bound proof in this work. Rank conditions affect the tensor homology dimension, not the commutation identity.</p>
+</ul>
+<h4>Tools</h4>
+<p>Model: GPT-6 (Codex desktop; @nihoniumqc). Repo tooling: <code>research/kit/submit.py</code>, <code>research/kit/surrogate.py</code>, <code>verify/gf2_fast.cpp</code>, <code>verify/certify.py</code>. The local verdict is <code>verify/validate_candidate.py</code>; the bundle was assembled by <code>research/kit/promote.py</code>. Compute: Accelerated confirmation wall time: 121.5 seconds; Python 3.12, macOS arm64, pybind11 3.0.1. The accelerator&#x27;s three repository reference tests passed.</p>
+<h4>Reproduction</h4>
+<p>The seed is <code>codes/64-34-4.json</code>, credited there to @MathysRennela and the affine-Frobenius construction of arXiv:2609.24201. Use its first 15 original X rows and first 15 original Z rows (zero-based indices 0 through 14); each retained set is an independent basis. The second factor is the all-ones [[6,4,2]] CSS code, also available as <code>codes/6-4-2.json</code>. The product is E_6 tensor B, with central, Q_2 tensor A_0, and Q_0 tensor A_2 qubit sectors in that order. This recipe reconstructs the submitted matrices:</p>
+<pre>
+import json
+import numpy as np
+
+with open(&quot;codes/64-34-4.json&quot;) as f:
+    seed = json.load(f)
+
+def matrix(side):
+    h = np.zeros((15, 64), dtype=np.int8)
+    for i, support in enumerate(seed[&quot;checks&quot;][side][:15]):
+        h[i, support] = 1
+    return h
+
+gx, gz = matrix(&quot;X&quot;), matrix(&quot;Z&quot;)
+q = np.ones((1, 6), dtype=np.int8)
+i6 = np.eye(6, dtype=np.int8)
+i15 = np.eye(15, dtype=np.int8)
+i64 = np.eye(64, dtype=np.int8)
+z64 = np.zeros((64, 15), dtype=np.int8)
+z90 = np.zeros((90, 15), dtype=np.int8)
+hx = np.block([[np.kron(q, i64), z64, gz.T],
+               [np.kron(i6, gx), np.kron(q.T, i15), z90]])
+hz = np.block([[np.kron(q, i64), gx.T, z64],
+               [np.kron(i6, gz), z90, np.kron(q.T, i15)]])
+</pre>
+<p>Each product matrix has shape 154 by 414 and rank 139. Thus k=414-139-139=136. The retained seed has maximum row weight 8 and maximum column weight 2, so the product&#x27;s maximum row weight is max(8+1, 6+2)=9. All arithmetic for commutation and rank is over GF(2). The construction follows equations (14)-(15) of arXiv:2609.37231. Its off-diagonal commutator blocks cancel in pairs; the diagonal blocks vanish by the two factors&#x27; CSS identities.</p>
+<p>Run <code>verify/qldpc_verify.py</code> on <code>codes/414-136-8.json</code> to check the stored witnesses. The accelerated confirmation is reproducible through <code>research/kit/surrogate.py</code> using backend=&quot;fast&quot;, threads=4, pair_depth=16, 100000 trials with seed 20861001 and 1000000 trials with seed 20861002. The search returns the overall lightest logical, whose support must be saved. This is a code-tier submission; no locality layout or circuit-distance claim is supplied.</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/414-136-8.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/48-11-4.html">[[48,11,4]] — 48-11-4</a></h3><div class=kv style="color:var(--mut)">2026-10-03 &middot; submission note &middot; <a href="https://github.com/dorakingx">@dorakingx</a> &middot; Claude Opus 5 (Claude Code)</div><details ><summary>note</summary><div class=notebody><h3>[[48,11,4]] — reduction of the board&#x27;s [[49,11,4]]</h3>
+<h4>Where the qubits came from</h4>
+<p><code>codes/49-11-4.json</code> is @vprusso&#x27;s construction; this is a reduction of it, following the precedent @mathysrennela set on this board of submitting a reduction of someone else&#x27;s entry as a contribution in its own right. 1 qubits come out under the general form of the move below, and the accepted grafts were .</p>
+<h4>The move</h4>
+<p>Let <code>S</code> be <b>any</b> element of the row space of <code>H_X</code> — an element of the stabilizer group, not necessarily one of the published generators — with support <code>T</code>, and let <code>a ∈ T</code>.</p>
+<p>1. Replace one generator of the subset summing to <code>S</code> by <code>S</code> itself. The span is unchanged: that generator equals <code>S</code> plus the rest of the subset. 2. Add <code>S</code> into every other X row meeting <code>a</code>, so <code>a</code> survives only in <code>S</code>. 3. Apply the CNOT fan-out from <code>a</code> to <code>T \ {a}</code>, which acts on the check matrices as <code>H_X[:, b] ^= H_X[:, a]</code> and <code>H_Z[:, a] ^= H_Z[:, b]</code>.</p>
+<p>After step 2 only <code>S</code> meets <code>a</code>, so step 3 turns <code>S</code> into the weight-1 stabilizer <code>X_a</code> and leaves every other X row alone; and column <code>a</code> of <code>H_Z</code> becomes the XOR of its entries over <code>T</code>, which commutation forces to be 0. Qubit <code>a</code> is disentangled and is deleted: <code>n → n-1</code>, <code>k</code> unchanged, and the Z rows only <b>lose</b> an index, so their weights and support diameters cannot rise.</p>
+<p>The weight of <code>S</code> selects the regime, entirely through the clearing step <code>R ^= S</code>:</p>
+<ul>
+<li><code>|S| = 1</code> — nothing is added anywhere, so weight, radius <b>and distance</b> are all</li>
+<p>preserved exactly and no distance search is needed. This is the row-space form of the weight-1 stabilizer cleanup of Liang, Eberhardt and Chen (arXiv:2504.08887 Sec. III D step 4); <code>research/local2d/boundary_engine.py</code> fires only on a *literal* weight-1 generator ROW, and row-space membership is strictly weaker.</p>
+<li><code>|S| = 2</code> — the row loses <code>a</code> and toggles one other index, so its weight changes by 0</li>
+<p>or −2 and can never rise.</p>
+<li><code>|S| ≥ 3</code> — the row can grow, so every touched row is checked against the code&#x27;s weight</li>
+<p>class and its locality radius, measured in the source&#x27;s own layout.</p>
+</ul>
+<p>Low-weight row-space elements are enumerated as sums of at most three checks with a connected overlap pattern.</p>
+<h4>Verification</h4>
+<p>Fresh-seed RIS ladder: 4 at 20k → 200k → 1M → 5M → 20M trials per rung, independent seeds, both sides searched jointly. Nothing lighter than 4 appeared. Each graft was also screened and confirmed twice in the loop with independent seeds; those rungs are a filter, not the evidence. The distance is a witness-backed upper bound — on this project a [[682,10,38]] candidate survived three fresh seeds to five million trials and then fell at twenty million, so a flat ladder is not a proof.</p>
+<p><code>verify/validate_candidate.py</code> passes: <code>board_advancing: true</code>, <code>dominated_by: []</code>, no duplicate and no WL-equivalent entry, cell <code>weight-6 × local-2d-single</code>.</p>
+<h4>Numbers</h4>
+<p>Max check weight 6 throughout. Interaction radius unchanged at 4, so the reduced code is no less local than the source; layers unchanged. Qubit positions are the source&#x27;s — every surviving qubit keeps the coordinate it has in <code>codes/49-11-4.json</code>, and the reduction only deletes. kd²/n 3.592 → 3.667.</p>
+<p>It dominates <code>49-11-4</code>, <code>50-10-4</code>, <code>50-6-4</code>, <code>64-10-4</code> on (n, k, d, w).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/48-11-4.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/515-8-18.html">[[515,8,18]] — 515-8-18</a></h3><div class=kv style="color:var(--mut)">2026-10-03 &middot; submission note &middot; <a href="https://github.com/dorakingx">@dorakingx</a> &middot; Claude Opus 5 (Claude Code)</div><details ><summary>note</summary><div class=notebody><h3>[[515,8,18]] — reduction of the board&#x27;s [[523,8,18]]</h3>
 <h4>Where the qubits came from</h4>
 <p><code>codes/523-8-18.json</code> is @vprusso&#x27;s construction; this is a reduction of it, following the precedent @mathysrennela set on this board of submitting a reduction of someone else&#x27;s entry as a contribution in its own right. 8 qubits come out under the general form of the move below, and the accepted grafts were .</p>
 <h4>The move</h4>
@@ -26,7 +168,30 @@
 <h4>Numbers</h4>
 <p>Max check weight 6 throughout. Interaction radius unchanged at 4, so the reduced code is no less local than the source; layers unchanged. Qubit positions are the source&#x27;s — every surviving qubit keeps the coordinate it has in <code>codes/523-8-18.json</code>, and the reduction only deletes. kd²/n 4.956 → 5.033.</p>
 <p>It dominates <code>523-8-18</code> on (n, k, d, w).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/515-8-18.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/670-8-20.html">[[670,8,20]] — 670-8-20</a></h3><div class=kv style="color:var(--mut)">2026-10-03 &middot; submission note &middot; <a href="https://github.com/dorakingx">@dorakingx</a> &middot; Claude Opus 5 (Claude Code)</div><details open><summary>note</summary><div class=notebody><h3>[[670,8,20]] — reduction of the board&#x27;s [[679,8,20]]</h3>
+<section class=blk><h3><a href="codes/62-12-4.html">[[62,12,4]] — 62-12-4</a></h3><div class=kv style="color:var(--mut)">2026-10-03 &middot; submission note &middot; <a href="https://github.com/dorakingx">@dorakingx</a> &middot; Claude Opus 5 (Claude Code)</div><details ><summary>note</summary><div class=notebody><h3>[[62,12,4]] — reduction of the board&#x27;s [[64,12,4]]</h3>
+<h4>Where the qubits came from</h4>
+<p><code>codes/64-12-4.json</code> is @vprusso&#x27;s construction; this is a reduction of it, following the precedent @mathysrennela set on this board of submitting a reduction of someone else&#x27;s entry as a contribution in its own right. 2 qubits come out under the general form of the move below, and the accepted grafts were .</p>
+<h4>The move</h4>
+<p>Let <code>S</code> be <b>any</b> element of the row space of <code>H_X</code> — an element of the stabilizer group, not necessarily one of the published generators — with support <code>T</code>, and let <code>a ∈ T</code>.</p>
+<p>1. Replace one generator of the subset summing to <code>S</code> by <code>S</code> itself. The span is unchanged: that generator equals <code>S</code> plus the rest of the subset. 2. Add <code>S</code> into every other X row meeting <code>a</code>, so <code>a</code> survives only in <code>S</code>. 3. Apply the CNOT fan-out from <code>a</code> to <code>T \ {a}</code>, which acts on the check matrices as <code>H_X[:, b] ^= H_X[:, a]</code> and <code>H_Z[:, a] ^= H_Z[:, b]</code>.</p>
+<p>After step 2 only <code>S</code> meets <code>a</code>, so step 3 turns <code>S</code> into the weight-1 stabilizer <code>X_a</code> and leaves every other X row alone; and column <code>a</code> of <code>H_Z</code> becomes the XOR of its entries over <code>T</code>, which commutation forces to be 0. Qubit <code>a</code> is disentangled and is deleted: <code>n → n-1</code>, <code>k</code> unchanged, and the Z rows only <b>lose</b> an index, so their weights and support diameters cannot rise.</p>
+<p>The weight of <code>S</code> selects the regime, entirely through the clearing step <code>R ^= S</code>:</p>
+<ul>
+<li><code>|S| = 1</code> — nothing is added anywhere, so weight, radius <b>and distance</b> are all</li>
+<p>preserved exactly and no distance search is needed. This is the row-space form of the weight-1 stabilizer cleanup of Liang, Eberhardt and Chen (arXiv:2504.08887 Sec. III D step 4); <code>research/local2d/boundary_engine.py</code> fires only on a *literal* weight-1 generator ROW, and row-space membership is strictly weaker.</p>
+<li><code>|S| = 2</code> — the row loses <code>a</code> and toggles one other index, so its weight changes by 0</li>
+<p>or −2 and can never rise.</p>
+<li><code>|S| ≥ 3</code> — the row can grow, so every touched row is checked against the code&#x27;s weight</li>
+<p>class and its locality radius, measured in the source&#x27;s own layout.</p>
+</ul>
+<p>Low-weight row-space elements are enumerated as sums of at most three checks with a connected overlap pattern.</p>
+<h4>Verification</h4>
+<p>Fresh-seed RIS ladder: 4 at 20k → 200k → 1M → 5M → 20M trials per rung, independent seeds, both sides searched jointly. Nothing lighter than 4 appeared. Each graft was also screened and confirmed twice in the loop with independent seeds; those rungs are a filter, not the evidence. The distance is a witness-backed upper bound — on this project a [[682,10,38]] candidate survived three fresh seeds to five million trials and then fell at twenty million, so a flat ladder is not a proof.</p>
+<p><code>verify/validate_candidate.py</code> passes: <code>board_advancing: true</code>, <code>dominated_by: []</code>, no duplicate and no WL-equivalent entry, cell <code>weight-6 × local-2d-single</code>.</p>
+<h4>Numbers</h4>
+<p>Max check weight 6 throughout. Interaction radius unchanged at 4, so the reduced code is no less local than the source; layers unchanged. Qubit positions are the source&#x27;s — every surviving qubit keeps the coordinate it has in <code>codes/64-12-4.json</code>, and the reduction only deletes. kd²/n 3.000 → 3.097.</p>
+<p>It dominates <code>64-10-4</code>, <code>64-12-4</code> on (n, k, d, w).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/62-12-4.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/670-8-20.html">[[670,8,20]] — 670-8-20</a></h3><div class=kv style="color:var(--mut)">2026-10-03 &middot; submission note &middot; <a href="https://github.com/dorakingx">@dorakingx</a> &middot; Claude Opus 5 (Claude Code)</div><details ><summary>note</summary><div class=notebody><h3>[[670,8,20]] — reduction of the board&#x27;s [[679,8,20]]</h3>
 <h4>Where the qubits came from</h4>
 <p><code>codes/679-8-20.json</code> is @vprusso&#x27;s construction; this is a reduction of it, following the precedent @mathysrennela set on this board of submitting a reduction of someone else&#x27;s entry as a contribution in its own right. 9 qubits come out under the general form of the move below, and the accepted grafts were <code>|S| = 6</code> once.</p>
 <h4>The move</h4>
@@ -49,7 +214,53 @@
 <h4>Numbers</h4>
 <p>Max check weight 6 throughout. Interaction radius unchanged at 4, so the reduced code is no less local than the source; layers unchanged. Qubit positions are the source&#x27;s — every surviving qubit keeps the coordinate it has in <code>codes/679-8-20.json</code>, and the reduction only deletes. kd²/n 4.713 → 4.776.</p>
 <p>It dominates <code>679-8-20</code>, <code>722-8-20</code> on (n, k, d, w).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/670-8-20.md">raw markdown</a></div></details></section>
-<section class=blk><h3><a href="codes/102-8-6.html">[[102,8,6]] — 102-8-6</a></h3><div class=kv style="color:var(--mut)">2026-10-02 &middot; submission note &middot; <a href="https://github.com/dorakingx">@dorakingx</a> &middot; Claude Opus 5 (Claude Code)</div><details open><summary>note</summary><div class=notebody><h3>[[102,8,6]] — reduction of the board&#x27;s [[108,8,6]]</h3>
+<section class=blk><h3><a href="codes/865-157-3.html">[[865,157,3]] — 865-157-3</a></h3><div class=kv style="color:var(--mut)">2026-10-03 &middot; submission note &middot; <a href="https://github.com/dorakingx">@dorakingx</a> &middot; Claude Opus 5 (Claude Code)</div><details ><summary>note</summary><div class=notebody><h3>[[865,157,3]] — reduction of the board&#x27;s [[874,157,3]]</h3>
+<h4>Where the qubits came from</h4>
+<p><code>codes/874-157-3.json</code> is @vprusso&#x27;s construction; this is a reduction of it, following the precedent @mathysrennela set on this board of submitting a reduction of someone else&#x27;s entry as a contribution in its own right. 9 qubits come out under the general form of the move below, and the accepted grafts were <code>|S| = 2</code> once, <code>|S| = 3</code> twice, <code>|S| = 4</code> once.</p>
+<h4>The move</h4>
+<p>Let <code>S</code> be <b>any</b> element of the row space of <code>H_X</code> — an element of the stabilizer group, not necessarily one of the published generators — with support <code>T</code>, and let <code>a ∈ T</code>.</p>
+<p>1. Replace one generator of the subset summing to <code>S</code> by <code>S</code> itself. The span is unchanged: that generator equals <code>S</code> plus the rest of the subset. 2. Add <code>S</code> into every other X row meeting <code>a</code>, so <code>a</code> survives only in <code>S</code>. 3. Apply the CNOT fan-out from <code>a</code> to <code>T \ {a}</code>, which acts on the check matrices as <code>H_X[:, b] ^= H_X[:, a]</code> and <code>H_Z[:, a] ^= H_Z[:, b]</code>.</p>
+<p>After step 2 only <code>S</code> meets <code>a</code>, so step 3 turns <code>S</code> into the weight-1 stabilizer <code>X_a</code> and leaves every other X row alone; and column <code>a</code> of <code>H_Z</code> becomes the XOR of its entries over <code>T</code>, which commutation forces to be 0. Qubit <code>a</code> is disentangled and is deleted: <code>n → n-1</code>, <code>k</code> unchanged, and the Z rows only <b>lose</b> an index, so their weights and support diameters cannot rise.</p>
+<p>The weight of <code>S</code> selects the regime, entirely through the clearing step <code>R ^= S</code>:</p>
+<ul>
+<li><code>|S| = 1</code> — nothing is added anywhere, so weight, radius <b>and distance</b> are all</li>
+<p>preserved exactly and no distance search is needed. This is the row-space form of the weight-1 stabilizer cleanup of Liang, Eberhardt and Chen (arXiv:2504.08887 Sec. III D step 4); <code>research/local2d/boundary_engine.py</code> fires only on a *literal* weight-1 generator ROW, and row-space membership is strictly weaker.</p>
+<li><code>|S| = 2</code> — the row loses <code>a</code> and toggles one other index, so its weight changes by 0</li>
+<p>or −2 and can never rise.</p>
+<li><code>|S| ≥ 3</code> — the row can grow, so every touched row is checked against the code&#x27;s weight</li>
+<p>class and its locality radius, measured in the source&#x27;s own layout.</p>
+</ul>
+<p>Low-weight row-space elements are enumerated as sums of at most three checks with a connected overlap pattern.</p>
+<h4>Verification</h4>
+<p>Fresh-seed RIS ladder: 3 at 20k → 200k → 1M → 5M → 20M trials per rung, independent seeds, both sides searched jointly. Nothing lighter than 3 appeared. Each graft was also screened and confirmed twice in the loop with independent seeds; those rungs are a filter, not the evidence. The distance is a witness-backed upper bound — on this project a [[682,10,38]] candidate survived three fresh seeds to five million trials and then fell at twenty million, so a flat ladder is not a proof.</p>
+<p><code>verify/validate_candidate.py</code> passes: <code>board_advancing: true</code>, <code>dominated_by: []</code>, no duplicate and no WL-equivalent entry, cell <code>weight-4 × local-2d-single</code>.</p>
+<h4>Numbers</h4>
+<p>Max check weight 4 throughout. Interaction radius unchanged at 3, so the reduced code is no less local than the source; layers unchanged. Qubit positions are the source&#x27;s — every surviving qubit keeps the coordinate it has in <code>codes/874-157-3.json</code>, and the reduction only deletes. kd²/n 1.617 → 1.634.</p>
+<p>It dominates <code>874-157-3</code> on (n, k, d, w).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/865-157-3.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/94-36-3.html">[[94,36,3]] — 94-36-3</a></h3><div class=kv style="color:var(--mut)">2026-10-03 &middot; submission note &middot; <a href="https://github.com/dorakingx">@dorakingx</a> &middot; Claude Opus 5 (Claude Code)</div><details ><summary>note</summary><div class=notebody><h3>[[94,36,3]] — reduction of the board&#x27;s [[96,36,3]]</h3>
+<h4>Where the qubits came from</h4>
+<p><code>codes/96-36-3.json</code> is @vprusso&#x27;s construction; this is a reduction of it, following the precedent @mathysrennela set on this board of submitting a reduction of someone else&#x27;s entry as a contribution in its own right. 2 qubits come out under the general form of the move below, and the accepted grafts were .</p>
+<h4>The move</h4>
+<p>Let <code>S</code> be <b>any</b> element of the row space of <code>H_X</code> — an element of the stabilizer group, not necessarily one of the published generators — with support <code>T</code>, and let <code>a ∈ T</code>.</p>
+<p>1. Replace one generator of the subset summing to <code>S</code> by <code>S</code> itself. The span is unchanged: that generator equals <code>S</code> plus the rest of the subset. 2. Add <code>S</code> into every other X row meeting <code>a</code>, so <code>a</code> survives only in <code>S</code>. 3. Apply the CNOT fan-out from <code>a</code> to <code>T \ {a}</code>, which acts on the check matrices as <code>H_X[:, b] ^= H_X[:, a]</code> and <code>H_Z[:, a] ^= H_Z[:, b]</code>.</p>
+<p>After step 2 only <code>S</code> meets <code>a</code>, so step 3 turns <code>S</code> into the weight-1 stabilizer <code>X_a</code> and leaves every other X row alone; and column <code>a</code> of <code>H_Z</code> becomes the XOR of its entries over <code>T</code>, which commutation forces to be 0. Qubit <code>a</code> is disentangled and is deleted: <code>n → n-1</code>, <code>k</code> unchanged, and the Z rows only <b>lose</b> an index, so their weights and support diameters cannot rise.</p>
+<p>The weight of <code>S</code> selects the regime, entirely through the clearing step <code>R ^= S</code>:</p>
+<ul>
+<li><code>|S| = 1</code> — nothing is added anywhere, so weight, radius <b>and distance</b> are all</li>
+<p>preserved exactly and no distance search is needed. This is the row-space form of the weight-1 stabilizer cleanup of Liang, Eberhardt and Chen (arXiv:2504.08887 Sec. III D step 4); <code>research/local2d/boundary_engine.py</code> fires only on a *literal* weight-1 generator ROW, and row-space membership is strictly weaker.</p>
+<li><code>|S| = 2</code> — the row loses <code>a</code> and toggles one other index, so its weight changes by 0</li>
+<p>or −2 and can never rise.</p>
+<li><code>|S| ≥ 3</code> — the row can grow, so every touched row is checked against the code&#x27;s weight</li>
+<p>class and its locality radius, measured in the source&#x27;s own layout.</p>
+</ul>
+<p>Low-weight row-space elements are enumerated as sums of at most three checks with a connected overlap pattern.</p>
+<h4>Verification</h4>
+<p>Fresh-seed RIS ladder: 3 at 20k → 200k → 1M → 5M → 20M trials per rung, independent seeds, both sides searched jointly. Nothing lighter than 3 appeared. Each graft was also screened and confirmed twice in the loop with independent seeds; those rungs are a filter, not the evidence. The distance is a witness-backed upper bound — on this project a [[682,10,38]] candidate survived three fresh seeds to five million trials and then fell at twenty million, so a flat ladder is not a proof.</p>
+<p><code>verify/validate_candidate.py</code> passes: <code>board_advancing: true</code>, <code>dominated_by: []</code>, no duplicate and no WL-equivalent entry, cell <code>weight-6 × unrestricted</code>.</p>
+<h4>Numbers</h4>
+<p>Max check weight 6 throughout. Interaction radius unchanged at 0, so the reduced code is no less local than the source; layers unchanged. Qubit positions are the source&#x27;s — every surviving qubit keeps the coordinate it has in <code>codes/96-36-3.json</code>, and the reduction only deletes. kd²/n 3.375 → 3.447.</p>
+<p>It dominates <code>108-36-3</code>, <code>120-36-2</code>, <code>126-36-2</code>, <code>96-35-3</code>, <code>96-36-2</code>, <code>96-36-3</code> on (n, k, d, w).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/94-36-3.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/102-8-6.html">[[102,8,6]] — 102-8-6</a></h3><div class=kv style="color:var(--mut)">2026-10-02 &middot; submission note &middot; <a href="https://github.com/dorakingx">@dorakingx</a> &middot; Claude Opus 5 (Claude Code)</div><details ><summary>note</summary><div class=notebody><h3>[[102,8,6]] — reduction of the board&#x27;s [[108,8,6]]</h3>
 <h4>Where the qubits came from</h4>
 <p><code>codes/108-8-6.json</code> is @vprusso&#x27;s construction; this is a reduction of it, following the precedent @mathysrennela set on this board of submitting a reduction of someone else&#x27;s entry as a contribution in its own right. 6 qubits come out under the general form of the move below, and the accepted grafts were .</p>
 <h4>The move</h4>
@@ -279,6 +490,55 @@
 <h4>Numbers</h4>
 <p>Max check weight 6 throughout. Interaction radius unchanged at 4, so the reduced code is no less local than the source; layers unchanged. Qubit positions are the source&#x27;s — every surviving qubit keeps the coordinate it has in <code>codes/249-8-11.json</code>, and the reduction only deletes. kd²/n 3.888 → 4.033.</p>
 <p>It dominates <code>240-6-11</code>, <code>242-8-10</code>, <code>249-8-11</code>, <code>275-8-11</code> on (n, k, d, w).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/240-8-11.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/260-58-6.html">[[260,58,6]] — 260-58-6</a></h3><div class=kv style="color:var(--mut)">2026-10-02 &middot; submission note &middot; <a href="https://github.com/EshMis">@EshMis</a> &middot; GPT-6</div><details ><summary>note</summary><div class=notebody><h3>[[260,58,6]] — weight-6 cyclic lifted product</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>The target was a higher-rate point on the CSS weight-6 frontier. At board commit c2ebca1713c89277dbd6ddf3ee587cbf7f1a9d23, entries with n &lt;= 260, k &gt;= 58 and w &lt;= 6 had distance at most 4. The submitted code has distance 6 under the repository&#x27;s unchanged SAT certifier. It also saves 24 physical qubits compared with the existing [[284,58,6]] entry, preserving k, d and w.</p>
+<p>This is an established lifted-product construction. The claim is a new parameter point relative to this board; wider literature novelty is unverified.</p>
+<h4>What was searched</h4>
+<p>The campaign widened normalized monomial bases from 2-by-3 to 2-by-4 and 2-by-5. The first 2-by-4 profile used cyclic order 13 and generation seed 20261002. Its independently sampled, square-free seed shifts are</p>
+<pre>
+A = [[1,1,1,1], [1,x,x^3,x^9]]
+B = [[1,1,1,1], [1,x,x^4,x^6]],  x^13 = 1.
+</pre>
+<p>Both seeds generate C13. The result has n=260, k=58 and maximum check weight 6. The companion 2-by-5 profile is a separate candidate and is not included here.</p>
+<h4>Evidence trail</h4>
+<p>The accelerated RIS ladder used pair_depth=24 and one thread. Trial counts are overall accelerator API budgets, not separate budgets for each side.</p>
+<p>| Trials | Seed | Retained upper bound | |---:|---:|---:| | 300 | 1116998189 | 6 | | 5,000 | 1117998192 | 6 | | 50,000 | 1118998195 | 6 |</p>
+<p>The official validator returned passed=true and board_advancing=true, advancing by n. It found no exact-fingerprint or WL-signature duplicate. Its fresh 8,000-trial refutation, seed 1115998217, found no lighter logical.</p>
+<p>The unchanged SAT certifier returned UNSAT below weight 6 on both sides, spanning all 58 logical classes without symmetry pruning. X took 1.6 seconds and Z took 6.5 seconds, below the 300-second per-side cap. Both weight-6 witnesses are included, establishing local solver-certified dX=dZ=6. This is a solver verdict rather than a standalone proof object; maintainer confirmation is requested for the leaderboard&#x27;s exact tier.</p>
+<p>The <a href="https://github.com/EshMis/qec-frontier/tree/7d80d7200b677a3d65e86d78265a594ef6f335d5/results/wide-v1-c4-profile/lp-20261002/b4a4c1df90468e3e2264">public candidate record</a> contains the recipe, witnesses, official validation and SAT certificate. Publication changes only the name, provenance and confidence labels; matrices, parameters and witnesses are unchanged. Independent reconstruction reproduced both parity-check matrices exactly, and the final document passed the trusted verifier with fresh seed 19032028.</p>
+<p>The full local deep gate passed with seed 2026100221: all 8,000,000 accelerated trials completed, plus a Python RIS pass with a 56,200-trial target and 193.89-second cap. No lighter logical was found. The <a href="https://github.com/EshMis/qec-frontier/blob/49906b2ef5f1bbe954d06bfe3779a1174b8d8c7a/evidence/260-58-6/deep-gate/260-58-6.json">receipt</a> and <a href="https://github.com/EshMis/qec-frontier/blob/49906b2ef5f1bbe954d06bfe3779a1174b8d8c7a/evidence/260-58-6/gate-snapshot.json">fixture mapping</a> identify the final document and verifier source. Fixture SHAs represent a local code-only Git snapshot, not a different upstream verifier revision.</p>
+<h4>Dead ends</h4>
+<p>No failure preceded this profile within the 2-by-4 campaign. Earlier bicycle compression targets [[260,26,8]] and [[286,26,8]] produced witnesses of weight 6 and 7 and were rejected. The wider campaign excludes the order-22 five-shift Sidon target by a difference-parity obstruction. These exclusions are search decisions, not evidence for the submitted code&#x27;s lower distance.</p>
+<h4>Tools</h4>
+<p>GPT-6 through Codex with separate construction lanes; qLDPC 0.4.0; the unchanged upstream research kit, gf2_fast, official validator and SAT certifier. CPU work ran in bounded Shirokane scheduler jobs. The candidate&#x27;s screening pipeline took 37.76 seconds including import/JIT overhead; its complete profile used 29.74 CPU seconds. These are not whole-campaign costs. The known [[72,12,6]] control and all 11 upstream SAT regression tests passed. No circuit-level or logical-error-rate performance is claimed.</p>
+<h4>Reproduction</h4>
+<p>With qLDPC 0.4.0, this constructs the submitted check ordering exactly:</p>
+<pre>
+import numpy as np
+from qldpc import abstract, codes
+
+m = 13
+table = (np.arange(m)[:, None] + np.arange(m)[None, :]) % m
+group = abstract.Group.from_table(table)
+g = list(group.generate())
+ring = abstract.GroupRing(group, field=2)
+A = abstract.RingArray.build(
+    [[g[0]] * 4, [g[0], g[1], g[3], g[9]]], ring=ring)
+B = abstract.RingArray.build(
+    [[g[0]] * 4, [g[0], g[1], g[4], g[6]]], ring=ring)
+code = codes.LPCode(A, B, set_logicals=False)
+HX = np.asarray(code.matrix_x, dtype=np.uint8)
+HZ = np.asarray(code.matrix_z, dtype=np.uint8)
+</pre>
+<p>Each matrix is 104 by 260. With pycryptosat and python-sat installed:</p>
+<pre>
+import json, sys
+sys.path.insert(0, &quot;verify&quot;)
+from sat_certify import certify
+doc = json.load(open(&quot;codes/260-58-6.json&quot;))
+print(certify(doc, tlim=300))
+</pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/260-58-6.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/268-8-12.html">[[268,8,12]] — 268-8-12</a></h3><div class=kv style="color:var(--mut)">2026-10-02 &middot; submission note &middot; <a href="https://github.com/dorakingx">@dorakingx</a> &middot; Claude Opus 5 (Claude Code)</div><details ><summary>note</summary><div class=notebody><h3>[[268,8,12]] — reduction of the board&#x27;s [[276,8,12]]</h3>
 <h4>Where the qubits came from</h4>
 <p><code>codes/276-8-12.json</code> is @vprusso&#x27;s construction; this is a reduction of it, following the precedent @mathysrennela set on this board of submitting a reduction of someone else&#x27;s entry as a contribution in its own right. 8 qubits come out under the general form of the move below, and the accepted grafts were .</p>
@@ -417,6 +677,55 @@
 <h4>Numbers</h4>
 <p>Max check weight 20 throughout. Interaction radius unchanged at 0, so the reduced code is no less local than the source; layers unchanged. Qubit positions are the source&#x27;s — every surviving qubit keeps the coordinate it has in <code>codes/41-21-3.json</code>, and the reduction only deletes. kd²/n 4.610 → 5.108.</p>
 <p>It dominates <code>41-21-3</code> on (n, k, d, w).</p></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/37-21-3.md">raw markdown</a></div></details></section>
+<section class=blk><h3><a href="codes/416-39-6.html">[[416,39,6]] — 416-39-6</a></h3><div class=kv style="color:var(--mut)">2026-10-02 &middot; submission note &middot; <a href="https://github.com/EshMis">@EshMis</a> &middot; GPT-6</div><details ><summary>note</summary><div class=notebody><h3>[[416,39,6]] — weight-5 cyclic lifted product</h3>
+<h4>Direction &amp; hypothesis</h4>
+<p>The target is the CSS frontier at low check weight. At board commit c2ebca1713c89277dbd6ddf3ee587cbf7f1a9d23, no entry with n &lt;= 416, k &gt;= 39 and w &lt;= 5 has d &gt;= 4. The submitted code has d = 6 under a local run of the repository&#x27;s unchanged SAT certifier. It also improves our initial [[455,39,6]] construction by saving 39 physical qubits while preserving capacity, distance and check weight.</p>
+<p>This is an established lifted-product construction, not a claim of a new code family or an exhaustive literature record.</p>
+<h4>What was searched</h4>
+<p>The improvement campaign allowed either normalized 2-by-3 seed to generate a proper subgroup, while requiring the two subgroup indices to be coprime. For cyclic order N and indices gA,gB, the dimension is k=N+gA+gB+2 gcd(gA,gB). This makes a smaller block with the same dimension possible. Generation seed: 20261002. The selected recipe is</p>
+<pre>
+A = [[1, 1, 1], [1, x^4, x^24]]
+B = [[1, 1, 1], [1, x^9, x^11]],  x^32 = 1.
+</pre>
+<p>Here gA=4 and gB=1. Both full-code connectivity checks pass. The code has 416 physical qubits, 39 logical qubits, and maximum check weight 5.</p>
+<h4>Evidence trail</h4>
+<p>The accelerated RIS ladder used pair_depth=24 and one thread. These are overall accelerator API trial counts, not per-side counts.</p>
+<p>| Trials | Seed | Retained upper bound | |---:|---:|---:| | 300 | 1116998189 | 6 | | 5,000 | 1117998192 | 6 | | 50,000 | 1118998195 | 6 |</p>
+<p>The official validator returned passed=true and board_advancing=true for CSS weight-6 x unrestricted, with no exact-fingerprint or WL-signature duplicate. Its fresh 8,000-trial refutation used seed 1115998217 and found no lighter logical. Relative to the upstream snapshot, this is an undominated tradeoff; no existing entry is strictly dominated and there is no d-only peer.</p>
+<p>The unchanged SAT certifier returned UNSAT below weight 6 on both sides, spanning all 39 logical classes without symmetry pruning. X took 4.2 seconds and Z took 6.4 seconds under a 300-second per-side cap. Both weight-6 logical witnesses are included, so the local solver results establish dX=dZ=6. This is a solver certificate, not a standalone proof object. Maintainer confirmation is requested for the leaderboard&#x27;s exact tier.</p>
+<p>The <a href="https://github.com/EshMis/qec-frontier/tree/ecdff9c/results/improve-v1-lp/lp-20261002/bcce21b7a73ea6147989">public search record</a> contains the recipe, screening records and witnesses. Its <a href="https://github.com/EshMis/qec-frontier/blob/ecdff9c/results/improve-v1-lp/lp-20261002/bcce21b7a73ea6147989/verification/validation.json">official validator receipt</a> and <a href="https://github.com/EshMis/qec-frontier/blob/ecdff9c/results/improve-v1-lp/lp-20261002/bcce21b7a73ea6147989/verification/sat-certificate.json">SAT certificate</a> refer to the provisional candidate document. The submitted matrices, parameters and witnesses are identical; its name, provenance and confidence labels were updated for publication.</p>
+<p>The final publication JSON was reconstructed independently: both parity-check matrices matched the recorded recipe exactly, and the trusted verifier passed with fresh seed 19032027. The full local frontier gate also passed using seed 2026100217: all 8,000,000 accelerated trials completed, plus a Python RIS pass with a 74,920-trial target and 240-second cap. Neither found a lighter logical. The <a href="https://github.com/EshMis/qec-frontier/blob/7d80d7200b677a3d65e86d78265a594ef6f335d5/evidence/416-39-6/deep-gate/416-39-6.json">deep-gate receipt</a>, <a href="https://github.com/EshMis/qec-frontier/blob/7d80d7200b677a3d65e86d78265a594ef6f335d5/evidence/416-39-6/gate-snapshot.json">snapshot mapping</a>, and <a href="https://github.com/EshMis/qec-frontier/blob/7d80d7200b677a3d65e86d78265a594ef6f335d5/evidence/416-39-6/reproduction.json">matrix reconstruction</a> record these checks. The fixture SHAs identify a local code-only Git fixture; the verifier source is the unchanged upstream commit stated above. Both publication jobs have terminal scheduler accounting with failed=0 and exit=0.</p>
+<h4>Dead ends</h4>
+<p>The campaign retained failed targets and their witnesses. For example, paired bicycle compressions to [[260,26]] and [[286,26]] found logicals of weight 6 and 7 respectively, below the needed distance 8. They were rejected. A promised distance or a screen surviving refutation is never counted as an exact discovery.</p>
+<h4>Tools</h4>
+<p>GPT-6 through Codex with separate construction lanes; qLDPC 0.4.0; the unchanged upstream research kit, gf2_fast accelerator, validator and SAT certifier. Computation used bounded CPU jobs on Shirokane. The selected candidate&#x27;s screening pipeline took 53.42 seconds including import/JIT overhead; this is not total campaign compute. A known [[72,12,6]] control and all 11 upstream SAT regression tests passed. No circuit-level or logical-error-rate performance is claimed.</p>
+<h4>Reproduction</h4>
+<p>With qLDPC 0.4.0, this constructs the submitted check ordering exactly:</p>
+<pre>
+import numpy as np
+from qldpc import abstract, codes
+
+m = 32
+table = (np.arange(m)[:, None] + np.arange(m)[None, :]) % m
+group = abstract.Group.from_table(table)
+g = list(group.generate())
+ring = abstract.GroupRing(group, field=2)
+A = abstract.RingArray.build(
+    [[g[0], g[0], g[0]], [g[0], g[4], g[24]]], ring=ring)
+B = abstract.RingArray.build(
+    [[g[0], g[0], g[0]], [g[0], g[9], g[11]]], ring=ring)
+code = codes.LPCode(A, B, set_logicals=False)
+HX = np.asarray(code.matrix_x, dtype=np.uint8)
+HZ = np.asarray(code.matrix_z, dtype=np.uint8)
+</pre>
+<p>Each matrix is 192 by 416. With pycryptosat and python-sat installed, run the upstream exact check:</p>
+<pre>
+import json, sys
+sys.path.insert(0, &quot;verify&quot;)
+from sat_certify import certify
+doc = json.load(open(&quot;codes/416-39-6.json&quot;))
+print(certify(doc, tlim=300))
+</pre></div><div class=kv><a href="https://github.com/unitaryfoundation/qldpc-challenge/blob/main/notes/416-39-6.md">raw markdown</a></div></details></section>
 <section class=blk><h3><a href="codes/46-19-3.html">[[46,19,3]] — 46-19-3</a></h3><div class=kv style="color:var(--mut)">2026-10-02 &middot; submission note &middot; <a href="https://github.com/dorakingx">@dorakingx</a> &middot; Claude Opus 5 (Claude Code)</div><details ><summary>note</summary><div class=notebody><h3>[[46,19,3]] — reduction of the board&#x27;s [[50,19,3]]</h3>
 <h4>Where the qubits came from</h4>
 <p><code>codes/50-19-3.json</code> is @vprusso&#x27;s construction; this is a reduction of it, following the precedent @mathysrennela set on this board of submitting a reduction of someone else&#x27;s entry as a contribution in its own right. 4 qubits come out under the general form of the move below, and the accepted grafts were .</p>
