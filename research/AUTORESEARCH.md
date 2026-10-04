@@ -169,18 +169,30 @@ wrong family is structurally indistinguishable from a real negative — it just 
 that mean something else. Rebuild one entry you can check and assert it matches:
 
 ```python
+import json
+import numpy as np
 from boundary_engine import build_planar, S_F_TILE4, S_G_TILE4_MAIN
-from css import compute_k
-HX, HZ, _ = build_planar(21, 22, S_F_TILE4, S_G_TILE4_MAIN)
-assert (HX.shape[1], compute_k(HX, HZ)) == (924, 18)   # [[924,18,31]]
+
+HX, HZ, _ = build_planar(21, 22, S_F_TILE4, S_G_TILE4_MAIN)   # [[924,18,31]]
+board = json.load(open("codes/924-18-31.json"))
+built = {tuple(np.nonzero(r)[0].tolist()) for r in np.asarray(HX, dtype=bool)}
+assert built == {tuple(r) for r in board["checks"]["X"]}
 ```
+
+Compare the **check matrices, not `(n, k, w)`**. Those three are the wrong instrument here:
+`n` and `k` are fixed by the lattice and `w` by the bulk weight, so none of them responds to
+half the parameters. At the 21×22 lattice above, swapping the B-support for a wrong one still
+reports `(924, 18, 8)` — while sharing only 38 of the board entry's 475 X check rows. An `assert`
+on `(n, k, w)` passes on the wrong code, which is the failure this step exists to catch.
 
 The construction string of the matching `codes/<n>-<k>-<<d>>.json` names the parameters that
 produced it. Read it before inventing your own — for most families the board entry *is* the
 calibration target, and only a handful of entries record their parameters at all, so this is
 worth doing once and reusing. Prefer the module's named constants (`S_F_TILE4`,
 `S_G_TILE4_MAIN`, …) to literals: the supports **are** the family, and a different pair is a
-different code rather than a variant of this one.
+different code rather than a variant of this one. Name every pair the board records, and scope
+each name to the entries that actually attest it — a support set that is constant across one
+paper's entries is not constant across the function's.
 
 ```python
 from search import screen, pareto_frontier, sample_bb, update_leaderboard
