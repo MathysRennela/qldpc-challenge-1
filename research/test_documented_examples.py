@@ -108,6 +108,10 @@ def doc():
     import coordination
     import submit
 
+    # Save and restore rather than monkeypatch: the fixture is module-scoped and
+    # pytest's monkeypatch is function-scoped, and leaving these replaced would
+    # hand every later test in the process a stubbed staging tree.
+    real_staging_dir, real_save = coordination.staging_dir, submit.save_submission
     coordination.staging_dir = lambda *a, **k: os.path.join(ROOT, "research", "candidates")
     submit.save_submission = lambda doc_, path, **k: path
 
@@ -119,6 +123,8 @@ def doc():
             exec(compile(_documented_snippet(), QUICKSTART, "exec"), ns)  # noqa: S102
     finally:
         os.chdir(cwd)
+        coordination.staging_dir = real_staging_dir
+        submit.save_submission = real_save
     assert "doc" in ns, "the documented snippet no longer builds a submission doc"
     return ns["doc"]
 
