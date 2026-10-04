@@ -29,20 +29,52 @@ def test_every_committed_certificate_declares_a_level():
 
 
 def test_the_board_claims_no_level_it_cannot_evidence():
-    """Today every certificate is a solver verdict. That is the honest state.
+    """Every level the board claims has the evidence that level requires.
 
-    This is not a permanent assertion; it fails the day a stronger one lands,
-    which is the point at which someone should look at whether the artifact
-    really is in the tree.
+    Certificates are solver verdicts and, since #2728, proof_log entries
+    carrying a checked refutation. The tripwire that used to pin the set to
+    solver alone fired when that landed, which is what it was for; what is
+    pinned now is the thing worth pinning, that no entry claims a level
+    whose artifact is missing, and that formal has not appeared without the
+    replay recipe #2511 specifies for it.
     """
     import glob
-    levels = set()
+    levels = {}
     for p in glob.glob(os.path.join(_ROOT, "certs", "*.json")):
         with open(p, encoding="utf-8") as f:
-            levels.add((json.load(f).get("verification") or {}).get("level"))
-    assert levels == {"solver"}, (
-        f"levels present: {sorted(levels)}. If a stronger level landed, check "
-        "its artifact is committed and update this test deliberately.")
+            cert = json.load(f)
+        v = cert.get("verification") or {}
+        levels.setdefault(v.get("level"), []).append((p, v))
+    assert set(levels) <= {"solver", "proof_log", "formal"}, \
+        f"unknown level: {sorted(set(levels))}"
+    for level, rows in levels.items():
+        if level == "solver":
+            continue
+        for path, v in rows:
+            slug = os.path.basename(path)
+            # Evidence is a file in the tree or the recipe that re-derives
+            # the check. proof_log ships the recipe (PR #2754): the
+            # refutations are too large to commit and a committed blob is
+            # not something CI can audit, so the certificate carries the
+            # formula's hash and replay_proofs.py regenerates and re-checks
+            # it on a schedule.
+            if v.get("artifact"):
+                art = os.path.join(_ROOT, v["artifact"])
+                assert os.path.isfile(art), \
+                    f"{slug}: level {level} names an artifact not in the tree"
+                assert os.path.getsize(art) > 0, f"{slug}: empty artifact"
+            else:
+                assert v.get("replay"), \
+                    f"{slug}: level {level} with neither artifact nor replay"
+                if level == "proof_log":
+                    assert v.get("cnf_sha256"), \
+                        f"{slug}: replayed proof_log without cnf_sha256"
+            assert v.get("checker"), f"{slug}: level {level} with no checker"
+    for path, v in levels.get("formal", []):
+        assert v.get("replay") and v.get("checks_sha256"), (
+            f"{os.path.basename(path)}: a formal certificate needs the "
+            "replay recipe and the hash binding it to this code, since the "
+            "proof is a theorem rather than a file")
 
 
 @pytest.mark.parametrize("level", ["proof_log", "formal"])
@@ -107,8 +139,10 @@ def test_an_artifact_outside_the_tree_is_refused(art):
 
 @pytest.mark.parametrize("field", ["artifact", "checker", "reference"])
 def test_solver_level_claims_no_check_it_did_not_run(field):
-    """A checker named on a bare solver verdict asserts a check that is not
-    there, exactly as an artifact would."""
+    """Refuse a checker named on a bare solver verdict.
+
+    It asserts a check that is not there, exactly as an artifact would.
+    """
     c = copy.deepcopy(BASE)
     c["verification"] = {"level": "solver", field: "drat-trim 2024-05"}
     assert C.evidence_problems("x", c)

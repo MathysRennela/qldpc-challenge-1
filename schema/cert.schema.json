@@ -45,29 +45,34 @@
         },
         "artifact": {
           "type": "string",
-          "description": "repo-relative path to the proof object for proof_log or formal; required for those levels"
+          "description": "repo-relative path to the proof object, when a proof_log or formal certificate attaches a file rather than a replay recipe"
         },
         "checker": {
           "type": "string",
           "description": "the tool and version that checked the artifact, e.g. 'drat-trim 2024-05' or 'Lean 4.x + mathlib'"
         },
+        "replay": {
+          "type": "object",
+          "description": "How a third party re-derives this check without trusting us, when there is no file worth attaching. For proof_log it is the command that regenerates the formula from this entry and the command that re-checks the refutation: the trimmed cores run to hundreds of megabytes, and a committed blob nobody opens is not better evidence than a command anyone can run; CI re-derives and re-checks on a schedule, so the claim is audited rather than asserted. For formal it is the development, commit, and theorem that a third party builds to reach the same statement, since a formal certificate is a theorem in a proof development rather than a file. The shape each level requires is stated under allOf.",
+          "properties": {
+            "emit": { "type": "string", "description": "proof_log: the command that regenerates the formula from codes/<slug>.json" },
+            "check": { "type": "string", "description": "proof_log: the command that re-checks the refutation" },
+            "emitter": { "type": "string", "description": "proof_log: which encoder produced it, including the parameters that change the formula" },
+            "repo": { "type": "string", "description": "formal: the formal development, e.g. github.com/VerifiedQC/Lean-QEC" },
+            "commit": { "type": "string", "description": "formal: the exact commit the theorem was checked at" },
+            "theorem": { "type": "string", "description": "formal: the theorem name, e.g. BB72_dist_6" },
+            "build": { "type": "string", "description": "formal: the command that reproduces the check, e.g. 'lake exe cache get && lake build'" },
+            "toolchain": { "type": "string", "description": "formal: the toolchain, e.g. leanprover/lean4:v4.30.0-rc2" },
+            "mathlib": { "type": "string", "description": "formal: the mathlib revision the development pins" }
+          }
+        },
+        "cnf_sha256": {
+          "type": "string",
+          "description": "for proof_log: sha256 of the formula the artifact refutes, one per side joined as 'X=<hash>;Z=<hash>'. A refutation is of a specific instance, and without the instance's hash a reader cannot tell which formula the proof belongs to, so a re-emission that changed the encoding would be indistinguishable from the one that was checked. The formula itself is reproducible from the code JSON and is not stored."
+        },
         "reference": {
           "type": "string",
           "description": "for formal: the formalization the proof was produced against, e.g. 'arXiv:2605.16523'"
-        },
-        "replay": {
-          "type": "object",
-          "description": "for formal: how a third party reaches the same theorem. A formal certificate is a theorem in a proof development rather than a file, so what the certificate carries is a recipe precise enough to re-derive it. The transportable object such a development does emit, a SAT query and its refutation, is proof_log: it confirms the formula is unsatisfiable and says nothing about whether the formula asks the distance question, which is the distinction level already draws.",
-          "additionalProperties": false,
-          "required": ["repo", "commit", "theorem"],
-          "properties": {
-            "repo": { "type": "string", "description": "the formal development, e.g. github.com/VerifiedQC/Lean-QEC" },
-            "commit": { "type": "string", "description": "the exact commit the theorem was checked at" },
-            "theorem": { "type": "string", "description": "the theorem name, e.g. BB72_dist_6" },
-            "build": { "type": "string", "description": "the command that reproduces the check, e.g. 'lake exe cache get && lake build'" },
-            "toolchain": { "type": "string", "description": "the toolchain, e.g. leanprover/lean4:v4.30.0-rc2" },
-            "mathlib": { "type": "string", "description": "the mathlib revision the development pins" }
-          }
         },
         "checks_sha256": {
           "type": "string",
@@ -78,7 +83,39 @@
       "allOf": [
         {
           "if": { "properties": { "level": { "enum": ["proof_log", "formal"] } } },
-          "then": { "required": ["level", "artifact", "checker"] }
+          "then": {
+            "required": ["level", "checker"],
+            "anyOf": [
+              { "required": ["artifact"] },
+              { "required": ["replay"] }
+            ],
+            "description": "A stronger level needs evidence a third party can act on: a file in the tree, or the recipe that re-derives the check. For proof_log the recipe is the better artifact, since the trimmed refutations run to hundreds of megabytes and a committed blob nobody opens is not evidence. For formal there is no file to attach at all, because the proof is a theorem in a development."
+          }
+        },
+        {
+          "if": { "required": ["level"], "properties": { "level": { "const": "proof_log" } } },
+          "then": {
+            "properties": {
+              "replay": {
+                "required": ["emit", "check"],
+                "additionalProperties": false,
+                "properties": { "emit": {}, "check": {}, "emitter": {} }
+              }
+            }
+          }
+        },
+        {
+          "if": { "required": ["level"], "properties": { "level": { "const": "formal" } } },
+          "then": {
+            "required": ["replay", "checks_sha256"],
+            "properties": {
+              "replay": {
+                "required": ["repo", "commit", "theorem"],
+                "additionalProperties": false,
+                "properties": { "repo": {}, "commit": {}, "theorem": {}, "build": {}, "toolchain": {}, "mathlib": {} }
+              }
+            }
+          }
         }
       ]
     }
