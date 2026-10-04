@@ -1,6 +1,6 @@
 {
-  "verified_codes": 1839,
-  "css_codes": 1702,
+  "verified_codes": 1849,
+  "css_codes": 1712,
   "stabilizer_codes": 137,
   "certified_exact": 624,
   "tracks": 12,
@@ -8,9 +8,9 @@
   "best_geometric_efficiency": 1.6832,
   "provenance": {
     "no_match": 852,
-    "literature": 449,
     "parameters_only": 254,
-    "not_derived": 147,
+    "not_derived": 157,
+    "literature": 449,
     "method": "isomorphism against the literature index",
     "caveat": "no_match means the index holds no match, not that the code is unpublished: two sparse generating sets of one stabilizer group can have non-isomorphic Tanner graphs"
   },
