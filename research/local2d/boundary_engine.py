@@ -79,6 +79,43 @@ from surrogate import distance_rand  # noqa: E402
 
 
 # =====================================================================
+#  Published (S_f, S_g) pairs for the board's open-boundary planar family
+# =====================================================================
+#
+# build_planar() takes the two supports as bare arguments, and they ARE the
+# family: a different pair is a different code, not a variant of this one.
+# Nothing in the signature said so, and the canonical pair was recoverable
+# only by reading a board entry's free-text provenance, so a sweep could
+# silently measure a different construction and still report well-formed
+# numbers. Hence these names.
+#
+# The A-support below is CONSTANT across every board entry that records its
+# supports; the B-support takes two values. Each reproduces the (n, k) of the
+# entries listed, which is the check to run before trusting a new sweep:
+#
+#   >>> HX, HZ, _ = build_planar(21, 22, S_F_TILE4, S_G_TILE4_MAIN)
+#   >>> HX.shape[1], compute_k(HX, HZ) == (924, 18)   # [[924,18,31]]
+#
+# Source: codes/800-18-27.json, codes/882-18-29.json, codes/924-18-31.json
+# (construction strings naming "A-support f=" and "B-support g="), which
+# credit the published B=4 tile of arXiv:2504.09171 with two support swaps.
+# Only 5 of the board's entries record their supports at all, so treat these
+# as the names for that family rather than a complete enumeration of it.
+
+#: Weight-4 A-support shared by every board entry in this family.
+S_F_TILE4 = ((0, 0), (0, 3), (2, 2), (3, 0))
+
+#: The dominant B-support (4 of the 5 entries recording supports).
+S_G_TILE4_MAIN = ((0, 2), (1, 3), (2, 0), (3, 3))
+
+#: The other recorded B-support; same (n, k) at a matched lattice.
+S_G_TILE4_ALT = ((0, 1), (1, 1), (2, 0), (3, 3))
+
+#: Every (S_f, S_g) pair the board records for this family.
+PUBLISHED_TILE4 = ((S_F_TILE4, S_G_TILE4_MAIN), (S_F_TILE4, S_G_TILE4_ALT))
+
+
+# =====================================================================
 #  F2[t] polynomial arithmetic (coefficients as Python int bitmasks)
 # =====================================================================
 
@@ -374,9 +411,23 @@ def build_planar(Lx, Ly, S_f, S_g, w=None, corner_pad=2, cleanup=True,
                  max_promotions=200, verbose=False):
     """Full boundary-engine construction of the open-boundary planar code.
 
+    ``S_f`` and ``S_g`` are the family: they fix (n, k, w) and the distance,
+    and a different pair is a DIFFERENT code rather than a variant of this one.
+    Use the named pairs above (``S_F_TILE4``, ``S_G_TILE4_MAIN``) instead of
+    inventing supports. Before sweeping, confirm the generator reproduces a
+    board entry you can check -- build the lattice of, say,
+    ``codes/924-18-31.json`` and assert ``(n, k) == (924, 18)``. A generator
+    pointed at the wrong supports still returns plausible n, k and w, so only
+    that comparison catches it.
+
     Returns (HX, HZ, info). After cleanup, n = HX.shape[1] may be smaller
     than 2*Lx*Ly (qubit-removal layouts); info records counts and the kept
     qubit indices (into the original 2*Lx*Ly numbering)."""
+    # Accept any sequence of pairs, so this module's named constants -- which
+    # are tuples, and so cannot be mutated by a caller -- can be passed in
+    # directly instead of being copied into a list at every call site.
+    S_f = [tuple(p) for p in S_f]
+    S_g = [tuple(p) for p in S_g]
     S_fbar = [(-p, -q) for (p, q) in S_f]
     S_gbar = [(-p, -q) for (p, q) in S_g]
     n2 = Lx * Ly
