@@ -79,6 +79,81 @@ from surrogate import distance_rand  # noqa: E402
 
 
 # =====================================================================
+#  Recorded (S_f, S_g) pairs for the board's open-boundary planar family
+# =====================================================================
+#
+# build_planar() takes the two supports as bare arguments, and they ARE the
+# family: a different pair is a different code, not a variant of this one.
+# Nothing in the signature said so, and the canonical pair was recoverable
+# only by reading a board entry's free-text provenance, so a sweep could
+# silently measure a different construction and still report well-formed
+# numbers. Hence these names.
+#
+# SCOPE: build_planar() has produced 15 board entries, and their construction
+# strings record THREE distinct (S_f, S_g) pairs. The A-support is NOT
+# constant across them, so a single "the family's supports" is wrong:
+#
+#   arXiv:2504.09171 B=4 tile -- S_F_TILE4 / S_G_TILE4_MAIN
+#     800-18-27 (20x20), 882-18-29 (21x21), 924-18-31 (21x22), 968-18-31 (22x22)
+#   arXiv:2504.08887, square lattices -- S_F_08887 / S_G_08887
+#     288-9-6 (12x12), 450-12-6 (15x15)
+#   the "weight-8 tile" pair, non-square lattices -- S_F_W8 / S_G_W8
+#     183-12-10 (7x17), 242-12-12 (8x19), 401-12-18 (10x24)
+#
+# Those are nine of the fifteen; the other six build_planar entries record no
+# parameters at all and so attest nothing. The 08887 and W8 pairs are named
+# here because they are the ones a reader is most likely to sweep by mistake:
+# same function, same weight-4 or weight-8 bulk, and both reachable at a
+# lattice that yields a perfectly well-formed code that is not the entry you
+# meant. Note the papers differ -- the tile credits 2504.09171, the other two
+# 2504.08887 -- which is what makes them different pairs rather than variants
+# of this one.
+#
+# Each pair below reproduces every entry listed for it exactly, check matrices
+# included; see the calibration note in build_planar's docstring for the check
+# that establishes it and for why (n, k, w) cannot.
+
+#: A-support of the arXiv:2504.09171 B=4 tile, as recorded by 800-18-27,
+#: 882-18-29, 924-18-31 and 968-18-31.
+S_F_TILE4 = ((0, 0), (0, 3), (2, 2), (3, 0))
+
+#: Its matching B-support; the same one value in all four of those entries.
+S_G_TILE4_MAIN = ((0, 2), (1, 3), (2, 0), (3, 3))
+
+#: A-support of the arXiv:2504.08887 pair (codes/288-9-6, 450-12-6). Same
+#: function and same weight-4 bulk as the tile, different paper and different
+#: supports, so a sweep that pairs it with S_G_TILE4_MAIN measures neither code.
+S_F_08887 = ((0, 0), (0, 1), (1, 0), (2, 1))
+
+#: Its matching B-support.
+S_G_08887 = ((0, 0), (1, 1), (2, 0), (2, 1))
+
+#: A-support of the pair codes/183-12-10, 242-12-12 and 401-12-18 record as the
+#: "weight-8 tile" family. Distinct from both pairs above despite the shared
+#: weight, and reached only on non-square lattices.
+S_F_W8 = ((0, 0), (1, 0), (2, 3), (2, -2))
+
+#: Its matching B-support.
+S_G_W8 = ((0, 0), (0, 1), (-1, -1), (-1, 3))
+
+#: Every (S_f, S_g) pair the board records for this family, as of the entries
+#: listed above. Each is verified against its own entries, not interchangeable
+#: with another: mixing two of these pairs builds a code that is on no board.
+RECORDED_PAIRS = ((S_F_TILE4, S_G_TILE4_MAIN),
+                  (S_F_08887, S_G_08887),
+                  (S_F_W8, S_G_W8))
+
+# CALIBRATE ON THE CHECK MATRICES, NOT ON (n, k). At a 21x22 lattice the
+# triple (n, k, w) comes out (924, 18, 8) for S_G_TILE4_MAIN and for a wrong
+# B-support alike: n and k are fixed by the lattice and w by the bulk weight,
+# so none of them can see S_g at all. Only the rows can. The tile pair shares
+# 475 of 475 X rows with codes/924-18-31; substituting the B-support
+# ((0,0),(1,1),(2,2),(3,3)) leaves (n, k, w) untouched and drops that to 19 of
+# 475. An assert on (n, k, w) therefore passes on the wrong code, which is the
+# exact failure this note exists to catch.
+
+
+# =====================================================================
 #  F2[t] polynomial arithmetic (coefficients as Python int bitmasks)
 # =====================================================================
 
@@ -374,9 +449,32 @@ def build_planar(Lx, Ly, S_f, S_g, w=None, corner_pad=2, cleanup=True,
                  max_promotions=200, verbose=False):
     """Full boundary-engine construction of the open-boundary planar code.
 
-    Returns (HX, HZ, info). After cleanup, n = HX.shape[1] may be smaller
-    than 2*Lx*Ly (qubit-removal layouts); info records counts and the kept
-    qubit indices (into the original 2*Lx*Ly numbering)."""
+    ``S_f`` and ``S_g`` are the family: they fix the code, and a different pair
+    is a DIFFERENT code rather than a variant of this one. Use the named pairs
+    above -- one of ``RECORDED_PAIRS``, or the ``S_F_TILE4``/``S_G_TILE4_MAIN``,
+    ``S_F_08887``/``S_G_08887``, ``S_F_W8``/``S_G_W8`` spellings -- instead of
+    inventing supports.
+
+    Before sweeping, confirm the generator reproduces a board entry -- and
+    compare the CHECK MATRICES, not ``(n, k, w)``, because those three cannot
+    see ``S_g``: at 21x22 a wrong B-support still reports ``(924, 18, 8)``::
+
+        >>> import json, numpy as np
+        >>> HX, HZ, _ = build_planar(21, 22, S_F_TILE4, S_G_TILE4_MAIN)
+        >>> board = json.load(open("codes/924-18-31.json"))
+        >>> built = {tuple(np.nonzero(r)[0].tolist()) for r in np.asarray(HX, bool)}
+        >>> assert built == {tuple(r) for r in board["checks"]["X"]}
+
+    Each pair in ``RECORDED_PAIRS`` reproduces every entry listed beside it this
+    way, X and Z check matrices both. Returns (HX, HZ, info). After cleanup,
+    n = HX.shape[1] may be smaller than 2*Lx*Ly (qubit-removal layouts); info
+    records counts and the kept qubit indices (into the original 2*Lx*Ly
+    numbering)."""
+    # Accept any sequence of pairs, so this module's named constants -- which
+    # are tuples, and so cannot be mutated by a caller -- can be passed in
+    # directly instead of being copied into a list at every call site.
+    S_f = [tuple(p) for p in S_f]
+    S_g = [tuple(p) for p in S_g]
     S_fbar = [(-p, -q) for (p, q) in S_f]
     S_gbar = [(-p, -q) for (p, q) in S_g]
     n2 = Lx * Ly

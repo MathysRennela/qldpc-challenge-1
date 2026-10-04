@@ -166,6 +166,37 @@ Building one code is step one; *discovering* a good one means sweeping a family.
 a generic funnel: generate candidates → screen each cheaply → rank by efficiency and Pareto
 frontier.
 
+**Calibrate the generator against a known board entry before you sweep it.** A generator
+pointed at the wrong parameters still returns well-formed `n`, `k` and `w`, so a sweep of the
+wrong family is structurally indistinguishable from a real negative — it just reports numbers
+that mean something else. Rebuild one entry you can check and assert it matches:
+
+```python
+import json
+import numpy as np
+from boundary_engine import build_planar, S_F_TILE4, S_G_TILE4_MAIN
+
+HX, HZ, _ = build_planar(21, 22, S_F_TILE4, S_G_TILE4_MAIN)   # [[924,18,31]]
+board = json.load(open("codes/924-18-31.json"))
+built = {tuple(np.nonzero(r)[0].tolist()) for r in np.asarray(HX, dtype=bool)}
+assert built == {tuple(r) for r in board["checks"]["X"]}
+```
+
+Compare the **check matrices, not `(n, k, w)`**. Those three are the wrong instrument here:
+`n` and `k` are fixed by the lattice and `w` by the bulk weight, so none of them responds to
+half the parameters. At the 21×22 lattice above, swapping the B-support for a wrong one still
+reports `(924, 18, 8)` — while sharing only 38 of the board entry's 475 X check rows. An `assert`
+on `(n, k, w)` passes on the wrong code, which is the failure this step exists to catch.
+
+The construction string of the matching `codes/<n>-<k>-<<d>>.json` names the parameters that
+produced it. Read it before inventing your own — for most families the board entry *is* the
+calibration target, and only a handful of entries record their parameters at all, so this is
+worth doing once and reusing. Prefer the module's named constants (`S_F_TILE4`,
+`S_G_TILE4_MAIN`, …) to literals: the supports **are** the family, and a different pair is a
+different code rather than a variant of this one. Name every pair the board records, and scope
+each name to the entries that actually attest it — a support set that is constant across one
+paper's entries is not constant across the function's.
+
 ```python
 from search import screen, pareto_frontier, sample_bb, update_leaderboard
 records = screen(sample_bb(400, seed=7), min_k=4, min_d=4, trials=250)
@@ -207,7 +238,7 @@ brief = rung_brief(n, k, rungs=[(20_000, 22), (100_000, 20)],
 # make the jev_decide call from brief["jev_request"] (the agent harness does
 # this; the kit itself stays offline), then enforce it:
 decision = apply_verdict(brief, verdict)
-append_journal(decision, brief, path="research/candidates/escalation.jsonl")
+append_journal(decision, brief, path=os.path.join(staging_dir(), "escalation.jsonl"))
 ```
 
 - `rung_brief` computes the facts deterministically from the ladder (best
@@ -252,7 +283,7 @@ Stage the result under this session's own directory rather than a shared flat na
 
 ```python
 from coordination import staging_dir, unique_path
-out = staging_dir()                            # research/candidates/<run_id>/
+out = staging_dir()                            # this run's own staging directory
 save_submission(doc, unique_path(f"{out}/{n}-{k}-{d}.json", doc))
 ```
 
@@ -289,7 +320,7 @@ they are recomputed on every call and `reused: True` does not mean `board_advanc
 entry is served only while the validator source is unchanged, a refutation once found is never
 downgraded by a later run that missed it, and the reuse is subtractive: it can turn a pass into a
 failure and never the other way around. The cache lives in the gitignored
-`research/candidates/.verdicts/`. Nothing in it is evidence, and deleting it costs compute rather
+the staging directory's `.verdicts/` folder. Nothing in it is evidence, and deleting it costs compute rather
 than correctness.
 
 ## 5b. A win only on d: audit the peer before you package
@@ -317,7 +348,7 @@ So measure both numbers at one budget before spending anything on packaging:
 
 ```bash
 uv run --frozen python research/audits/leader_audit.py pair \
-    research/candidates/<n>-<k>-<d>.json --trials 2000000 --seeds 51 52 \
+    "$STAGING"/<n>-<k>-<d>.json --trials 2000000 --seeds 51 52 \
     --pair-depth 64 --witness-dir <dir-for-witnesses>
 ```
 
@@ -403,7 +434,7 @@ should not have to re-learn.
     run's **manifest**, not in a drafted note. One note per staged candidate is the
     largest generative step in the loop and most of those candidates are never
     promoted, so the notes are written and never read. Worse, a note drafted against
-    a staging path cannot cite its own evidence: `research/candidates/` is gitignored
+    a staging path cannot cite its own evidence: the staging tree is gitignored
     and `verify/check_prose.py` rejects it. The manifest carries the snapshot,
     resolved parameters, seeds, screening counts, dead ends and survivor verdicts,
     so nothing is lost by deferring the prose. `kit/promote.py` renders the note, the
@@ -417,7 +448,7 @@ should not have to re-learn.
   in a drafted `fieldnotes/` entry in either mode. Record the ladder as rungs rather
   than as prose.
 - Write each surviving candidate's **submission JSON + its full validator verdict** to a staging
-  folder (`coordination.staging_dir()` gives this run its own one under `research/candidates/`),
+  folder (`coordination.staging_dir()` gives this run its own one under the staging root),
   and print a short ranked summary:
   `[[n,k,d]]`, cell, efficiency `kd²/n`, board-advancing?, and the honest labels.
 - **Persist any new constructor code you wrote** and a brief decision journal, so the run is
