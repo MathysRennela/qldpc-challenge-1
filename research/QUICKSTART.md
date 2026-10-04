@@ -42,6 +42,8 @@ from coordination import staging_dir
 from surrogate import distance_rand
 from submit import make_submission, save_submission
 
+# gate: duplicate -- the board already holds this code. Keep in step with the
+# paragraph below; research/test_documented_examples.py fails if the two disagree.
 HX, HZ = build_bb(6, 6, [(3, 0), (0, 1), (0, 2)], [(0, 3), (1, 0), (2, 0)])
 d = distance_rand(HX, HZ, trials=600)        # an upper bound, never a proof
 doc = make_submission(HX, HZ, name=f"[[72,12,{d}]] my BB code",
