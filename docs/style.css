@@ -388,6 +388,7 @@ margin:2px 4px 2px 0;border-radius:999px;background:var(--soft);color:var(--mut)
 border:1px solid var(--ln);white-space:normal}
 .tchip.loc{background:#eef2ff;color:#3730a3;border-color:#c7d2fe}
 .tchip.mod{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}
+.tchip.relabel{background:#fff7ed;color:#9a3412;border-color:#fdba74}
 .tchip.stab{background:#fdf4ff;color:#86198f;border-color:#f0abfc;
 vertical-align:middle;font-family:'Manrope',sans-serif}
 .xboard{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;
