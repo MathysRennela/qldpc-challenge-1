@@ -56,11 +56,19 @@ print(path)
 ```
 
 ```bash
-uv run python verify/validate_candidate.py <the path it printed>
+uv run --extra research python research/kit/coordination.py gate <the path it printed>
 ```
 
 Exit 0 and `passed: true`, or it is not a find. The gate is the expensive step,
 so screen widely and spend it only on survivors.
+
+That command runs `verify/validate_candidate.py` unchanged and writes the
+verdict it returned to `<the path>.verdict.json`, beside the candidate.
+Running the gate script directly prints the same verdict and writes nothing,
+so the evidence for a find lives in a scrollback and is gone with the
+session; the witness in the candidate file is only half of what a reviewer
+needs. In code, `coordination.gate_and_record(path)` does the same and
+returns the verdict.
 
 **The example above will not pass, and that is the point.** `[[72,12,6]]` landed
 on the board long ago, so the gate exits 1 with `passed: false` and
@@ -101,9 +109,9 @@ the member was screened and discarded before the gate.
 
 Three prerequisites, all real. The ledger validates against a JSON schema, so
 it needs the `research` extra — run it as
-`uv run --extra research python your_script.py`, not the bare `uv run python`
-used above. It needs a `campaign.json`, and there is no scaffold for one yet,
-so copy the smallest complete example —
+`uv run --extra research python your_script.py`, not a bare `uv run python`.
+It needs a `campaign.json`; `campaign.scaffold_campaign` builds one, or copy
+the smallest complete example —
 `research/campaigns/smoke-bb-72/run.py` — or
 [`campaigns/README.md`](campaigns/README.md), which documents the whole
 contract. And a `summary.json` is what makes the run visible to the next
