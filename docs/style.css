@@ -372,6 +372,19 @@ font-variant-numeric:tabular-nums}
 padding:3px 6px;border-radius:5px;background:#ecfdf5;color:#065f46;
 border:1px solid #a7f3d0;vertical-align:2px;white-space:nowrap}
 .lerv{font-variant-numeric:tabular-nums;font-weight:600;min-width:5.5em}
+.lercurve{display:block;max-width:100%;height:auto;margin:6px 0 2px}
+.lercurve .grid{stroke:var(--line,#ddd);stroke-width:1}
+.lercurve .tick{font-size:10px;fill:var(--mut)}
+.lercurve polyline{fill:none;stroke-width:1.5}
+.lercurve .lx{stroke:#1f77b4} .lercurve .lz{stroke:#d62728}
+.lercurve circle.lx{fill:#1f77b4} .lercurve circle.lz{fill:#d62728}
+.lercurve circle.st-pending,.lercurve circle.st-unverifiable{fill:#fff}
+.lercurve circle.st-failed{fill:#000}
+table.lerpts{border-collapse:collapse;font-size:12px;margin:4px 0 8px}
+table.lerpts th,table.lerpts td{padding:2px 8px;border-bottom:1px solid var(--line,#ddd);text-align:left}
+table.lerpts td.num{font-variant-numeric:tabular-nums}
+table.lerpts tr.st-pending td,table.lerpts tr.st-unverifiable td{color:var(--mut)}
+table.lerpts tr.st-failed td{color:#b00}
 .novelty{display:inline-block;margin-left:7px;font-size:10px;line-height:1;
 padding:3px 6px;border-radius:5px;background:#fef3c7;color:#92400e;
 border:1px solid #fde68a;vertical-align:2px;white-space:nowrap}
