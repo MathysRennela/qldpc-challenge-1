@@ -31,7 +31,10 @@ arrays or scipy sparse). The tool:
   two-block schedule for bicycle-type codes, a layout zigzag for surface
   patches, a generic sequential schedule otherwise), searches their detector
   error models for `d_circ` witnesses, and runs `verify/circuit_verify.py`
-  on them; a code the generator cannot schedule within the tier's caps is
+  on them; a code the generator cannot schedule within the tier's caps
+  (n <= 200, 135,000 error mechanisms per memory DEM at `rounds >= d`, 12 MB
+  per circuit file; the caps and the decision behind them are explained at
+  `MAX_CIRCUIT_N` and `MAX_DEM_MECHANISMS` in `verify/circuit_verify.py`) is
   submitted without circuits and the reason is printed (for an entry already
   on the board, `research/circuit_backfill.py <slug>` runs the same path and
   commits the tier with its own `contributed_by`); and
